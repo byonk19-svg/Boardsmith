@@ -3,7 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Woodcut Wizard",
+  title: "Boardsmith",
   description: "Private MVP for validated woodworking project plans.",
 };
 
@@ -21,7 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <header className="no-print border-b border-sawdust bg-shop/95">
           <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
             <Link href="/" className="text-xl font-semibold tracking-tight text-ink">
-              Woodcut Wizard
+              Boardsmith
             </Link>
             <nav className="flex flex-wrap gap-2 text-sm">
               {navItems.map((item) => (

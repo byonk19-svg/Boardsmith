@@ -16,7 +16,7 @@
 The MVP uses a repository layer:
 
 - Supabase when `NEXT_PUBLIC_SUPABASE_URL` plus a server key are configured.
-- Local private JSON storage in `.data/woodcut-wizard.json` otherwise.
+- Local private JSON storage in `.data/boardsmith.json` otherwise.
 
 This keeps the app usable before auth and hosted database setup while preserving the final table shape.
 

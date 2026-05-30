@@ -1,4 +1,4 @@
-# Woodcut Wizard PRD
+# Boardsmith PRD
 
 ## Goal
 

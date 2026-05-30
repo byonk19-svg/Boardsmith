@@ -5,7 +5,7 @@ PRIMARY OBJECTIVE:
 Complete the entire feature or task, not just a safe subset. Work in verified slices, continue to the next highest-impact gap after green checks, and stop only when the requested end state is genuinely complete.
 
 PROJECT CONTEXT:
-Woodcut Wizard is a private MVP scheduling-free woodworking planning app. It uses deterministic templates and schema-validated AI output to produce safe, reviewable woodworking and craft project plans.
+Boardsmith is a private MVP scheduling-free woodworking planning app. It uses deterministic templates and schema-validated AI output to produce safe, reviewable woodworking and craft project plans.
 
 RULES:
 - Use TypeScript throughout.

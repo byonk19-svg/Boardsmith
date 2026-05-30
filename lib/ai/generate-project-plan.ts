@@ -44,7 +44,7 @@ export async function generateStructuredProjectPlan(project: Project): Promise<G
   const response = await client.responses.create({
     model: modelName,
     instructions:
-      "You are Woodcut Wizard, a cautious woodworking planning assistant. Return only structured JSON that matches the schema. Keep all dimensions bounded by the submitted project, add review flags when safety is uncertain, and never guarantee load-bearing safety.",
+      "You are Boardsmith, a cautious woodworking planning assistant. Return only structured JSON that matches the schema. Keep all dimensions bounded by the submitted project, add review flags when safety is uncertain, and never guarantee load-bearing safety.",
     input: buildPrompt(project),
     text: {
       format: {

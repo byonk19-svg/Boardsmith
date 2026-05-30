@@ -1,6 +1,6 @@
-# Woodcut Wizard
+# Boardsmith
 
-Woodcut Wizard is a private MVP web app for generating detailed, reviewable woodworking and craft project plans. Users enter project details, the app applies deterministic safety and template context, then OpenAI returns structured JSON that is validated before it can be saved.
+Boardsmith is a private MVP web app for generating detailed, reviewable woodworking and craft project plans. Users enter project details, the app applies deterministic safety and template context, then OpenAI returns structured JSON that is validated before it can be saved.
 
 ## Current MVP Capabilities
 
@@ -31,7 +31,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Add `OPENAI_API_KEY` to `.env.local` before using plan generation. If Supabase variables are not configured, the private MVP stores data in `.data/woodcut-wizard.json`.
+Add `OPENAI_API_KEY` to `.env.local` before using plan generation. If Supabase variables are not configured, the private MVP stores data in `.data/boardsmith.json`.
 
 ## Verification
 

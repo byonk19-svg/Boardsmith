@@ -10,7 +10,7 @@ type StoreShape = {
   plans: GeneratedProjectPlanRecord[];
 };
 
-const dataFile = path.join(process.cwd(), ".data", "woodcut-wizard.json");
+const dataFile = path.join(process.cwd(), ".data", "boardsmith.json");
 
 let writeQueue: Promise<unknown> = Promise.resolve();
 
