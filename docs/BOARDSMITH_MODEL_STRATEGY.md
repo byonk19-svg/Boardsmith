@@ -166,6 +166,8 @@ Decide how BBM should be stored without breaking existing plan history. Prefer b
 
 Add BBM-aware AI prompting, deterministic plan quality checks, material summaries, improved cut lists, and export readiness. Do not skip directly to SVG, CAD, DXF, CNC, image upload, public sharing, marketplace, subscriptions, or payments.
 
+The first 14E slice passes the deterministic BBM into the AI prompt and rejects schema-valid generated plans before saving when they conflict with BBM basics: project type, confirmed dimensions, deterministic review flags, wall-mount cautions, cut-list material references, or unverifiable safety/load guarantees.
+
 ## UI Copy Rules
 
 Use plain language:

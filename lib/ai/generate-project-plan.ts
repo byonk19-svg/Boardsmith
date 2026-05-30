@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
+import { assertGeneratedPlanQuality } from "@/lib/plans/plan-quality";
 import { generatedPlanJsonSchema, generatedPlanSchema, type GeneratedPlan } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
@@ -9,7 +11,7 @@ export type GenerateProjectPlanResult = {
   modelName: string;
 };
 
-export function buildProjectPlanPromptContext(project: Project) {
+export function buildProjectPlanPromptContext(project: Project, buildModel?: BoardsmithBuildModel) {
   const safetyFlags = calculateSafetyReviewFlags(project);
   const hint = getTemplateHint(project.project_type);
 
@@ -18,6 +20,32 @@ export function buildProjectPlanPromptContext(project: Project) {
     project,
     deterministic_safety_flags: safetyFlags,
     template_hints: hint,
+    build_model_context: buildModel
+      ? {
+          schemaVersion: buildModel.schemaVersion,
+          units: buildModel.units,
+          project: buildModel.project,
+          dimensions: buildModel.dimensions,
+          pieces: buildModel.pieces,
+          materials: buildModel.materials,
+          hardware: buildModel.hardware,
+          connections: buildModel.connections,
+          operations: buildModel.operations,
+          safety: buildModel.safety,
+          assumptions: buildModel.assumptions,
+          unresolvedQuestions: buildModel.unresolvedQuestions,
+          exportReadiness: buildModel.exportReadiness,
+          confidence: buildModel.confidence,
+        }
+      : null,
+    deterministic_quality_rules: [
+      "Generated project_type must match the build model project type.",
+      "Generated dimensions must not exceed confirmed build model dimensions.",
+      "Every deterministic build model safety flag must appear in needs_review_flags or safety_notes.",
+      "Wall-mounted work must mention stud, anchor, fastener, or wall-structure review.",
+      "Cut-list materials must appear in the materials section.",
+      "Do not claim load capacity, child safety, structural approval, or guaranteed safety.",
+    ],
     safety_rules: [
       "Include safety disclaimers.",
       "Warn that the plan requires user review before cutting or building.",
@@ -30,11 +58,11 @@ export function buildProjectPlanPromptContext(project: Project) {
   };
 }
 
-function buildPrompt(project: Project): string {
-  return JSON.stringify(buildProjectPlanPromptContext(project), null, 2);
+function buildPrompt(project: Project, buildModel?: BoardsmithBuildModel): string {
+  return JSON.stringify(buildProjectPlanPromptContext(project, buildModel), null, 2);
 }
 
-export async function generateStructuredProjectPlan(project: Project): Promise<GenerateProjectPlanResult> {
+export async function generateStructuredProjectPlan(project: Project, buildModel?: BoardsmithBuildModel): Promise<GenerateProjectPlanResult> {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is not configured. Add it to .env.local before generating plans.");
   }
@@ -45,7 +73,7 @@ export async function generateStructuredProjectPlan(project: Project): Promise<G
     model: modelName,
     instructions:
       "You are Boardsmith, a cautious woodworking planning assistant. Return only structured JSON that matches the schema. Keep all dimensions bounded by the submitted project, add review flags when safety is uncertain, and never guarantee load-bearing safety.",
-    input: buildPrompt(project),
+    input: buildPrompt(project, buildModel),
     text: {
       format: {
         type: "json_schema",
@@ -66,6 +94,9 @@ export async function generateStructuredProjectPlan(project: Project): Promise<G
   const validation = generatedPlanSchema.safeParse(parsed);
   if (!validation.success) {
     throw new Error(`Generated plan failed validation: ${validation.error.message}`);
+  }
+  if (buildModel) {
+    assertGeneratedPlanQuality(validation.data, buildModel);
   }
 
   return {

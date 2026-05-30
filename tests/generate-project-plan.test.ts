@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildProjectPlanPromptContext } from "@/lib/ai/generate-project-plan";
+import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import type { Project } from "@/lib/projects/types";
 
 const shelfProject: Project = {
@@ -24,9 +25,11 @@ const shelfProject: Project = {
 
 describe("buildProjectPlanPromptContext", () => {
   it("includes deterministic template hints for the project type", () => {
-    const context = buildProjectPlanPromptContext(shelfProject);
+    const context = buildProjectPlanPromptContext(shelfProject, simpleShelfBuildModelFixture);
 
     expect(context.template_hints.projectType).toBe("simple_shelf");
+    expect(context.build_model_context?.schemaVersion).toBe("1.0");
+    expect(context.deterministic_quality_rules).toContain("Generated dimensions must not exceed confirmed build model dimensions.");
     expect(context.template_hints.cautions).toContain("Include stud/anchor caution and require user review before use.");
     expect(context.deterministic_safety_flags.map((flag) => flag.code)).toEqual(
       expect.arrayContaining(["wall_mounting", "heavy_shelving"]),

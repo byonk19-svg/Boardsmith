@@ -25,8 +25,8 @@ export async function generateProjectPlanAction(formData: FormData): Promise<voi
   }
 
   try {
-    const result = await generateStructuredProjectPlan(project);
     const buildModel = createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
+    const result = await generateStructuredProjectPlan(project, buildModel);
     await saveGeneratedPlan({
       projectId: project.id,
       modelName: result.modelName,
