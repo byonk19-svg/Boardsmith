@@ -35,4 +35,16 @@ describe("buildProjectPlanPromptContext", () => {
       expect.arrayContaining(["wall_mounting", "heavy_shelving"]),
     );
   });
+
+  it("includes BBM cut-list reconciliation rules in the prompt context", () => {
+    const context = buildProjectPlanPromptContext(shelfProject, simpleShelfBuildModelFixture);
+
+    expect(context.deterministic_quality_rules).toEqual(
+      expect.arrayContaining([
+        "Every cut-list part must map to a build model piece label, id, or piece type.",
+        "Every cut-list material must map to a build model material label, id, or material type.",
+        "Cut-list dimensions must not exceed the matched build model piece dimensions.",
+      ]),
+    );
+  });
 });

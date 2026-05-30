@@ -44,6 +44,9 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
       "Every deterministic build model safety flag must appear in needs_review_flags or safety_notes.",
       "Wall-mounted work must mention stud, anchor, fastener, or wall-structure review.",
       "Cut-list materials must appear in the materials section.",
+      "Every cut-list part must map to a build model piece label, id, or piece type.",
+      "Every cut-list material must map to a build model material label, id, or material type.",
+      "Cut-list dimensions must not exceed the matched build model piece dimensions.",
       "Do not claim load capacity, child safety, structural approval, or guaranteed safety.",
     ],
     safety_rules: [
