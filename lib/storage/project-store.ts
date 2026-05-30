@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { generatedProjectPlanRecordSchema, type GeneratedPlan, type GeneratedProjectPlanRecord, renderPlanMarkdown } from "@/lib/plans/plan-schema";
 import { projectSchema, type Project, type ProjectIntake } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
@@ -30,9 +31,9 @@ type Database = {
         Relationships: [];
       };
       generated_project_plans: {
-        Row: Omit<GeneratedProjectPlanRecord, "plan_json"> & { plan_json: Json };
-        Insert: Omit<GeneratedProjectPlanRecord, "plan_json"> & { plan_json: Json };
-        Update: Partial<Omit<GeneratedProjectPlanRecord, "plan_json"> & { plan_json: Json }>;
+        Row: Omit<GeneratedProjectPlanRecord, "plan_json" | "build_model_json"> & { plan_json: Json; build_model_json: Json | null };
+        Insert: Omit<GeneratedProjectPlanRecord, "plan_json" | "build_model_json"> & { plan_json: Json; build_model_json: Json | null };
+        Update: Partial<Omit<GeneratedProjectPlanRecord, "plan_json" | "build_model_json"> & { plan_json: Json; build_model_json: Json | null }>;
         Relationships: [];
       };
     };
@@ -173,6 +174,7 @@ export async function saveGeneratedPlan(params: {
   projectId: string;
   modelName: string;
   plan: GeneratedPlan;
+  buildModel?: BoardsmithBuildModel | null;
 }): Promise<GeneratedProjectPlanRecord> {
   const now = new Date().toISOString();
   const record = generatedProjectPlanRecordSchema.parse({
@@ -181,6 +183,7 @@ export async function saveGeneratedPlan(params: {
     created_at: now,
     model_name: params.modelName,
     plan_json: params.plan,
+    build_model_json: params.buildModel ?? null,
     plan_markdown: renderPlanMarkdown(params.plan),
     validation_status: "valid",
     warnings: params.plan.safety_notes,

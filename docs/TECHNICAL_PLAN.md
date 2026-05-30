@@ -40,4 +40,6 @@ The generation service uses OpenAI structured output with a JSON schema and then
 - updated-at trigger
 - latest-plan constraint support
 
+`supabase/migrations/0002_add_build_model_json_to_generated_plans.sql` adds nullable `build_model_json` to generated plan versions. This keeps BBM versioned with the human-readable plan and remains backward-compatible with older plans that do not have a build model.
+
 Auth and RLS are deferred for this private MVP. Before production or multi-user use, enable authentication and per-user ownership columns/policies.

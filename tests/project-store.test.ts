@@ -1,6 +1,9 @@
 import { beforeAll, describe, expect, it } from "vitest";
+import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
 import type { ProjectIntake } from "@/lib/projects/types";
+import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
+import { getTemplateHint } from "@/lib/templates/template-hints";
 
 beforeAll(() => {
   process.env.BOARDSMITH_DATA_FILE = `.data/test-${crypto.randomUUID()}.json`;
@@ -71,7 +74,8 @@ describe("project store lifecycle", () => {
     expect(project.safety_review_required).toBe(true);
     expect(project.safety_flags).toEqual(expect.arrayContaining(["Wall mounting review", "Heavy shelving review"]));
 
-    const firstPlan = await store.saveGeneratedPlan({ projectId: project.id, modelName: "test-model-a", plan });
+    const buildModel = createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
+    const firstPlan = await store.saveGeneratedPlan({ projectId: project.id, modelName: "test-model-a", plan, buildModel });
     const secondPlan = await store.saveGeneratedPlan({ projectId: project.id, modelName: "test-model-b", plan });
     const plans = await store.listGeneratedPlans(project.id);
 
@@ -80,5 +84,7 @@ describe("project store lifecycle", () => {
     expect(plans[0]?.is_latest).toBe(true);
     expect(plans[1]?.id).toBe(firstPlan.id);
     expect(plans[1]?.is_latest).toBe(false);
+    expect(plans[1]?.build_model_json?.project.projectId).toBe(project.id);
+    expect(plans[0]?.build_model_json).toBeNull();
   });
 });

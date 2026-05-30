@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { boardsmithBuildModelSchema, type BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { projectTypes } from "@/lib/projects/types";
 
 export const confidenceLevels = ["low", "medium", "high"] as const;
@@ -71,6 +72,7 @@ export type GeneratedProjectPlanRecord = {
   created_at: string;
   model_name: string;
   plan_json: GeneratedPlan;
+  build_model_json: BoardsmithBuildModel | null;
   plan_markdown: string;
   validation_status: "valid";
   warnings: string[];
@@ -85,6 +87,7 @@ export const generatedProjectPlanRecordSchema = z.object({
   created_at: z.string(),
   model_name: z.string(),
   plan_json: generatedPlanSchema,
+  build_model_json: boardsmithBuildModelSchema.nullable().optional().default(null),
   plan_markdown: z.string(),
   validation_status: z.literal("valid"),
   warnings: z.array(z.string()),

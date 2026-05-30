@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { generatedPlanSchema, renderPlanMarkdown, type GeneratedPlan } from "@/lib/plans/plan-schema";
+import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
+import { generatedPlanSchema, generatedProjectPlanRecordSchema, renderPlanMarkdown, type GeneratedPlan } from "@/lib/plans/plan-schema";
 
 const validPlan: GeneratedPlan = {
   project_summary: "A simple indoor door hanger plan sized from the submitted dimensions with review notes.",
@@ -63,5 +64,42 @@ describe("generatedPlanSchema", () => {
   it("renders markdown from validated plans", () => {
     expect(renderPlanMarkdown(validPlan)).toContain("## Cut List");
     expect(renderPlanMarkdown(validPlan)).toContain("Round backer");
+  });
+
+  it("keeps old generated plan records compatible when build model JSON is missing", () => {
+    const parsed = generatedProjectPlanRecordSchema.parse({
+      id: "plan_1",
+      project_id: "project_1",
+      created_at: new Date(0).toISOString(),
+      model_name: "test-model",
+      plan_json: validPlan,
+      plan_markdown: renderPlanMarkdown(validPlan),
+      validation_status: "valid",
+      warnings: validPlan.safety_notes,
+      assumptions: validPlan.assumptions,
+      confidence_level: validPlan.confidence_level,
+      is_latest: true,
+    });
+
+    expect(parsed.build_model_json).toBeNull();
+  });
+
+  it("accepts generated plan records with BBM JSON stored beside the plan", () => {
+    const parsed = generatedProjectPlanRecordSchema.parse({
+      id: "plan_2",
+      project_id: "project_2",
+      created_at: new Date(0).toISOString(),
+      model_name: "test-model",
+      plan_json: validPlan,
+      build_model_json: simpleShelfBuildModelFixture,
+      plan_markdown: renderPlanMarkdown(validPlan),
+      validation_status: "valid",
+      warnings: validPlan.safety_notes,
+      assumptions: validPlan.assumptions,
+      confidence_level: validPlan.confidence_level,
+      is_latest: true,
+    });
+
+    expect(parsed.build_model_json?.schemaVersion).toBe("1.0");
   });
 });

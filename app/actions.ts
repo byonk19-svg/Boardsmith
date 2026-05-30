@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { generateStructuredProjectPlan } from "@/lib/ai/generate-project-plan";
+import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import { parseProjectFormData } from "@/lib/projects/types";
+import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { createProject, getProject, saveGeneratedPlan } from "@/lib/storage/project-store";
+import { getTemplateHint } from "@/lib/templates/template-hints";
 
 export async function createProjectAction(formData: FormData): Promise<void> {
   const project = await createProject(parseProjectFormData(formData));
@@ -23,10 +26,12 @@ export async function generateProjectPlanAction(formData: FormData): Promise<voi
 
   try {
     const result = await generateStructuredProjectPlan(project);
+    const buildModel = createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
     await saveGeneratedPlan({
       projectId: project.id,
       modelName: result.modelName,
       plan: result.plan,
+      buildModel,
     });
     revalidatePath(`/projects/${project.id}`);
     redirect(`/projects/${project.id}?generated=1`);
