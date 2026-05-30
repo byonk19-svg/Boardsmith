@@ -1,0 +1,59 @@
+import { describe, expect, it } from "vitest";
+import type { ProjectIntake } from "@/lib/projects/types";
+import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
+
+const baseProject: ProjectIntake = {
+  title: "Porch sign",
+  project_type: "wood_sign",
+  skill_level: "beginner",
+  width_inches: 18,
+  height_inches: 10,
+  depth_inches: 0.75,
+  material_thickness_inches: 0.75,
+  material_type: "pine board",
+  tools_available: ["tape_measure", "pencil", "sander"],
+  style_notes: "",
+  intended_use: "Indoor decoration",
+};
+
+describe("calculateSafetyReviewFlags", () => {
+  it("flags wall-mounted projects", () => {
+    const flags = calculateSafetyReviewFlags({
+      ...baseProject,
+      intended_use: "Wall mounted sign above a bench",
+    });
+
+    expect(flags.map((flag) => flag.code)).toContain("wall_mounting");
+  });
+
+  it("flags child and baby use", () => {
+    const flags = calculateSafetyReviewFlags({
+      ...baseProject,
+      intended_use: "Nursery decoration for a baby room",
+    });
+
+    expect(flags.map((flag) => flag.code)).toContain("child_or_baby_use");
+  });
+
+  it("flags shelves as wall-mounting review and heavy shelves by size", () => {
+    const flags = calculateSafetyReviewFlags({
+      ...baseProject,
+      project_type: "simple_shelf",
+      width_inches: 48,
+      depth_inches: 14,
+      intended_use: "Bookshelf for heavy books",
+    });
+
+    expect(flags.map((flag) => flag.code)).toEqual(expect.arrayContaining(["wall_mounting", "heavy_shelving"]));
+  });
+
+  it("flags missing material thickness and unclear dimensions", () => {
+    const flags = calculateSafetyReviewFlags({
+      ...baseProject,
+      width_inches: 0,
+      material_thickness_inches: 0,
+    });
+
+    expect(flags.map((flag) => flag.code)).toEqual(expect.arrayContaining(["unclear_dimensions", "missing_material_thickness"]));
+  });
+});
