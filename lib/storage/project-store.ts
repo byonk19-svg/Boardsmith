@@ -10,7 +10,8 @@ type StoreShape = {
   plans: GeneratedProjectPlanRecord[];
 };
 
-const dataFile = path.join(process.cwd(), ".data", "boardsmith.json");
+const configuredDataFile = process.env.BOARDSMITH_DATA_FILE?.trim();
+const dataFile = configuredDataFile && configuredDataFile.length > 0 ? configuredDataFile : path.join(process.cwd(), ".data", "boardsmith.json");
 
 let writeQueue: Promise<unknown> = Promise.resolve();
 

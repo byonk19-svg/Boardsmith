@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
 import type { ProjectIntake } from "@/lib/projects/types";
+
+beforeAll(() => {
+  process.env.BOARDSMITH_DATA_FILE = `.data/test-${crypto.randomUUID()}.json`;
+});
 
 const intake: ProjectIntake = {
   title: `Storage lifecycle ${Date.now().toString()}`,

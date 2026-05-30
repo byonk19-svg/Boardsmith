@@ -9,29 +9,29 @@ export type GenerateProjectPlanResult = {
   modelName: string;
 };
 
-function buildPrompt(project: Project): string {
+export function buildProjectPlanPromptContext(project: Project) {
   const safetyFlags = calculateSafetyReviewFlags(project);
   const hint = getTemplateHint(project.project_type);
 
-  return JSON.stringify(
-    {
-      task: "Generate a detailed beginner-friendly woodworking project plan. Do not invent uncontrolled dimensions. Use the provided dimensions as the bounding source of truth, and call out assumptions where detail is missing.",
-      project,
-      deterministic_safety_flags: safetyFlags,
-      template_hints: hint,
-      safety_rules: [
-        "Include safety disclaimers.",
-        "Warn that the plan requires user review before cutting or building.",
-        "Do not make structural, load-bearing, child-furniture, or professional safety guarantees.",
-        "Do not tell minors to use dangerous tools.",
-        "Do not recommend bypassing guards or PPE.",
-        "For wall-mounted items include stud/anchor caution.",
-        "Include a practical measure twice, cut once warning.",
-      ],
-    },
-    null,
-    2,
-  );
+  return {
+    task: "Generate a detailed beginner-friendly woodworking project plan. Do not invent uncontrolled dimensions. Use the provided dimensions as the bounding source of truth, and call out assumptions where detail is missing.",
+    project,
+    deterministic_safety_flags: safetyFlags,
+    template_hints: hint,
+    safety_rules: [
+      "Include safety disclaimers.",
+      "Warn that the plan requires user review before cutting or building.",
+      "Do not make structural, load-bearing, child-furniture, or professional safety guarantees.",
+      "Do not tell minors to use dangerous tools.",
+      "Do not recommend bypassing guards or PPE.",
+      "For wall-mounted items include stud/anchor caution.",
+      "Include a practical measure twice, cut once warning.",
+    ],
+  };
+}
+
+function buildPrompt(project: Project): string {
+  return JSON.stringify(buildProjectPlanPromptContext(project), null, 2);
 }
 
 export async function generateStructuredProjectPlan(project: Project): Promise<GenerateProjectPlanResult> {
