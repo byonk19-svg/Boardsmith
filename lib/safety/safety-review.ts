@@ -72,7 +72,7 @@ export function calculateSafetyReviewFlags(
     });
   }
 
-  if (textMatches(project, /\b(electric|electrical|light|lighted|led|wire|wiring|battery)\b/)) {
+  if (textMatches(project, /\b(electric|electrical|lighted|lighting|led|wire|wiring|battery|neon)\b|\blight\s*(strip|fixture|sign|box|bulb|socket)\b/)) {
     add({
       code: "electrical_or_lighted",
       label: "Electrical/lighted review",

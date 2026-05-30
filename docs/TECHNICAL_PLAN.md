@@ -8,7 +8,7 @@
 - Supabase schema with auth deferred
 - OpenAI Responses API structured output
 - Zod validation
-- Server actions
+- POST route handlers for browser-visible mutations
 - Vitest for pure utility tests
 
 ## Data
@@ -19,6 +19,8 @@ The MVP uses a repository layer:
 - Local private JSON storage in `.data/boardsmith.json` otherwise.
 
 This keeps the app usable before auth and hosted database setup while preserving the final table shape.
+
+Project creation and plan generation use explicit POST route handlers for browser-visible form submissions. This keeps the private MVP form flow stable without relying on framework-specific server-action form replay.
 
 ## Validation
 

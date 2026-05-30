@@ -16,10 +16,6 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-vi.mock("@/app/actions", () => ({
-  generateProjectPlanAction: vi.fn(),
-}));
-
 const getProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 const listGeneratedPlansMock = vi.fn<(projectId: string) => Promise<GeneratedProjectPlanRecord[]>>();
 

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { generateProjectPlanAction } from "@/app/actions";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
@@ -37,8 +36,7 @@ export default async function ProjectDetailPage({
             {projectTypeLabels[project.project_type]} · {project.skill_level} · {project.status.replaceAll("_", " ")}
           </p>
         </div>
-        <form action={generateProjectPlanAction} className="no-print">
-          <input type="hidden" name="project_id" value={project.id} />
+        <form action={`/projects/${project.id}/generate`} method="post" className="no-print">
           <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
             Generate Plan
           </button>

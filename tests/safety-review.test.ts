@@ -47,6 +47,15 @@ describe("calculateSafetyReviewFlags", () => {
     expect(flags.map((flag) => flag.code)).toEqual(expect.arrayContaining(["wall_mounting", "heavy_shelving"]));
   });
 
+  it("does not treat light weight use as electrical lighting", () => {
+    const flags = calculateSafetyReviewFlags({
+      ...baseProject,
+      intended_use: "Decorative wall shelf for light objects only",
+    });
+
+    expect(flags.map((flag) => flag.code)).not.toContain("electrical_or_lighted");
+  });
+
   it("flags missing material thickness and unclear dimensions", () => {
     const flags = calculateSafetyReviewFlags({
       ...baseProject,

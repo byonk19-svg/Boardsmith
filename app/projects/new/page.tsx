@@ -1,4 +1,3 @@
-import { createProjectAction } from "@/app/actions";
 import { projectTypeLabels, projectTypes, skillLevels, toolLabels, toolOptions } from "@/lib/projects/types";
 
 export default function NewProjectPage() {
@@ -9,7 +8,7 @@ export default function NewProjectPage() {
         <p className="mt-2 text-sm text-ink/65">Save the intake first. AI generation happens from the project detail page after deterministic safety review.</p>
       </div>
 
-      <form action={createProjectAction} className="space-y-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft">
+      <form action="/projects/create" method="post" className="space-y-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft">
         <Field label="Project title">
           <input name="title" required minLength={2} className="input" placeholder="Entryway fall door hanger" />
         </Field>
