@@ -22,7 +22,8 @@ export default async function ProjectDetailPage({
 
   const plans = await listGeneratedPlans(project.id);
   const latestPlan = plans.length > 0 ? (plans.find((plan) => plan.is_latest) ?? plans[0]) : null;
-  const buildModel = createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
+  const buildModel = latestPlan?.build_model_json ?? createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
+  const buildModelSource = latestPlan?.build_model_json ? "saved" : "derived";
 
   return (
     <div className="space-y-6">
@@ -68,7 +69,7 @@ export default async function ProjectDetailPage({
         </div>
       </section>
 
-      <BuildModelView buildModel={buildModel} />
+      <BuildModelView buildModel={buildModel} source={buildModelSource} />
 
       {latestPlan ? <PlanView plan={latestPlan.plan_json} createdAt={latestPlan.created_at} modelName={latestPlan.model_name} /> : <EmptyPlanState />}
 
@@ -130,14 +131,14 @@ function EmptyPlanState() {
   );
 }
 
-function BuildModelView({ buildModel }: { buildModel: BoardsmithBuildModel }) {
+function BuildModelView({ buildModel, source }: { buildModel: BoardsmithBuildModel; source: "saved" | "derived" }) {
   return (
     <section className="rounded-lg border border-sawdust bg-white p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-ink">Project Structure</h2>
           <p className="mt-2 text-sm leading-6 text-ink/65">
-            A deterministic planning model derived from the project intake. It is not CAD and does not verify safety, mounting, or load capacity.
+            {source === "saved" ? "A deterministic planning model saved with the latest generated plan." : "A deterministic planning model derived from the project intake."} It is not CAD and does not verify safety, mounting, or load capacity.
           </p>
         </div>
         <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">
