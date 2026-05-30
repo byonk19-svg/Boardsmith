@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { generateProjectPlanAction } from "@/app/actions";
+import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
+import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
 import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/types";
+import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
+import { getTemplateHint } from "@/lib/templates/template-hints";
 
 export default async function ProjectDetailPage({
   params,
@@ -18,6 +22,7 @@ export default async function ProjectDetailPage({
 
   const plans = await listGeneratedPlans(project.id);
   const latestPlan = plans.length > 0 ? (plans.find((plan) => plan.is_latest) ?? plans[0]) : null;
+  const buildModel = createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
 
   return (
     <div className="space-y-6">
@@ -62,6 +67,8 @@ export default async function ProjectDetailPage({
           </p>
         </div>
       </section>
+
+      <BuildModelView buildModel={buildModel} />
 
       {latestPlan ? <PlanView plan={latestPlan.plan_json} createdAt={latestPlan.created_at} modelName={latestPlan.model_name} /> : <EmptyPlanState />}
 
@@ -121,6 +128,149 @@ function EmptyPlanState() {
       <p className="mt-2 text-sm text-ink/65">Use Generate Plan after configuring `OPENAI_API_KEY`. Invalid generated JSON will not be saved.</p>
     </section>
   );
+}
+
+function BuildModelView({ buildModel }: { buildModel: BoardsmithBuildModel }) {
+  return (
+    <section className="rounded-lg border border-sawdust bg-white p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-ink">Project Structure</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/65">
+            A deterministic planning model derived from the project intake. It is not CAD and does not verify safety, mounting, or load capacity.
+          </p>
+        </div>
+        <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">
+          {buildModel.confidence.level} confidence
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <StructureGroup title="Pieces">
+          <div className="space-y-3">
+            {buildModel.pieces.map((piece) => (
+              <div key={piece.id} className="border-b border-sawdust pb-3 last:border-0 last:pb-0">
+                <p className="text-sm font-semibold text-ink">{piece.label}</p>
+                <p className="mt-1 text-xs text-ink/55">
+                  {piece.quantity.toString()}x {piece.pieceType.replaceAll("_", " ")} - {formatBuildModelDimensions(piece.dimensions)}
+                </p>
+                {piece.notes.length > 0 ? <p className="mt-1 text-sm leading-6 text-ink/65">{piece.notes[0]}</p> : null}
+              </div>
+            ))}
+          </div>
+        </StructureGroup>
+
+        <StructureGroup title="Materials">
+          <div className="space-y-3">
+            {buildModel.materials.map((material) => (
+              <div key={material.id} className="border-b border-sawdust pb-3 last:border-0 last:pb-0">
+                <p className="text-sm font-semibold text-ink">{material.label}</p>
+                <p className="mt-1 text-xs text-ink/55">
+                  {material.materialType.replaceAll("_", " ")} - {material.nominalThicknessInches ? `${material.nominalThicknessInches.toString()} in` : "thickness unknown"}
+                </p>
+              </div>
+            ))}
+          </div>
+        </StructureGroup>
+
+        <StructureGroup title="Hardware">
+          {buildModel.hardware.length > 0 ? (
+            <div className="space-y-3">
+              {buildModel.hardware.map((item) => (
+                <div key={item.id} className="border-b border-sawdust pb-3 last:border-0 last:pb-0">
+                  <p className="text-sm font-semibold text-ink">{item.label}</p>
+                  <p className="mt-1 text-xs text-ink/55">
+                    {item.hardwareType.replaceAll("_", " ")} - {item.quantity ? `${item.quantity.toString()} needed` : "quantity to review"}
+                  </p>
+                  {item.notes.length > 0 ? <p className="mt-1 text-sm leading-6 text-ink/65">{item.notes[0]}</p> : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-ink/65">No hardware placeholders were needed for this draft.</p>
+          )}
+        </StructureGroup>
+
+        <StructureGroup title="Connections">
+          {buildModel.connections.length > 0 ? (
+            <ul className="space-y-3">
+              {buildModel.connections.map((connection) => (
+                <li key={connection.id} className="text-sm leading-6 text-ink/70">
+                  <strong className="text-ink">{connection.connectionType.replaceAll("_", " ")}</strong>: {connection.locationDescription}
+                  {connection.strengthCritical ? <span className="font-medium text-caution"> - needs review</span> : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-ink/65">No obvious physical connections were added yet.</p>
+          )}
+        </StructureGroup>
+
+        <StructureGroup title="Operations">
+          {buildModel.operations.length > 0 ? (
+            <ol className="space-y-3">
+              {buildModel.operations.map((operation) => (
+                <li key={operation.id} className="text-sm leading-6 text-ink/70">
+                  <strong className="text-ink">
+                    {operation.sequenceNumber.toString()}. {operation.title}
+                  </strong>
+                  : {operation.description}
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="text-sm text-ink/65">No operations were added yet.</p>
+          )}
+        </StructureGroup>
+
+        <StructureGroup title="Needs Review">
+          <div className="space-y-3">
+            {buildModel.safety.flags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {buildModel.safety.flags.map((flag) => (
+                  <span key={flag.id} className="rounded-md bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900">
+                    {flag.message}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-ink/65">No deterministic BBM safety flags were added. Builder review is still required.</p>
+            )}
+            {buildModel.unresolvedQuestions.length > 0 ? <List items={buildModel.unresolvedQuestions} /> : null}
+          </div>
+        </StructureGroup>
+      </div>
+
+      <div className="mt-5 rounded-md bg-shop p-4">
+        <p className="text-sm font-semibold text-ink">Export readiness</p>
+        <p className="mt-2 text-sm leading-6 text-ink/65">
+          SVG: {readinessLabel(buildModel.exportReadiness.svgCandidate)} - PDF: {readinessLabel(buildModel.exportReadiness.pdfCandidate)} - DXF:{" "}
+          {readinessLabel(buildModel.exportReadiness.dxfCandidate)} - CAD: {readinessLabel(buildModel.exportReadiness.cadCandidate)}
+        </p>
+        {buildModel.exportReadiness.notes.length > 0 ? <p className="mt-2 text-sm leading-6 text-ink/65">{buildModel.exportReadiness.notes.join(" ")}</p> : null}
+      </div>
+    </section>
+  );
+}
+
+function StructureGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-ink/55">{title}</h3>
+      <div className="mt-3">{children}</div>
+    </div>
+  );
+}
+
+function formatBuildModelDimensions(dimensions: BoardsmithBuildModel["pieces"][number]["dimensions"]): string {
+  const length = dimensions.lengthInches ? `${dimensions.lengthInches.toString()} in` : "length unknown";
+  const width = dimensions.widthInches ? `${dimensions.widthInches.toString()} in` : "width unknown";
+  const thickness = dimensions.thicknessInches ? `${dimensions.thicknessInches.toString()} in` : "thickness unknown";
+  return `${length} x ${width} x ${thickness}`;
+}
+
+function readinessLabel(isCandidate: boolean): string {
+  return isCandidate ? "candidate later" : "not enough information";
 }
 
 function PlanView({ plan, createdAt, modelName }: { plan: GeneratedPlan; createdAt: string; modelName: string }) {
