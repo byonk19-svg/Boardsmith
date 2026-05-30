@@ -1,3 +1,7 @@
+import { isSupabasePersistenceConfigured } from "@/lib/storage/project-store";
+
+export const dynamic = "force-dynamic";
+
 export default function SettingsPage() {
   return (
     <div className="max-w-3xl space-y-6">
@@ -15,7 +19,7 @@ export default function SettingsPage() {
           </div>
           <div>
             <dt className="font-semibold text-ink/80">Storage</dt>
-            <dd className="mt-1 text-ink/65">{process.env.NEXT_PUBLIC_SUPABASE_URL ? "Supabase configured" : "Local private JSON fallback"}</dd>
+            <dd className="mt-1 text-ink/65">{isSupabasePersistenceConfigured() ? "Supabase configured" : "Local private JSON fallback"}</dd>
           </div>
         </dl>
       </section>

@@ -8,6 +8,8 @@ import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
 
+export const dynamic = "force-dynamic";
+
 export default async function ProjectDetailPage({
   params,
   searchParams,

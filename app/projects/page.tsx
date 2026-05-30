@@ -2,6 +2,8 @@ import Link from "next/link";
 import { projectTypeLabels } from "@/lib/projects/types";
 import { listProjects } from "@/lib/storage/project-store";
 
+export const dynamic = "force-dynamic";
+
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const [projects, params] = await Promise.all([listProjects(), searchParams]);
 

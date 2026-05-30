@@ -17,7 +17,7 @@ const dataFile = configuredDataFile && configuredDataFile.length > 0 ? configure
 let writeQueue: Promise<unknown> = Promise.resolve();
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -44,7 +44,7 @@ type Database = {
   };
 };
 
-function hasSupabaseConfig(): boolean {
+export function isSupabasePersistenceConfigured(): boolean {
   return Boolean(supabaseUrl && supabaseKey);
 }
 
@@ -107,7 +107,7 @@ async function mutateLocalStore<T>(mutator: (store: StoreShape) => T | Promise<T
 }
 
 export async function listProjects(): Promise<Project[]> {
-  if (hasSupabaseConfig()) {
+  if (isSupabasePersistenceConfigured()) {
     const { data, error } = await getSupabase().from("projects").select("*").order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data.map((project) => normalizeProjectRow(project));
@@ -118,7 +118,7 @@ export async function listProjects(): Promise<Project[]> {
 }
 
 export async function getProject(projectId: string): Promise<Project | null> {
-  if (hasSupabaseConfig()) {
+  if (isSupabasePersistenceConfigured()) {
     const { data, error } = await getSupabase().from("projects").select("*").eq("id", projectId).maybeSingle();
     if (error) throw new Error(error.message);
     const row: unknown = data;
@@ -143,7 +143,7 @@ export async function createProject(input: ProjectIntake): Promise<Project> {
     safety_flags: flags.map((flag) => flag.label),
   });
 
-  if (hasSupabaseConfig()) {
+  if (isSupabasePersistenceConfigured()) {
     const { data, error } = await getSupabase().from("projects").insert(project).select("*").single();
     if (error) throw new Error(error.message);
     return normalizeProjectRow(data);
@@ -156,7 +156,7 @@ export async function createProject(input: ProjectIntake): Promise<Project> {
 }
 
 export async function listGeneratedPlans(projectId: string): Promise<GeneratedProjectPlanRecord[]> {
-  if (hasSupabaseConfig()) {
+  if (isSupabasePersistenceConfigured()) {
     const { data, error } = await getSupabase()
       .from("generated_project_plans")
       .select("*")
@@ -192,7 +192,7 @@ export async function saveGeneratedPlan(params: {
     is_latest: true,
   });
 
-  if (hasSupabaseConfig()) {
+  if (isSupabasePersistenceConfigured()) {
     const supabase = getSupabase();
     const { error: unsetError } = await supabase
       .from("generated_project_plans")

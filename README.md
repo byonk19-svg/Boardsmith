@@ -33,6 +33,19 @@ npm run dev
 
 Add `OPENAI_API_KEY` to `.env.local` before using plan generation. If Supabase variables are not configured, the private MVP stores data in `.data/boardsmith.json`. Use `BOARDSMITH_DATA_FILE` only when you need to point the local fallback at a different JSON file, such as isolated test data.
 
+### Supabase persistence
+
+Supabase is optional for local development. The app uses Supabase only when the runtime has:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Keep `SUPABASE_SERVICE_ROLE_KEY` server-only. Do not expose it through `NEXT_PUBLIC_` variables, client components, browser logs, or committed files. For the current private no-auth MVP, use the service-role key only from server-rendered routes/pages through the repository layer.
+
+Apply the SQL in `supabase/migrations/` before running a Supabase-backed smoke. The migrations create `projects`, `generated_project_plans`, the latest-plan partial unique index, the `updated_at` trigger, nullable `build_model_json` plan-version storage, and private MVP grants for server-only `service_role` access.
+
+To verify Supabase persistence, create `.env.local` from `.env.example`, set the Supabase values above, start the dev server, then create a project through `/projects/new`. The project should redirect to `/projects/[id]`, appear in `/projects`, and continue to load with `.data/boardsmith.json` unchanged. If the Supabase env vars are absent, the same flow uses the private local JSON fallback.
+
 ## Verification
 
 Run these before committing:

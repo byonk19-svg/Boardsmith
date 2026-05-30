@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { listProjects } from "@/lib/storage/project-store";
+import { isSupabasePersistenceConfigured, listProjects } from "@/lib/storage/project-store";
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const projects = await listProjects();
@@ -35,7 +37,7 @@ export default async function DashboardPage() {
 
       <section className="grid gap-4 md:grid-cols-3">
         <Metric label="Projects" value={projects.length.toString()} />
-        <Metric label="Storage" value={process.env.NEXT_PUBLIC_SUPABASE_URL ? "Supabase" : "Local private"} />
+        <Metric label="Storage" value={isSupabasePersistenceConfigured() ? "Supabase" : "Local private"} />
         <Metric label="Latest" value={latestTitle} />
       </section>
     </div>
