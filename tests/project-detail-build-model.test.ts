@@ -61,6 +61,7 @@ const storedBuildModel = {
       label: "Saved BBM material",
     },
   ],
+  pieces: simpleShelfBuildModelFixture.pieces.map((piece) => ({ ...piece, materialId: "saved_material" })),
 };
 
 const planRecord: GeneratedProjectPlanRecord = {
@@ -138,6 +139,24 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("A deterministic planning model saved with the latest generated plan.");
     expect(markup).toContain("Saved BBM material");
+  });
+
+  it("renders a read-only material summary from the displayed build model", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Material Summary");
+    expect(markup).toContain("Saved BBM material");
+    expect(markup).toContain("1 planned piece");
+    expect(markup).toContain("0.75 in thickness");
   });
 
   it("falls back to a derived project structure for older generated plans without saved build models", async () => {

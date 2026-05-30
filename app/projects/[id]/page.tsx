@@ -174,6 +174,20 @@ function BuildModelView({ buildModel, source }: { buildModel: BoardsmithBuildMod
           </div>
         </StructureGroup>
 
+        <StructureGroup title="Material Summary">
+          <div className="space-y-3">
+            {summarizeBuildModelMaterials(buildModel).map((summary) => (
+              <div key={summary.id} className="border-b border-sawdust pb-3 last:border-0 last:pb-0">
+                <p className="text-sm font-semibold text-ink">{summary.label}</p>
+                <p className="mt-1 text-xs text-ink/55">
+                  {summary.plannedPieceCount.toString()} planned {summary.plannedPieceCount === 1 ? "piece" : "pieces"} - {summary.thicknessLabel}
+                </p>
+                {summary.notes.length > 0 ? <p className="mt-1 text-sm leading-6 text-ink/65">{summary.notes[0]}</p> : null}
+              </div>
+            ))}
+          </div>
+        </StructureGroup>
+
         <StructureGroup title="Hardware">
           {buildModel.hardware.length > 0 ? (
             <div className="space-y-3">
@@ -272,6 +286,22 @@ function formatBuildModelDimensions(dimensions: BoardsmithBuildModel["pieces"][n
 
 function readinessLabel(isCandidate: boolean): string {
   return isCandidate ? "candidate later" : "not enough information";
+}
+
+function summarizeBuildModelMaterials(buildModel: BoardsmithBuildModel) {
+  return buildModel.materials.map((material) => {
+    const plannedPieceCount = buildModel.pieces
+      .filter((piece) => piece.materialId === material.id)
+      .reduce((total, piece) => total + piece.quantity, 0);
+
+    return {
+      id: material.id,
+      label: material.label,
+      plannedPieceCount,
+      thicknessLabel: material.nominalThicknessInches ? `${material.nominalThicknessInches.toString()} in thickness` : "thickness unknown",
+      notes: material.notes,
+    };
+  });
 }
 
 function PlanView({ plan, createdAt, modelName }: { plan: GeneratedPlan; createdAt: string; modelName: string }) {
