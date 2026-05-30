@@ -97,4 +97,49 @@ describe("generated plan quality checks", () => {
       expect.arrayContaining([expect.objectContaining({ code: "unsafe_safety_overclaim" })]),
     );
   });
+
+  it("flags cut-list materials that are not in the build model", () => {
+    const unknownMaterialPlan = {
+      ...compatibleShelfPlan,
+      materials: [{ name: "oak board", quantity: "1 board", notes: "Inspect before cutting." }],
+      cut_list: compatibleShelfPlan.cut_list.map((item) => ({ ...item, material: "oak board" })),
+    };
+
+    expect(evaluateGeneratedPlanQuality(unknownMaterialPlan, simpleShelfBuildModelFixture)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: "cut_list_material_not_in_build_model" })]),
+    );
+  });
+
+  it("flags cut-list dimensions that exceed the matched build model piece", () => {
+    const oversizedCutPlan = {
+      ...compatibleShelfPlan,
+      cut_list: compatibleShelfPlan.cut_list.map((item) => ({ ...item, length_inches: 42 })),
+    };
+
+    expect(evaluateGeneratedPlanQuality(oversizedCutPlan, simpleShelfBuildModelFixture)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: "cut_list_piece_dimension_exceeds_build_model" })]),
+    );
+  });
+
+  it("flags cut-list parts that do not map to a build model piece", () => {
+    const unmappedPartPlan = {
+      ...compatibleShelfPlan,
+      cut_list: [
+        ...compatibleShelfPlan.cut_list,
+        {
+          part_name: "Extra cleat",
+          quantity: 1,
+          length_inches: 12,
+          width_inches: 2,
+          thickness_inches: 0.75,
+          material: "pine board",
+          notes: "Extra support not present in the build model.",
+        },
+      ],
+    };
+
+    expect(evaluateGeneratedPlanQuality(unmappedPartPlan, simpleShelfBuildModelFixture)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: "cut_list_piece_not_in_build_model" })]),
+    );
+  });
 });

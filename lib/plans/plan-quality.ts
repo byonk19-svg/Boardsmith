@@ -80,6 +80,63 @@ function cutListMaterialIssues(plan: GeneratedPlan): GeneratedPlanQualityIssue[]
   });
 }
 
+function findMatchingBuildModelMaterial(item: GeneratedPlan["cut_list"][number], buildModel: BoardsmithBuildModel) {
+  const cutMaterial = normalizeText(item.material);
+  return buildModel.materials.find((material) => {
+    const candidates = [material.id, material.label, material.materialType].map((value) => normalizeText(value));
+    return candidates.some((candidate) => candidate.includes(cutMaterial) || cutMaterial.includes(candidate));
+  });
+}
+
+function findMatchingBuildModelPiece(item: GeneratedPlan["cut_list"][number], buildModel: BoardsmithBuildModel) {
+  const cutPartName = normalizeText(item.part_name);
+  return buildModel.pieces.find((piece) => {
+    const candidates = [piece.id, piece.label, piece.pieceType].map((value) => normalizeText(value));
+    return candidates.some((candidate) => candidate.includes(cutPartName) || cutPartName.includes(candidate));
+  });
+}
+
+function cutListBuildModelIssues(plan: GeneratedPlan, buildModel: BoardsmithBuildModel): GeneratedPlanQualityIssue[] {
+  return plan.cut_list.flatMap((item, index) => {
+    const issues: GeneratedPlanQualityIssue[] = [];
+    const itemNumber = (index + 1).toString();
+    const matchingMaterial = findMatchingBuildModelMaterial(item, buildModel);
+    const matchingPiece = findMatchingBuildModelPiece(item, buildModel);
+
+    if (!matchingMaterial) {
+      issues.push({
+        code: "cut_list_material_not_in_build_model",
+        message: `Cut list item ${itemNumber} uses "${item.material}", which does not match a build model material.`,
+      });
+    }
+
+    if (!matchingPiece) {
+      issues.push({
+        code: "cut_list_piece_not_in_build_model",
+        message: `Cut list item ${itemNumber} part "${item.part_name}" does not match a build model piece.`,
+      });
+      return issues;
+    }
+
+    const dimensionChecks = [
+      { label: "length", planValue: item.length_inches, buildModelValue: matchingPiece.dimensions.lengthInches },
+      { label: "width", planValue: item.width_inches, buildModelValue: matchingPiece.dimensions.widthInches },
+      { label: "thickness", planValue: item.thickness_inches, buildModelValue: matchingPiece.dimensions.thicknessInches },
+    ];
+
+    for (const check of dimensionChecks) {
+      if (check.buildModelValue !== null && check.planValue > check.buildModelValue + dimensionToleranceInches) {
+        issues.push({
+          code: "cut_list_piece_dimension_exceeds_build_model",
+          message: `Cut list item ${itemNumber} ${check.label} ${check.planValue.toString()} in exceeds build model piece "${matchingPiece.label}" ${check.label} ${check.buildModelValue.toString()} in.`,
+        });
+      }
+    }
+
+    return issues;
+  });
+}
+
 function overclaimIssues(plan: GeneratedPlan): GeneratedPlanQualityIssue[] {
   const text = planText(plan);
   const forbiddenClaims = [
@@ -161,6 +218,7 @@ export function evaluateGeneratedPlanQuality(plan: GeneratedPlan, buildModel: Bo
   }
 
   issues.push(...cutListMaterialIssues(plan));
+  issues.push(...cutListBuildModelIssues(plan, buildModel));
   issues.push(...overclaimIssues(plan));
 
   return issues;
