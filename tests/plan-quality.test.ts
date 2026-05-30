@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import { assertGeneratedPlanQuality, evaluateGeneratedPlanQuality } from "@/lib/plans/plan-quality";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
@@ -140,6 +141,35 @@ describe("generated plan quality checks", () => {
 
     expect(evaluateGeneratedPlanQuality(unmappedPartPlan, simpleShelfBuildModelFixture)).toEqual(
       expect.arrayContaining([expect.objectContaining({ code: "cut_list_piece_not_in_build_model" })]),
+    );
+  });
+
+  it("flags cut-list materials that do not match the matched build model piece material", () => {
+    const multiMaterialBuildModel: BoardsmithBuildModel = {
+      ...simpleShelfBuildModelFixture,
+      materials: [
+        ...simpleShelfBuildModelFixture.materials,
+        {
+          id: "oak_trim",
+          label: "Oak trim",
+          materialType: "hardwood",
+          nominalThicknessInches: 0.5,
+          recommendedForProject: true,
+          notes: ["Decorative trim only."],
+        },
+      ],
+    };
+    const wrongPieceMaterialPlan = {
+      ...compatibleShelfPlan,
+      materials: [
+        ...compatibleShelfPlan.materials,
+        { name: "Oak trim", quantity: "1 strip", notes: "Decorative trim only." },
+      ],
+      cut_list: compatibleShelfPlan.cut_list.map((item) => ({ ...item, material: "Oak trim" })),
+    };
+
+    expect(evaluateGeneratedPlanQuality(wrongPieceMaterialPlan, multiMaterialBuildModel)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: "cut_list_material_mismatches_piece" })]),
     );
   });
 });

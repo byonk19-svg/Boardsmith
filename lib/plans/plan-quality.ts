@@ -118,6 +118,14 @@ function cutListBuildModelIssues(plan: GeneratedPlan, buildModel: BoardsmithBuil
       return issues;
     }
 
+    if (matchingMaterial && matchingPiece.materialId && matchingPiece.materialId !== matchingMaterial.id) {
+      const expectedMaterial = buildModel.materials.find((material) => material.id === matchingPiece.materialId);
+      issues.push({
+        code: "cut_list_material_mismatches_piece",
+        message: `Cut list item ${itemNumber} uses "${matchingMaterial.label}" for "${matchingPiece.label}", but the build model assigns ${expectedMaterial?.label ?? matchingPiece.materialId}.`,
+      });
+    }
+
     const dimensionChecks = [
       { label: "length", planValue: item.length_inches, buildModelValue: matchingPiece.dimensions.lengthInches },
       { label: "width", planValue: item.width_inches, buildModelValue: matchingPiece.dimensions.widthInches },
