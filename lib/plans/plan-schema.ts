@@ -44,8 +44,8 @@ export const generatedPlanSchema = z.object({
         title: z.string().min(1),
         instructions: z.string().min(10),
         tools_used: z.array(z.string().min(1)).min(1),
-        safety_note: z.string().min(1).optional(),
-        estimated_time_minutes: z.number().int().positive().optional(),
+        safety_note: z.string().min(1).nullable(),
+        estimated_time_minutes: z.number().int().positive().nullable(),
       }),
     )
     .min(1)
@@ -164,14 +164,14 @@ export const generatedPlanJsonSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["step_number", "title", "instructions", "tools_used"],
+        required: ["step_number", "title", "instructions", "tools_used", "safety_note", "estimated_time_minutes"],
         properties: {
           step_number: { type: "integer" },
           title: { type: "string" },
           instructions: { type: "string" },
           tools_used: { type: "array", items: { type: "string" } },
-          safety_note: { type: "string" },
-          estimated_time_minutes: { type: "integer" },
+          safety_note: { anyOf: [{ type: "string" }, { type: "null" }] },
+          estimated_time_minutes: { anyOf: [{ type: "integer" }, { type: "null" }] },
         },
       },
     },
