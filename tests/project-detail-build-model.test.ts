@@ -74,7 +74,10 @@ const planRecord: GeneratedProjectPlanRecord = {
       depth_inches: 10,
       material_thickness_inches: 0.75,
     },
-    materials: [{ name: "3/4 inch pine board", quantity: "1 board", notes: "Inspect before cutting." }],
+    materials: [
+      { name: "3/4 inch pine board", quantity: "1 board", notes: "Inspect before cutting." },
+      { name: "Water-based paint", quantity: "1 small can", notes: "Optional finish after sanding." },
+    ],
     tools: ["tape measure", "pencil", "drill"],
     cut_list: [
       {
@@ -161,9 +164,16 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("Material Summary");
+    expect(markup).toContain("Primary materials");
+    expect(markup).toContain("Hardware / fasteners");
+    expect(markup).toContain("Finish / optional supplies");
+    expect(markup).toContain("Material assumptions and review notes");
     expect(markup).toContain("Saved BBM pine board material");
     expect(markup).toContain("1 planned piece");
     expect(markup).toContain("0.75 in thickness");
+    expect(markup).toContain("Water-based paint");
+    expect(markup).toContain("Verify materials before purchasing or cutting.");
+    expect(markup).toContain("Quantity to review for Wall anchors or stud fasteners.");
   });
 
   it("renders the latest generated plan as a printable plan sheet with review-focused groups", async () => {

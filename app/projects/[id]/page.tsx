@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { summarizeExportReadiness, type ExportReadinessStatus, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
+import { summarizeMaterialReview, type MaterialReviewItem, type MaterialReviewSummary } from "@/lib/plans/material-summary";
 import { summarizeGeneratedPlanReview, type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/types";
@@ -29,6 +30,7 @@ export default async function ProjectDetailPage({
   const templateHint = getTemplateHint(project.project_type);
   const buildModel = latestPlanReview?.buildModel ?? createBuildModelDraft(project, templateHint, calculateSafetyReviewFlags(project));
   const buildModelSource = latestPlanReview?.buildModelSource ?? "derived";
+  const materialReview = latestPlanReview?.materialReview ?? summarizeMaterialReview(null, buildModel);
 
   return (
     <div className="space-y-6">
@@ -75,7 +77,7 @@ export default async function ProjectDetailPage({
 
       <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
 
-      <BuildModelView buildModel={buildModel} source={buildModelSource} />
+      <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={materialReview} />
 
       {latestPlanReview ? (
         <>
@@ -84,6 +86,7 @@ export default async function ProjectDetailPage({
           <PlanView
             plan={latestPlanReview.plan.plan_json}
             buildModel={latestPlanReview.buildModel}
+            materialReview={latestPlanReview.materialReview}
             createdAt={latestPlanReview.plan.created_at}
             modelName={latestPlanReview.plan.model_name}
           />
@@ -129,6 +132,7 @@ function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
     buildModelSource,
     review: summarizeGeneratedPlanReview(plan.plan_json, buildModel, { buildModelSource }),
     exportReadiness: summarizeExportReadiness(plan.plan_json, buildModel, { buildModelSource }),
+    materialReview: summarizeMaterialReview(plan.plan_json, buildModel),
   };
 }
 
@@ -336,7 +340,15 @@ function reviewBadgeClass(status: GeneratedPlanReviewStatus): string {
   return "bg-emerald-100 text-emerald-900";
 }
 
-function BuildModelView({ buildModel, source }: { buildModel: BoardsmithBuildModel; source: "saved" | "derived" }) {
+function BuildModelView({
+  buildModel,
+  source,
+  materialReview,
+}: {
+  buildModel: BoardsmithBuildModel;
+  source: "saved" | "derived";
+  materialReview: MaterialReviewSummary;
+}) {
   return (
     <section className="rounded-lg border border-sawdust bg-white p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -366,49 +378,8 @@ function BuildModelView({ buildModel, source }: { buildModel: BoardsmithBuildMod
           </div>
         </StructureGroup>
 
-        <StructureGroup title="Materials">
-          <div className="space-y-3">
-            {buildModel.materials.map((material) => (
-              <div key={material.id} className="border-b border-sawdust pb-3 last:border-0 last:pb-0">
-                <p className="text-sm font-semibold text-ink">{material.label}</p>
-                <p className="mt-1 text-xs text-ink/55">
-                  {material.materialType.replaceAll("_", " ")} - {material.nominalThicknessInches ? `${material.nominalThicknessInches.toString()} in` : "thickness unknown"}
-                </p>
-              </div>
-            ))}
-          </div>
-        </StructureGroup>
-
         <StructureGroup title="Material Summary">
-          <div className="space-y-3">
-            {summarizeBuildModelMaterials(buildModel).map((summary) => (
-              <div key={summary.id} className="border-b border-sawdust pb-3 last:border-0 last:pb-0">
-                <p className="text-sm font-semibold text-ink">{summary.label}</p>
-                <p className="mt-1 text-xs text-ink/55">
-                  {summary.plannedPieceCount.toString()} planned {summary.plannedPieceCount === 1 ? "piece" : "pieces"} - {summary.thicknessLabel}
-                </p>
-                {summary.notes.length > 0 ? <p className="mt-1 text-sm leading-6 text-ink/65">{summary.notes[0]}</p> : null}
-              </div>
-            ))}
-          </div>
-        </StructureGroup>
-
-        <StructureGroup title="Hardware">
-          {buildModel.hardware.length > 0 ? (
-            <div className="space-y-3">
-              {buildModel.hardware.map((item) => (
-                <div key={item.id} className="border-b border-sawdust pb-3 last:border-0 last:pb-0">
-                  <p className="text-sm font-semibold text-ink">{item.label}</p>
-                  <p className="mt-1 text-xs text-ink/55">
-                    {item.hardwareType.replaceAll("_", " ")} - {item.quantity ? `${item.quantity.toString()} needed` : "quantity to review"}
-                  </p>
-                  {item.notes.length > 0 ? <p className="mt-1 text-sm leading-6 text-ink/65">{item.notes[0]}</p> : null}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-ink/65">No hardware placeholders were needed for this draft.</p>
-          )}
+          <MaterialReviewSummaryView summary={materialReview} compact />
         </StructureGroup>
 
         <StructureGroup title="Connections">
@@ -493,23 +464,66 @@ function readinessLabel(isCandidate: boolean): string {
   return isCandidate ? "candidate later" : "not enough information";
 }
 
-function summarizeBuildModelMaterials(buildModel: BoardsmithBuildModel) {
-  return buildModel.materials.map((material) => {
-    const plannedPieceCount = buildModel.pieces
-      .filter((piece) => piece.materialId === material.id)
-      .reduce((total, piece) => total + piece.quantity, 0);
-
-    return {
-      id: material.id,
-      label: material.label,
-      plannedPieceCount,
-      thicknessLabel: material.nominalThicknessInches ? `${material.nominalThicknessInches.toString()} in thickness` : "thickness unknown",
-      notes: material.notes,
-    };
-  });
+function MaterialReviewSummaryView({ summary, compact = false }: { summary: MaterialReviewSummary; compact?: boolean }) {
+  return (
+    <div className={compact ? "space-y-4" : "space-y-5"}>
+      <MaterialReviewGroup
+        title="Primary materials"
+        items={summary.primaryMaterials}
+        emptyCopy="No primary material is modeled yet. Review project intake before relying on this plan."
+      />
+      <MaterialReviewGroup
+        title="Hardware / fasteners"
+        items={summary.hardwareFasteners}
+        emptyCopy="No hardware or fastener placeholders are modeled yet."
+      />
+      <MaterialReviewGroup
+        title="Finish / optional supplies"
+        items={summary.finishSupplies}
+        emptyCopy="No finish or optional supply notes are listed yet."
+      />
+      <div>
+        <h4 className="text-sm font-semibold text-ink">Material assumptions and review notes</h4>
+        <List items={summary.reviewNotes} />
+      </div>
+    </div>
+  );
 }
 
-function PlanView({ plan, buildModel, createdAt, modelName }: { plan: GeneratedPlan; buildModel: BoardsmithBuildModel; createdAt: string; modelName: string }) {
+function MaterialReviewGroup({ title, items, emptyCopy }: { title: string; items: MaterialReviewItem[]; emptyCopy: string }) {
+  return (
+    <div>
+      <h4 className="text-sm font-semibold text-ink">{title}</h4>
+      {items.length > 0 ? (
+        <div className="mt-2 space-y-3">
+          {items.map((item) => (
+            <div key={item.id} className="border-b border-sawdust pb-3 last:border-0 last:pb-0">
+              <p className="text-sm font-semibold text-ink">{item.label}</p>
+              <p className="mt-1 text-xs text-ink/55">{item.detail}</p>
+              {item.notes.length > 0 ? <p className="mt-1 text-sm leading-6 text-ink/65">{item.notes.join(" ")}</p> : null}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-sm leading-6 text-ink/65">{emptyCopy}</p>
+      )}
+    </div>
+  );
+}
+
+function PlanView({
+  plan,
+  buildModel,
+  materialReview,
+  createdAt,
+  modelName,
+}: {
+  plan: GeneratedPlan;
+  buildModel: BoardsmithBuildModel;
+  materialReview: MaterialReviewSummary;
+  createdAt: string;
+  modelName: string;
+}) {
   return (
     <article className="rounded-lg border border-sawdust bg-white p-6 shadow-soft print:border-0 print:p-0 print:shadow-none">
       <header className="border-b border-sawdust pb-5">
@@ -538,8 +552,7 @@ function PlanView({ plan, buildModel, createdAt, modelName }: { plan: GeneratedP
         <PlanSheetSection title="Materials and Cut List">
           <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
             <div>
-              <h4 className="text-sm font-semibold text-ink">Materials</h4>
-              <List items={plan.materials.map((item) => `${item.quantity} ${item.name}: ${item.notes}`)} />
+              <MaterialReviewSummaryView summary={materialReview} />
               <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
               <List items={buildModel.pieces.map((piece) => `${piece.quantity.toString()}x ${piece.label}: ${formatBuildModelDimensions(piece.dimensions)}`)} />
             </div>
