@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
+import { cutListStatusLabel, summarizeCutListReview, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
 import { summarizeExportReadiness, type ExportReadinessStatus, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
 import { summarizeMaterialReview, type MaterialReviewItem, type MaterialReviewSummary } from "@/lib/plans/material-summary";
 import { summarizeGeneratedPlanReview, type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
@@ -31,6 +32,7 @@ export default async function ProjectDetailPage({
   const buildModel = latestPlanReview?.buildModel ?? createBuildModelDraft(project, templateHint, calculateSafetyReviewFlags(project));
   const buildModelSource = latestPlanReview?.buildModelSource ?? "derived";
   const materialReview = latestPlanReview?.materialReview ?? summarizeMaterialReview(null, buildModel);
+  const cutListReview = latestPlanReview?.cutListReview ?? null;
 
   return (
     <div className="space-y-6">
@@ -77,7 +79,7 @@ export default async function ProjectDetailPage({
 
       <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
 
-      <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={materialReview} />
+      <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={materialReview} cutListReview={cutListReview} />
 
       {latestPlanReview ? (
         <>
@@ -87,6 +89,7 @@ export default async function ProjectDetailPage({
             plan={latestPlanReview.plan.plan_json}
             buildModel={latestPlanReview.buildModel}
             materialReview={latestPlanReview.materialReview}
+            cutListReview={latestPlanReview.cutListReview}
             createdAt={latestPlanReview.plan.created_at}
             modelName={latestPlanReview.plan.model_name}
           />
@@ -133,6 +136,7 @@ function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
     review: summarizeGeneratedPlanReview(plan.plan_json, buildModel, { buildModelSource }),
     exportReadiness: summarizeExportReadiness(plan.plan_json, buildModel, { buildModelSource }),
     materialReview: summarizeMaterialReview(plan.plan_json, buildModel),
+    cutListReview: summarizeCutListReview(plan.plan_json, buildModel),
   };
 }
 
@@ -344,10 +348,12 @@ function BuildModelView({
   buildModel,
   source,
   materialReview,
+  cutListReview,
 }: {
   buildModel: BoardsmithBuildModel;
   source: "saved" | "derived";
   materialReview: MaterialReviewSummary;
+  cutListReview: CutListReviewSummary | null;
 }) {
   return (
     <section className="rounded-lg border border-sawdust bg-white p-5">
@@ -381,6 +387,12 @@ function BuildModelView({
         <StructureGroup title="Material Summary">
           <MaterialReviewSummaryView summary={materialReview} compact />
         </StructureGroup>
+
+        {cutListReview ? (
+          <StructureGroup title="Cut List Review">
+            <CutListReviewSummaryView summary={cutListReview} compact showTitle={false} />
+          </StructureGroup>
+        ) : null}
 
         <StructureGroup title="Connections">
           {buildModel.connections.length > 0 ? (
@@ -511,16 +523,66 @@ function MaterialReviewGroup({ title, items, emptyCopy }: { title: string; items
   );
 }
 
+function CutListReviewSummaryView({
+  summary,
+  compact = false,
+  showTitle = true,
+}: {
+  summary: CutListReviewSummary;
+  compact?: boolean;
+  showTitle?: boolean;
+}) {
+  return (
+    <div className={compact ? "space-y-4" : "space-y-5"}>
+      {showTitle ? <h4 className="text-sm font-semibold text-ink">Cut List Review</h4> : null}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <ReviewMetric label="Total pieces" value={summary.totalPieces.toString()} />
+        <ReviewMetric label="With dimensions" value={summary.piecesWithDimensions.toString()} />
+        <ReviewMetric label="Needs review" value={summary.piecesNeedingReview.toString()} />
+      </div>
+
+      {summary.warnings.length > 0 ? <ReviewMessageGroup title="Cut-list warnings" messages={summary.warnings} tone="warning" /> : null}
+
+      <div>
+        <h5 className="text-sm font-semibold text-ink">Piece checks</h5>
+        <div className="mt-2 space-y-3">
+          {summary.items.map((item) => (
+            <div key={item.id} className="border-b border-sawdust pb-3 last:border-0 last:pb-0">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-ink">{item.label}</p>
+                  <p className="mt-1 text-xs text-ink/55">
+                    {item.sourceLabel} - {item.quantityLabel}x - {item.dimensionsLabel} - {item.materialLabel}
+                  </p>
+                </div>
+                <span className="w-fit rounded-md bg-shop px-2.5 py-1 text-xs font-semibold text-ink/70">{cutListStatusLabel(item.status)}</span>
+              </div>
+              {item.messages.length > 0 ? <p className="mt-2 text-sm leading-6 text-ink/65">{item.messages.join(" ")}</p> : null}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h5 className="text-sm font-semibold text-ink">Cutting reminders</h5>
+        <List items={summary.reviewNotes} />
+      </div>
+    </div>
+  );
+}
+
 function PlanView({
   plan,
   buildModel,
   materialReview,
+  cutListReview,
   createdAt,
   modelName,
 }: {
   plan: GeneratedPlan;
   buildModel: BoardsmithBuildModel;
   materialReview: MaterialReviewSummary;
+  cutListReview: CutListReviewSummary;
   createdAt: string;
   modelName: string;
 }) {
@@ -557,6 +619,9 @@ function PlanView({
               <List items={buildModel.pieces.map((piece) => `${piece.quantity.toString()}x ${piece.label}: ${formatBuildModelDimensions(piece.dimensions)}`)} />
             </div>
             <div className="overflow-x-auto">
+              <div className="mb-5">
+                <CutListReviewSummaryView summary={cutListReview} />
+              </div>
               <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-sawdust text-xs uppercase tracking-wide text-ink/55">

@@ -164,6 +164,13 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("Material Summary");
+    expect(markup).toContain("Cut List Review");
+    expect(markup).toContain("Total pieces");
+    expect(markup).toContain("With dimensions");
+    expect(markup).toContain("Needs review");
+    expect(markup).toContain("Ready to review");
+    expect(markup).toContain("Measure twice before cutting.");
+    expect(markup).toContain("This is a planning aid, not a production cut file.");
     expect(markup).toContain("Primary materials");
     expect(markup).toContain("Hardware / fasteners");
     expect(markup).toContain("Finish / optional supplies");
@@ -192,6 +199,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Planning aid");
     expect(markup).toContain("Review before building");
     expect(markup).toContain("Materials and Cut List");
+    expect(markup).toContain("Verify all dimensions against your actual space, lumber, and hardware.");
     expect(markup).toContain("Build Steps and Operations");
     expect(markup).toContain("Assumptions and Open Questions");
     expect(markup).toContain("Use your own judgment before cutting or assembling.");
