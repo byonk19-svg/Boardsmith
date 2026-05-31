@@ -54,7 +54,7 @@ const storedBuildModel = {
     {
       ...simpleShelfBuildModelFixture.materials[0],
       id: "saved_material",
-      label: "Saved BBM material",
+      label: "Saved BBM pine board material",
     },
   ],
   pieces: simpleShelfBuildModelFixture.pieces.map((piece) => ({ ...piece, materialId: "saved_material" })),
@@ -134,7 +134,9 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("A deterministic planning model saved with the latest generated plan.");
-    expect(markup).toContain("Saved BBM material");
+    expect(markup).toContain("Saved BBM pine board material");
+    expect(markup).toContain("Plan Review");
+    expect(markup).toContain("Review: Blocked");
   });
 
   it("renders a read-only material summary from the displayed build model", async () => {
@@ -150,7 +152,7 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("Material Summary");
-    expect(markup).toContain("Saved BBM material");
+    expect(markup).toContain("Saved BBM pine board material");
     expect(markup).toContain("1 planned piece");
     expect(markup).toContain("0.75 in thickness");
   });
@@ -169,5 +171,23 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("A deterministic planning model derived from the project intake.");
     expect(markup).toContain("fresh intake material");
+    expect(markup).toContain("Review uses a derived project structure because this plan version did not store a build model.");
+  });
+
+  it("shows a calm empty review state before any plan is generated", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("No generated plan yet");
+    expect(markup).toContain("Generate a plan to see Boardsmith&#x27;s review checks.");
+    expect(markup).not.toContain("Plan Review");
   });
 });

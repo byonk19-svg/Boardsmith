@@ -6,6 +6,20 @@ export type GeneratedPlanQualityIssue = {
   message: string;
 };
 
+export type GeneratedPlanReviewStatus = "passed" | "warnings" | "blocked";
+
+export type GeneratedPlanReviewSummary = {
+  status: GeneratedPlanReviewStatus;
+  blockingIssueCount: number;
+  warningCount: number;
+  infoCount: number;
+  topMessages: string[];
+  manualReviewRequired: boolean;
+  blockingIssues: GeneratedPlanQualityIssue[];
+  warnings: string[];
+  infoMessages: string[];
+};
+
 const dimensionToleranceInches = 0.001;
 
 function normalizeText(value: string): string {
@@ -240,6 +254,44 @@ export function evaluateGeneratedPlanQuality(plan: GeneratedPlan, buildModel: Bo
   issues.push(...overclaimIssues(plan));
 
   return issues;
+}
+
+function uniqueMessages(messages: string[]): string[] {
+  return [...new Set(messages.map((message) => message.trim()).filter((message) => message.length > 0))];
+}
+
+export function summarizeGeneratedPlanReview(
+  plan: GeneratedPlan,
+  buildModel: BoardsmithBuildModel,
+  options: { buildModelSource?: "saved" | "derived" } = {},
+): GeneratedPlanReviewSummary {
+  const blockingIssues = evaluateGeneratedPlanQuality(plan, buildModel);
+  const warnings = uniqueMessages([
+    options.buildModelSource === "derived" ? "Review uses a derived project structure because this plan version did not store a build model." : "",
+    ...plan.needs_review_flags,
+    ...buildModel.safety.flags.map((flag) => flag.message),
+    ...buildModel.unresolvedQuestions.map((question) => `Manual review: ${question}`),
+    buildModel.safety.reviewRequired ? "Manual review required before building." : "",
+  ]);
+  const infoMessages = uniqueMessages(plan.safety_notes);
+  const status: GeneratedPlanReviewStatus = blockingIssues.length > 0 ? "blocked" : warnings.length > 0 ? "warnings" : "passed";
+  const topMessages = uniqueMessages([
+    ...blockingIssues.map((issue) => issue.message),
+    ...warnings,
+    ...(blockingIssues.length === 0 ? ["No blocking issues found."] : []),
+  ]).slice(0, 4);
+
+  return {
+    status,
+    blockingIssueCount: blockingIssues.length,
+    warningCount: warnings.length,
+    infoCount: infoMessages.length,
+    topMessages,
+    manualReviewRequired: true,
+    blockingIssues,
+    warnings,
+    infoMessages,
+  };
 }
 
 export function assertGeneratedPlanQuality(plan: GeneratedPlan, buildModel: BoardsmithBuildModel): void {

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
-import type { GeneratedPlan } from "@/lib/plans/plan-schema";
+import { summarizeGeneratedPlanReview, type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
+import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
@@ -22,9 +23,10 @@ export default async function ProjectDetailPage({
   if (!project) notFound();
 
   const plans = await listGeneratedPlans(project.id);
-  const latestPlan = plans.length > 0 ? (plans.find((plan) => plan.is_latest) ?? plans[0]) : null;
-  const buildModel = latestPlan?.build_model_json ?? createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
-  const buildModelSource = latestPlan?.build_model_json ? "saved" : "derived";
+  const planReviews = plans.map((plan) => buildPlanReview(project, plan));
+  const latestPlanReview = planReviews.length > 0 ? (planReviews.find((entry) => entry.plan.is_latest) ?? planReviews[0]) : null;
+  const buildModel = latestPlanReview?.buildModel ?? createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
+  const buildModelSource = latestPlanReview?.buildModelSource ?? "derived";
 
   return (
     <div className="space-y-6">
@@ -71,21 +73,33 @@ export default async function ProjectDetailPage({
 
       <BuildModelView buildModel={buildModel} source={buildModelSource} />
 
-      {latestPlan ? <PlanView plan={latestPlan.plan_json} createdAt={latestPlan.created_at} modelName={latestPlan.model_name} /> : <EmptyPlanState />}
+      {latestPlanReview ? (
+        <>
+          <PlanReviewPanel summary={latestPlanReview.review} />
+          <PlanView plan={latestPlanReview.plan.plan_json} createdAt={latestPlanReview.plan.created_at} modelName={latestPlanReview.plan.model_name} />
+        </>
+      ) : (
+        <EmptyPlanState />
+      )}
 
-      {plans.length > 0 ? (
+      {planReviews.length > 0 ? (
         <section className="no-print rounded-lg border border-sawdust bg-white p-5">
           <h2 className="text-lg font-semibold text-ink">Plan history</h2>
           <div className="mt-4 divide-y divide-sawdust">
-            {plans.map((plan, index) => (
-              <div key={plan.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+            {planReviews.map((entry, index) => (
+              <div key={entry.plan.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Version {plans.length - index}</p>
+                  <p className="text-sm font-semibold text-ink">Version {planReviews.length - index}</p>
                   <p className="text-xs text-ink/60">
-                    {new Date(plan.created_at).toLocaleString()} - {plan.model_name} - {plan.confidence_level} confidence
+                    {new Date(entry.plan.created_at).toLocaleString()} - {entry.plan.model_name} - {entry.plan.confidence_level} confidence
                   </p>
                 </div>
-                {plan.is_latest ? <span className="w-fit rounded-md bg-moss px-2.5 py-1 text-xs font-semibold text-white">Latest</span> : null}
+                <div className="flex flex-wrap gap-2">
+                  <span className={`w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${reviewBadgeClass(entry.review.status)}`}>
+                    Review: {reviewStatusLabel(entry.review.status)}
+                  </span>
+                  {entry.plan.is_latest ? <span className="w-fit rounded-md bg-moss px-2.5 py-1 text-xs font-semibold text-white">Latest</span> : null}
+                </div>
               </div>
             ))}
           </div>
@@ -93,6 +107,18 @@ export default async function ProjectDetailPage({
       ) : null}
     </div>
   );
+}
+
+function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
+  const buildModel = plan.build_model_json ?? createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
+  const buildModelSource: "saved" | "derived" = plan.build_model_json ? "saved" : "derived";
+
+  return {
+    plan,
+    buildModel,
+    buildModelSource,
+    review: summarizeGeneratedPlanReview(plan.plan_json, buildModel, { buildModelSource }),
+  };
 }
 
 function ProjectIntakeCard({ project }: { project: Project }) {
@@ -126,9 +152,89 @@ function EmptyPlanState() {
   return (
     <section className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
       <h2 className="text-lg font-semibold text-ink">No generated plan yet</h2>
-      <p className="mt-2 text-sm text-ink/65">Use Generate Plan after configuring `OPENAI_API_KEY`. Invalid generated JSON will not be saved.</p>
+      <p className="mt-2 text-sm text-ink/65">Generate a plan to see Boardsmith's review checks. Invalid generated JSON will not be saved.</p>
     </section>
   );
+}
+
+function PlanReviewPanel({ summary }: { summary: GeneratedPlanReviewSummary }) {
+  return (
+    <section className={`rounded-lg border p-5 ${reviewPanelClass(summary.status)}`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-ink">Plan Review</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/70">
+            Boardsmith checked this plan for missing dimensions, unsafe confidence, and build-model alignment.
+          </p>
+        </div>
+        <span className={`w-fit rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${reviewBadgeClass(summary.status)}`}>
+          {reviewStatusLabel(summary.status)}
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <ReviewMetric label="Blocking issues" value={summary.blockingIssueCount.toString()} />
+        <ReviewMetric label="Warnings" value={summary.warningCount.toString()} />
+        <ReviewMetric label="Notes" value={summary.infoCount.toString()} />
+      </div>
+
+      {summary.blockingIssueCount > 0 ? (
+        <ReviewMessageGroup title="Blocking issues" messages={summary.blockingIssues.map((issue) => issue.message)} tone="blocked" />
+      ) : (
+        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm font-medium text-ink">No blocking issues found.</p>
+      )}
+
+      {summary.warningCount > 0 ? <ReviewMessageGroup title="Needs manual review" messages={summary.warnings} tone="warning" /> : null}
+
+      <p className="mt-4 text-sm leading-6 text-ink/70">
+        Review before building. Boardsmith cannot verify load capacity or wall safety. This is a planning aid, not a professional engineering review.
+      </p>
+    </section>
+  );
+}
+
+function ReviewMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md bg-white/75 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-ink">{value}</p>
+    </div>
+  );
+}
+
+function ReviewMessageGroup({ title, messages, tone }: { title: string; messages: string[]; tone: "blocked" | "warning" }) {
+  const shownMessages = messages.slice(0, 4);
+
+  return (
+    <div className="mt-4">
+      <h3 className={`text-sm font-semibold ${tone === "blocked" ? "text-red-900" : "text-amber-950"}`}>{title}</h3>
+      <ul className="mt-2 space-y-2">
+        {shownMessages.map((message) => (
+          <li key={message} className="text-sm leading-6 text-ink/75">
+            {message}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function reviewStatusLabel(status: GeneratedPlanReviewStatus): string {
+  if (status === "blocked") return "Blocked";
+  if (status === "warnings") return "Warnings";
+  return "Passed";
+}
+
+function reviewPanelClass(status: GeneratedPlanReviewStatus): string {
+  if (status === "blocked") return "border-red-200 bg-red-50";
+  if (status === "warnings") return "border-amber-200 bg-amber-50";
+  return "border-emerald-200 bg-emerald-50";
+}
+
+function reviewBadgeClass(status: GeneratedPlanReviewStatus): string {
+  if (status === "blocked") return "bg-red-100 text-red-900";
+  if (status === "warnings") return "bg-amber-100 text-amber-950";
+  return "bg-emerald-100 text-emerald-900";
 }
 
 function BuildModelView({ buildModel, source }: { buildModel: BoardsmithBuildModel; source: "saved" | "derived" }) {

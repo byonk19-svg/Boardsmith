@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
-import { assertGeneratedPlanQuality, evaluateGeneratedPlanQuality } from "@/lib/plans/plan-quality";
+import { assertGeneratedPlanQuality, evaluateGeneratedPlanQuality, summarizeGeneratedPlanReview } from "@/lib/plans/plan-quality";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
 
 const compatibleShelfPlan: GeneratedPlan = {
@@ -60,6 +60,55 @@ const compatibleShelfPlan: GeneratedPlan = {
 describe("generated plan quality checks", () => {
   it("accepts a plan aligned with the build model", () => {
     expect(() => assertGeneratedPlanQuality(compatibleShelfPlan, simpleShelfBuildModelFixture)).not.toThrow();
+  });
+
+  it("summarizes a passed review when there are no blocking issues or warnings", () => {
+    const noReviewBuildModel: BoardsmithBuildModel = {
+      ...simpleShelfBuildModelFixture,
+      safety: {
+        reviewRequired: false,
+        flags: [],
+        disclaimers: simpleShelfBuildModelFixture.safety.disclaimers,
+      },
+      unresolvedQuestions: [],
+    };
+    const noReviewPlan = {
+      ...compatibleShelfPlan,
+      needs_review_flags: [],
+    };
+
+    const summary = summarizeGeneratedPlanReview(noReviewPlan, noReviewBuildModel);
+
+    expect(summary.status).toBe("passed");
+    expect(summary.blockingIssueCount).toBe(0);
+    expect(summary.warningCount).toBe(0);
+    expect(summary.topMessages).toContain("No blocking issues found.");
+    expect(summary.manualReviewRequired).toBe(true);
+  });
+
+  it("summarizes warnings when manual review remains", () => {
+    const summary = summarizeGeneratedPlanReview(compatibleShelfPlan, simpleShelfBuildModelFixture);
+
+    expect(summary.status).toBe("warnings");
+    expect(summary.blockingIssueCount).toBe(0);
+    expect(summary.warningCount).toBeGreaterThan(0);
+    expect(summary.topMessages).toEqual(expect.arrayContaining(["Wall mounting requires fastener, anchor, and stud review."]));
+  });
+
+  it("summarizes blocking issues when deterministic checks fail", () => {
+    const oversizedPlan = {
+      ...compatibleShelfPlan,
+      dimensions: {
+        ...compatibleShelfPlan.dimensions,
+        width_inches: 48,
+      },
+    };
+
+    const summary = summarizeGeneratedPlanReview(oversizedPlan, simpleShelfBuildModelFixture);
+
+    expect(summary.status).toBe("blocked");
+    expect(summary.blockingIssueCount).toBeGreaterThan(0);
+    expect(summary.topMessages[0]).toContain("exceeds build model");
   });
 
   it("flags dimensions that exceed the deterministic build model", () => {
