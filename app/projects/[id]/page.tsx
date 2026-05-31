@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
+import { summarizeExportReadiness, type ExportReadinessStatus, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
 import { summarizeGeneratedPlanReview, type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/types";
@@ -76,6 +77,7 @@ export default async function ProjectDetailPage({
       {latestPlanReview ? (
         <>
           <PlanReviewPanel summary={latestPlanReview.review} />
+          <ExportReadinessPanel summary={latestPlanReview.exportReadiness} />
           <PlanView plan={latestPlanReview.plan.plan_json} createdAt={latestPlanReview.plan.created_at} modelName={latestPlanReview.plan.model_name} />
         </>
       ) : (
@@ -118,6 +120,7 @@ function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
     buildModel,
     buildModelSource,
     review: summarizeGeneratedPlanReview(plan.plan_json, buildModel, { buildModelSource }),
+    exportReadiness: summarizeExportReadiness(plan.plan_json, buildModel, { buildModelSource }),
   };
 }
 
@@ -193,6 +196,44 @@ function PlanReviewPanel({ summary }: { summary: GeneratedPlanReviewSummary }) {
   );
 }
 
+function ExportReadinessPanel({ summary }: { summary: ExportReadinessSummary }) {
+  return (
+    <section className={`rounded-lg border p-5 ${exportPanelClass(summary.status)}`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-ink">Export Readiness</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/70">
+            This checks whether the saved plan structure is ready for future printable, SVG, or PDF polish. No export files are generated here.
+          </p>
+        </div>
+        <span className={`w-fit rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${exportBadgeClass(summary.status)}`}>
+          {exportStatusLabel(summary.status)}
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <ReviewMetric label="Blocking issues" value={summary.blockingIssueCount.toString()} />
+        <ReviewMetric label="Warnings" value={summary.warningCount.toString()} />
+        <ReviewMetric label="Future candidates" value={summary.exportCandidates.length > 0 ? summary.exportCandidates.join(", ") : "None"} />
+      </div>
+
+      {summary.blockingIssueCount > 0 ? (
+        <ReviewMessageGroup title="Not ready yet" messages={summary.blockingIssues.map((issue) => issue.message)} tone="blocked" />
+      ) : (
+        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm font-medium text-ink">No blocking export-readiness issues found.</p>
+      )}
+
+      {summary.warningCount > 0 ? <ReviewMessageGroup title="Needs review" messages={summary.warnings.map((issue) => issue.message)} tone="warning" /> : null}
+
+      {summary.exportReadinessNotes.length > 0 ? <ReviewMessageGroup title="Build-model readiness notes" messages={summary.exportReadinessNotes} tone="info" /> : null}
+
+      <p className="mt-4 text-sm leading-6 text-ink/70">
+        Future exports still require human review and safe woodworking judgment. This does not create production-ready CAD, CNC, DXF, SVG, or PDF output.
+      </p>
+    </section>
+  );
+}
+
 function ReviewMetric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md bg-white/75 p-3">
@@ -202,12 +243,13 @@ function ReviewMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ReviewMessageGroup({ title, messages, tone }: { title: string; messages: string[]; tone: "blocked" | "warning" }) {
+function ReviewMessageGroup({ title, messages, tone }: { title: string; messages: string[]; tone: "blocked" | "warning" | "info" }) {
   const shownMessages = messages.slice(0, 4);
+  const titleClass = tone === "blocked" ? "text-red-900" : tone === "warning" ? "text-amber-950" : "text-ink";
 
   return (
     <div className="mt-4">
-      <h3 className={`text-sm font-semibold ${tone === "blocked" ? "text-red-900" : "text-amber-950"}`}>{title}</h3>
+      <h3 className={`text-sm font-semibold ${titleClass}`}>{title}</h3>
       <ul className="mt-2 space-y-2">
         {shownMessages.map((message) => (
           <li key={message} className="text-sm leading-6 text-ink/75">
@@ -217,6 +259,24 @@ function ReviewMessageGroup({ title, messages, tone }: { title: string; messages
       </ul>
     </div>
   );
+}
+
+function exportStatusLabel(status: ExportReadinessStatus): string {
+  if (status === "not_ready") return "Not ready yet";
+  if (status === "needs_review") return "Needs review";
+  return "Looks ready for future export polish";
+}
+
+function exportPanelClass(status: ExportReadinessStatus): string {
+  if (status === "not_ready") return "border-red-200 bg-red-50";
+  if (status === "needs_review") return "border-amber-200 bg-amber-50";
+  return "border-emerald-200 bg-emerald-50";
+}
+
+function exportBadgeClass(status: ExportReadinessStatus): string {
+  if (status === "not_ready") return "bg-red-100 text-red-900";
+  if (status === "needs_review") return "bg-amber-100 text-amber-950";
+  return "bg-emerald-100 text-emerald-900";
 }
 
 function reviewStatusLabel(status: GeneratedPlanReviewStatus): string {

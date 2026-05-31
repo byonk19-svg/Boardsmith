@@ -137,6 +137,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Saved BBM pine board material");
     expect(markup).toContain("Plan Review");
     expect(markup).toContain("Review: Blocked");
+    expect(markup).toContain("Export Readiness");
+    expect(markup).toContain("This checks whether the saved plan structure is ready for future printable, SVG, or PDF polish.");
+    expect(markup).toContain("No export files are generated here.");
   });
 
   it("renders a read-only material summary from the displayed build model", async () => {
@@ -172,6 +175,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("A deterministic planning model derived from the project intake.");
     expect(markup).toContain("fresh intake material");
     expect(markup).toContain("Review uses a derived project structure because this plan version did not store a build model.");
+    expect(markup).toContain("Future export work should use a generated plan with stored build-model JSON.");
   });
 
   it("shows a calm empty review state before any plan is generated", async () => {
