@@ -99,6 +99,16 @@ describe("generated plan quality checks", () => {
     );
   });
 
+  it("allows explicit disclaimers that deny load or safety guarantees", () => {
+    const disclaimerPlan = {
+      ...compatibleShelfPlan,
+      project_summary:
+        "A cautious wall shelf plan. Boardsmith does not guarantee load capacity or structural safety. No load-bearing capacity is guaranteed. Load rating cannot be guaranteed. This is not child safe and does not provide structural approval. This is not a professional safety guarantee.",
+    };
+
+    expect(evaluateGeneratedPlanQuality(disclaimerPlan, simpleShelfBuildModelFixture).map((issue) => issue.code)).not.toContain("unsafe_safety_overclaim");
+  });
+
   it("flags cut-list materials that are not in the build model", () => {
     const unknownMaterialPlan = {
       ...compatibleShelfPlan,

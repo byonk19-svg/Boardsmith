@@ -133,6 +133,7 @@ export const generatedPlanJsonSchema = {
     },
     materials: {
       type: "array",
+      minItems: 1,
       items: {
         type: "object",
         additionalProperties: false,
@@ -144,9 +145,10 @@ export const generatedPlanJsonSchema = {
         },
       },
     },
-    tools: { type: "array", items: { type: "string" } },
+    tools: { type: "array", minItems: 1, items: { type: "string" } },
     cut_list: {
       type: "array",
+      minItems: 1,
       items: {
         type: "object",
         additionalProperties: false,
@@ -164,6 +166,7 @@ export const generatedPlanJsonSchema = {
     },
     assembly_steps: {
       type: "array",
+      minItems: 1,
       items: {
         type: "object",
         additionalProperties: false,
@@ -172,18 +175,18 @@ export const generatedPlanJsonSchema = {
           step_number: { type: "integer" },
           title: { type: "string" },
           instructions: { type: "string" },
-          tools_used: { type: "array", items: { type: "string" } },
+          tools_used: { type: "array", minItems: 1, items: { type: "string" } },
           safety_note: { anyOf: [{ type: "string" }, { type: "null" }] },
           estimated_time_minutes: { anyOf: [{ type: "integer" }, { type: "null" }] },
         },
       },
     },
-    finishing_steps: { type: "array", items: { type: "string" } },
-    safety_notes: { type: "array", items: { type: "string" } },
+    finishing_steps: { type: "array", minItems: 1, items: { type: "string" } },
+    safety_notes: { type: "array", minItems: 2, items: { type: "string" } },
     assumptions: { type: "array", items: { type: "string" } },
     needs_review_flags: { type: "array", items: { type: "string" } },
-    beginner_tips: { type: "array", items: { type: "string" } },
-    svg_readiness_notes: { type: "array", items: { type: "string" } },
+    beginner_tips: { type: "array", minItems: 1, items: { type: "string" } },
+    svg_readiness_notes: { type: "array", minItems: 1, items: { type: "string" } },
     estimated_difficulty: { type: "string", enum: ["easy", "moderate", "hard"] },
     estimated_time: { type: "string" },
     confidence_level: { type: "string", enum: confidenceLevels },

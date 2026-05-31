@@ -146,11 +146,21 @@ function cutListBuildModelIssues(plan: GeneratedPlan, buildModel: BoardsmithBuil
 }
 
 function overclaimIssues(plan: GeneratedPlan): GeneratedPlanQualityIssue[] {
-  const text = planText(plan);
+  const text = [
+    /\b(?:does not|do not|cannot|can not|never|no)\s+guarantee(?:d|s)?\b/g,
+    /\b(?:does not|do not|cannot|can not|never|no)\s+(?:provide|offer|make|include|imply|claim)\s+(?:\w+\s+){0,5}guarantee(?:d|s)?\b/g,
+    /\b(?:is not|are not|not)\s+guaranteed\b/g,
+    /\b(?:cannot|can not)\s+be\s+guaranteed\b/g,
+    /\bno\s+(?:\w+\s+){0,8}(?:is|are|was|were)\s+guaranteed\b/g,
+    /\b(?:is not|are not|not)\s+(?:a\s+)?(?:\w+\s+){0,5}guarantee(?:d|s)?\b/g,
+    /\b(?:does not|do not|cannot|can not|never|no)\s+certif(?:y|ies|ied)\b/g,
+    /\b(?:is not|are not|not|never|no|cannot be|can not be)\s+(?:a\s+)?child safe\b/g,
+    /\b(?:does not|do not|cannot|can not|never|no)\s+(?:provide\s+|include\s+|imply\s+|claim\s+)?structural approval\b/g,
+  ].reduce((current, pattern) => current.replace(pattern, " "), planText(plan));
   const forbiddenClaims = [
-    /\bguarantee(?:d|s)?\b.*\b(load|safe|safety|capacity|structural)\b/,
-    /\b(load|safe|safety|capacity|structural)\b.*\bguarantee(?:d|s)?\b/,
-    /\bcertif(?:y|ies|ied)\b.*\b(load|safe|safety|capacity|structural|child)\b/,
+    /\bguarantee(?:d|s)?\b(?:\s+\w+){0,8}\s+\b(load|safe|safety|capacity|structural)\b/,
+    /\b(load|safe|safety|capacity|structural)\b(?:\s+\w+){0,8}\s+\bguarantee(?:d|s)?\b/,
+    /\bcertif(?:y|ies|ied)\b(?:\s+\w+){0,8}\s+\b(load|safe|safety|capacity|structural|child)\b/,
     /\bchild safe\b/,
     /\bstructural approval\b/,
   ];

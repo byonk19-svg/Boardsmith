@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
-import { generatedPlanSchema, generatedProjectPlanRecordSchema, renderPlanMarkdown, type GeneratedPlan } from "@/lib/plans/plan-schema";
+import { generatedPlanJsonSchema, generatedPlanSchema, generatedProjectPlanRecordSchema, renderPlanMarkdown, type GeneratedPlan } from "@/lib/plans/plan-schema";
 
 const validPlan: GeneratedPlan = {
   project_summary: "A simple indoor door hanger plan sized from the submitted dimensions with review notes.",
@@ -59,6 +59,20 @@ describe("generatedPlanSchema", () => {
     };
 
     expect(generatedPlanSchema.safeParse(invalidPlan).success).toBe(false);
+  });
+
+  it("keeps OpenAI JSON schema array minimums aligned with Zod validation", () => {
+    const schema = generatedPlanJsonSchema.properties;
+
+    expect(schema.materials.minItems).toBe(1);
+    expect(schema.tools.minItems).toBe(1);
+    expect(schema.cut_list.minItems).toBe(1);
+    expect(schema.assembly_steps.minItems).toBe(1);
+    expect(schema.assembly_steps.items.properties.tools_used.minItems).toBe(1);
+    expect(schema.finishing_steps.minItems).toBe(1);
+    expect(schema.safety_notes.minItems).toBe(2);
+    expect(schema.beginner_tips.minItems).toBe(1);
+    expect(schema.svg_readiness_notes.minItems).toBe(1);
   });
 
   it("renders markdown from validated plans", () => {
