@@ -24,16 +24,46 @@ For the current private no-auth MVP, Supabase persistence should be verified wit
 
 Project creation and plan generation use explicit POST route handlers for browser-visible form submissions. This keeps the private MVP form flow stable without relying on framework-specific server-action form replay.
 
+Generated plan versions store:
+
+- schema-valid `plan_json`
+- rendered `plan_markdown`
+- `warnings`, `assumptions`, confidence, model name, and latest-plan marker
+- nullable `build_model_json` for the deterministic project structure used during generation
+
+Older plan rows without `build_model_json` remain readable. The project detail page derives a compatibility build model from the saved project intake and surfaces that fallback in the Plan Review copy.
+
 ## Validation
 
 - Project intake is validated before saving.
 - Safety flags are calculated deterministically before AI generation.
 - Template hints are selected deterministically by project type.
 - Generated plans must validate against the Zod plan schema before persistence.
+- When a build model is available, generated plans must pass deterministic quality checks before persistence.
+- Project detail computes a user-facing Plan Review summary on read instead of storing separate quality-review rows.
 
 ## AI Generation
 
 The generation service uses OpenAI structured output with a JSON schema and then validates the parsed JSON with Zod. Invalid or missing output is not saved.
+
+The generation prompt includes deterministic safety flags, project-type template hints, build-model context, and quality rules. The app does not loosen validation to accept weak AI output and does not persist unvalidated output.
+
+If `OPENAI_API_KEY` is missing, generation fails gracefully with setup-focused copy instead of saving a partial or placeholder plan. `OPENAI_MODEL` is optional and defaults to `gpt-4.1-mini`.
+
+## UI Readiness
+
+Current project detail rendering includes:
+
+- project metadata and intake summary
+- deterministic safety flags
+- project-type template hint effects
+- deterministic Project Structure from the Boardsmith Build Model
+- material summary
+- latest generated plan
+- Plan Review panel with passed/warnings/blocked status, issue counts, blocking messages, warnings, manual-review reminders, and safety disclaimer
+- plan history with compact review badges
+
+The Plan Review panel is a planning aid. It does not certify safety, load capacity, wall mounting, or professional engineering approval.
 
 ## Supabase
 

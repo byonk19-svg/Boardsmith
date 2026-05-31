@@ -18,12 +18,19 @@ Boardsmith currently has a strong MVP foundation:
 - TypeScript
 - Tailwind
 - local-private persistence fallback
-- Supabase schema foundation
+- Supabase-backed persistence for the private no-auth MVP
 - project intake form
 - deterministic safety flags
 - project template hints
 - OpenAI structured-output generation
 - Zod generated-plan schema
+- deterministic generated-plan quality checks
+- Boardsmith Build Model schema and deterministic derivation
+- build-model JSON stored with generated plan versions
+- Project Structure rendering
+- material summary rendering
+- Plan Review panel for latest generated plans
+- compact review badges in plan history
 - generated plan rendering
 - generated plan history
 - documentation and verification workflow
@@ -69,22 +76,18 @@ BBM is not:
 - a structural safety guarantee
 - a user-facing programming language
 
-## When To Start BBM
+## BBM Baseline Status
 
-BBM work can begin only after the MVP baseline is stable:
+BBM foundation work has started and is part of the current private MVP baseline:
 
-1. App is renamed to Boardsmith everywhere.
-2. Existing MVP routes work: `/`, `/projects`, `/projects/new`, `/projects/[id]`, `/settings`.
-3. Project creation works.
-4. Project detail pages work.
-5. Local persistence works across restart.
-6. Missing OpenAI API key behavior is graceful.
-7. Existing plan-generation flow validates output before saving.
-8. Existing tests pass.
-9. README and docs are current.
-10. Working tree is clean.
+- BBM has a Zod schema and fixtures.
+- BBM can be derived deterministically from project intake, template hints, and safety flags.
+- Project detail renders BBM as user-facing "Project Structure".
+- Generated plans store nullable `build_model_json` so the structure can stay versioned with the plan.
+- Generated output is checked against BBM basics before save when a build model is available.
+- Older generated plans without `build_model_json` remain readable with a derived compatibility model.
 
-If those are not true, fix baseline bugs before starting BBM.
+Future BBM work should refine the existing model and review surfaces. Do not skip directly to export, CAD, DXF, CNC, image upload, public sharing, marketplace, subscriptions, or payments.
 
 ## Implementation Principles
 
@@ -137,36 +140,37 @@ BBM v1 should include:
 - export readiness
 - confidence
 
-Validation should include two layers:
+Validation includes two layers:
 
 1. Zod shape validation.
-2. Semantic validation for internal references and safety-oriented consistency.
+2. Deterministic validation for internal references, bounded dimensions, material/cut-list alignment, required safety flags, and overconfident safety claims.
 
 ## Development Roadmap
 
-### Task 14A - BBM Schema Foundation
+### Completed Foundation
 
-Add the BBM Zod schema, TypeScript types, fixture examples, and validation tests. Include semantic validation for connection piece ids, operation piece ids, and hardware ids.
+- BBM schema foundation.
+- BBM derivation from existing project data.
+- Project Structure renderer.
+- Backward-compatible build-model storage on generated plan versions.
+- BBM-aware AI prompting.
+- Deterministic generated-plan quality checks.
+- Material summary.
+- Plan Review UI.
 
-Do not change AI generation, database schema, UI, exports, CAD, auth, payments, public sharing, or marketplace features.
+### Recommended Next Tasks
 
-### Task 14B - BBM Derivation From Existing Project Data
+1. Export readiness checks, not export.
+2. Printable plan polish.
+3. Project examples/templates polish.
+4. Material summary refinement.
+5. Cut-list review improvements.
+6. Later: SVG/PDF export foundation.
+7. Much later: CAD/FreeCAD/CNC research.
 
-Create deterministic helpers that produce a minimal BBM draft from existing project intake data, template hints, and safety flags.
+### Guardrails For Later Tasks
 
-### Task 14C - Project Structure Renderer
-
-Show the BBM draft in the project detail page as a structured "Project Structure" section without replacing generated plans.
-
-### Task 14D - BBM Storage Decision
-
-Decide how BBM should be stored without breaking existing plan history. Prefer backward-compatible storage.
-
-### Later Tasks
-
-Add BBM-aware AI prompting, deterministic plan quality checks, material summaries, improved cut lists, and export readiness. Do not skip directly to SVG, CAD, DXF, CNC, image upload, public sharing, marketplace, subscriptions, or payments.
-
-The first 14E slice passes the deterministic BBM into the AI prompt and rejects schema-valid generated plans before saving when they conflict with BBM basics: project type, confirmed dimensions, deterministic review flags, wall-mount cautions, cut-list material references, or unverifiable safety/load guarantees.
+Add export readiness checks before adding export. Keep "not enough information" states honest. Do not add actual SVG/PDF/DXF export, CAD, FreeCAD, CNC, auth, image upload, public sharing, marketplace, subscriptions, or payments until explicitly requested.
 
 ## UI Copy Rules
 

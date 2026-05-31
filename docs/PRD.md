@@ -2,7 +2,7 @@
 
 ## Goal
 
-Create a private MVP web app that uses AI to generate detailed woodworking and craft project plans. The MVP starts with simple wood projects and produces structured plan content that can later support SVG/PDF-ready workflows.
+Create a private MVP web app that uses AI to generate detailed, reviewable woodworking and craft project plans. The MVP starts with simple wood projects, stores validated plan versions, and produces structured plan content that can later support SVG/PDF-ready workflows.
 
 ## Primary Flow
 
@@ -12,10 +12,12 @@ Create a private MVP web app that uses AI to generate detailed woodworking and c
 4. User enters dimensions, material thickness, tools available, skill level, style notes, and intended use.
 5. App saves the project.
 6. User triggers AI plan generation.
-7. App sends deterministic project context and template hints to OpenAI using structured output.
-8. App validates the result against the Zod plan schema.
-9. App saves only valid generated plans.
-10. User views overview, warnings, materials, tools, cut list, assembly steps, finishing guide, assumptions, needs-review flags, beginner tips, and SVG/PDF readiness notes.
+7. App derives a deterministic Boardsmith Build Model from the project intake, template hints, and safety flags.
+8. App sends deterministic project context, template hints, and build-model context to OpenAI using structured output.
+9. App validates the result against the Zod plan schema.
+10. App rejects generated plans that fail deterministic quality checks.
+11. App saves only valid generated plans with their build-model JSON.
+12. User views project metadata, safety flags, template hints, project structure, material summary, Plan Review status, overview, warnings, materials, tools, cut list, assembly steps, finishing guide, assumptions, needs-review flags, beginner tips, SVG/PDF readiness notes, and plan history.
 
 ## Project Types
 
@@ -35,6 +37,7 @@ Create a private MVP web app that uses AI to generate detailed woodworking and c
 
 - Plans must include safety disclaimers.
 - Plans must warn that user review is required.
+- The Plan Review panel must make blocking issues, warnings, and manual-review needs visible in plain language.
 - No structural or load-bearing guarantees.
 - Wall-mounted items must include stud/anchor cautions.
 - Child/baby use, chairs, stools, benches, ladders, platforms, heavy shelving, electrical/lighted signs, outdoor load exposure, unclear dimensions, and missing material thickness must be flagged.

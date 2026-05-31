@@ -6,12 +6,14 @@ Boardsmith is a private MVP web app for generating detailed, reviewable woodwork
 
 - Next.js App Router application shell.
 - Project intake for supported beginner-friendly project types.
-- Private local persistence by default, with a Supabase schema ready for deployment.
+- Private local JSON fallback plus verified Supabase-backed persistence.
 - Deterministic safety-review flags before AI generation.
 - Project-type template hints used in AI prompt context.
 - Zod-validated generated plan schema.
 - OpenAI structured-output generation that rejects invalid JSON.
-- Project detail pages with generated plan history and latest-plan display.
+- Deterministic Boardsmith Build Model project structure saved with generated plan versions.
+- Plan Review panel that surfaces blocking issues, warnings, manual-review reminders, and planning-aid safety copy.
+- Project detail pages with project metadata, safety flags, template hints, material summary, latest generated plan, and generated plan history.
 
 ## Supported Project Types
 
@@ -33,6 +35,15 @@ npm run dev
 
 Add `OPENAI_API_KEY` to `.env.local` before using plan generation. If Supabase variables are not configured, the private MVP stores data in `.data/boardsmith.json`. Use `BOARDSMITH_DATA_FILE` only when you need to point the local fallback at a different JSON file, such as isolated test data.
 
+Required or commonly used environment variables:
+
+- `OPENAI_API_KEY`: required only for live plan generation.
+- `OPENAI_MODEL`: optional, defaults to `gpt-4.1-mini`.
+- `NEXT_PUBLIC_SUPABASE_URL`: required with `SUPABASE_SERVICE_ROLE_KEY` for Supabase persistence.
+- `SUPABASE_SERVICE_ROLE_KEY`: server-only key for the current private no-auth MVP repository layer.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: reserved for future authenticated/client flows.
+- `BOARDSMITH_DATA_FILE`: optional local JSON fallback override.
+
 ### Supabase persistence
 
 Supabase is optional for local development. The app uses Supabase only when the runtime has:
@@ -46,6 +57,10 @@ Apply the SQL in `supabase/migrations/` before running a Supabase-backed smoke. 
 
 To verify Supabase persistence, create `.env.local` from `.env.example`, set the Supabase values above, start the dev server, then create a project through `/projects/new`. The project should redirect to `/projects/[id]`, appear in `/projects`, and continue to load with `.data/boardsmith.json` unchanged. If the Supabase env vars are absent, the same flow uses the private local JSON fallback.
 
+Generated plans are saved only after Zod schema validation. When a deterministic build model is available, the app also checks generated output for project type, bounded dimensions, required safety warnings, cut-list material/piece alignment, and overconfident safety claims. Valid saved plan versions include `build_model_json` so older plan history can remain reproducible. Older rows without stored build-model JSON are still readable; the detail page derives a compatibility model and shows that in the review copy.
+
+For the current readiness snapshot and next task order, see [docs/MVP_READINESS.md](docs/MVP_READINESS.md).
+
 ## Verification
 
 Run these before committing:
@@ -55,6 +70,7 @@ npm test
 npm run lint
 npm run typecheck
 npm run build
+npm audit --audit-level=moderate
 git diff --check
 ```
 
