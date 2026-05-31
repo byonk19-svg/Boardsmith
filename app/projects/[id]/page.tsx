@@ -26,7 +26,8 @@ export default async function ProjectDetailPage({
   const plans = await listGeneratedPlans(project.id);
   const planReviews = plans.map((plan) => buildPlanReview(project, plan));
   const latestPlanReview = planReviews.length > 0 ? (planReviews.find((entry) => entry.plan.is_latest) ?? planReviews[0]) : null;
-  const buildModel = latestPlanReview?.buildModel ?? createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
+  const templateHint = getTemplateHint(project.project_type);
+  const buildModel = latestPlanReview?.buildModel ?? createBuildModelDraft(project, templateHint, calculateSafetyReviewFlags(project));
   const buildModelSource = latestPlanReview?.buildModelSource ?? "derived";
 
   return (
@@ -71,6 +72,8 @@ export default async function ProjectDetailPage({
           </p>
         </div>
       </section>
+
+      <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
 
       <BuildModelView buildModel={buildModel} source={buildModelSource} />
 
@@ -127,6 +130,37 @@ function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
     review: summarizeGeneratedPlanReview(plan.plan_json, buildModel, { buildModelSource }),
     exportReadiness: summarizeExportReadiness(plan.plan_json, buildModel, { buildModelSource }),
   };
+}
+
+function TemplateGuidancePanel({ projectTypeLabel, assumptions, cautions }: { projectTypeLabel: string; assumptions: string[]; cautions: string[] }) {
+  return (
+    <section className="rounded-lg border border-sawdust bg-white p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-2xl">
+          <h2 className="text-lg font-semibold text-ink">Template Guidance</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/65">
+            Planning guidance, not a finished plan. Boardsmith uses the {projectTypeLabel.toLowerCase()} template to organize assumptions, cautions, and future review checks.
+          </p>
+        </div>
+        <div className="text-sm leading-6 text-ink/65">
+          <p>Project intake is what you entered.</p>
+          <p>AI-generated plan output appears after generation.</p>
+          <p>Plan Review and Export Readiness check the saved plan.</p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-5 lg:grid-cols-2">
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-ink/55">Template assumptions</h3>
+          <List items={assumptions} />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-ink/55">Template cautions</h3>
+          <List items={cautions} />
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function ProjectIntakeCard({ project }: { project: Project }) {

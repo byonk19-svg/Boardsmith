@@ -8,9 +8,20 @@ export default function NewProjectPage() {
         <p className="mt-2 text-sm text-ink/65">Save the intake first. AI generation happens from the project detail page after deterministic safety review.</p>
       </div>
 
+      <section className="space-y-3 text-sm leading-6 text-ink/70">
+        <p className="font-medium text-ink">More detail produces better plans.</p>
+        <p>
+          Good MVP projects are specific and bounded, like a small wall shelf for a bathroom, simple toddler book ledge, basic outdoor planter box, or cordless lamp riser for a bookshelf.
+        </p>
+        <p>
+          Include approximate finished dimensions, material or plywood/board thickness, available tools, mounting or weight-bearing expectations, indoor or outdoor use,
+          finish, stain, or paint preferences, and any safety-sensitive use such as baby, kid, wall-mounted, or outdoor use.
+        </p>
+      </section>
+
       <form action="/projects/create" method="post" className="space-y-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft">
         <Field label="Project title">
-          <input name="title" required minLength={2} className="input" placeholder="Entryway fall door hanger" />
+          <input name="title" required minLength={2} className="input" placeholder="Small bathroom wall shelf" />
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -37,25 +48,26 @@ export default function NewProjectPage() {
 
         <div className="grid gap-4 sm:grid-cols-4">
           <Field label="Width">
-            <input name="width_inches" required type="number" min="0.1" max="240" step="0.125" className="input" />
+            <input name="width_inches" required type="number" min="0.1" max="240" step="0.125" className="input" placeholder="24" />
           </Field>
           <Field label="Height">
-            <input name="height_inches" required type="number" min="0.1" max="240" step="0.125" className="input" />
+            <input name="height_inches" required type="number" min="0.1" max="240" step="0.125" className="input" placeholder="8" />
           </Field>
           <Field label="Depth">
             <input name="depth_inches" required type="number" min="0" max="240" step="0.125" className="input" defaultValue="0" />
           </Field>
           <Field label="Thickness">
-            <input name="material_thickness_inches" required type="number" min="0.03125" max="12" step="0.03125" className="input" />
+            <input name="material_thickness_inches" required type="number" min="0.03125" max="12" step="0.03125" className="input" placeholder="0.75" />
           </Field>
         </div>
 
         <Field label="Material type">
-          <input name="material_type" required minLength={2} className="input" placeholder="1/4 inch birch plywood" />
+          <input name="material_type" required minLength={2} className="input" placeholder="3/4 inch pine board or 1/2 inch plywood" />
         </Field>
 
         <fieldset>
           <legend className="text-sm font-semibold text-ink">Tools available</legend>
+          <p className="mt-1 text-sm text-ink/60">Select only tools you can safely use. Boardsmith will keep planning guidance inside this tool list.</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             {toolOptions.map((tool) => (
               <label key={tool} className="flex items-center gap-2 rounded-md border border-sawdust px-3 py-2 text-sm text-ink/75">
@@ -67,11 +79,11 @@ export default function NewProjectPage() {
         </fieldset>
 
         <Field label="Style notes">
-          <textarea name="style_notes" rows={4} className="input" placeholder="Rustic painted finish, rounded edges, layered lettering..." />
+          <textarea name="style_notes" rows={4} className="input" placeholder="Painted white finish, rounded front corners, hidden brackets if possible..." />
         </Field>
 
         <Field label="Intended use">
-          <textarea name="intended_use" required rows={4} className="input" placeholder="Indoor front door decoration for seasonal use..." />
+          <textarea name="intended_use" required rows={4} className="input" placeholder="Indoor bathroom shelf for light towels; wall-mounted into studs if possible..." />
         </Field>
 
         <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">

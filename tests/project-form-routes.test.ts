@@ -47,6 +47,19 @@ describe("project form routes", () => {
     expect(markup).toContain('method="post"');
   });
 
+  it("shows practical project examples and detail prompts on the intake form", () => {
+    const markup = renderToStaticMarkup(React.createElement(NewProjectPage));
+
+    expect(markup).toContain("More detail produces better plans.");
+    expect(markup).toContain("small wall shelf for a bathroom");
+    expect(markup).toContain("simple toddler book ledge");
+    expect(markup).toContain("basic outdoor planter box");
+    expect(markup).toContain("cordless lamp riser for a bookshelf");
+    expect(markup).toContain("mounting or weight-bearing expectations");
+    expect(markup).toContain("finish, stain, or paint preferences");
+    expect(markup).toContain("baby, kid, wall-mounted, or outdoor use");
+  });
+
   it("uses an explicit POST route for plan generation", async () => {
     const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
 

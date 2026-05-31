@@ -135,6 +135,12 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("A deterministic planning model saved with the latest generated plan.");
     expect(markup).toContain("Saved BBM pine board material");
+    expect(markup).toContain("Template Guidance");
+    expect(markup).toContain("Planning guidance, not a finished plan.");
+    expect(markup).toContain("Project intake is what you entered.");
+    expect(markup).toContain("AI-generated plan output appears after generation.");
+    expect(markup).toContain("Plan Review and Export Readiness check the saved plan.");
+    expect(markup).toContain("Wall mounting is likely.");
     expect(markup).toContain("Plan Review");
     expect(markup).toContain("Review: Blocked");
     expect(markup).toContain("Export Readiness");
@@ -214,6 +220,6 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("No generated plan yet");
     expect(markup).toContain("Generate a plan to see Boardsmith&#x27;s review checks.");
-    expect(markup).not.toContain("Plan Review");
+    expect(markup).not.toContain("Blocking issues");
   });
 });
