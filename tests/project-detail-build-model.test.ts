@@ -160,6 +160,28 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("0.75 in thickness");
   });
 
+  it("renders the latest generated plan as a printable plan sheet with review-focused groups", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Printable Plan Sheet");
+    expect(markup).toContain("Planning aid");
+    expect(markup).toContain("Review before building");
+    expect(markup).toContain("Materials and Cut List");
+    expect(markup).toContain("Build Steps and Operations");
+    expect(markup).toContain("Assumptions and Open Questions");
+    expect(markup).toContain("Use your own judgment before cutting or assembling.");
+    expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
+  });
+
   it("falls back to a derived project structure for older generated plans without saved build models", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([{ ...planRecord, build_model_json: null }]);
