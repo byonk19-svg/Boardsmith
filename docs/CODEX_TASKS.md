@@ -157,11 +157,17 @@
 - [x] Confirm no PDF package is currently installed.
 - [x] Keep this as docs/planning-only with no routes, buttons, downloads, packages, or PDF generation.
 
+## Task 30A - MVP Dogfood QA
+
+- [x] Document realistic dogfood findings for five MVP woodworking scenarios.
+- [x] Confirm browser print remains enough for the private MVP.
+- [x] Recommend isolated live generation dogfood before PDF/export work.
+
 ## Recommended Next Tasks
 
-1. [ ] Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
-2. [ ] If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
-3. [ ] Or polish print preview if manual use reveals issues.
+1. [ ] Run an isolated live generation dogfood sweep for the five realistic scenarios.
+2. [ ] Or polish print preview if manual browser printing reveals issues.
+3. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
 4. [ ] Later SVG research note.
 5. [ ] Much later DXF/CAD/CNC research.
 
