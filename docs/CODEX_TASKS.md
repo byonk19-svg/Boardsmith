@@ -163,13 +163,21 @@
 - [x] Confirm browser print remains enough for the private MVP.
 - [x] Recommend isolated live generation dogfood before PDF/export work.
 
+## Task 31A - Live Generation Dogfood QA
+
+- [x] Run live OpenAI generation against five isolated Supabase-backed dogfood projects.
+- [x] Confirm quality-blocked AI output is not persisted.
+- [x] Confirm one generated plan saved with stored `build_model_json` and rendered the current review surfaces.
+- [x] Recommend prompt/model alignment before any PDF/export work.
+
 ## Recommended Next Tasks
 
-1. [ ] Run an isolated live generation dogfood sweep for the five realistic scenarios.
-2. [ ] Or polish print preview if manual browser printing reveals issues.
-3. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
-4. [ ] Later SVG research note.
-5. [ ] Much later DXF/CAD/CNC research.
+1. [ ] Run a narrow prompt/model alignment pass for live generation quality.
+2. [ ] Re-run the same five-scenario live dogfood sweep.
+3. [ ] Polish print preview only if manual browser printing reveals issues.
+4. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
+5. [ ] Later SVG research note.
+6. [ ] Much later DXF/CAD/CNC research.
 
 ## Remaining Hardening
 
