@@ -17,7 +17,8 @@ Create a private MVP web app that uses AI to generate detailed, reviewable woodw
 9. App validates the result against the Zod plan schema.
 10. App rejects generated plans that fail deterministic quality checks.
 11. App saves only valid generated plans with their build-model JSON.
-12. User views project metadata, safety flags, template hints, project structure, material summary, Plan Review status, overview, warnings, materials, tools, cut list, assembly steps, finishing guide, assumptions, needs-review flags, beginner tips, SVG/PDF readiness notes, and plan history.
+12. User views project metadata, safety flags, template hints, project structure, Material Summary, Cut List Review, Plan Review status, Export Readiness, overview, warnings, materials, tools, cut list, assembly steps, finishing guide, assumptions, needs-review flags, beginner tips, future export readiness notes, Printable Plan Sheet, browser print preview link, and plan history.
+13. User may open `/projects/[id]/print` for a browser print preview of the latest generated plan and use the browser print dialog for a paper copy.
 
 ## Project Types
 
@@ -31,6 +32,7 @@ Create a private MVP web app that uses AI to generate detailed, reviewable woodw
 
 - No CAD or FreeCAD.
 - No DXF, SVG, or PDF export.
+- No app-generated PDF downloads.
 - No payments, subscriptions, public marketplace, Etsy posting, public sharing, image upload, CNC/router-specific output, dangerous structural claims, child-furniture safety claims, or advanced joinery solver.
 
 ## Safety Requirements

@@ -41,6 +41,7 @@ Older plan rows without `build_model_json` remain readable. The project detail p
 - Generated plans must validate against the Zod plan schema before persistence.
 - When a build model is available, generated plans must pass deterministic quality checks before persistence.
 - Project detail computes a user-facing Plan Review summary on read instead of storing separate quality-review rows.
+- The printable plan manifest in `lib/plans/printable-plan-manifest.ts` gathers project, generated plan, build model, Plan Review, Export Readiness, Material Summary, Cut List Review, safety notes, assumptions, unresolved questions, disclaimers, and future export notes into one deterministic structure for print-facing rendering.
 
 ## AI Generation
 
@@ -59,11 +60,17 @@ Current project detail rendering includes:
 - project-type template hint effects
 - deterministic Project Structure from the Boardsmith Build Model
 - material summary
+- cut-list review
 - latest generated plan
 - Plan Review panel with passed/warnings/blocked status, issue counts, blocking messages, warnings, manual-review reminders, and safety disclaimer
+- Export Readiness panel for future export polish without generated files
+- manifest-backed Printable Plan Sheet
+- browser print preview page at `/projects/[id]/print`
 - plan history with compact review badges
 
 The Plan Review panel is a planning aid. It does not certify safety, load capacity, wall mounting, or professional engineering approval.
+
+The browser print preview page is read-only and uses the same printable plan manifest as the project detail page. It relies on the user's browser print dialog for paper copies. It is not an app-generated PDF, SVG, DXF, CAD, CNC, download, or export pipeline.
 
 ## Supabase
 

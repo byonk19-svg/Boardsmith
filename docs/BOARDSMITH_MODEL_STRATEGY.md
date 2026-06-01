@@ -29,6 +29,11 @@ Boardsmith currently has a strong MVP foundation:
 - build-model JSON stored with generated plan versions
 - Project Structure rendering
 - material summary rendering
+- cut-list review rendering
+- export readiness checks
+- printable plan manifest
+- manifest-backed Printable Plan Sheet
+- browser print preview page
 - Plan Review panel for latest generated plans
 - compact review badges in plan history
 - generated plan rendering
@@ -156,21 +161,23 @@ Validation includes two layers:
 - BBM-aware AI prompting.
 - Deterministic generated-plan quality checks.
 - Material summary.
+- Cut List Review.
 - Plan Review UI.
+- Export Readiness.
+- Printable plan manifest.
+- Browser print preview.
 
 ### Recommended Next Tasks
 
-1. Export readiness checks, not export.
-2. Printable plan polish.
-3. Project examples/templates polish.
-4. Material summary refinement.
-5. Cut-list review improvements.
-6. Later: SVG/PDF export foundation.
-7. Much later: CAD/FreeCAD/CNC research.
+1. Small print-preview polish only if needed.
+2. Export architecture decision note.
+3. Only then consider a very narrow app-generated PDF spike.
+4. Later SVG/DXF research.
+5. Much later CAD/FreeCAD/CNC research.
 
 ### Guardrails For Later Tasks
 
-Add export readiness checks before adding export. Keep "not enough information" states honest. Do not add actual SVG/PDF/DXF export, CAD, FreeCAD, CNC, auth, image upload, public sharing, marketplace, subscriptions, or payments until explicitly requested.
+Keep "not enough information" states honest. Browser print preview is not export. Do not add actual app-generated PDF/SVG/DXF export, CAD, FreeCAD, CNC, auth, image upload, public sharing, marketplace, subscriptions, or payments until explicitly requested.
 
 ## UI Copy Rules
 

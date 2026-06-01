@@ -13,7 +13,11 @@ Boardsmith is a private MVP web app for generating detailed, reviewable woodwork
 - OpenAI structured-output generation that rejects invalid JSON.
 - Deterministic Boardsmith Build Model project structure saved with generated plan versions.
 - Plan Review panel that surfaces blocking issues, warnings, manual-review reminders, and planning-aid safety copy.
-- Project detail pages with project metadata, safety flags, template hints, material summary, latest generated plan, and generated plan history.
+- Export Readiness checks for future printable/SVG/PDF-style work without generating export files.
+- Material Summary and Cut List Review sections for deterministic review before building.
+- Manifest-backed Printable Plan Sheet on project detail pages.
+- Browser print preview route at `/projects/[id]/print` for paper-copy review through the user's browser print dialog.
+- Project detail pages with project metadata, safety flags, template hints, material summary, latest generated plan, browser print preview link, and generated plan history.
 
 ## Supported Project Types
 
@@ -59,7 +63,7 @@ To verify Supabase persistence, create `.env.local` from `.env.example`, set the
 
 Generated plans are saved only after Zod schema validation. When a deterministic build model is available, the app also checks generated output for project type, bounded dimensions, required safety warnings, cut-list material/piece alignment, and overconfident safety claims. Valid saved plan versions include `build_model_json` so older plan history can remain reproducible. Older rows without stored build-model JSON are still readable; the detail page derives a compatibility model and shows that in the review copy.
 
-For the current readiness snapshot and next task order, see [docs/MVP_READINESS.md](docs/MVP_READINESS.md).
+For the current readiness snapshot and next task order, see [docs/MVP_READINESS.md](docs/MVP_READINESS.md) and [docs/INTERNAL_RELEASE_CHECKLIST.md](docs/INTERNAL_RELEASE_CHECKLIST.md).
 
 ## Verification
 
@@ -82,6 +86,7 @@ Generated plans are planning aids only. Users must review all dimensions, tool c
 
 - Authentication and per-user row-level security.
 - SVG/PDF/DXF export.
+- App-generated PDF downloads.
 - CNC/router-specific output.
 - 3D CAD or FreeCAD integration.
 - Image upload or generated imagery.

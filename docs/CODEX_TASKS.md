@@ -104,15 +104,49 @@
 - [x] Surface passed/warnings/blocked status, issue counts, blocking issues, warnings, manual-review reminders, and planning-aid safety copy.
 - [x] Add compact review badges to plan history.
 
+## Task 20A - Export Readiness Checks
+
+- [x] Add deterministic export-readiness checks without adding export files.
+- [x] Surface readiness status on project detail pages.
+
+## Task 21A - Printable Plan Polish
+
+- [x] Improve generated plan presentation as a reviewable Printable Plan Sheet.
+- [x] Keep browser print support separate from file export.
+
+## Task 22A - Project Examples And Template Guidance
+
+- [x] Improve project intake examples and template guidance copy.
+- [x] Keep supported project types unchanged.
+
+## Task 23A - Material Summary Refinement
+
+- [x] Group primary materials, hardware/fasteners, finish/optional supplies, and material review notes.
+- [x] Keep the display read-only without shopping, pricing, or vendor behavior.
+
+## Task 24A - Cut List Review
+
+- [x] Surface cut-list review counts and warnings.
+- [x] Keep the display read-only without optimization, nesting, sheet layout, or production cut files.
+
+## Task 25A/B - Printable Plan Manifest
+
+- [x] Add `createPrintablePlanManifest`.
+- [x] Wire the Printable Plan Sheet to the manifest as its primary data source.
+
+## Task 26A - Browser Print Preview
+
+- [x] Add `/projects/[id]/print` browser print preview page.
+- [x] Add project detail link to browser print preview.
+- [x] Keep print preview read-only with no download or app-generated export pipeline.
+
 ## Recommended Next Tasks
 
-1. [ ] Export readiness checks, not export.
-2. [ ] Printable plan polish.
-3. [ ] Project examples/templates polish.
-4. [ ] Material summary refinement.
-5. [ ] Cut-list review improvements.
-6. [ ] Later: SVG/PDF export foundation.
-7. [ ] Much later: CAD/FreeCAD/CNC research.
+1. [ ] Small print-preview polish only if needed.
+2. [ ] Export architecture decision note.
+3. [ ] Only then consider a very narrow app-generated PDF spike.
+4. [ ] Later SVG/DXF research.
+5. [ ] Much later CAD/FreeCAD/CNC research.
 
 ## Remaining Hardening
 

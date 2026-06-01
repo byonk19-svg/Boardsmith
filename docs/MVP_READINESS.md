@@ -2,7 +2,7 @@
 
 ## Status
 
-Boardsmith is a private MVP woodworking planning app. The current baseline is verified for local JSON fallback, Supabase-backed persistence, live OpenAI structured-output generation, generated-plan validation, build-model storage, plan history, and user-facing Plan Review status.
+Boardsmith is a private MVP woodworking planning app. The current baseline is verified for local JSON fallback, Supabase-backed persistence, live OpenAI structured-output generation, generated-plan validation, build-model storage, plan history, user-facing Plan Review status, Export Readiness, Material Summary, Cut List Review, a manifest-backed Printable Plan Sheet, and browser print preview at `/projects/[id]/print`.
 
 The app is ready for continued private MVP hardening. It is not ready for public multi-user production use, paid use, public sharing, certified safety workflows, CAD/CNC workflows, or file export workflows.
 
@@ -10,7 +10,7 @@ The app is ready for continued private MVP hardening. It is not ready for public
 
 - App routes load for `/`, `/projects`, `/projects/new`, `/projects/[id]`, and `/settings`.
 - Project creation works from `/projects/new`.
-- Project detail pages render project metadata, project intake, safety flags, template-driven context, Project Structure, material summary, latest generated plan, Plan Review, and plan history.
+- Project detail pages render project metadata, project intake, safety flags, template-driven context, Project Structure, Material Summary, Cut List Review, latest generated plan, Plan Review, Export Readiness, Printable Plan Sheet, browser print preview link, and plan history.
 - Local JSON fallback persists projects and generated plans in `.data/boardsmith.json` when Supabase env vars are absent.
 - `BOARDSMITH_DATA_FILE` can point the local fallback at a different JSON file for isolated local runs or tests.
 - Supabase-backed persistence works when `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are configured.
@@ -22,6 +22,12 @@ The app is ready for continued private MVP hardening. It is not ready for public
 - Older generated plan rows without build-model JSON remain readable through a derived compatibility model.
 - Plan history preserves previous generated plans and marks the latest version.
 - Plan Review summarizes passed, warning, and blocked states for generated plans.
+- Export Readiness summarizes not-ready, needs-review, and ready-for-future-polish states without creating export files.
+- Material Summary groups primary materials, hardware/fasteners, finish/optional supplies, and material assumptions.
+- Cut List Review surfaces missing dimensions, vague pieces, quantity issues, duplicate-looking entries, and cutting reminders.
+- `createPrintablePlanManifest` gathers project, generated plan, build model, review, material, cut-list, safety, assumption, disclaimer, and future export note data for print-facing rendering.
+- The Printable Plan Sheet consumes the printable plan manifest.
+- `/projects/[id]/print` renders a browser print preview for an existing generated plan and tells users to use the browser print dialog for paper copies.
 
 ## Verified Smoke Flows
 
@@ -39,6 +45,9 @@ The app is ready for continued private MVP hardening. It is not ready for public
 - Confirm latest plan displays on the project detail page.
 - Generate a second plan and confirm plan history keeps the previous version.
 - Confirm Project Structure and Plan Review render on generated-plan detail pages.
+- Confirm Material Summary, Cut List Review, Export Readiness, and Printable Plan Sheet render on generated-plan detail pages.
+- Open `/projects/[id]/print` for an existing generated project.
+- Confirm browser print preview renders review sections and planning-aid safety copy.
 
 ## Environment Setup Checklist
 
@@ -123,7 +132,8 @@ The Plan Review panel can surface deterministic issues and warnings, but it cann
 - Existing generated plans without `build_model_json` use a derived compatibility model on read.
 - The Plan Review summary is computed on read; it is not stored as a separate review record.
 - The build model is not CAD and is not a manufacturing model.
-- Export readiness notes exist, but SVG/PDF/DXF export does not.
+- Export readiness notes and browser print preview exist, but app-generated PDF/SVG/DXF export does not.
+- Browser print preview is not a download pipeline and does not generate files.
 - The app has no image upload, public sharing, marketplace flow, subscriptions, payments, FreeCAD, CAD, or CNC features.
 
 ## Deferred Features
@@ -133,6 +143,7 @@ The Plan Review panel can surface deterministic issues and warnings, but it cann
 - Payments and subscriptions.
 - Marketplace or Etsy workflows.
 - Image upload.
+- App-generated PDF export.
 - SVG/PDF/DXF export.
 - FreeCAD, CAD, CNC, or router-specific output.
 - New project types beyond the current supported beginner-friendly set.
@@ -140,13 +151,15 @@ The Plan Review panel can surface deterministic issues and warnings, but it cann
 
 ## Recommended Next Task Order
 
-1. Export readiness checks, not export.
-2. Printable plan polish.
-3. Project examples/templates polish.
-4. Material summary refinement.
-5. Cut-list review improvements.
-6. Later: SVG/PDF export foundation.
-7. Much later: CAD/FreeCAD/CNC research.
+1. Small print-preview polish only if needed.
+2. Export architecture decision note.
+3. Only then consider a very narrow app-generated PDF spike.
+4. Later SVG/DXF research.
+5. Much later CAD/FreeCAD/CNC research.
+
+## Internal Release Checklist
+
+Use [docs/INTERNAL_RELEASE_CHECKLIST.md](INTERNAL_RELEASE_CHECKLIST.md) before starting real export-generation work. It captures the current manual smoke checklist, safety limits, non-goals, and browser print preview status.
 
 ## Verification Checklist
 
