@@ -73,6 +73,10 @@ function textIncludes(project: BuildModelDraftProject, terms: RegExp): boolean {
   return terms.test(`${project.title} ${project.style_notes} ${project.intended_use}`.toLowerCase());
 }
 
+function isWallGuidance(message: string): boolean {
+  return /\b(wall|mount|mounted|mounting|bracket|anchor|stud)\b/.test(message.toLowerCase());
+}
+
 function materialTypeFromLabel(label: string): BuildModelMaterial["materialType"] {
   const normalized = label.toLowerCase();
   if (normalized.includes("plywood")) return "plywood";
@@ -206,7 +210,11 @@ function operation(params: {
 }
 
 function isWallMounted(project: BuildModelDraftProject, safetyFlags: SafetyReviewFlag[]): boolean {
-  return safetyFlags.some((flag) => flag.code === "wall_mounting") || textIncludes(project, /\b(wall|mounted|mount|hang|anchor|stud)\b/);
+  const text = `${project.title} ${project.style_notes} ${project.intended_use}`.toLowerCase();
+  const explicitlyNotMounted = /\b(no|not|without)\s+(?:wall\s+)?(?:mounting|mounted|mount|anchors?|studs?|brackets?)\b/.test(text);
+
+  if (explicitlyNotMounted) return false;
+  return safetyFlags.some((flag) => flag.code === "wall_mounting") || textIncludes(project, /\b(wall|mounted|mount|hang|anchor|stud|bracket)\b/);
 }
 
 function createDoorHangerParts(project: BuildModelDraftProject, materialId: string, templateHint: TemplateHint, wallMounted: boolean): DraftParts {
@@ -473,7 +481,7 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
       : [],
     operations: [
       operation({
-        id: "inspect_mounting_location",
+        id: wallMounted ? "inspect_mounting_location" : "confirm_shelf_dimensions",
         sequenceNumber: 1,
         operationType: wallMounted ? "inspect" : "measure",
         title: wallMounted ? "Inspect mounting location" : "Confirm shelf dimensions",
@@ -485,7 +493,9 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
         safetyNotes: ["Do not rely on Boardsmith for load ratings."],
       }),
     ],
-    assumptions: templateHint.assumptions,
+    assumptions: wallMounted
+      ? templateHint.assumptions
+      : ["Project is treated as freestanding or non-mounted because the intake does not ask for wall mounting."],
     unresolvedQuestions: [
       ...(wallMounted ? ["What wall type, bracket type, and fasteners will be used?"] : []),
       "What load, if any, is expected? Boardsmith will not certify load capacity.",
@@ -495,7 +505,9 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
       pdfCandidate: true,
       dxfCandidate: false,
       cadCandidate: false,
-      notes: [...templateHint.svgReadiness, "Export readiness is limited until mounting and support details are reviewed."],
+      notes: wallMounted
+        ? [...templateHint.svgReadiness, "Export readiness is limited until mounting and support details are reviewed."]
+        : ["Future exports should distinguish the shelf board or riser top from any optional supports.", "No file export is implemented."],
     },
   };
 }
@@ -632,7 +644,11 @@ export function createBuildModelDraft(
   const mappedSafetyFlags = safetyFlags.map((flag) => mapSafetyFlag(flag));
   const parts = createParts(project, material.id, templateHint, wallMounted);
   const unresolvedQuestions = [...new Set([...missingDimensionQuestions(project), ...parts.unresolvedQuestions])];
-  const assumptions = [...new Set([...templateHint.assumptions, ...templateHint.cautions, ...parts.assumptions])];
+  const templateAssumptions =
+    !wallMounted && project.project_type === "simple_shelf"
+      ? [...templateHint.assumptions, ...templateHint.cautions].filter((message) => !isWallGuidance(message))
+      : [...templateHint.assumptions, ...templateHint.cautions];
+  const assumptions = [...new Set([...templateAssumptions, ...parts.assumptions])];
   const reviewRequired = mappedSafetyFlags.length > 0 || wallMounted || project.project_type === "planter_box";
   const safetyDisclaimers = [
     genericDisclaimer,

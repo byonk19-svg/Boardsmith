@@ -120,6 +120,26 @@ describe("createBuildModelDraft", () => {
     expect(draft.safety.disclaimers.join(" ")).toContain("cannot verify load capacity");
   });
 
+  it("does not add wall hardware or wall operations for explicit freestanding risers", () => {
+    const draft = draftFor(
+      project({
+        title: "Cordless lamp riser",
+        project_type: "simple_shelf",
+        width_inches: 14,
+        height_inches: 3,
+        depth_inches: 10,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        intended_use: "Freestanding cordless lamp riser for a bookshelf with no wall mounting.",
+      }),
+    );
+
+    expect(draft.hardware.map((item) => item.id)).not.toContain("wall_brackets");
+    expect(draft.connections).toHaveLength(0);
+    expect(draft.operations.map((operation) => operation.id)).toContain("confirm_shelf_dimensions");
+    expect(draft.safety.flags.map((flag) => flag.category)).not.toContain("wall_mounting");
+  });
+
   it("scaffolds planter box panels with drainage and outdoor exposure review", () => {
     const draft = draftFor(
       project({

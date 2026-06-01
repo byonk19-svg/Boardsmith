@@ -170,10 +170,17 @@
 - [x] Confirm one generated plan saved with stored `build_model_json` and rendered the current review surfaces.
 - [x] Recommend prompt/model alignment before any PDF/export work.
 
+## Task 32A - Prompt/Model Alignment
+
+- [x] Tighten generation prompt context around overclaim wording, review flags, build-model grounding, and template guidance.
+- [x] Fix false-positive wall-mounting guidance for explicit freestanding shelf-like risers.
+- [x] Re-run the five-scenario live dogfood sweep and improve saved plans from one of five to three of five.
+- [x] Preserve strict Zod validation and deterministic quality checks.
+
 ## Recommended Next Tasks
 
-1. [ ] Run a narrow prompt/model alignment pass for live generation quality.
-2. [ ] Re-run the same five-scenario live dogfood sweep.
+1. [ ] Continue a narrow prompt/model alignment pass for safety-sensitive shelf scenarios.
+2. [ ] Re-run the wall shelf and toddler book ledge live dogfood cases.
 3. [ ] Polish print preview only if manual browser printing reveals issues.
 4. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
 5. [ ] Later SVG research note.

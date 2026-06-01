@@ -134,3 +134,17 @@ The next product task should be a narrow prompt/model alignment pass for live ge
 5. Re-run this same live dogfood sweep after the alignment pass.
 
 Only after these scenarios reliably produce cautious, validated, useful plans should Boardsmith revisit app-generated PDF/export work.
+
+## Task 32A Retry Notes
+
+After the prompt/model alignment pass, a live retry used `Dogfood Retry 20260601 - ...` Supabase-backed records.
+
+| Scenario | Retry project id | Retry result | Retry plan id | Notes |
+| --- | --- | --- | --- | --- |
+| Small wall shelf for a bathroom | `c322f2e2-7c24-447b-ae58-8a77c38f0254` | Blocked before save | None | Still blocked for unverifiable safety, structural, child-safety, or load-capacity claim wording. |
+| Simple toddler book ledge | `2d16c87e-a9b2-4e78-befa-2e377481fa2b` | Blocked before save | None | Still blocked for missing deterministic review flags and unsafe overclaim wording. |
+| Basic outdoor planter box | `aec388f0-7fe7-41a6-be63-c948cd7c040e` | Saved | `c6bfe719-81dc-4466-a74f-e8b53787c93f` | Valid plan saved with stored `build_model_json`, outdoor review flags, five modeled pieces, and five cut-list items. |
+| Cordless lamp riser for a bookshelf | `ac95804f-aff8-4911-8a74-24a978fa0256` | Saved | `9b9cc88c-9ea3-4072-b33a-b61bbafcf9cd` | Valid plan saved. The retry correctly avoided wall-mounting flags, wall hardware, brackets, anchors, studs, and wall-mounting steps for the freestanding riser. |
+| Wall-mounted towel rack | `65aea843-edf8-442b-9a84-e8e8bce96d9b` | Saved | `9d0b9a7a-3a19-413d-ad74-4e03688f35b9` | Valid plan saved with wall-mounting review and manual hardware review. |
+
+The retry improved the saved-plan rate from one of five to three of five without weakening Zod validation or deterministic quality checks. The remaining gap is concentrated in safety-sensitive shelf scenarios, especially wall shelf and toddler book ledge wording. PDF/export work should remain deferred until those two scenarios also pass with cautious, useful, reviewable plans.

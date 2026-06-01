@@ -47,4 +47,20 @@ describe("buildProjectPlanPromptContext", () => {
       ]),
     );
   });
+
+  it("tells the model to avoid overclaim wording that deterministic quality checks reject", () => {
+    const context = buildProjectPlanPromptContext(shelfProject, simpleShelfBuildModelFixture);
+
+    expect(context.deterministic_quality_rules).toEqual(
+      expect.arrayContaining([
+        "Use 'Boardsmith cannot verify ...' phrasing instead of guarantee, guaranteed, certify, child-safe, structural approval, or load-rating claims.",
+        "When safety is uncertain, put the concern in needs_review_flags and safety_notes as a manual review item without claiming the project is safe.",
+      ]),
+    );
+    expect(context.output_alignment_rules).toEqual(
+      expect.arrayContaining([
+        "Treat template hints as guidance. If the project intake and build model do not include wall mounting or wall hardware, do not add brackets, anchors, studs, or mounting steps.",
+      ]),
+    );
+  });
 });

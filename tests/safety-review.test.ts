@@ -35,16 +35,30 @@ describe("calculateSafetyReviewFlags", () => {
     expect(flags.map((flag) => flag.code)).toContain("child_or_baby_use");
   });
 
-  it("flags shelves as wall-mounting review and heavy shelves by size", () => {
+  it("flags wall-mounted shelves as wall-mounting review and heavy shelves by size", () => {
     const flags = calculateSafetyReviewFlags({
       ...baseProject,
       project_type: "simple_shelf",
       width_inches: 48,
       depth_inches: 14,
-      intended_use: "Bookshelf for heavy books",
+      intended_use: "Wall mounted bookshelf for heavy books",
     });
 
     expect(flags.map((flag) => flag.code)).toEqual(expect.arrayContaining(["wall_mounting", "heavy_shelving"]));
+  });
+
+  it("does not add wall-mounting review to explicit freestanding shelf-like risers", () => {
+    const flags = calculateSafetyReviewFlags({
+      ...baseProject,
+      title: "Cordless lamp riser",
+      project_type: "simple_shelf",
+      width_inches: 14,
+      height_inches: 3,
+      depth_inches: 10,
+      intended_use: "Freestanding cordless lamp riser for a bookshelf with no wall mounting.",
+    });
+
+    expect(flags.map((flag) => flag.code)).not.toContain("wall_mounting");
   });
 
   it("does not treat light weight use as electrical lighting", () => {
