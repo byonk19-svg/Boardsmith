@@ -2,11 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
-import { cutListStatusLabel, summarizeCutListReview, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
-import { summarizeExportReadiness, type ExportReadinessStatus, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
-import { summarizeMaterialReview, type MaterialReviewItem, type MaterialReviewSummary } from "@/lib/plans/material-summary";
-import { summarizeGeneratedPlanReview, type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
-import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
+import { cutListStatusLabel, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
+import { type ExportReadinessStatus, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
+import { type MaterialReviewItem, type MaterialReviewSummary } from "@/lib/plans/material-summary";
+import { type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
+import { createPrintablePlanManifest, type PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
+import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
@@ -31,8 +32,14 @@ export default async function ProjectDetailPage({
   const templateHint = getTemplateHint(project.project_type);
   const buildModel = latestPlanReview?.buildModel ?? createBuildModelDraft(project, templateHint, calculateSafetyReviewFlags(project));
   const buildModelSource = latestPlanReview?.buildModelSource ?? "derived";
-  const materialReview = latestPlanReview?.materialReview ?? summarizeMaterialReview(null, buildModel);
-  const cutListReview = latestPlanReview?.cutListReview ?? null;
+  const displayedManifest =
+    latestPlanReview?.manifest ??
+    createPrintablePlanManifest({
+      project,
+      planRecord: null,
+      buildModel,
+      buildModelSource,
+    });
 
   return (
     <div className="space-y-6">
@@ -79,20 +86,13 @@ export default async function ProjectDetailPage({
 
       <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
 
-      <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={materialReview} cutListReview={cutListReview} />
+      <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={displayedManifest.materials} cutListReview={displayedManifest.cutList} />
 
       {latestPlanReview ? (
         <>
-          <PlanReviewPanel summary={latestPlanReview.review} />
-          <ExportReadinessPanel summary={latestPlanReview.exportReadiness} />
-          <PlanView
-            plan={latestPlanReview.plan.plan_json}
-            buildModel={latestPlanReview.buildModel}
-            materialReview={latestPlanReview.materialReview}
-            cutListReview={latestPlanReview.cutListReview}
-            createdAt={latestPlanReview.plan.created_at}
-            modelName={latestPlanReview.plan.model_name}
-          />
+          {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
+          {latestPlanReview.manifest.exportReadiness ? <ExportReadinessPanel summary={latestPlanReview.manifest.exportReadiness} /> : null}
+          <PlanView manifest={latestPlanReview.manifest} />
         </>
       ) : (
         <EmptyPlanState />
@@ -111,9 +111,11 @@ export default async function ProjectDetailPage({
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${reviewBadgeClass(entry.review.status)}`}>
-                    Review: {reviewStatusLabel(entry.review.status)}
-                  </span>
+                  {entry.manifest.planReview ? (
+                    <span className={`w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${reviewBadgeClass(entry.manifest.planReview.status)}`}>
+                      Review: {reviewStatusLabel(entry.manifest.planReview.status)}
+                    </span>
+                  ) : null}
                   {entry.plan.is_latest ? <span className="w-fit rounded-md bg-moss px-2.5 py-1 text-xs font-semibold text-white">Latest</span> : null}
                 </div>
               </div>
@@ -133,10 +135,12 @@ function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
     plan,
     buildModel,
     buildModelSource,
-    review: summarizeGeneratedPlanReview(plan.plan_json, buildModel, { buildModelSource }),
-    exportReadiness: summarizeExportReadiness(plan.plan_json, buildModel, { buildModelSource }),
-    materialReview: summarizeMaterialReview(plan.plan_json, buildModel),
-    cutListReview: summarizeCutListReview(plan.plan_json, buildModel),
+    manifest: createPrintablePlanManifest({
+      project,
+      planRecord: plan,
+      buildModel,
+      buildModelSource,
+    }),
   };
 }
 
@@ -572,20 +576,13 @@ function CutListReviewSummaryView({
 }
 
 function PlanView({
-  plan,
-  buildModel,
-  materialReview,
-  cutListReview,
-  createdAt,
-  modelName,
+  manifest,
 }: {
-  plan: GeneratedPlan;
-  buildModel: BoardsmithBuildModel;
-  materialReview: MaterialReviewSummary;
-  cutListReview: CutListReviewSummary;
-  createdAt: string;
-  modelName: string;
+  manifest: PrintablePlanManifest;
 }) {
+  const generatedPlan = manifest.generatedPlan;
+  if (!generatedPlan || !manifest.cutList) return null;
+
   return (
     <article className="rounded-lg border border-sawdust bg-white p-6 shadow-soft print:border-0 print:p-0 print:shadow-none">
       <header className="border-b border-sawdust pb-5">
@@ -593,20 +590,20 @@ function PlanView({
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Printable Plan Sheet</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Generated Plan</h2>
-            <p className="mt-3 leading-7 text-ink/75">{plan.project_summary}</p>
+            {manifest.sections.projectSummary ? <p className="mt-3 leading-7 text-ink/75">{manifest.sections.projectSummary}</p> : null}
             <p className="mt-3 text-sm font-medium text-caution">Review before building. Use your own judgment before cutting or assembling.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">Planning aid</span>
-            <span className="w-fit rounded-md bg-moss/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-moss">{plan.estimated_difficulty}</span>
+            <span className="w-fit rounded-md bg-moss/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-moss">{generatedPlan.estimatedDifficulty}</span>
           </div>
         </div>
 
         <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-4">
-          <PlanFact label="Time" value={plan.estimated_time} />
-          <PlanFact label="Difficulty" value={plan.estimated_difficulty} />
-          <PlanFact label="Confidence" value={`${plan.confidence_level} plan / ${buildModel.confidence.level} model`} />
-          <PlanFact label="Generated" value={`${new Date(createdAt).toLocaleDateString()} - ${modelName}`} />
+          <PlanFact label="Time" value={generatedPlan.estimatedTime} />
+          <PlanFact label="Difficulty" value={generatedPlan.estimatedDifficulty} />
+          <PlanFact label="Confidence" value={`${generatedPlan.confidenceLevel} plan / ${manifest.buildModel.confidenceLevel} model`} />
+          <PlanFact label="Generated" value={`${new Date(generatedPlan.createdAt).toLocaleDateString()} - ${generatedPlan.modelName}`} />
         </dl>
       </header>
 
@@ -614,13 +611,17 @@ function PlanView({
         <PlanSheetSection title="Materials and Cut List">
           <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
             <div>
-              <MaterialReviewSummaryView summary={materialReview} />
+              <MaterialReviewSummaryView summary={manifest.materials} />
               <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
-              <List items={buildModel.pieces.map((piece) => `${piece.quantity.toString()}x ${piece.label}: ${formatBuildModelDimensions(piece.dimensions)}`)} />
+              <List
+                items={manifest.cutList.items
+                  .filter((item) => item.sourceLabel === "Modeled piece")
+                  .map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`)}
+              />
             </div>
             <div className="overflow-x-auto">
               <div className="mb-5">
-                <CutListReviewSummaryView summary={cutListReview} />
+                <CutListReviewSummaryView summary={manifest.cutList} />
               </div>
               <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                 <thead>
@@ -635,15 +636,17 @@ function PlanView({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-sawdust">
-                  {plan.cut_list.map((item) => (
-                    <tr key={`${item.part_name}-${item.quantity.toString()}`}>
-                      <td className="py-3 pr-3 font-semibold text-ink">{item.part_name}</td>
-                      <td className="py-3 pr-3 text-ink/70">{item.quantity}</td>
-                      <td className="py-3 pr-3 text-ink/70">{item.length_inches} in</td>
-                      <td className="py-3 pr-3 text-ink/70">{item.width_inches} in</td>
-                      <td className="py-3 pr-3 text-ink/70">{item.thickness_inches} in</td>
-                      <td className="py-3 pr-3 text-ink/70">{item.material}</td>
-                      <td className="py-3 text-ink/70">{item.notes}</td>
+                  {manifest.cutList.items
+                    .filter((item) => item.sourceLabel === "Generated cut")
+                    .map((item) => (
+                    <tr key={item.id}>
+                      <td className="py-3 pr-3 font-semibold text-ink">{item.label}</td>
+                      <td className="py-3 pr-3 text-ink/70">{item.quantityLabel}</td>
+                      <td className="py-3 pr-3 text-ink/70" colSpan={3}>
+                        {item.dimensionsLabel}
+                      </td>
+                      <td className="py-3 pr-3 text-ink/70">{item.materialLabel}</td>
+                      <td className="py-3 text-ink/70">{item.messages.join(" ")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -655,7 +658,7 @@ function PlanView({
         <PlanSheetSection title="Build Steps and Operations">
           <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
             <ol className="space-y-4">
-              {plan.assembly_steps.map((step) => (
+              {manifest.sections.buildSteps.map((step) => (
                 <li key={step.step_number} className="border-l-2 border-moss pl-4">
                   <p className="font-semibold text-ink">
                     {step.step_number}. {step.title}
@@ -668,9 +671,9 @@ function PlanView({
             </ol>
             <div>
               <h4 className="text-sm font-semibold text-ink">Modeled operations</h4>
-              <List items={buildModel.operations.map((operation) => `${operation.sequenceNumber.toString()}. ${operation.title}: ${operation.description}`)} />
+              <List items={manifest.sections.modeledOperations.map((operation) => `${operation.sequenceNumber.toString()}. ${operation.title}: ${operation.description}`)} />
               <h4 className="mt-5 text-sm font-semibold text-ink">Tools</h4>
-              <List items={plan.tools} />
+              <List items={manifest.sections.tools} />
             </div>
           </div>
         </PlanSheetSection>
@@ -682,12 +685,12 @@ function PlanView({
               Planning aid only. Boardsmith cannot verify load capacity, wall safety, material condition, or tool setup.
             </p>
           </div>
-          <List items={plan.safety_notes} />
-          {plan.needs_review_flags.length > 0 ? (
+          <List items={[...manifest.sections.safetyNotes, ...manifest.disclaimers]} />
+          {manifest.sections.safetyFlags.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">
-              {plan.needs_review_flags.map((flag) => (
-                <span key={flag} className="rounded-md bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900 print:border print:border-sawdust print:bg-white print:text-ink">
-                  {flag}
+              {manifest.sections.safetyFlags.map((flag) => (
+                <span key={flag.id} className="rounded-md bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900 print:border print:border-sawdust print:bg-white print:text-ink">
+                  {flag.message}
                 </span>
               ))}
             </div>
@@ -698,12 +701,12 @@ function PlanView({
           <div className="grid gap-5 lg:grid-cols-2">
             <div>
               <h4 className="text-sm font-semibold text-ink">Assumptions</h4>
-              <List items={plan.assumptions} />
+              <List items={manifest.sections.assumptions} />
             </div>
             <div>
               <h4 className="text-sm font-semibold text-ink">Open questions</h4>
-              {buildModel.unresolvedQuestions.length > 0 ? (
-                <List items={buildModel.unresolvedQuestions} />
+              {manifest.sections.unresolvedQuestions.length > 0 ? (
+                <List items={manifest.sections.unresolvedQuestions} />
               ) : (
                 <p className="mt-2 text-sm leading-6 text-ink/65">No unresolved questions listed. Review the full plan before building.</p>
               )}
@@ -715,15 +718,15 @@ function PlanView({
           <div className="grid gap-5 lg:grid-cols-3">
             <div>
               <h4 className="text-sm font-semibold text-ink">Finishing</h4>
-              <List items={plan.finishing_steps} />
+              <List items={manifest.sections.finishingSteps} />
             </div>
             <div>
               <h4 className="text-sm font-semibold text-ink">Beginner tips</h4>
-              <List items={plan.beginner_tips} />
+              <List items={manifest.sections.beginnerTips} />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-ink">Future export readiness</h4>
-              <List items={plan.svg_readiness_notes} />
+              <h4 className="text-sm font-semibold text-ink">Future export notes</h4>
+              <List items={manifest.futureExportNotes} />
             </div>
           </div>
         </PlanSheetSection>

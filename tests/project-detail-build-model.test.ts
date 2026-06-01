@@ -203,6 +203,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Build Steps and Operations");
     expect(markup).toContain("Assumptions and Open Questions");
     expect(markup).toContain("Use your own judgment before cutting or assembling.");
+    expect(markup).toContain("Verify dimensions, materials, hardware, tool setup, and site conditions before cutting or building.");
+    expect(markup).toContain("No export, CAD, CNC, PDF, SVG, or DXF output is generated here.");
+    expect(markup).toContain("Future export notes");
     expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
   });
 
