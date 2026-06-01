@@ -73,4 +73,18 @@ describe("project form routes", () => {
     expect(markup).toContain('action="/projects/project_form_route/generate"');
     expect(markup).toContain('method="post"');
   });
+
+  it("renders generate plan pending-state copy for the client submit control", async () => {
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: "project_form_route" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain('data-pending-label="Generating plan..."');
+    expect(markup).toContain("Generate Plan");
+  });
 });

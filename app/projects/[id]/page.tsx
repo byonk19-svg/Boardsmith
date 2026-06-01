@@ -13,6 +13,7 @@ import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/type
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
+import { GeneratePlanForm } from "./GeneratePlanForm";
 
 export const dynamic = "force-dynamic";
 
@@ -56,11 +57,7 @@ export default async function ProjectDetailPage({
           </p>
         </div>
         <div className="no-print flex flex-col gap-2 sm:items-end">
-          <form action={`/projects/${project.id}/generate`} method="post">
-            <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-              Generate Plan
-            </button>
-          </form>
+          <GeneratePlanForm action={`/projects/${project.id}/generate`} />
           {latestPlanReview ? (
             <div className="text-right">
               <Link href={printPreviewHref} className="text-sm font-semibold text-moss hover:underline">
