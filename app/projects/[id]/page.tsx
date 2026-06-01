@@ -23,7 +23,7 @@ export default async function ProjectDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; generated?: string; generation_error?: string }>;
+  searchParams: Promise<{ error?: string; generated?: string; generation_error?: string; duplicated?: string }>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const project = await getProject(id);
@@ -59,6 +59,12 @@ export default async function ProjectDetailPage({
         </div>
         <div className="no-print flex flex-col gap-2 sm:items-end">
           <GeneratePlanForm action={`/projects/${project.id}/generate`} />
+          <form action={`/projects/${project.id}/duplicate`} method="post" className="text-right">
+            <button type="submit" className="text-sm font-semibold text-moss hover:underline">
+              Duplicate project
+            </button>
+            <p className="mt-1 text-xs text-ink/55">Copies intake only. Generated plans and history are not copied.</p>
+          </form>
           {latestPlanReview ? (
             <div className="text-right">
               <Link href={printPreviewHref} className="text-sm font-semibold text-moss hover:underline">
@@ -76,6 +82,11 @@ export default async function ProjectDetailPage({
         <GenerationFailurePanel reason="generation_failed" safetyFlags={project.safety_flags} />
       ) : null}
       {query.generated ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Generated and saved a new validated plan version.</p> : null}
+      {query.duplicated ? (
+        <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+          Duplicated project intake. Generated plans and history were not copied.
+        </p>
+      ) : null}
 
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <ProjectIntakeCard project={project} />

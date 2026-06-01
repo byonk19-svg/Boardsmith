@@ -226,6 +226,24 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Use your browser&#x27;s print dialog if you want a paper copy.");
   });
 
+  it("renders a duplicate project action on the project detail page", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Duplicate project");
+    expect(markup).toContain('action="/projects/project_saved_bbm/duplicate"');
+    expect(markup).toContain('method="post"');
+    expect(markup).toContain("Copies intake only. Generated plans and history are not copied.");
+  });
+
   it("falls back to a derived project structure for older generated plans without saved build models", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([{ ...planRecord, build_model_json: null }]);

@@ -171,6 +171,25 @@ export async function createProject(input: ProjectIntake): Promise<Project> {
   });
 }
 
+export async function duplicateProject(projectId: string): Promise<Project | null> {
+  const sourceProject = await getProject(projectId);
+  if (!sourceProject) return null;
+
+  return createProject({
+    title: copyProjectTitle(sourceProject.title),
+    project_type: sourceProject.project_type,
+    skill_level: sourceProject.skill_level,
+    width_inches: sourceProject.width_inches,
+    height_inches: sourceProject.height_inches,
+    depth_inches: sourceProject.depth_inches,
+    material_thickness_inches: sourceProject.material_thickness_inches,
+    material_type: sourceProject.material_type,
+    tools_available: sourceProject.tools_available,
+    style_notes: sourceProject.style_notes,
+    intended_use: sourceProject.intended_use,
+  });
+}
+
 export async function listGeneratedPlans(projectId: string): Promise<GeneratedProjectPlanRecord[]> {
   if (isSupabasePersistenceConfigured()) {
     const { data, error } = await getSupabase()
@@ -245,4 +264,15 @@ export async function saveGeneratedPlan(params: {
     store.plans.push(record);
     return record;
   });
+}
+
+function copyProjectTitle(title: string): string {
+  const suffix = " copy";
+  const maxTitleLength = 120;
+  const baseTitle = title.trim();
+  if (baseTitle.length + suffix.length <= maxTitleLength) {
+    return `${baseTitle}${suffix}`;
+  }
+
+  return `${baseTitle.slice(0, maxTitleLength - suffix.length).trimEnd()}${suffix}`;
 }

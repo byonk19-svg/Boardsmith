@@ -87,4 +87,36 @@ describe("project store lifecycle", () => {
     expect(plans[1]?.build_model_json?.project.projectId).toBe(project.id);
     expect(plans[0]?.build_model_json).toBeNull();
   });
+
+  it("duplicates project intake as a fresh draft without generated plans", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const original = await store.createProject({
+      ...intake,
+      title: `Original shelf ${crypto.randomUUID()}`,
+    });
+    await store.saveGeneratedPlan({ projectId: original.id, modelName: "test-model", plan });
+
+    const duplicate = await store.duplicateProject(original.id);
+    if (!duplicate) throw new Error("Expected duplicate project to be created.");
+    const duplicatePlans = await store.listGeneratedPlans(duplicate.id);
+
+    expect(duplicate.id).not.toBe(original.id);
+    expect(duplicate.title).toBe(`${original.title} copy`);
+    expect(duplicate.status).toBe("draft");
+    expect(duplicate.created_at).not.toBe(original.created_at);
+    expect(duplicate.updated_at).toBe(duplicate.created_at);
+    expect(duplicate.project_type).toBe(original.project_type);
+    expect(duplicate.skill_level).toBe(original.skill_level);
+    expect(duplicate.width_inches).toBe(original.width_inches);
+    expect(duplicate.height_inches).toBe(original.height_inches);
+    expect(duplicate.depth_inches).toBe(original.depth_inches);
+    expect(duplicate.material_thickness_inches).toBe(original.material_thickness_inches);
+    expect(duplicate.material_type).toBe(original.material_type);
+    expect(duplicate.tools_available).toEqual(original.tools_available);
+    expect(duplicate.style_notes).toBe(original.style_notes);
+    expect(duplicate.intended_use).toBe(original.intended_use);
+    expect(duplicate.safety_review_required).toBe(original.safety_review_required);
+    expect(duplicate.safety_flags).toEqual(original.safety_flags);
+    expect(duplicatePlans).toEqual([]);
+  });
 });
