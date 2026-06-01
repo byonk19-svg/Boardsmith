@@ -120,6 +120,56 @@ describe("createBuildModelDraft", () => {
     expect(draft.safety.disclaimers.join(" ")).toContain("cannot verify load capacity");
   });
 
+  it("adds bathroom humidity review details for wall-mounted bathroom shelves", () => {
+    const draft = draftFor(
+      project({
+        title: "Small bathroom wall shelf",
+        project_type: "simple_shelf",
+        width_inches: 18,
+        height_inches: 5,
+        depth_inches: 6,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        intended_use: "Wall-mounted bathroom shelf for light toiletries near a damp sink area.",
+      }),
+    );
+
+    expect(draft.pieces.map((piece) => piece.id)).toContain("shelf_board");
+    expect(draft.hardware.map((item) => item.id)).toEqual(expect.arrayContaining(["wall_brackets", "wall_anchors", "moisture_resistant_finish_review"]));
+    expect(draft.operations.map((operation) => operation.id)).toEqual(
+      expect.arrayContaining(["cut_shelf_board", "inspect_mounting_location", "review_bathroom_finish"]),
+    );
+    expect(draft.safety.flags.map((flag) => flag.category)).toContain("wall_mounting");
+    expect(draft.unresolvedQuestions).toContain("What finish and hardware are appropriate for bathroom humidity?");
+  });
+
+  it("models toddler book ledges with named ledge pieces and child review guidance", () => {
+    const draft = draftFor(
+      project({
+        title: "Simple toddler book ledge",
+        project_type: "simple_shelf",
+        width_inches: 24,
+        height_inches: 4,
+        depth_inches: 4,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        intended_use: "Wall-mounted toddler book ledge for nursery books in a reading corner.",
+      }),
+    );
+
+    expect(draft.pieces.map((piece) => piece.id)).toEqual(expect.arrayContaining(["bottom_shelf_board", "back_rail", "front_lip"]));
+    expect(draft.hardware.map((item) => item.id)).toEqual(expect.arrayContaining(["wood_screws", "non_toxic_finish_review", "wall_anchors"]));
+    expect(draft.connections.map((connection) => connection.id)).toEqual(
+      expect.arrayContaining(["front_lip_to_bottom_shelf_board", "back_rail_to_bottom_shelf_board", "wall_fasteners_to_back_rail"]),
+    );
+    expect(draft.operations.map((operation) => operation.id)).toEqual(
+      expect.arrayContaining(["cut_book_ledge_parts", "round_and_sand_edges", "assemble_book_ledge", "inspect_book_ledge_mounting"]),
+    );
+    expect(draft.safety.flags.map((flag) => flag.category)).toEqual(expect.arrayContaining(["wall_mounting", "child_use", "heavy_shelving"]));
+    expect(draft.safety.disclaimers.join(" ")).toContain("cannot verify load capacity");
+    expect(draft.assumptions.join(" ")).toContain("Child-adjacent use requires adult review");
+  });
+
   it("does not add wall hardware or wall operations for explicit freestanding risers", () => {
     const draft = draftFor(
       project({
@@ -136,7 +186,7 @@ describe("createBuildModelDraft", () => {
 
     expect(draft.hardware.map((item) => item.id)).not.toContain("wall_brackets");
     expect(draft.connections).toHaveLength(0);
-    expect(draft.operations.map((operation) => operation.id)).toContain("confirm_shelf_dimensions");
+    expect(draft.operations.map((operation) => operation.id)).toEqual(expect.arrayContaining(["cut_shelf_board", "sand_shelf_board"]));
     expect(draft.safety.flags.map((flag) => flag.category)).not.toContain("wall_mounting");
   });
 

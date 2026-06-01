@@ -177,14 +177,28 @@
 - [x] Re-run the five-scenario live dogfood sweep and improve saved plans from one of five to three of five.
 - [x] Preserve strict Zod validation and deterministic quality checks.
 
+## Task 35A-C - Atomic Generated Plan Save
+
+- [x] Add an atomic Supabase RPC for generated-plan saves.
+- [x] Verify the migration locally in isolated Postgres.
+- [x] Apply the migration to Supabase cloud.
+- [x] Confirm cloud-backed plan saves through `save_generated_plan_atomic(...)`.
+
+## Task 36A - Wall-Mounted And Child-Adjacent Generation Alignment
+
+- [x] Improve prompt grounding for exact deterministic review labels, wall mounting review, child-adjacent review, and bathroom humidity/finish review.
+- [x] Add deterministic book-ledge build-model pieces for bottom shelf board, back rail, and front lip.
+- [x] Add bathroom wall-shelf finish/humidity review grounding.
+- [x] Re-run the two remaining live dogfood scenarios and save validated plans for bathroom wall shelf and toddler book ledge.
+- [x] Preserve strict Zod validation and deterministic quality checks.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue a narrow prompt/model alignment pass for safety-sensitive shelf scenarios.
-2. [ ] Re-run the wall shelf and toddler book ledge live dogfood cases.
-3. [ ] Polish print preview only if manual browser printing reveals issues.
-4. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
-5. [ ] Later SVG research note.
-6. [ ] Much later DXF/CAD/CNC research.
+1. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
+2. [ ] Polish print preview only if manual browser printing reveals issues.
+3. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
+4. [ ] Later SVG research note.
+5. [ ] Much later DXF/CAD/CNC research.
 
 ## Remaining Hardening
 

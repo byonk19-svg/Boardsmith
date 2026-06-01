@@ -35,6 +35,20 @@ describe("calculateSafetyReviewFlags", () => {
     expect(flags.map((flag) => flag.code)).toContain("child_or_baby_use");
   });
 
+  it("flags wall-mounted toddler book ledges for child, mounting, and shelf load review", () => {
+    const flags = calculateSafetyReviewFlags({
+      ...baseProject,
+      title: "Simple toddler book ledge",
+      project_type: "simple_shelf",
+      width_inches: 24,
+      height_inches: 4,
+      depth_inches: 4,
+      intended_use: "Wall-mounted toddler book ledge for nursery books in a reading corner.",
+    });
+
+    expect(flags.map((flag) => flag.code)).toEqual(expect.arrayContaining(["wall_mounting", "child_or_baby_use", "heavy_shelving"]));
+  });
+
   it("flags wall-mounted shelves as wall-mounting review and heavy shelves by size", () => {
     const flags = calculateSafetyReviewFlags({
       ...baseProject,

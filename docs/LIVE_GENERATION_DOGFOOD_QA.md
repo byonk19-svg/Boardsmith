@@ -148,3 +148,15 @@ After the prompt/model alignment pass, a live retry used `Dogfood Retry 20260601
 | Wall-mounted towel rack | `65aea843-edf8-442b-9a84-e8e8bce96d9b` | Saved | `9d0b9a7a-3a19-413d-ad74-4e03688f35b9` | Valid plan saved with wall-mounting review and manual hardware review. |
 
 The retry improved the saved-plan rate from one of five to three of five without weakening Zod validation or deterministic quality checks. The remaining gap is concentrated in safety-sensitive shelf scenarios, especially wall shelf and toddler book ledge wording. PDF/export work should remain deferred until those two scenarios also pass with cautious, useful, reviewable plans.
+
+## Task 36A Wall-Mounted And Child-Adjacent Retry Notes
+
+After the atomic Supabase generated-plan save migration was applied to cloud, a narrow wall-mounted and child-adjacent alignment pass focused on the two remaining blocked scenarios. The changes preserved strict Zod validation and deterministic quality checks, and improved prompt/build-model grounding instead of weakening any safety gate.
+
+| Scenario | Retry project id | Retry result | Retry plan id | Notes |
+| --- | --- | --- | --- | --- |
+| Bathroom wall shelf | `618c6de9-f298-4251-a670-97e3de767b06` | Saved | `204330cb-a687-4704-bd38-f01cac96f694` | Valid plan saved with stored `build_model_json`, wall-mounting review, bathroom humidity/finish review, and manual stud/anchor/fastener/load-use cautions. Detail and print preview routes rendered. |
+| Toddler book ledge | `db07ceb6-2afd-4333-bf6a-188eba63a1a7` | Blocked before save | None | First Task 36A retry still made overclaim wording that deterministic quality checks rejected. The project remained draft and no invalid plan was persisted. |
+| Toddler book ledge | `6349a21c-6409-4510-858b-739329a26ab9` | Saved | `266cddc2-7b23-419f-a65b-c564ee254bc7` | Valid plan saved after adding stricter child-adjacent wording guidance. The generated plan kept manual child-use, mounting, finish, edge, supervision, and inspection review language without claiming child safety. Detail and print preview routes rendered. |
+
+The pass improved the remaining two blocked scenario families to saved, reviewable plans while preserving safety behavior. A blocked toddler retry during the pass confirmed that invalid or overconfident child-adjacent output is still rejected before persistence.

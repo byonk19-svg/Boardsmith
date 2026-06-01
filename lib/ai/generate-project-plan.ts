@@ -14,21 +14,37 @@ export type GenerateProjectPlanResult = {
 export function buildProjectPlanPromptContext(project: Project, buildModel?: BoardsmithBuildModel) {
   const safetyFlags = calculateSafetyReviewFlags(project);
   const hint = getTemplateHint(project.project_type);
+  const intakeText = `${project.title} ${project.style_notes} ${project.intended_use}`.toLowerCase();
   const wallMountingReviewRequired =
     safetyFlags.some((flag) => flag.code === "wall_mounting") || Boolean(buildModel?.safety.flags.some((flag) => flag.category === "wall_mounting"));
+  const childOrBabyReviewRequired =
+    safetyFlags.some((flag) => flag.code === "child_or_baby_use") || Boolean(buildModel?.safety.flags.some((flag) => flag.category === "child_use"));
+  const bathroomOrHumidityReview = /\b(bathroom|humid|humidity|damp|wet|towel|shower)\b/.test(intakeText);
+  const bookLedgeReview = /\b(book\s*ledge|toddler\s+book|nursery\s+book|children'?s\s+book|book\s+rail)\b/.test(intakeText);
   const wallHardwareModeled = Boolean(
     buildModel?.hardware.some((item) => item.hardwareType === "anchor" || item.hardwareType === "bracket" || item.hardwareType === "hanger"),
   );
+  const exactReviewLabels = [...new Set([...safetyFlags.map((flag) => flag.label), ...(buildModel?.safety.flags.map((flag) => flag.message) ?? [])])];
 
   return {
     task: "Generate a detailed beginner-friendly woodworking project plan. Do not invent uncontrolled dimensions. Use the provided dimensions as the bounding source of truth, and call out assumptions where detail is missing.",
     project,
     intake_interpretation: {
       wall_mounting_review_required: wallMountingReviewRequired,
+      child_or_baby_review_required: childOrBabyReviewRequired,
+      bathroom_or_humidity_review: bathroomOrHumidityReview,
+      book_ledge_review: bookLedgeReview,
       wall_hardware_modeled: wallHardwareModeled,
+      exact_review_labels_required: exactReviewLabels,
       use_template_hints_as_guidance_only: true,
       if_wall_mounting_review_is_false:
         "Treat the project as freestanding or non-mounted. Do not add wall brackets, anchors, studs, hanging hardware, mounting steps, or wall-load review unless the intake or build model explicitly includes them.",
+      if_wall_mounting_review_is_true:
+        "Treat mounting as unresolved manual review. Include studs, anchors, fasteners, wall structure, and load-use review in needs_review_flags and safety_notes, but do not say the shelf is safely mounted or load rated.",
+      if_child_or_baby_review_is_true:
+        "Copy the Child or baby use review label exactly. Use cautious adult-review language about secure mounting, rounded and sanded edges, adult-reviewed non-toxic finish selection, regular inspection, and supervision. Do not say child-safe, child safe, kid-safe, safe for toddlers, safe for children, certified, approved, or guaranteed.",
+      if_bathroom_or_humidity_review_is_true:
+        "Include bathroom humidity, finish, corrosion-resistant hardware, and moisture movement as review items. Do not claim the material or finish is waterproof unless the intake specifies a verified product.",
     },
     deterministic_safety_flags: safetyFlags,
     template_hints: hint,
@@ -54,6 +70,7 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
       "Generated project_type must match the build model project type.",
       "Generated dimensions must not exceed confirmed build model dimensions.",
       "Every deterministic build model safety flag must appear in needs_review_flags or safety_notes.",
+      "Copy each exact_review_labels_required value verbatim into needs_review_flags when any review labels are provided.",
       "Wall-mounted work must mention stud, anchor, fastener, or wall-structure review.",
       "Cut-list materials must appear in the materials section.",
       "Every cut-list part must map to a build model piece label, id, or piece type.",
@@ -67,6 +84,9 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
       "Treat template hints as guidance. If the project intake and build model do not include wall mounting or wall hardware, do not add brackets, anchors, studs, or mounting steps.",
       "Use the build model pieces as the cut-list source of truth. Reuse piece labels, material labels, and dimensions from build_model_context when present.",
       "Include concrete materials, named pieces, dimensions, build operations, assumptions, unresolved questions, safety notes, and review flags.",
+      "For book ledges, reuse modeled ledge piece names such as bottom shelf board, back rail, and front lip when present; do not add unmodeled child-safety claims.",
+      "For bathroom shelves, include humidity and finish assumptions as review notes rather than waterproof or load-capacity claims.",
+      "For child-adjacent finish notes, write adult-reviewed non-toxic finish selection instead of child-safe finish, kid-safe finish, or safe for toddlers.",
       "If a detail is unknown, state it as an assumption or manual review question instead of inventing a certification, load rating, or production-ready output.",
       "For lamp risers or lighted-item stands, plan only the wooden support unless the intake asks for electrical work. Do not provide wiring instructions.",
     ],
@@ -74,10 +94,32 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
       "Include safety disclaimers.",
       "Warn that the plan requires user review before cutting or building.",
       "Do not make structural, load-bearing, child-furniture, or professional safety guarantees.",
+      "Avoid the phrases child safe, safe for children, safe for toddlers, structurally approved, certified, load rated, guaranteed safe, guaranteed capacity, and safely supports.",
+      "Avoid hyphenated variants such as child-safe, kid-safe, load-rated, and guarantee-safe.",
       "Do not tell minors to use dangerous tools.",
       "Do not recommend bypassing guards or PPE.",
       "For wall-mounted items include stud/anchor caution.",
       "Include a practical measure twice, cut once warning.",
+    ],
+    forbidden_output_phrases: [
+      "child-safe",
+      "child safe",
+      "kid-safe",
+      "safe for toddlers",
+      "safe for children",
+      "load-rated",
+      "load rated",
+      "safely supports",
+      "structurally approved",
+      "certified safe",
+      "guaranteed safe",
+    ],
+    preferred_safety_phrases: [
+      "Boardsmith cannot verify child safety.",
+      "Adult review is required before use.",
+      "Verify mounting, finish, edges, expected load, and ongoing inspection before use.",
+      "Use an adult-reviewed non-toxic finish appropriate for the intended setting.",
+      "Boardsmith cannot verify wall structure, anchors, fasteners, or load capacity.",
     ],
   };
 }
@@ -96,7 +138,7 @@ export async function generateStructuredProjectPlan(project: Project, buildModel
   const response = await client.responses.create({
     model: modelName,
     instructions:
-      "You are Boardsmith, a cautious woodworking planning assistant. Return only structured JSON that matches the schema. Keep all dimensions bounded by the submitted project and build model. Add review flags when safety is uncertain. Never make load-rating, child-safety, structural-approval, fabrication-ready, CNC-ready, or safety-guarantee claims. Prefer 'Boardsmith cannot verify ...' and 'review before building' language.",
+      "You are Boardsmith, a cautious woodworking planning assistant. Return only structured JSON that matches the schema. Keep all dimensions bounded by the submitted project and build model. Add review flags when safety is uncertain. Never make load-rating, child-safety, structural-approval, fabrication-ready, CNC-ready, or safety-guarantee claims. Do not use phrases like child-safe, kid-safe, safe for toddlers, safe for children, safely supports, load-rated, structurally approved, certified safe, or guaranteed safe. Prefer 'Boardsmith cannot verify ...', 'adult review is required', and 'review before building' language.",
     input: buildPrompt(project, buildModel),
     text: {
       format: {

@@ -217,6 +217,14 @@ function isWallMounted(project: BuildModelDraftProject, safetyFlags: SafetyRevie
   return safetyFlags.some((flag) => flag.code === "wall_mounting") || textIncludes(project, /\b(wall|mounted|mount|hang|anchor|stud|bracket)\b/);
 }
 
+function isBookLedge(project: BuildModelDraftProject): boolean {
+  return textIncludes(project, /\b(book\s*ledge|book\s*rail|toddler\s+book|nursery\s+book|children'?s\s+book)\b/);
+}
+
+function isBathroomOrHumidityProject(project: BuildModelDraftProject): boolean {
+  return textIncludes(project, /\b(bathroom|humid|humidity|damp|wet|towel|shower)\b/);
+}
+
 function createDoorHangerParts(project: BuildModelDraftProject, materialId: string, templateHint: TemplateHint, wallMounted: boolean): DraftParts {
   const thickness = positiveOrNull(project.material_thickness_inches);
   const pieces = [
@@ -430,24 +438,213 @@ function createWoodSignParts(project: BuildModelDraftProject, materialId: string
   };
 }
 
-function createSimpleShelfParts(project: BuildModelDraftProject, materialId: string, templateHint: TemplateHint, wallMounted: boolean): DraftParts {
-  const hardwareItems = wallMounted
+function createBookLedgeParts(project: BuildModelDraftProject, materialId: string, templateHint: TemplateHint, wallMounted: boolean): DraftParts {
+  const thickness = positiveOrNull(project.material_thickness_inches);
+  const width = positiveOrNull(project.width_inches);
+  const height = positiveOrNull(project.height_inches);
+  const depth = positiveOrNull(project.depth_inches);
+  const screws = hardware({
+    id: "wood_screws",
+    label: "Wood screws",
+    hardwareType: "screw",
+    notes: ["Confirm screw length for the actual material thickness before assembly."],
+  });
+  const finish = hardware({
+    id: "non_toxic_finish_review",
+    label: "Non-toxic finish review",
+    hardwareType: "finish",
+    required: false,
+    notes: ["Choose and verify a finish appropriate for child-adjacent use; Boardsmith does not certify finish safety."],
+  });
+  const wallHardware = wallMounted
     ? [
-        hardware({
-          id: "wall_brackets",
-          label: "Wall bracket placeholders",
-          hardwareType: "bracket",
-          quantity: 2,
-          notes: ["Bracket selection affects safe use but no load rating is provided."],
-        }),
         hardware({
           id: "wall_anchors",
           label: "Wall anchors or stud fasteners",
           hardwareType: "anchor",
-          notes: ["Use hardware appropriate for wall structure after review."],
+          notes: ["Manual wall-structure and fastener review is required before mounting."],
         }),
       ]
     : [];
+
+  return {
+    pieces: [
+      makePiece({
+        id: "bottom_shelf_board",
+        label: "Bottom shelf board",
+        pieceType: "board",
+        materialId,
+        lengthInches: width,
+        widthInches: depth,
+        thicknessInches: thickness,
+        grainDirection: "length",
+        notes: ["Book ledge bottom board; no load rating is implied."],
+      }),
+      makePiece({
+        id: "back_rail",
+        label: "Back rail",
+        pieceType: "rail",
+        materialId,
+        lengthInches: width,
+        widthInches: height,
+        thicknessInches: thickness,
+        grainDirection: "length",
+        notes: ["Back rail for book support and possible mounting review; exact mounting method is unresolved."],
+      }),
+      makePiece({
+        id: "front_lip",
+        label: "Front lip",
+        pieceType: "rail",
+        materialId,
+        lengthInches: width,
+        widthInches: height,
+        thicknessInches: thickness,
+        grainDirection: "length",
+        notes: ["Front lip helps retain books but does not certify child safety."],
+      }),
+    ],
+    hardware: [screws, finish, ...wallHardware],
+    connections: [
+      {
+        id: "front_lip_to_bottom_shelf_board",
+        fromPieceId: "front_lip",
+        toPieceId: "bottom_shelf_board",
+        connectionType: "screw",
+        hardwareIds: [screws.id],
+        locationDescription: "Front edge of bottom shelf board",
+        strengthCritical: true,
+        safetyNotes: ["Round and sand edges; adult inspection is required before child-adjacent use."],
+        notes: ["Generic book-ledge front connection placeholder."],
+      },
+      {
+        id: "back_rail_to_bottom_shelf_board",
+        fromPieceId: "back_rail",
+        toPieceId: "bottom_shelf_board",
+        connectionType: "screw",
+        hardwareIds: [screws.id],
+        locationDescription: "Back edge of bottom shelf board",
+        strengthCritical: true,
+        safetyNotes: ["Boardsmith cannot verify child safety, mounting safety, or load capacity."],
+        notes: ["Generic book-ledge back connection placeholder."],
+      },
+      ...(wallMounted
+        ? [
+            {
+              id: "wall_fasteners_to_back_rail",
+              fromPieceId: "back_rail",
+              toPieceId: "back_rail",
+              connectionType: "screw" as const,
+              hardwareIds: ["wall_anchors"],
+              locationDescription: "Back rail mounting points",
+              strengthCritical: true,
+              safetyNotes: ["Verify studs, anchors, fasteners, wall structure, and expected load before use."],
+              notes: ["Self-reference represents wall fasteners attached to the back rail."],
+            },
+          ]
+        : []),
+    ],
+    operations: [
+      operation({
+        id: "cut_book_ledge_parts",
+        sequenceNumber: 1,
+        operationType: "cut",
+        title: "Cut book ledge parts",
+        description: "Cut the bottom shelf board, back rail, and front lip after confirming the submitted dimensions.",
+        pieceIds: ["bottom_shelf_board", "back_rail", "front_lip"],
+        toolNames: project.tools_available,
+        safetyNotes: ["Clamp work, wear eye protection, and verify measurements before cutting."],
+      }),
+      operation({
+        id: "round_and_sand_edges",
+        sequenceNumber: 2,
+        operationType: "sand",
+        title: "Round and sand edges",
+        description: "Ease exposed edges and sand smooth before finish review.",
+        pieceIds: ["bottom_shelf_board", "back_rail", "front_lip"],
+        toolNames: project.tools_available,
+        safetyNotes: ["Child-adjacent projects need careful adult edge inspection; Boardsmith does not certify child safety."],
+      }),
+      operation({
+        id: "assemble_book_ledge",
+        sequenceNumber: 3,
+        operationType: "assemble",
+        title: "Assemble book ledge",
+        description: "Dry fit the rails and bottom shelf board, then fasten only after checking alignment and screw length.",
+        pieceIds: ["bottom_shelf_board", "back_rail", "front_lip"],
+        toolNames: project.tools_available,
+        safetyNotes: ["Do not rely on Boardsmith for load ratings or child-safety approval."],
+      }),
+      ...(wallMounted
+        ? [
+            operation({
+              id: "inspect_book_ledge_mounting",
+              sequenceNumber: 4,
+              operationType: "inspect",
+              title: "Inspect mounting approach",
+              description: "Review wall structure, studs or anchors, fasteners, and expected use before mounting.",
+              pieceIds: ["back_rail"],
+              toolNames: project.tools_available,
+              safetyNotes: ["Manual wall mounting review is required; no mounting safety is guaranteed."],
+            }),
+          ]
+        : []),
+    ],
+    assumptions: [
+      ...templateHint.assumptions,
+      "Book ledge proportions are bounded by the submitted project dimensions.",
+      "Child-adjacent use requires adult review, rounded edges, finish review, mounting review, and ongoing inspection.",
+    ],
+    unresolvedQuestions: [
+      ...(wallMounted ? ["What wall type, stud spacing, anchor type, and fasteners will be used?"] : []),
+      "What adult-reviewed finish is appropriate for the intended child-adjacent use?",
+      "What load, if any, is expected? Boardsmith will not certify load capacity.",
+    ],
+    exportReadiness: {
+      svgCandidate: false,
+      pdfCandidate: true,
+      dxfCandidate: false,
+      cadCandidate: false,
+      notes: ["Book ledge pieces are modeled for planning review only.", "No export, CAD, CNC, or production cut file is implemented."],
+    },
+  };
+}
+
+function createSimpleShelfParts(project: BuildModelDraftProject, materialId: string, templateHint: TemplateHint, wallMounted: boolean): DraftParts {
+  if (isBookLedge(project)) {
+    return createBookLedgeParts(project, materialId, templateHint, wallMounted);
+  }
+
+  const bathroomOrHumidity = isBathroomOrHumidityProject(project);
+  const hardwareItems = [
+    ...(wallMounted
+      ? [
+          hardware({
+            id: "wall_brackets",
+            label: "Wall bracket placeholders",
+            hardwareType: "bracket",
+            quantity: 2,
+            notes: ["Bracket selection affects safe use but no load rating is provided."],
+          }),
+          hardware({
+            id: "wall_anchors",
+            label: "Wall anchors or stud fasteners",
+            hardwareType: "anchor",
+            notes: ["Use hardware appropriate for wall structure after review."],
+          }),
+        ]
+      : []),
+    ...(bathroomOrHumidity
+      ? [
+          hardware({
+            id: "moisture_resistant_finish_review",
+            label: "Moisture-resistant finish review",
+            hardwareType: "finish",
+            required: false,
+            notes: ["Bathroom humidity requires finish and hardware review; no waterproof claim is implied."],
+          }),
+        ]
+      : []),
+  ];
 
   return {
     pieces: [
@@ -460,7 +657,10 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
         widthInches: project.depth_inches,
         thicknessInches: project.material_thickness_inches,
         grainDirection: "length",
-        notes: ["No load rating is implied."],
+        notes: [
+          "No load rating is implied.",
+          ...(bathroomOrHumidity ? ["Bathroom humidity and finish choice require manual review."] : []),
+        ],
       }),
     ],
     hardware: hardwareItems,
@@ -481,23 +681,63 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
       : [],
     operations: [
       operation({
-        id: wallMounted ? "inspect_mounting_location" : "confirm_shelf_dimensions",
+        id: "cut_shelf_board",
         sequenceNumber: 1,
-        operationType: wallMounted ? "inspect" : "measure",
-        title: wallMounted ? "Inspect mounting location" : "Confirm shelf dimensions",
-        description: wallMounted
-          ? "Review wall structure and fastener suitability before drilling or mounting."
-          : "Confirm shelf dimensions before cutting.",
+        operationType: "cut",
+        title: "Cut shelf board",
+        description: "Confirm the shelf dimensions, then cut the shelf board from the selected material.",
         pieceIds: ["shelf_board"],
         toolNames: project.tools_available,
-        safetyNotes: ["Do not rely on Boardsmith for load ratings."],
+        safetyNotes: ["Measure twice before cutting and do not rely on Boardsmith for load ratings."],
       }),
+      operation({
+        id: "sand_shelf_board",
+        sequenceNumber: 2,
+        operationType: "sand",
+        title: "Sand shelf board",
+        description: "Sand exposed edges and faces before assembly, finish, or mounting review.",
+        pieceIds: ["shelf_board"],
+        toolNames: project.tools_available,
+        safetyNotes: ["Wear appropriate PPE and control dust."],
+      }),
+      ...(wallMounted
+        ? [
+            operation({
+              id: "inspect_mounting_location",
+              sequenceNumber: 3,
+              operationType: "inspect",
+              title: "Inspect mounting location",
+              description: "Review wall structure, stud locations, anchor choice, fasteners, and expected use before drilling or mounting.",
+              pieceIds: ["shelf_board"],
+              toolNames: project.tools_available,
+              safetyNotes: ["Manual mounting review is required; Boardsmith cannot verify wall safety or load capacity."],
+            }),
+          ]
+        : []),
+      ...(bathroomOrHumidity
+        ? [
+            operation({
+              id: "review_bathroom_finish",
+              sequenceNumber: wallMounted ? 4 : 3,
+              operationType: "inspect",
+              title: "Review bathroom finish",
+              description: "Choose finish and hardware appropriate for bathroom humidity before use.",
+              pieceIds: ["shelf_board"],
+              toolNames: project.tools_available,
+              safetyNotes: ["Boardsmith cannot verify waterproofing, corrosion resistance, or long-term moisture performance."],
+            }),
+          ]
+        : []),
     ],
     assumptions: wallMounted
-      ? templateHint.assumptions
+      ? [
+          ...templateHint.assumptions,
+          ...(bathroomOrHumidity ? ["Bathroom humidity may require moisture-resistant finish and corrosion-resistant hardware review."] : []),
+        ]
       : ["Project is treated as freestanding or non-mounted because the intake does not ask for wall mounting."],
     unresolvedQuestions: [
       ...(wallMounted ? ["What wall type, bracket type, and fasteners will be used?"] : []),
+      ...(bathroomOrHumidity ? ["What finish and hardware are appropriate for bathroom humidity?"] : []),
       "What load, if any, is expected? Boardsmith will not certify load capacity.",
     ],
     exportReadiness: {

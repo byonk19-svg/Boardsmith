@@ -63,4 +63,51 @@ describe("buildProjectPlanPromptContext", () => {
       ]),
     );
   });
+
+  it("requires exact review labels for wall-mounted bathroom shelves", () => {
+    const context = buildProjectPlanPromptContext(
+      {
+        ...shelfProject,
+        title: "Small bathroom wall shelf",
+        intended_use: "Wall-mounted bathroom shelf for light toiletries near a damp sink area.",
+      },
+      simpleShelfBuildModelFixture,
+    );
+
+    expect(context.intake_interpretation.wall_mounting_review_required).toBe(true);
+    expect(context.intake_interpretation.bathroom_or_humidity_review).toBe(true);
+    expect(context.intake_interpretation.exact_review_labels_required).toEqual(expect.arrayContaining(["Wall mounting review"]));
+    expect(context.deterministic_quality_rules).toContain(
+      "Copy each exact_review_labels_required value verbatim into needs_review_flags when any review labels are provided.",
+    );
+    expect(context.output_alignment_rules).toContain(
+      "For bathroom shelves, include humidity and finish assumptions as review notes rather than waterproof or load-capacity claims.",
+    );
+  });
+
+  it("adds cautious child-adjacent guidance for toddler book ledges", () => {
+    const context = buildProjectPlanPromptContext({
+      ...shelfProject,
+      title: "Simple toddler book ledge",
+      width_inches: 24,
+      height_inches: 4,
+      depth_inches: 4,
+      intended_use: "Wall-mounted toddler book ledge for nursery books in a reading corner.",
+      safety_flags: ["Wall mounting review", "Child or baby use", "Heavy shelving review"],
+    });
+
+    expect(context.intake_interpretation.child_or_baby_review_required).toBe(true);
+    expect(context.intake_interpretation.book_ledge_review).toBe(true);
+    expect(context.intake_interpretation.exact_review_labels_required).toEqual(
+      expect.arrayContaining(["Wall mounting review", "Child or baby use", "Heavy shelving review"]),
+    );
+    expect(context.safety_rules).toContain(
+      "Avoid the phrases child safe, safe for children, safe for toddlers, structurally approved, certified, load rated, guaranteed safe, guaranteed capacity, and safely supports.",
+    );
+    expect(context.forbidden_output_phrases).toEqual(expect.arrayContaining(["child-safe", "kid-safe", "safe for toddlers", "load-rated"]));
+    expect(context.preferred_safety_phrases).toContain("Boardsmith cannot verify child safety.");
+    expect(context.output_alignment_rules).toContain(
+      "For book ledges, reuse modeled ledge piece names such as bottom shelf board, back rail, and front lip when present; do not add unmodeled child-safety claims.",
+    );
+  });
 });
