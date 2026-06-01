@@ -72,6 +72,8 @@ The Plan Review panel is a planning aid. It does not certify safety, load capaci
 
 The browser print preview page is read-only and uses the same printable plan manifest as the project detail page. It relies on the user's browser print dialog for paper copies. It is not an app-generated PDF, SVG, DXF, CAD, CNC, download, or export pipeline.
 
+Future export work should follow [docs/EXPORT_ARCHITECTURE.md](EXPORT_ARCHITECTURE.md). The key decision is that exports consume `createPrintablePlanManifest` instead of scraping rendered page UI or duplicating derivation logic.
+
 ## Supabase
 
 `supabase/migrations/0001_initial_schema.sql` defines:

@@ -194,8 +194,9 @@ git diff --check
 
 ## Recommended Next Task Order
 
-1. Small print-preview polish only if needed.
-2. Export architecture decision note.
-3. Only then consider a very narrow app-generated PDF spike.
-4. Later SVG/DXF research.
-5. Much later CAD/FreeCAD/CNC research.
+1. Narrow app-generated PDF spike decision or prompt, only if approved.
+2. Or small print-preview polish if manual use reveals issues.
+3. Later SVG research note.
+4. Much later DXF/CAD/CNC research.
+
+Before any export implementation, read [docs/EXPORT_ARCHITECTURE.md](EXPORT_ARCHITECTURE.md). Future exports should consume `createPrintablePlanManifest`; they should not scrape rendered page UI.

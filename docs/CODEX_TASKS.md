@@ -140,13 +140,23 @@
 - [x] Add project detail link to browser print preview.
 - [x] Keep print preview read-only with no download or app-generated export pipeline.
 
+## Task 27A - Internal MVP Release Checklist
+
+- [x] Add internal MVP release checklist and status docs.
+- [x] Capture verified flows, caveats, non-goals, and next task order.
+
+## Task 28A - Export Architecture Decision Note
+
+- [x] Document that future exports should consume `createPrintablePlanManifest`.
+- [x] Document export phases, PDF approach options, safety boundaries, data boundaries, testing expectations, and non-goals.
+- [x] Keep this as docs-only with no export implementation.
+
 ## Recommended Next Tasks
 
-1. [ ] Small print-preview polish only if needed.
-2. [ ] Export architecture decision note.
-3. [ ] Only then consider a very narrow app-generated PDF spike.
-4. [ ] Later SVG/DXF research.
-5. [ ] Much later CAD/FreeCAD/CNC research.
+1. [ ] Narrow app-generated PDF spike decision or prompt, only if approved.
+2. [ ] Or small print-preview polish if manual use reveals issues.
+3. [ ] Later SVG research note.
+4. [ ] Much later DXF/CAD/CNC research.
 
 ## Remaining Hardening
 

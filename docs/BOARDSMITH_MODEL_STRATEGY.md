@@ -169,15 +169,14 @@ Validation includes two layers:
 
 ### Recommended Next Tasks
 
-1. Small print-preview polish only if needed.
-2. Export architecture decision note.
-3. Only then consider a very narrow app-generated PDF spike.
-4. Later SVG/DXF research.
-5. Much later CAD/FreeCAD/CNC research.
+1. Narrow app-generated PDF spike decision or prompt, only if approved.
+2. Or small print-preview polish if manual use reveals issues.
+3. Later SVG research note.
+4. Much later DXF/CAD/CNC research.
 
 ### Guardrails For Later Tasks
 
-Keep "not enough information" states honest. Browser print preview is not export. Do not add actual app-generated PDF/SVG/DXF export, CAD, FreeCAD, CNC, auth, image upload, public sharing, marketplace, subscriptions, or payments until explicitly requested.
+Keep "not enough information" states honest. Browser print preview is not export. Follow [docs/EXPORT_ARCHITECTURE.md](EXPORT_ARCHITECTURE.md) before implementing any export. Do not add actual app-generated PDF/SVG/DXF export, CAD, FreeCAD, CNC, auth, image upload, public sharing, marketplace, subscriptions, or payments until explicitly requested.
 
 ## UI Copy Rules
 
