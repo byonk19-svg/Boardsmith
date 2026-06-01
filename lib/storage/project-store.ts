@@ -38,7 +38,23 @@ type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      save_generated_plan_atomic: {
+        Args: {
+          p_project_id: string;
+          p_plan_id: string;
+          p_created_at: string;
+          p_model_name: string;
+          p_plan_json: Json;
+          p_build_model_json: Json | null;
+          p_plan_markdown: string;
+          p_warnings: Json;
+          p_assumptions: Json;
+          p_confidence_level: GeneratedPlan["confidence_level"];
+        };
+        Returns: (Omit<GeneratedProjectPlanRecord, "plan_json" | "build_model_json"> & { plan_json: Json; build_model_json: Json | null })[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
@@ -193,21 +209,21 @@ export async function saveGeneratedPlan(params: {
   });
 
   if (isSupabasePersistenceConfigured()) {
-    const supabase = getSupabase();
-    const { error: unsetError } = await supabase
-      .from("generated_project_plans")
-      .update({ is_latest: false })
-      .eq("project_id", params.projectId);
-    if (unsetError) throw new Error(unsetError.message);
-
-    const { data, error } = await supabase.from("generated_project_plans").insert(record as Database["public"]["Tables"]["generated_project_plans"]["Insert"]).select("*").single();
+    const { data, error } = await getSupabase()
+      .rpc("save_generated_plan_atomic", {
+        p_project_id: params.projectId,
+        p_plan_id: record.id,
+        p_created_at: now,
+        p_model_name: record.model_name,
+        p_plan_json: record.plan_json as Json,
+        p_build_model_json: (record.build_model_json as Json | null) ?? null,
+        p_plan_markdown: record.plan_markdown,
+        p_warnings: record.warnings as Json,
+        p_assumptions: record.assumptions as Json,
+        p_confidence_level: record.confidence_level,
+      })
+      .single();
     if (error) throw new Error(error.message);
-
-    const { error: projectError } = await supabase
-      .from("projects")
-      .update({ status: "plan_generated", updated_at: now })
-      .eq("id", params.projectId);
-    if (projectError) throw new Error(projectError.message);
 
     return normalizePlanRow(data);
   }

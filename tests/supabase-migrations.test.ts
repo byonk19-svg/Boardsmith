@@ -12,4 +12,17 @@ describe("Supabase migrations", () => {
     expect(sql).toContain("grant select, insert, update, delete on table public.projects to service_role");
     expect(sql).toContain("grant select, insert, update, delete on table public.generated_project_plans to service_role");
   });
+
+  it("adds an atomic generated-plan save RPC without opening public access", async () => {
+    const sql = await readFile("supabase/migrations/20260601143737_save_generated_plan_atomic.sql", "utf8");
+
+    expect(sql).toContain("create or replace function public.save_generated_plan_atomic");
+    expect(sql).toContain("returns setof public.generated_project_plans");
+    expect(sql).toContain("update public.generated_project_plans");
+    expect(sql).toContain("insert into public.generated_project_plans");
+    expect(sql).toContain("update public.projects");
+    expect(sql).toContain("return next inserted_plan");
+    expect(sql).toContain("revoke all on function public.save_generated_plan_atomic");
+    expect(sql).toContain("grant execute on function public.save_generated_plan_atomic");
+  });
 });
