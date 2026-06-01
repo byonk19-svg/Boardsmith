@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
@@ -40,6 +41,7 @@ export default async function ProjectDetailPage({
       buildModel,
       buildModelSource,
     });
+  const printPreviewHref = `/projects/${project.id}/print` as Route;
 
   return (
     <div className="space-y-6">
@@ -53,11 +55,21 @@ export default async function ProjectDetailPage({
             {projectTypeLabels[project.project_type]} · {project.skill_level} · {project.status.replaceAll("_", " ")}
           </p>
         </div>
-        <form action={`/projects/${project.id}/generate`} method="post" className="no-print">
-          <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-            Generate Plan
-          </button>
-        </form>
+        <div className="no-print flex flex-col gap-2 sm:items-end">
+          <form action={`/projects/${project.id}/generate`} method="post">
+            <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+              Generate Plan
+            </button>
+          </form>
+          {latestPlanReview ? (
+            <div className="text-right">
+              <Link href={printPreviewHref} className="text-sm font-semibold text-moss hover:underline">
+                Browser print preview
+              </Link>
+              <p className="mt-1 text-xs text-ink/55">Use your browser's print dialog if you want a paper copy.</p>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {query.error ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{query.error}</p> : null}

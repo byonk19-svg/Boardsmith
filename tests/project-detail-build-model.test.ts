@@ -209,6 +209,23 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
   });
 
+  it("links generated plans to the browser print preview page", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain('href="/projects/project_saved_bbm/print"');
+    expect(markup).toContain("Browser print preview");
+    expect(markup).toContain("Use your browser&#x27;s print dialog if you want a paper copy.");
+  });
+
   it("falls back to a derived project structure for older generated plans without saved build models", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([{ ...planRecord, build_model_json: null }]);
