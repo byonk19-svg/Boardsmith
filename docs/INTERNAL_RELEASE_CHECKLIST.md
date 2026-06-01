@@ -194,9 +194,12 @@ git diff --check
 
 ## Recommended Next Task Order
 
-1. Narrow app-generated PDF spike decision or prompt, only if approved.
-2. Or small print-preview polish if manual use reveals issues.
-3. Later SVG research note.
-4. Much later DXF/CAD/CNC research.
+1. Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
+2. If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
+3. Or polish print preview if manual use reveals issues.
+4. Later SVG research note.
+5. Much later DXF/CAD/CNC research.
 
 Before any export implementation, read [docs/EXPORT_ARCHITECTURE.md](EXPORT_ARCHITECTURE.md). Future exports should consume `createPrintablePlanManifest`; they should not scrape rendered page UI.
+
+Before adding app-generated PDF, read [docs/PDF_EXPORT_SPIKE_PLAN.md](PDF_EXPORT_SPIKE_PLAN.md). It keeps package and renderer approval separate from implementation.

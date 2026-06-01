@@ -151,12 +151,19 @@
 - [x] Document export phases, PDF approach options, safety boundaries, data boundaries, testing expectations, and non-goals.
 - [x] Keep this as docs-only with no export implementation.
 
+## Task 29A - PDF Export Spike Plan
+
+- [x] Document the recommended first PDF approach.
+- [x] Confirm no PDF package is currently installed.
+- [x] Keep this as docs/planning-only with no routes, buttons, downloads, packages, or PDF generation.
+
 ## Recommended Next Tasks
 
-1. [ ] Narrow app-generated PDF spike decision or prompt, only if approved.
-2. [ ] Or small print-preview polish if manual use reveals issues.
-3. [ ] Later SVG research note.
-4. [ ] Much later DXF/CAD/CNC research.
+1. [ ] Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
+2. [ ] If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
+3. [ ] Or polish print preview if manual use reveals issues.
+4. [ ] Later SVG research note.
+5. [ ] Much later DXF/CAD/CNC research.
 
 ## Remaining Hardening
 

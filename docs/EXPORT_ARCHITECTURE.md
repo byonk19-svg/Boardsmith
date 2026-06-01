@@ -23,6 +23,8 @@ The manifest is the boundary between planning data and future output formats. UI
 
 The first intentional export implementation should be a narrow app-generated PDF spike only after approval. It should be read-only, use existing manifest data, include safety and planning-aid disclaimers, and avoid changing the generated plan schema unless a real data gap is proven.
 
+Use [docs/PDF_EXPORT_SPIKE_PLAN.md](PDF_EXPORT_SPIKE_PLAN.md) before implementation. That plan keeps browser print as the current MVP path and requires separate approval before adding a server-side PDF renderer dependency.
+
 The first PDF spike should answer:
 
 - Can Boardsmith produce a readable paper-style plan from the manifest?
@@ -187,7 +189,8 @@ When actual export is intentionally added:
 
 ## Recommended Next Task Order
 
-1. Narrow app-generated PDF spike decision or prompt, only if approved.
-2. Or small print-preview polish if manual use reveals issues.
-3. Later SVG research note.
-4. Much later DXF/CAD/CNC research.
+1. Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
+2. If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
+3. Or polish print preview if manual use reveals issues.
+4. Later SVG research note.
+5. Much later DXF/CAD/CNC research.

@@ -74,6 +74,8 @@ The browser print preview page is read-only and uses the same printable plan man
 
 Future export work should follow [docs/EXPORT_ARCHITECTURE.md](EXPORT_ARCHITECTURE.md). The key decision is that exports consume `createPrintablePlanManifest` instead of scraping rendered page UI or duplicating derivation logic.
 
+The PDF spike plan in [docs/PDF_EXPORT_SPIKE_PLAN.md](PDF_EXPORT_SPIKE_PLAN.md) recommends keeping browser print as the current MVP path and approving any future server-side HTML-to-PDF renderer dependency before implementation.
+
 ## Supabase
 
 `supabase/migrations/0001_initial_schema.sql` defines:

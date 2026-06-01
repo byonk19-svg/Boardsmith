@@ -151,16 +151,19 @@ The Plan Review panel can surface deterministic issues and warnings, but it cann
 
 ## Recommended Next Task Order
 
-1. Narrow app-generated PDF spike decision or prompt, only if approved.
-2. Or small print-preview polish if manual use reveals issues.
-3. Later SVG research note.
-4. Much later DXF/CAD/CNC research.
+1. Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
+2. If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
+3. Or polish print preview if manual use reveals issues.
+4. Later SVG research note.
+5. Much later DXF/CAD/CNC research.
 
 ## Internal Release Checklist
 
 Use [docs/INTERNAL_RELEASE_CHECKLIST.md](INTERNAL_RELEASE_CHECKLIST.md) before starting real export-generation work. It captures the current manual smoke checklist, safety limits, non-goals, and browser print preview status.
 
 Use [docs/EXPORT_ARCHITECTURE.md](EXPORT_ARCHITECTURE.md) for the export approach decision. It keeps browser print preview, future PDF work, SVG research, and later DXF/CAD/CNC research separated.
+
+Use [docs/PDF_EXPORT_SPIKE_PLAN.md](PDF_EXPORT_SPIKE_PLAN.md) before adding app-generated PDF. It recommends browser print for the current MVP and a separate approval gate before any server-side PDF renderer dependency.
 
 ## Verification Checklist
 
