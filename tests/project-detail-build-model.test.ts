@@ -260,4 +260,27 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Generate a plan to see Boardsmith&#x27;s review checks.");
     expect(markup).not.toContain("Blocking issues");
   });
+
+  it("shows calm blocked-generation feedback with safety-specific next steps", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      safety_flags: ["Wall mounting review", "Child or baby use"],
+    });
+    listGeneratedPlansMock.mockResolvedValue([]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({ generation_error: "review_blocked" }),
+      }),
+    );
+
+    expect(markup).toContain("Boardsmith generated a draft, but it did not pass review checks.");
+    expect(markup).toContain("No plan was saved.");
+    expect(markup).toContain("Boardsmith blocks drafts that fail validation or safety review before they can be saved.");
+    expect(markup).toContain("For wall-mounted projects, verify studs or anchors, fasteners, wall structure, and expected load before trying again.");
+    expect(markup).toContain("For child-adjacent projects, describe edge treatment, finish choice, supervision needs, mounting height, and inspection plans.");
+    expect(markup).not.toContain("Generated plan failed deterministic quality checks");
+  });
 });

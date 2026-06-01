@@ -192,13 +192,22 @@
 - [x] Re-run the two remaining live dogfood scenarios and save validated plans for bathroom wall shelf and toddler book ledge.
 - [x] Preserve strict Zod validation and deterministic quality checks.
 
+## Task 37A - Blocked Generation Feedback
+
+- [x] Classify generation failures before redirecting back to the project detail page.
+- [x] Replace raw blocked-generation errors with calm user-facing feedback.
+- [x] Show next-step suggestions for dimensions, materials, mounting, hardware, intended use, wall-mounted work, and child-adjacent projects.
+- [x] Preserve missing `OPENAI_API_KEY` guidance without exposing internals.
+- [x] Keep blocked or invalid generated output out of persistence.
+
 ## Recommended Next Tasks
 
-1. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
-2. [ ] Polish print preview only if manual browser printing reveals issues.
-3. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
-4. [ ] Later SVG research note.
-5. [ ] Much later DXF/CAD/CNC research.
+1. [ ] Add a private MVP deployment safety gate before any public-facing hosting.
+2. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
+3. [ ] Polish print preview only if manual browser printing reveals issues.
+4. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
+5. [ ] Later SVG research note.
+6. [ ] Much later DXF/CAD/CNC research.
 
 ## Remaining Hardening
 

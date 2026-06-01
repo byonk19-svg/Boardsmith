@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
+import { getGenerationFailureFeedback, isGenerationFailureReason, type GenerationFailureReason } from "@/lib/ai/generation-feedback";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { cutListStatusLabel, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
@@ -22,7 +23,7 @@ export default async function ProjectDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; generated?: string }>;
+  searchParams: Promise<{ error?: string; generated?: string; generation_error?: string }>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const project = await getProject(id);
@@ -69,7 +70,11 @@ export default async function ProjectDetailPage({
         </div>
       </div>
 
-      {query.error ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{query.error}</p> : null}
+      {isGenerationFailureReason(query.generation_error) ? (
+        <GenerationFailurePanel reason={query.generation_error} safetyFlags={project.safety_flags} />
+      ) : query.error ? (
+        <GenerationFailurePanel reason="generation_failed" safetyFlags={project.safety_flags} />
+      ) : null}
       {query.generated ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Generated and saved a new validated plan version.</p> : null}
 
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
@@ -216,6 +221,30 @@ function EmptyPlanState() {
     <section className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
       <h2 className="text-lg font-semibold text-ink">No generated plan yet</h2>
       <p className="mt-2 text-sm text-ink/65">Generate a plan to see Boardsmith's review checks. Invalid generated JSON will not be saved.</p>
+    </section>
+  );
+}
+
+function GenerationFailurePanel({ reason, safetyFlags }: { reason: GenerationFailureReason; safetyFlags: string[] }) {
+  const feedback = getGenerationFailureFeedback(reason, safetyFlags);
+  const badgeLabel = reason === "missing_openai_key" ? "Not configured" : "Review blocked";
+
+  return (
+    <section className="rounded-lg border border-amber-200 bg-amber-50 p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-ink">{feedback.title}</h2>
+          <p className="mt-2 text-sm font-semibold text-amber-950">{feedback.summary}</p>
+          <p className="mt-2 text-sm leading-6 text-ink/70">{feedback.detail}</p>
+        </div>
+        <span className="w-fit rounded-md bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-950">
+          {badgeLabel}
+        </span>
+      </div>
+      <div className="mt-4">
+        <h3 className="text-sm font-semibold text-ink">Try this before generating again</h3>
+        <List items={feedback.suggestions} />
+      </div>
     </section>
   );
 }

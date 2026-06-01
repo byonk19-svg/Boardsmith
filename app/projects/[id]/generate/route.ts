@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import { classifyGenerationFailure } from "@/lib/ai/generation-feedback";
 import { generateStructuredProjectPlan } from "@/lib/ai/generate-project-plan";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
@@ -25,7 +26,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     revalidatePath(`/projects/${project.id}`);
     return NextResponse.redirect(new URL(`/projects/${project.id}?generated=1`, request.url), 303);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Plan generation failed.";
-    return NextResponse.redirect(new URL(`/projects/${project.id}?error=${encodeURIComponent(message)}`, request.url), 303);
+    const reason = classifyGenerationFailure(error);
+    return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=${reason}`, request.url), 303);
   }
 }
