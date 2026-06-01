@@ -200,9 +200,17 @@
 - [x] Preserve missing `OPENAI_API_KEY` guidance without exposing internals.
 - [x] Keep blocked or invalid generated output out of persistence.
 
+## Task 38A - Private MVP Access Gate
+
+- [x] Add an optional `BOARDSMITH_ACCESS_PASSWORD` server-side access gate.
+- [x] Redirect protected app routes to `/access` when the gate is enabled and no valid cookie is present.
+- [x] Set an HTTP-only cookie with a derived verifier after correct password entry.
+- [x] Keep local development directly usable when the password env var is unset.
+- [x] Document that this is a temporary private MVP gate, not full authentication.
+
 ## Recommended Next Tasks
 
-1. [ ] Add a private MVP deployment safety gate before any public-facing hosting.
+1. [ ] Verify the private MVP access gate in the actual hosting environment before sharing a URL.
 2. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
 3. [ ] Polish print preview only if manual browser printing reveals issues.
 4. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.

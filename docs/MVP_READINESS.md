@@ -2,7 +2,7 @@
 
 ## Status
 
-Boardsmith is a private MVP woodworking planning app. The current baseline is verified for local JSON fallback, Supabase-backed persistence, live OpenAI structured-output generation, generated-plan validation, build-model storage, plan history, user-facing Plan Review status, Export Readiness, Material Summary, Cut List Review, a manifest-backed Printable Plan Sheet, and browser print preview at `/projects/[id]/print`.
+Boardsmith is a private MVP woodworking planning app. The current baseline is verified for local JSON fallback, Supabase-backed persistence, live OpenAI structured-output generation, generated-plan validation, build-model storage, plan history, user-facing Plan Review status, Export Readiness, Material Summary, Cut List Review, a manifest-backed Printable Plan Sheet, browser print preview at `/projects/[id]/print`, blocked-generation feedback, and an optional private MVP access gate.
 
 The app is ready for continued private MVP hardening. It is not ready for public multi-user production use, paid use, public sharing, certified safety workflows, CAD/CNC workflows, or file export workflows.
 
@@ -28,6 +28,7 @@ The app is ready for continued private MVP hardening. It is not ready for public
 - `createPrintablePlanManifest` gathers project, generated plan, build model, review, material, cut-list, safety, assumption, disclaimer, and future export note data for print-facing rendering.
 - The Printable Plan Sheet consumes the printable plan manifest.
 - `/projects/[id]/print` renders a browser print preview for an existing generated plan and tells users to use the browser print dialog for paper copies.
+- `BOARDSMITH_ACCESS_PASSWORD` can enable a temporary private MVP password gate for hosted deployments.
 
 ## Verified Smoke Flows
 
@@ -67,6 +68,15 @@ Environment variables:
 - `SUPABASE_SERVICE_ROLE_KEY`: server-only key required for the current private no-auth Supabase persistence path.
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: reserved for future authenticated/client flows and not sufficient for current private MVP writes.
 - `BOARDSMITH_DATA_FILE`: optional local fallback JSON path override.
+- `BOARDSMITH_ACCESS_PASSWORD`: optional private MVP password gate. Leave blank for local-only development without the gate.
+
+## Private MVP Access Gate
+
+If `BOARDSMITH_ACCESS_PASSWORD` is unset, Boardsmith remains directly usable for local development.
+
+If `BOARDSMITH_ACCESS_PASSWORD` is set, the app redirects protected routes to `/access`. The access form posts the password server-side and sets an HTTP-only cookie containing a derived verifier, not the raw password. This protects project creation, project detail routes, Generate Plan routes, settings, and browser print preview routes behind the same temporary gate.
+
+This is not full authentication, per-user authorization, or multi-user account management. Use real auth and per-user RLS before public multi-user production use.
 
 ## Supabase Setup Checklist
 
@@ -126,7 +136,7 @@ The Plan Review panel can surface deterministic issues and warnings, but it cann
 
 ## Known Caveats
 
-- This is a private MVP with no auth.
+- This is a private MVP with optional password-gate protection, not full auth.
 - Supabase persistence currently depends on a server-only service-role key.
 - Local JSON fallback is private local storage, not a sync system.
 - Existing generated plans without `build_model_json` use a derived compatibility model on read.
@@ -138,7 +148,7 @@ The Plan Review panel can surface deterministic issues and warnings, but it cann
 
 ## Deferred Features
 
-- Authentication and per-user RLS.
+- Full authentication and per-user RLS.
 - Public sharing.
 - Payments and subscriptions.
 - Marketplace or Etsy workflows.
@@ -151,11 +161,12 @@ The Plan Review panel can surface deterministic issues and warnings, but it cann
 
 ## Recommended Next Task Order
 
-1. Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
-2. If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
-3. Or polish print preview if manual use reveals issues.
-4. Later SVG research note.
-5. Much later DXF/CAD/CNC research.
+1. Verify the private MVP access gate in any hosted environment before sharing a URL.
+2. Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
+3. If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
+4. Or polish print preview if manual use reveals issues.
+5. Later SVG research note.
+6. Much later DXF/CAD/CNC research.
 
 ## Internal Release Checklist
 

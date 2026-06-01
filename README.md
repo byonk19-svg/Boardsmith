@@ -18,6 +18,7 @@ Boardsmith is a private MVP web app for generating detailed, reviewable woodwork
 - Manifest-backed Printable Plan Sheet on project detail pages.
 - Browser print preview route at `/projects/[id]/print` for paper-copy review through the user's browser print dialog.
 - Project detail pages with project metadata, safety flags, template hints, material summary, latest generated plan, browser print preview link, and generated plan history.
+- Optional private MVP password gate for hosted deployments.
 
 ## Supported Project Types
 
@@ -39,6 +40,8 @@ npm run dev
 
 Add `OPENAI_API_KEY` to `.env.local` before using plan generation. If Supabase variables are not configured, the private MVP stores data in `.data/boardsmith.json`. Use `BOARDSMITH_DATA_FILE` only when you need to point the local fallback at a different JSON file, such as isolated test data.
 
+If Boardsmith is deployed to a public URL with real OpenAI or Supabase keys, set `BOARDSMITH_ACCESS_PASSWORD`. When this variable is present, app routes require the private MVP password before use. The gate stores a derived HTTP-only cookie value, not the raw password. This is temporary private-MVP protection, not full authentication or multi-user accounts.
+
 Required or commonly used environment variables:
 
 - `OPENAI_API_KEY`: required only for live plan generation.
@@ -47,6 +50,7 @@ Required or commonly used environment variables:
 - `SUPABASE_SERVICE_ROLE_KEY`: server-only key for the current private no-auth MVP repository layer.
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: reserved for future authenticated/client flows.
 - `BOARDSMITH_DATA_FILE`: optional local JSON fallback override.
+- `BOARDSMITH_ACCESS_PASSWORD`: optional private MVP password gate for hosted deployments.
 
 ### Supabase persistence
 
@@ -84,7 +88,7 @@ Generated plans are planning aids only. Users must review all dimensions, tool c
 
 ## Deferred Roadmap
 
-- Authentication and per-user row-level security.
+- Full authentication and per-user row-level security.
 - SVG/PDF/DXF export.
 - App-generated PDF downloads.
 - CNC/router-specific output.

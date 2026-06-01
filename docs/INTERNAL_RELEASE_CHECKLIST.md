@@ -2,7 +2,7 @@
 
 ## Status Snapshot
 
-Boardsmith is a private MVP woodworking planning app. The current tested baseline supports project intake, Supabase or local JSON persistence, live OpenAI structured-output generation, generated-plan validation, stored build-model JSON, plan history, deterministic review panels, a manifest-backed Printable Plan Sheet, and a browser print preview route at `/projects/[id]/print`.
+Boardsmith is a private MVP woodworking planning app. The current tested baseline supports project intake, Supabase or local JSON persistence, live OpenAI structured-output generation, generated-plan validation, stored build-model JSON, plan history, deterministic review panels, a manifest-backed Printable Plan Sheet, a browser print preview route at `/projects/[id]/print`, blocked-generation feedback, and an optional private MVP access gate.
 
 This checklist is for internal readiness before any real export-generation work. Browser print preview exists. App-generated PDF, SVG, DXF, CAD, CNC, download, pricing, shopping, vendor, inventory, auth, payment, public sharing, and marketplace features do not exist.
 
@@ -11,6 +11,7 @@ This checklist is for internal readiness before any real export-generation work.
 - [ ] Run `npm install`.
 - [ ] Copy `.env.example` to `.env.local`.
 - [ ] Decide whether the smoke will use local JSON fallback or Supabase-backed persistence.
+- [ ] If using a public or shared hosted URL, set `BOARDSMITH_ACCESS_PASSWORD`.
 - [ ] Start the app with `npm run dev`.
 - [ ] Keep `.env.local` and service keys out of git.
 
@@ -22,6 +23,17 @@ This checklist is for internal readiness before any real export-generation work.
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` is present only server-side for the current private no-auth MVP repository layer.
 - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` is understood as reserved for future authenticated/client flows.
 - [ ] `BOARDSMITH_DATA_FILE` is set only when an isolated local JSON fallback path is needed.
+- [ ] `BOARDSMITH_ACCESS_PASSWORD` is set for public or shared hosted URLs and omitted only for local/private development.
+
+## Private MVP Access Gate
+
+- [ ] With `BOARDSMITH_ACCESS_PASSWORD` unset, local development remains usable without the access screen.
+- [ ] With `BOARDSMITH_ACCESS_PASSWORD` set, `/`, `/projects`, `/projects/new`, `/settings`, project detail routes, Generate Plan routes, and print preview routes require access.
+- [ ] `/access` loads and explains this is a temporary private MVP gate, not multi-user authentication.
+- [ ] Wrong password is rejected and does not set the access cookie.
+- [ ] Correct password sets an HTTP-only cookie containing a derived verifier, not the raw password.
+- [ ] Protected routes work after access.
+- [ ] Service-role Supabase work remains server-side only.
 
 ## Local JSON Fallback Mode
 
@@ -59,6 +71,14 @@ This checklist is for internal readiness before any real export-generation work.
 - [ ] Confirm the app shows setup-focused error copy.
 - [ ] Confirm no placeholder or invalid generated plan is saved.
 - [ ] Confirm the project remains readable.
+
+## Blocked Generation Feedback
+
+- [ ] Trigger or simulate a deterministic review block.
+- [ ] Confirm the page says Boardsmith generated a draft but it did not pass review checks.
+- [ ] Confirm the page says no plan was saved.
+- [ ] Confirm suggestions mention dimensions, materials, mounting, hardware, and intended use.
+- [ ] For wall-mounted or child-adjacent projects, confirm extra safety-specific suggestions appear.
 
 ## Project Creation
 
@@ -171,7 +191,7 @@ git diff --check
 
 ## Known Caveats
 
-- Private MVP has no auth and no per-user ownership.
+- Private MVP has an optional password gate, but no full auth and no per-user ownership.
 - Supabase-backed mode currently uses server-only service-role access.
 - Local JSON fallback is not a sync system.
 - Plan Review is computed on read and not stored as a separate review record.
@@ -188,17 +208,18 @@ git diff --check
 - No download buttons or export routes.
 - No image upload or generated imagery.
 - No shopping list, pricing, vendor links, inventory, or purchasing behavior.
-- No auth, public sharing, payments, subscriptions, marketplace, or Etsy automation.
+- No full auth provider, public sharing, payments, subscriptions, marketplace, or Etsy automation.
 - No new project types.
 - No load ratings or safety certification.
 
 ## Recommended Next Task Order
 
-1. Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
-2. If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
-3. Or polish print preview if manual use reveals issues.
-4. Later SVG research note.
-5. Much later DXF/CAD/CNC research.
+1. Verify the private MVP access gate in any hosted environment before sharing a URL.
+2. Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
+3. If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
+4. Or polish print preview if manual use reveals issues.
+5. Later SVG research note.
+6. Much later DXF/CAD/CNC research.
 
 Before any export implementation, read [docs/EXPORT_ARCHITECTURE.md](EXPORT_ARCHITECTURE.md). Future exports should consume `createPrintablePlanManifest`; they should not scrape rendered page UI.
 
