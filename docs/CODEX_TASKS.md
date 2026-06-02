@@ -276,17 +276,26 @@
 - [x] Show calm empty-state copy when only one generated plan exists.
 - [x] Keep comparison read-only with no generation, export, schema, package, cloud, or auth changes.
 
+## Task 46A - Build / Completion Log Foundation
+
+- [x] Add a project detail Build log section for completion status, completion date, actual material, plan changes, and lessons learned.
+- [x] Persist build log fields through local JSON fallback and Supabase storage code.
+- [x] Add local migration `20260602161405_add_project_build_log.sql`.
+- [x] Keep the build log plain text and read/write only; no uploads, pricing, shopping, export, CAD, CNC, or AI behavior.
+- [ ] Apply the build-log migration to Supabase cloud before relying on hosted Supabase-backed build-log saves.
+
 ## Recommended Next Tasks
 
-1. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results if they are still outstanding.
-2. [ ] Check Plan History Comparison during hosted/local smoke on a project with at least two generated plans.
-3. [ ] Decide whether Vercel-level deployment protection or the Boardsmith `/access` gate is the intended hosted access model.
-4. [ ] Do not share the hosted URL until the hosted smoke checklist passes.
-5. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
-6. [ ] Polish print preview only if manual browser printing reveals issues.
-7. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
-8. [ ] Later SVG research note.
-9. [ ] Much later DXF/CAD/CNC research.
+1. [ ] Verify/apply the local build-log migration to Supabase cloud before hosted build-log use.
+2. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results if they are still outstanding.
+3. [ ] Check Plan History Comparison during hosted/local smoke on a project with at least two generated plans.
+4. [ ] Decide whether Vercel-level deployment protection or the Boardsmith `/access` gate is the intended hosted access model.
+5. [ ] Do not share the hosted URL until the hosted smoke checklist passes.
+6. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
+7. [ ] Polish print preview only if manual browser printing reveals issues.
+8. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
+9. [ ] Later SVG research note.
+10. [ ] Much later DXF/CAD/CNC research.
 
 ## Remaining Hardening
 

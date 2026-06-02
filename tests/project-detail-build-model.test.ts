@@ -43,6 +43,11 @@ const project: Project = {
   safety_review_required: true,
   safety_flags: ["Wall mounting review", "Heavy shelving review"],
   notes: "Try walnut stain and verify bracket screw length.",
+  build_completed: true,
+  build_completed_at: "2026-06-02",
+  build_actual_material: "Poplar board with water-based finish.",
+  build_plan_changes: "Used shorter screws and added a test finish offcut.",
+  build_lessons_learned: "Dry fit brackets before final sanding next time.",
 };
 
 const storedBuildModel = {
@@ -274,6 +279,27 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("Plan comparison");
     expect(markup).toContain("Comparison will be available after another generated plan version exists.");
+  });
+
+  it("renders a simple build log form and saved completion details", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Build log");
+    expect(markup).toContain("Record what actually happened during the real build.");
+    expect(markup).toContain("Project was completed");
+    expect(markup).toContain("Poplar board with water-based finish.");
+    expect(markup).toContain("Used shorter screws and added a test finish offcut.");
+    expect(markup).toContain("Dry fit brackets before final sanding next time.");
+    expect(markup).toContain("This log is not an inspection, certification, load rating, or professional approval.");
   });
 
   it("links generated plans to the browser print preview page", async () => {

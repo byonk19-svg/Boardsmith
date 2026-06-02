@@ -66,6 +66,11 @@ export const projectSchema = projectIntakeSchema.extend({
   safety_review_required: z.boolean(),
   safety_flags: z.array(z.string()),
   notes: z.string().max(5000).default(""),
+  build_completed: z.boolean().default(false),
+  build_completed_at: z.string().max(10).default(""),
+  build_actual_material: z.string().max(2000).default(""),
+  build_plan_changes: z.string().max(5000).default(""),
+  build_lessons_learned: z.string().max(5000).default(""),
 });
 
 export type ProjectType = (typeof projectTypes)[number];
@@ -76,6 +81,16 @@ export type ProjectIntake = z.infer<typeof projectIntakeSchema>;
 export type Project = z.infer<typeof projectSchema>;
 
 export const projectNotesSchema = z.string().max(5000);
+
+export const projectBuildLogSchema = z.object({
+  build_completed: z.boolean().default(false),
+  build_completed_at: z.string().trim().max(10).default(""),
+  build_actual_material: z.string().trim().max(2000).default(""),
+  build_plan_changes: z.string().trim().max(5000).default(""),
+  build_lessons_learned: z.string().trim().max(5000).default(""),
+});
+
+export type ProjectBuildLogInput = z.infer<typeof projectBuildLogSchema>;
 
 export function parseProjectFormData(formData: FormData): ProjectIntake {
   const getNumber = (name: string) => Number(formData.get(name));

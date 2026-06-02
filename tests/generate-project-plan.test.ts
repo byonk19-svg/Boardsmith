@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildProjectPlanPromptContext } from "@/lib/ai/generate-project-plan";
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import type { Project } from "@/lib/projects/types";
+import { emptyProjectBuildLog } from "./project-test-helpers";
 
 const shelfProject: Project = {
   id: "test-project",
@@ -22,6 +23,7 @@ const shelfProject: Project = {
   safety_review_required: true,
   safety_flags: ["Wall mounting review", "Heavy shelving review"],
   notes: "",
+  ...emptyProjectBuildLog,
 };
 
 describe("buildProjectPlanPromptContext", () => {

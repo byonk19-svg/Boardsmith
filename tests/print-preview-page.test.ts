@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
+import { emptyProjectBuildLog } from "./project-test-helpers";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) =>
@@ -43,6 +44,7 @@ const project: Project = {
   safety_review_required: true,
   safety_flags: ["Wall mounting review"],
   notes: "",
+  ...emptyProjectBuildLog,
 };
 
 const planRecord: GeneratedProjectPlanRecord = {

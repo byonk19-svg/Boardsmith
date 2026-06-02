@@ -3,7 +3,7 @@ import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { generatedProjectPlanRecordSchema, type GeneratedPlan, type GeneratedProjectPlanRecord, renderPlanMarkdown } from "@/lib/plans/plan-schema";
-import { projectNotesSchema, projectSchema, type Project, type ProjectIntake } from "@/lib/projects/types";
+import { projectBuildLogSchema, projectNotesSchema, projectSchema, type Project, type ProjectBuildLogInput, type ProjectIntake } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 
 type StoreShape = {
@@ -20,15 +20,27 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
-type ProjectInsert = Omit<Project, "notes"> & { notes?: string };
+type ProjectRow = Omit<Project, "build_completed_at"> & { build_completed_at: string | null };
+type ProjectInsert = Omit<
+  Project,
+  "notes" | "build_completed" | "build_completed_at" | "build_actual_material" | "build_plan_changes" | "build_lessons_learned"
+> & {
+  notes?: string;
+  build_completed?: boolean;
+  build_completed_at?: string | null;
+  build_actual_material?: string;
+  build_plan_changes?: string;
+  build_lessons_learned?: string;
+};
+type ProjectUpdate = Partial<Omit<Project, "build_completed_at"> & { build_completed_at: string | null }>;
 
 type Database = {
   public: {
     Tables: {
       projects: {
-        Row: Project;
+        Row: ProjectRow;
         Insert: ProjectInsert;
-        Update: Partial<Project>;
+        Update: ProjectUpdate;
         Relationships: [];
       };
       generated_project_plans: {
@@ -83,6 +95,11 @@ function normalizeProjectRow(row: unknown): Project {
     ...record,
     safety_flags: Array.isArray(record.safety_flags) ? record.safety_flags : [],
     notes: typeof record.notes === "string" ? record.notes : "",
+    build_completed: typeof record.build_completed === "boolean" ? record.build_completed : false,
+    build_completed_at: typeof record.build_completed_at === "string" ? record.build_completed_at : "",
+    build_actual_material: typeof record.build_actual_material === "string" ? record.build_actual_material : "",
+    build_plan_changes: typeof record.build_plan_changes === "string" ? record.build_plan_changes : "",
+    build_lessons_learned: typeof record.build_lessons_learned === "string" ? record.build_lessons_learned : "",
   });
 }
 
@@ -91,8 +108,13 @@ function normalizePlanRow(row: unknown): GeneratedProjectPlanRecord {
 }
 
 function projectInsertRow(project: Project): ProjectInsert {
-  const { notes, ...insertableProject } = project;
+  const { notes, build_completed, build_completed_at, build_actual_material, build_plan_changes, build_lessons_learned, ...insertableProject } = project;
   void notes;
+  void build_completed;
+  void build_completed_at;
+  void build_actual_material;
+  void build_plan_changes;
+  void build_lessons_learned;
   return insertableProject;
 }
 
@@ -213,6 +235,41 @@ export async function updateProjectNotes(projectId: string, notes: string): Prom
     if (!project) return null;
 
     project.notes = parsedNotes;
+    project.updated_at = now;
+    return project;
+  });
+}
+
+export async function updateProjectBuildLog(projectId: string, input: ProjectBuildLogInput): Promise<Project | null> {
+  const parsedBuildLog = projectBuildLogSchema.parse(input);
+  const now = new Date().toISOString();
+
+  if (isSupabasePersistenceConfigured()) {
+    const { data, error } = await getSupabase()
+      .from("projects")
+      .update({
+        build_completed: parsedBuildLog.build_completed,
+        build_completed_at: parsedBuildLog.build_completed_at.length > 0 ? parsedBuildLog.build_completed_at : null,
+        build_actual_material: parsedBuildLog.build_actual_material,
+        build_plan_changes: parsedBuildLog.build_plan_changes,
+        build_lessons_learned: parsedBuildLog.build_lessons_learned,
+      })
+      .eq("id", projectId)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return normalizeProjectRow(data);
+  }
+
+  return mutateLocalStore((store) => {
+    const project = store.projects.find((candidate) => candidate.id === projectId);
+    if (!project) return null;
+
+    project.build_completed = parsedBuildLog.build_completed;
+    project.build_completed_at = parsedBuildLog.build_completed_at;
+    project.build_actual_material = parsedBuildLog.build_actual_material;
+    project.build_plan_changes = parsedBuildLog.build_plan_changes;
+    project.build_lessons_learned = parsedBuildLog.build_lessons_learned;
     project.updated_at = now;
     return project;
   });

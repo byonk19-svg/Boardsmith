@@ -1,0 +1,35 @@
+import { revalidatePath } from "next/cache";
+import { NextResponse } from "next/server";
+import { projectBuildLogSchema } from "@/lib/projects/types";
+import { updateProjectBuildLog } from "@/lib/storage/project-store";
+
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }): Promise<Response> {
+  const { id } = await context.params;
+
+  try {
+    const formData = await request.formData();
+    const buildLog = projectBuildLogSchema.parse({
+      build_completed: formData.get("build_completed") === "on",
+      build_completed_at: formValue(formData, "build_completed_at"),
+      build_actual_material: formValue(formData, "build_actual_material"),
+      build_plan_changes: formValue(formData, "build_plan_changes"),
+      build_lessons_learned: formValue(formData, "build_lessons_learned"),
+    });
+    const project = await updateProjectBuildLog(id, buildLog);
+
+    if (!project) {
+      return NextResponse.redirect(new URL("/projects?error=Project%20not%20found", request.url), 303);
+    }
+
+    revalidatePath(`/projects/${id}`);
+    return NextResponse.redirect(new URL(`/projects/${id}?build_log=updated`, request.url), 303);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Project build log could not be saved.";
+    return NextResponse.redirect(new URL(`/projects/${id}?error=${encodeURIComponent(message)}`, request.url), 303);
+  }
+}
+
+function formValue(formData: FormData, name: string): string {
+  const value = formData.get(name);
+  return typeof value === "string" ? value : "";
+}

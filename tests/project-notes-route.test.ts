@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Project } from "@/lib/projects/types";
+import { emptyProjectBuildLog } from "./project-test-helpers";
 
 const updateProjectNotesMock = vi.fn<(projectId: string, notes: string) => Promise<Project | null>>();
 
@@ -30,6 +31,7 @@ const updatedProject: Project = {
   safety_review_required: false,
   safety_flags: [],
   notes: "Confirm screw length.",
+  ...emptyProjectBuildLog,
 };
 
 describe("project notes route", () => {

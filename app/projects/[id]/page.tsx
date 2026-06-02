@@ -24,7 +24,15 @@ export default async function ProjectDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; generated?: string; generation_error?: string; duplicated?: string; notes?: string; compare_plan?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    generated?: string;
+    generation_error?: string;
+    duplicated?: string;
+    notes?: string;
+    build_log?: string;
+    compare_plan?: string;
+  }>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const project = await getProject(id);
@@ -103,6 +111,9 @@ export default async function ProjectDetailPage({
         </p>
       ) : null}
       {query.notes === "updated" ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project notes saved.</p> : null}
+      {query.build_log === "updated" ? (
+        <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Build log saved.</p>
+      ) : null}
 
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <ProjectIntakeCard project={project} />
@@ -126,6 +137,8 @@ export default async function ProjectDetailPage({
       </section>
 
       <ProjectNotesCard project={project} />
+
+      <BuildLogCard project={project} />
 
       <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
 
@@ -277,6 +290,82 @@ function ProjectNotesCard({ project }: { project: Project }) {
           Save notes
         </button>
       </form>
+    </section>
+  );
+}
+
+function BuildLogCard({ project }: { project: Project }) {
+  return (
+    <section className="no-print rounded-lg border border-sawdust bg-white p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-ink">Build log</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/65">Record what actually happened during the real build.</p>
+        </div>
+        <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">
+          Build notes
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="rounded-md bg-shop p-4">
+          <p className="text-sm font-semibold text-ink">{project.build_completed ? "Project was completed" : "Project not marked complete"}</p>
+          {project.build_completed_at ? <p className="mt-2 text-sm leading-6 text-ink/65">Completed: {project.build_completed_at}</p> : null}
+          {project.build_actual_material ? <p className="mt-2 text-sm leading-6 text-ink/65">{project.build_actual_material}</p> : null}
+          {project.build_plan_changes ? <p className="mt-2 text-sm leading-6 text-ink/65">{project.build_plan_changes}</p> : null}
+          {project.build_lessons_learned ? <p className="mt-2 text-sm leading-6 text-ink/65">{project.build_lessons_learned}</p> : null}
+          <p className="mt-3 text-xs leading-5 text-ink/55">
+            This log is not an inspection, certification, load rating, or professional approval.
+          </p>
+        </div>
+
+        <form action={`/projects/${project.id}/build-log`} method="post" className="space-y-3">
+          <label className="flex items-center gap-2 text-sm font-medium text-ink">
+            <input type="checkbox" name="build_completed" defaultChecked={project.build_completed} className="h-4 w-4" />
+            Project was completed
+          </label>
+          <label className="block text-sm font-medium text-ink">
+            Completion date
+            <input type="date" name="build_completed_at" defaultValue={project.build_completed_at} className="input mt-1" />
+          </label>
+          <label className="block text-sm font-medium text-ink">
+            Material actually used
+            <textarea
+              name="build_actual_material"
+              rows={3}
+              maxLength={2000}
+              className="input mt-1"
+              placeholder="Actual board, plywood, hardware, finish, or substitution notes..."
+              defaultValue={project.build_actual_material}
+            />
+          </label>
+          <label className="block text-sm font-medium text-ink">
+            What changed from the generated plan
+            <textarea
+              name="build_plan_changes"
+              rows={4}
+              maxLength={5000}
+              className="input mt-1"
+              placeholder="Dimension adjustments, hardware changes, skipped steps, added steps, or fit issues..."
+              defaultValue={project.build_plan_changes}
+            />
+          </label>
+          <label className="block text-sm font-medium text-ink">
+            Lessons learned / next time notes
+            <textarea
+              name="build_lessons_learned"
+              rows={4}
+              maxLength={5000}
+              className="input mt-1"
+              placeholder="What you would measure, cut, sand, finish, or assemble differently next time..."
+              defaultValue={project.build_lessons_learned}
+            />
+          </label>
+          <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+            Save build log
+          </button>
+        </form>
+      </div>
     </section>
   );
 }

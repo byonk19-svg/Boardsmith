@@ -35,4 +35,18 @@ describe("Supabase migrations", () => {
     expect(sql).not.toContain("anon");
     expect(sql).not.toContain("authenticated");
   });
+
+  it("adds project build log columns without changing private MVP grants", async () => {
+    const sql = await readFile("supabase/migrations/20260602161405_add_project_build_log.sql", "utf8");
+
+    expect(sql).toContain("alter table public.projects");
+    expect(sql).toContain("add column if not exists build_completed boolean not null default false");
+    expect(sql).toContain("add column if not exists build_completed_at date");
+    expect(sql).toContain("add column if not exists build_actual_material text not null default ''");
+    expect(sql).toContain("add column if not exists build_plan_changes text not null default ''");
+    expect(sql).toContain("add column if not exists build_lessons_learned text not null default ''");
+    expect(sql).not.toContain("grant select");
+    expect(sql).not.toContain("anon");
+    expect(sql).not.toContain("authenticated");
+  });
 });

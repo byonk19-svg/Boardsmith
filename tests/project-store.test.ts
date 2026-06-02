@@ -140,4 +140,33 @@ describe("project store lifecycle", () => {
     expect(plans).toHaveLength(1);
     expect(plans[0]?.is_latest).toBe(true);
   });
+
+  it("saves a plain-text build log without affecting generated plans", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const project = await store.createProject({
+      ...intake,
+      title: `Build log shelf ${crypto.randomUUID()}`,
+    });
+    await store.saveGeneratedPlan({ projectId: project.id, modelName: "test-model", plan });
+
+    const updated = await store.updateProjectBuildLog(project.id, {
+      build_completed: true,
+      build_completed_at: "2026-06-02",
+      build_actual_material: "Red oak board with clear satin finish.",
+      build_plan_changes: "Used a slightly deeper shelf and different brackets.",
+      build_lessons_learned: "Pre-drill bracket holes before final sanding next time.",
+    });
+    const reloaded = await store.getProject(project.id);
+    const plans = await store.listGeneratedPlans(project.id);
+
+    expect(updated?.build_completed).toBe(true);
+    expect(updated?.build_completed_at).toBe("2026-06-02");
+    expect(updated?.build_actual_material).toBe("Red oak board with clear satin finish.");
+    expect(updated?.build_plan_changes).toBe("Used a slightly deeper shelf and different brackets.");
+    expect(updated?.build_lessons_learned).toBe("Pre-drill bracket holes before final sanding next time.");
+    expect(updated?.updated_at).not.toBe(project.updated_at);
+    expect(reloaded?.build_plan_changes).toBe(updated?.build_plan_changes);
+    expect(plans).toHaveLength(1);
+    expect(plans[0]?.is_latest).toBe(true);
+  });
 });
