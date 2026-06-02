@@ -254,15 +254,16 @@
 - [x] Inspect hosted deployment dry-run docs, deployment readiness docs, `.env.example`, `package.json`, `proxy.ts`, access gate files, Supabase storage, and OpenAI generation usage.
 - [x] Confirm required hosted env vars are documented without printing secret values.
 - [x] Confirm no client component references `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, or `BOARDSMITH_ACCESS_PASSWORD`.
-- [x] Confirm the checkout is not currently linked to Vercel and local Vercel auth must be refreshed before hosted env checks can run.
+- [x] Confirm the checkout is linked to Vercel and required env var names are present for Preview and Production.
+- [x] Confirm Vercel-level protection currently returns `401 Unauthorized` before Boardsmith app routes render.
 - [x] Document hosted deployment status in `docs/HOSTED_DEPLOYMENT_STATUS.md`.
 - [x] Confirm no deployment was performed.
 
 ## Recommended Next Tasks
 
-1. [ ] Log in and link/import the repo in Vercel or the chosen hosting provider.
-2. [ ] Configure required hosted env vars, including `BOARDSMITH_ACCESS_PASSWORD`, without exposing secrets.
-3. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` against the actual hosted URL before sharing it.
+1. [ ] Decide whether Vercel-level deployment protection or the Boardsmith `/access` gate is the intended hosted access model.
+2. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` against the actual hosted URL from an authorized session or after enabling app-level access to `/access`.
+3. [ ] Do not share the hosted URL until the hosted smoke checklist passes.
 4. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
 5. [ ] Polish print preview only if manual browser printing reveals issues.
 6. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.

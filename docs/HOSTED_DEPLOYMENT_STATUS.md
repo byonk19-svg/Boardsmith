@@ -4,9 +4,9 @@ Date: June 2, 2026
 
 ## Summary
 
-Boardsmith is locally ready for a private hosted deployment dry run, but the actual hosted provider configuration is not ready to verify from this checkout yet.
+Boardsmith is linked to Vercel and the required hosted environment variable names are present for Preview and Production. Hosted route smoke is still blocked before the app by Vercel-level access protection, so the Boardsmith app-level `/access` gate has not been verified on the hosted deployment yet.
 
-No deployment was performed.
+No deployment was performed by Codex during this pass.
 
 ## Hosting Provider Status
 
@@ -15,27 +15,28 @@ Intended provider: Vercel or a similar Next.js host.
 Current local provider status:
 
 - Vercel CLI is installed.
-- This checkout is not linked to a Vercel project.
-- `.vercel/project.json` is not present.
-- `vercel env ls` cannot inspect hosted environment variables until the project is linked.
-- `vercel whoami` reports the local token is invalid, so Vercel login must be refreshed before provider checks can continue.
+- This checkout is linked to a Vercel project named `boardsmith`.
+- `.vercel/project.json` is present locally and ignored by git.
+- `vercel whoami` succeeds.
+- `vercel env ls` succeeds.
+- Existing Vercel production deployments are present.
 
-Because the project is not linked and authenticated locally, hosted env vars and hosted smoke routes were not verified in this pass.
+Hosted smoke routes currently return `401 Unauthorized` from Vercel before Boardsmith route handling. The response sets a Vercel SSO nonce cookie, which indicates provider-level protection is active before the app-level private MVP gate.
 
 ## Env Var Checklist Status
 
 The required hosted env vars are documented in `.env.example`, `docs/DEPLOYMENT_READINESS.md`, and `docs/HOSTED_DEPLOYMENT_DRY_RUN.md`.
 
-Hosted provider values were not inspected and no secret values were printed.
+Hosted provider values were not printed. Vercel reports the required variable names are present and encrypted for Preview and Production.
 
 | Variable | Hosted readiness status |
 | --- | --- |
-| `OPENAI_API_KEY` | Required; not verified in hosted provider |
-| `OPENAI_MODEL` | Required/recommended; not verified in hosted provider |
-| `NEXT_PUBLIC_SUPABASE_URL` | Required; not verified in hosted provider |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Required as documented browser-safe config; not verified in hosted provider |
-| `SUPABASE_SERVICE_ROLE_KEY` | Required server-only secret; not verified in hosted provider |
-| `BOARDSMITH_ACCESS_PASSWORD` | Required before sharing any hosted URL; not verified in hosted provider |
+| `OPENAI_API_KEY` | Present in Vercel; encrypted; Preview and Production |
+| `OPENAI_MODEL` | Present in Vercel; encrypted; Preview and Production |
+| `NEXT_PUBLIC_SUPABASE_URL` | Present in Vercel; encrypted; Preview and Production |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Present in Vercel; encrypted; Preview and Production |
+| `SUPABASE_SERVICE_ROLE_KEY` | Present in Vercel; encrypted; Preview and Production |
+| `BOARDSMITH_ACCESS_PASSWORD` | Present in Vercel; encrypted; Preview and Production |
 | `BOARDSMITH_DATA_FILE` | Local-only optional override; do not rely on it for hosted persistence |
 
 ## Build Status
@@ -60,7 +61,7 @@ Code inspection confirms:
 - The raw password is not stored in the cookie.
 - Static framework assets and access routes remain public so the access page can render.
 
-Hosted access-gate behavior was not verified because no hosted deployment or linked provider configuration was available.
+Hosted access-gate behavior was not verified because Vercel-level protection returns `401 Unauthorized` before Boardsmith routes render.
 
 ## Server-Only Secret Status
 
@@ -74,9 +75,16 @@ Keep `SUPABASE_SERVICE_ROLE_KEY` and `OPENAI_API_KEY` as server-only hosted envi
 
 ## Hosted Smoke Status
 
-Hosted smoke was not run because deployment/provider configuration was not available from this checkout.
+Hosted smoke could not complete because Vercel-level protection blocked the app before Boardsmith routes rendered.
 
-Not run:
+Attempted unauthenticated hosted checks:
+
+- root route returned `401 Unauthorized` from Vercel
+- `/projects` returned `401 Unauthorized` from Vercel
+- wrong-password POST to `/access/verify` returned `401 Unauthorized` from Vercel
+- Generate Plan POST returned `401 Unauthorized` from Vercel
+
+Not run because provider-level protection blocked the app:
 
 - root route on hosted URL
 - `/projects` redirect to `/access`
@@ -94,28 +102,18 @@ Not run:
 
 Before hosted verification can continue:
 
-1. Log in to Vercel or the chosen hosting provider.
-2. Link/import the GitHub repo into the hosting provider.
-3. Configure the project as a Next.js app using `npm run build`.
-4. Set the required hosted env vars without exposing secret values.
-5. Confirm `BOARDSMITH_ACCESS_PASSWORD` is set before sharing any hosted URL.
-6. Confirm Supabase cloud migrations remain applied.
-7. Run the checklist in `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` against the hosted URL.
+1. Decide whether Vercel-level deployment protection is intentional for this private MVP.
+2. If Vercel protection is intentional, perform hosted smoke from an authenticated Vercel browser session or configure an approved bypass for smoke testing.
+3. If the Boardsmith `BOARDSMITH_ACCESS_PASSWORD` gate should be the primary protection, adjust Vercel protection so the app can render `/access`, then rerun the hosted smoke.
+4. Confirm Supabase cloud migrations remain applied.
+5. Run the checklist in `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` against the hosted URL.
 
-For Vercel CLI specifically, the next local commands are expected to be:
-
-```bash
-vercel login
-vercel link
-vercel env ls
-```
-
-Do not run `vercel deploy` or create a public deployment until the environment configuration is verified.
+Do not share the hosted URL until either provider-level protection is intentionally accepted or the Boardsmith app-level access gate is verified on the hosted deployment.
 
 ## Recommendation
 
-Status: needs provider setup.
+Status: provider linked and env names present, but hosted app smoke is blocked by Vercel-level protection.
 
-Keep Boardsmith local-only for now. It is not ready to share privately from a hosted URL until the hosting provider is linked, required env vars are configured, `BOARDSMITH_ACCESS_PASSWORD` is verified on the hosted deployment, and the hosted smoke checklist passes.
+Do not share Boardsmith as a hosted MVP yet. It is not ready to share privately until the intended access model is confirmed and the hosted smoke checklist passes. If Vercel-level protection is the intended access model, smoke it from an authorized session. If Boardsmith's private MVP gate is the intended access model, allow the hosted app to reach `/access` and verify `BOARDSMITH_ACCESS_PASSWORD` there.
 
 Browser print remains the supported MVP output path. Do not start app-generated PDF/export work before hosted private access is verified.
