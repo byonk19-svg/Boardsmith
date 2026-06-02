@@ -259,10 +259,19 @@
 - [x] Document hosted deployment status in `docs/HOSTED_DEPLOYMENT_STATUS.md`.
 - [x] Confirm no deployment was performed.
 
+## Task 44C - Authorized Hosted Smoke Results
+
+- [x] Attempt to reach the hosted deployment from the available browser automation session.
+- [x] Confirm the available browser session reaches Vercel login before Boardsmith loads.
+- [x] Document that manual smoke results from a user-authenticated Vercel browser session have not been supplied yet.
+- [ ] User-authenticated Vercel browser session loads the hosted app past Vercel protection.
+- [ ] Boardsmith `/access` gate is verified on the hosted app.
+- [ ] Hosted project creation, notes, duplicate, generation, latest plan, and print preview are verified.
+
 ## Recommended Next Tasks
 
 1. [ ] Decide whether Vercel-level deployment protection or the Boardsmith `/access` gate is the intended hosted access model.
-2. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` against the actual hosted URL from an authorized session or after enabling app-level access to `/access`.
+2. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results.
 3. [ ] Do not share the hosted URL until the hosted smoke checklist passes.
 4. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
 5. [ ] Polish print preview only if manual browser printing reveals issues.
