@@ -208,14 +208,39 @@
 - [x] Keep local development directly usable when the password env var is unset.
 - [x] Document that this is a temporary private MVP gate, not full authentication.
 
+## Task 39A - Duplicate Project Action
+
+- [x] Add a project detail action to duplicate an existing project.
+- [x] Copy project intake/details into a new draft project.
+- [x] Exclude generated plans and plan history from the duplicate.
+- [x] Keep duplicate projects usable for fresh generation.
+
+## Task 40A-B - Project Notes
+
+- [x] Add simple project notes.
+- [x] Add and apply the `projects.notes` Supabase migration.
+- [x] Verify cloud-backed note save/reload behavior.
+- [x] Confirm duplicate projects reset notes to empty.
+
+## Task 41A - Combined Private MVP Smoke QA
+
+- [x] Smoke test no-password local behavior.
+- [x] Smoke test the private MVP access gate with a temporary password.
+- [x] Smoke test cloud-backed notes save/reload and duplicate reset behavior.
+- [x] Smoke test duplicate project behavior without copying generated plans/history.
+- [x] Smoke test blocked generation feedback without persisting invalid output.
+- [x] Smoke test successful cloud-backed generation, review surfaces, and browser print preview.
+- [x] Document results in `docs/PRIVATE_MVP_SMOKE_QA.md`.
+
 ## Recommended Next Tasks
 
-1. [ ] Verify the private MVP access gate in the actual hosting environment before sharing a URL.
-2. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
-3. [ ] Polish print preview only if manual browser printing reveals issues.
-4. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
-5. [ ] Later SVG research note.
-6. [ ] Much later DXF/CAD/CNC research.
+1. [ ] Run a hosting/deployment readiness pass before sharing a public URL.
+2. [ ] Verify `BOARDSMITH_ACCESS_PASSWORD` and server-only Supabase/OpenAI env vars in the hosting environment.
+3. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
+4. [ ] Polish print preview only if manual browser printing reveals issues.
+5. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
+6. [ ] Later SVG research note.
+7. [ ] Much later DXF/CAD/CNC research.
 
 ## Remaining Hardening
 
