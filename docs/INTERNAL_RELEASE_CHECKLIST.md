@@ -11,7 +11,7 @@ This checklist is for internal readiness before any real export-generation work.
 - [ ] Run `npm install`.
 - [ ] Copy `.env.example` to `.env.local`.
 - [ ] Decide whether the smoke will use local JSON fallback or Supabase-backed persistence.
-- [ ] If using a public or shared hosted URL, set `BOARDSMITH_ACCESS_PASSWORD`.
+- [ ] If using a public or shared hosted URL, set `BOARDSMITH_ACCESS_PASSWORD` before sharing the URL.
 - [ ] Start the app with `npm run dev`.
 - [ ] Keep `.env.local` and service keys out of git.
 
@@ -214,7 +214,7 @@ git diff --check
 
 ## Recommended Next Task Order
 
-1. Verify the private MVP access gate in any hosted environment before sharing a URL.
+1. Run the deployment readiness checklist in [docs/DEPLOYMENT_READINESS.md](DEPLOYMENT_READINESS.md) before sharing a hosted URL.
 2. Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
 3. If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
 4. Or polish print preview if manual use reveals issues.

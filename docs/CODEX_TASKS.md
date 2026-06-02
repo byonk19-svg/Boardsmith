@@ -232,9 +232,17 @@
 - [x] Smoke test successful cloud-backed generation, review surfaces, and browser print preview.
 - [x] Document results in `docs/PRIVATE_MVP_SMOKE_QA.md`.
 
+## Task 42A - Hosting And Deployment Readiness
+
+- [x] Document required hosted private MVP environment variables.
+- [x] Document access-gate behavior, protected routes/actions, server-only secret boundaries, hosting smoke checks, rollback notes, and non-goals.
+- [x] Confirm no client component references `SUPABASE_SERVICE_ROLE_KEY` or `OPENAI_API_KEY`.
+- [x] Keep browser print as the supported MVP output path.
+- [x] Confirm no deployment was performed.
+
 ## Recommended Next Tasks
 
-1. [ ] Run a hosting/deployment readiness pass before sharing a public URL.
+1. [ ] Run the deployment readiness checklist on the actual hosted URL before sharing it.
 2. [ ] Verify `BOARDSMITH_ACCESS_PASSWORD` and server-only Supabase/OpenAI env vars in the hosting environment.
 3. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
 4. [ ] Polish print preview only if manual browser printing reveals issues.

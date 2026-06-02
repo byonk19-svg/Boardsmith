@@ -40,7 +40,7 @@ npm run dev
 
 Add `OPENAI_API_KEY` to `.env.local` before using plan generation. If Supabase variables are not configured, the private MVP stores data in `.data/boardsmith.json`. Use `BOARDSMITH_DATA_FILE` only when you need to point the local fallback at a different JSON file, such as isolated test data.
 
-If Boardsmith is deployed to a public URL with real OpenAI or Supabase keys, set `BOARDSMITH_ACCESS_PASSWORD`. When this variable is present, app routes require the private MVP password before use. The gate stores a derived HTTP-only cookie value, not the raw password. This is temporary private-MVP protection, not full authentication or multi-user accounts.
+If Boardsmith is deployed to a public URL with real OpenAI or Supabase keys, set `BOARDSMITH_ACCESS_PASSWORD` before sharing the URL. When this variable is present, app routes require the private MVP password before use. The gate stores a derived HTTP-only cookie value, not the raw password. This is temporary private-MVP protection, not full authentication or multi-user accounts.
 
 Required or commonly used environment variables:
 
@@ -67,7 +67,7 @@ To verify Supabase persistence, create `.env.local` from `.env.example`, set the
 
 Generated plans are saved only after Zod schema validation. When a deterministic build model is available, the app also checks generated output for project type, bounded dimensions, required safety warnings, cut-list material/piece alignment, and overconfident safety claims. Valid saved plan versions include `build_model_json` so older plan history can remain reproducible. Older rows without stored build-model JSON are still readable; the detail page derives a compatibility model and shows that in the review copy.
 
-For the current readiness snapshot and next task order, see [docs/MVP_READINESS.md](docs/MVP_READINESS.md) and [docs/INTERNAL_RELEASE_CHECKLIST.md](docs/INTERNAL_RELEASE_CHECKLIST.md).
+For the current readiness snapshot and next task order, see [docs/MVP_READINESS.md](docs/MVP_READINESS.md), [docs/INTERNAL_RELEASE_CHECKLIST.md](docs/INTERNAL_RELEASE_CHECKLIST.md), and [docs/DEPLOYMENT_READINESS.md](docs/DEPLOYMENT_READINESS.md).
 
 ## Verification
 

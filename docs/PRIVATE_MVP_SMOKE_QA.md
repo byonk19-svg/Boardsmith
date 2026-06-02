@@ -147,4 +147,6 @@ If Boardsmith will be deployed or shared, the next task should be a hosting/depl
 4. Confirm public routes, protected routes, POST routes, and print preview behave correctly on the hosted URL.
 5. Confirm no secrets or runtime data are exposed.
 
+Use [docs/DEPLOYMENT_READINESS.md](DEPLOYMENT_READINESS.md) for the hosted private MVP checklist.
+
 Do not start PDF/export work until the private deployment surface is verified.

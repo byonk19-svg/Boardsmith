@@ -161,7 +161,7 @@ The Plan Review panel can surface deterministic issues and warnings, but it cann
 
 ## Recommended Next Task Order
 
-1. Verify the private MVP access gate in any hosted environment before sharing a URL.
+1. Run the deployment readiness checklist in [docs/DEPLOYMENT_READINESS.md](DEPLOYMENT_READINESS.md) before sharing a hosted URL.
 2. Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
 3. If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
 4. Or polish print preview if manual use reveals issues.
@@ -175,6 +175,8 @@ Use [docs/INTERNAL_RELEASE_CHECKLIST.md](INTERNAL_RELEASE_CHECKLIST.md) before s
 Use [docs/EXPORT_ARCHITECTURE.md](EXPORT_ARCHITECTURE.md) for the export approach decision. It keeps browser print preview, future PDF work, SVG research, and later DXF/CAD/CNC research separated.
 
 Use [docs/PDF_EXPORT_SPIKE_PLAN.md](PDF_EXPORT_SPIKE_PLAN.md) before adding app-generated PDF. It recommends browser print for the current MVP and a separate approval gate before any server-side PDF renderer dependency.
+
+Use [docs/DEPLOYMENT_READINESS.md](DEPLOYMENT_READINESS.md) before hosting or sharing Boardsmith. It captures required production env vars, access-gate smoke checks, server-only secret boundaries, and rollback notes.
 
 ## Verification Checklist
 
