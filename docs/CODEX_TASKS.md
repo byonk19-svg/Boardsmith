@@ -240,9 +240,17 @@
 - [x] Keep browser print as the supported MVP output path.
 - [x] Confirm no deployment was performed.
 
+## Task 43A - Hosted Deployment Dry Run
+
+- [x] Add a hosted deployment dry-run checklist.
+- [x] Capture likely Vercel or similar Next.js hosting assumptions.
+- [x] Capture required hosted env vars, optional local-only env vars, secret handling, pre-deploy checks, post-deploy smoke, rollback, and non-goals.
+- [x] Inspect deployment-sensitive files: `package.json`, `.env.example`, `proxy.ts`, access gate files, Supabase storage, and OpenAI generation usage.
+- [x] Confirm no deployment was performed.
+
 ## Recommended Next Tasks
 
-1. [ ] Run the deployment readiness checklist on the actual hosted URL before sharing it.
+1. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` against the actual hosting provider configuration before sharing a URL.
 2. [ ] Verify `BOARDSMITH_ACCESS_PASSWORD` and server-only Supabase/OpenAI env vars in the hosting environment.
 3. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
 4. [ ] Polish print preview only if manual browser printing reveals issues.
