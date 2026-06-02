@@ -268,16 +268,25 @@
 - [ ] Boardsmith `/access` gate is verified on the hosted app.
 - [ ] Hosted project creation, notes, duplicate, generation, latest plan, and print preview are verified.
 
+## Task 45A - Plan History Comparison
+
+- [x] Add a read-only plan comparison panel for generated plan history.
+- [x] Compare the latest plan against a selected older plan version when history exists.
+- [x] Summarize practical summary, material, cut-list, step, Plan Review, and Export Readiness differences.
+- [x] Show calm empty-state copy when only one generated plan exists.
+- [x] Keep comparison read-only with no generation, export, schema, package, cloud, or auth changes.
+
 ## Recommended Next Tasks
 
-1. [ ] Decide whether Vercel-level deployment protection or the Boardsmith `/access` gate is the intended hosted access model.
-2. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results.
-3. [ ] Do not share the hosted URL until the hosted smoke checklist passes.
-4. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
-5. [ ] Polish print preview only if manual browser printing reveals issues.
-6. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
-7. [ ] Later SVG research note.
-8. [ ] Much later DXF/CAD/CNC research.
+1. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results if they are still outstanding.
+2. [ ] Check Plan History Comparison during hosted/local smoke on a project with at least two generated plans.
+3. [ ] Decide whether Vercel-level deployment protection or the Boardsmith `/access` gate is the intended hosted access model.
+4. [ ] Do not share the hosted URL until the hosted smoke checklist passes.
+5. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
+6. [ ] Polish print preview only if manual browser printing reveals issues.
+7. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
+8. [ ] Later SVG research note.
+9. [ ] Much later DXF/CAD/CNC research.
 
 ## Remaining Hardening
 

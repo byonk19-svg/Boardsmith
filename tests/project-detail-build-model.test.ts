@@ -210,6 +210,72 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
   });
 
+  it("renders a read-only comparison between the latest plan and an older history version", async () => {
+    const olderPlanRecord: GeneratedProjectPlanRecord = {
+      ...planRecord,
+      id: "plan_older_bbm",
+      created_at: new Date(0).toISOString(),
+      is_latest: false,
+      build_model_json: null,
+      plan_json: {
+        ...planRecord.plan_json,
+        project_summary: "An older wall shelf plan with fewer finishing details and manual mounting review before use.",
+        materials: [{ name: "3/4 inch pine board", quantity: "1 board", notes: "Inspect before cutting." }],
+        cut_list: [
+          {
+            ...planRecord.plan_json.cut_list[0],
+            notes: "Older cut note.",
+          },
+        ],
+        assembly_steps: [
+          {
+            ...planRecord.plan_json.assembly_steps[0],
+            title: "Review mounting location",
+          },
+        ],
+        safety_notes: ["Plans are review aids.", "Wall mounting requires fastener, anchor, and stud review."],
+        needs_review_flags: ["Wall mounting requires fastener, anchor, and stud review."],
+      },
+    };
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord, olderPlanRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Plan comparison");
+    expect(markup).toContain("Comparing latest plan with Version 1.");
+    expect(markup).toContain("Changed");
+    expect(markup).toContain("Project summary changed.");
+    expect(markup).toContain("Material changes");
+    expect(markup).toContain("Added Water-based paint");
+    expect(markup).toContain("Cut list changes");
+    expect(markup).toContain("Changed Shelf board");
+    expect(markup).toContain("Review differences");
+    expect(markup).toContain("Plan Review changed");
+  });
+
+  it("shows a calm comparison empty state when only one generated plan exists", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Plan comparison");
+    expect(markup).toContain("Comparison will be available after another generated plan version exists.");
+  });
+
   it("links generated plans to the browser print preview page", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([planRecord]);

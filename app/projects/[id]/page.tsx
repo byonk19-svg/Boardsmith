@@ -7,6 +7,7 @@ import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema"
 import { cutListStatusLabel, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
 import { type ExportReadinessStatus, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
 import { type MaterialReviewItem, type MaterialReviewSummary } from "@/lib/plans/material-summary";
+import { createPlanHistoryComparison, type PlanComparisonChange, type PlanHistoryComparison } from "@/lib/plans/plan-comparison";
 import { type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import { createPrintablePlanManifest, type PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
@@ -23,7 +24,7 @@ export default async function ProjectDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; generated?: string; generation_error?: string; duplicated?: string; notes?: string }>;
+  searchParams: Promise<{ error?: string; generated?: string; generation_error?: string; duplicated?: string; notes?: string; compare_plan?: string }>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const project = await getProject(id);
@@ -43,6 +44,20 @@ export default async function ProjectDetailPage({
       buildModel,
       buildModelSource,
     });
+  const olderPlanReviews = latestPlanReview ? planReviews.filter((entry) => entry.plan.id !== latestPlanReview.plan.id) : [];
+  const comparedPlanReview =
+    olderPlanReviews.length > 0 ? (olderPlanReviews.find((entry) => entry.plan.id === query.compare_plan) ?? olderPlanReviews[0]) : null;
+  const planComparison =
+    latestPlanReview && comparedPlanReview
+      ? createPlanHistoryComparison({
+          latestPlan: latestPlanReview.plan.plan_json,
+          comparedPlan: comparedPlanReview.plan.plan_json,
+          latestPlanReview: latestPlanReview.manifest.planReview,
+          comparedPlanReview: comparedPlanReview.manifest.planReview,
+          latestExportReadiness: latestPlanReview.manifest.exportReadiness,
+          comparedExportReadiness: comparedPlanReview.manifest.exportReadiness,
+        })
+      : null;
   const printPreviewHref = `/projects/${project.id}/print` as Route;
 
   return (
@@ -120,6 +135,10 @@ export default async function ProjectDetailPage({
         <>
           {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
           {latestPlanReview.manifest.exportReadiness ? <ExportReadinessPanel summary={latestPlanReview.manifest.exportReadiness} /> : null}
+          <PlanComparisonPanel
+            comparison={planComparison}
+            comparedVersionLabel={comparedPlanReview ? planVersionLabel(planReviews, comparedPlanReview.plan) : null}
+          />
           <PlanView manifest={latestPlanReview.manifest} />
         </>
       ) : (
@@ -139,6 +158,14 @@ export default async function ProjectDetailPage({
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  {!entry.plan.is_latest && latestPlanReview ? (
+                    <Link
+                      href={`/projects/${project.id}?compare_plan=${entry.plan.id}` as Route}
+                      className="w-fit rounded-md bg-shop px-2.5 py-1 text-xs font-semibold text-ink/70 hover:underline"
+                    >
+                      Compare
+                    </Link>
+                  ) : null}
                   {entry.manifest.planReview ? (
                     <span className={`w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${reviewBadgeClass(entry.manifest.planReview.status)}`}>
                       Review: {reviewStatusLabel(entry.manifest.planReview.status)}
@@ -170,6 +197,11 @@ function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
       buildModelSource,
     }),
   };
+}
+
+function planVersionLabel(planReviews: ReturnType<typeof buildPlanReview>[], plan: GeneratedProjectPlanRecord): string {
+  const index = planReviews.findIndex((entry) => entry.plan.id === plan.id);
+  return index >= 0 ? `Version ${(planReviews.length - index).toString()}` : "older version";
 }
 
 function TemplateGuidancePanel({ projectTypeLabel, assumptions, cautions }: { projectTypeLabel: string; assumptions: string[]; cautions: string[] }) {
@@ -363,6 +395,83 @@ function ExportReadinessPanel({ summary }: { summary: ExportReadinessSummary }) 
       </p>
     </section>
   );
+}
+
+function PlanComparisonPanel({
+  comparison,
+  comparedVersionLabel,
+}: {
+  comparison: PlanHistoryComparison | null;
+  comparedVersionLabel: string | null;
+}) {
+  return (
+    <section className="no-print rounded-lg border border-sawdust bg-white p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-ink">Plan comparison</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/65">
+            {comparison && comparedVersionLabel
+              ? `Comparing latest plan with ${comparedVersionLabel}.`
+              : "Comparison will be available after another generated plan version exists."}
+          </p>
+        </div>
+        <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">
+          Read-only
+        </span>
+      </div>
+
+      {comparison ? (
+        <>
+          <p className="mt-4 text-sm leading-6 text-ink/65">
+            Boardsmith summarizes practical changes only. Review both versions before building; neither plan is professionally validated or fabrication-approved.
+          </p>
+          <div className="mt-4 grid gap-5 lg:grid-cols-2">
+            <ComparisonGroup title="Summary changes" messages={comparison.summaryChanges} />
+            <ComparisonChangeGroup title="Material changes" changes={comparison.materialChanges} />
+            <ComparisonChangeGroup title="Cut list changes" changes={comparison.cutListChanges} />
+            <ComparisonChangeGroup title="Step changes" changes={comparison.stepChanges} />
+            <ComparisonChangeGroup title="Review differences" changes={comparison.reviewChanges} />
+          </div>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
+function ComparisonGroup({ title, messages }: { title: string; messages: string[] }) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-ink/55">{title}</h3>
+      <List items={messages} />
+    </div>
+  );
+}
+
+function ComparisonChangeGroup({ title, changes }: { title: string; changes: PlanComparisonChange[] }) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-ink/55">{title}</h3>
+      {changes.length > 0 ? (
+        <ul className="mt-2 space-y-2">
+          {changes.slice(0, 5).map((change) => (
+            <li key={`${change.kind}:${change.label}:${change.detail}`} className="text-sm leading-6 text-ink/75">
+              <span className="font-semibold text-ink">{comparisonKindLabel(change.kind)} {change.label}</span>
+              <span className="text-ink/65"> - {change.detail}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-sm leading-6 text-ink/65">No practical changes found in this section.</p>
+      )}
+    </div>
+  );
+}
+
+function comparisonKindLabel(kind: PlanComparisonChange["kind"]): string {
+  if (kind === "added") return "Added";
+  if (kind === "removed") return "Removed";
+  if (kind === "review_difference") return "Review difference";
+  return "Changed";
 }
 
 function ReviewMetric({ label, value }: { label: string; value: string }) {
