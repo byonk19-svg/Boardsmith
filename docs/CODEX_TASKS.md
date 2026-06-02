@@ -248,15 +248,26 @@
 - [x] Inspect deployment-sensitive files: `package.json`, `.env.example`, `proxy.ts`, access gate files, Supabase storage, and OpenAI generation usage.
 - [x] Confirm no deployment was performed.
 
+## Task 44A - Hosted Provider Readiness Check
+
+- [x] Confirm local working tree was clean before the check.
+- [x] Inspect hosted deployment dry-run docs, deployment readiness docs, `.env.example`, `package.json`, `proxy.ts`, access gate files, Supabase storage, and OpenAI generation usage.
+- [x] Confirm required hosted env vars are documented without printing secret values.
+- [x] Confirm no client component references `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, or `BOARDSMITH_ACCESS_PASSWORD`.
+- [x] Confirm the checkout is not currently linked to Vercel and local Vercel auth must be refreshed before hosted env checks can run.
+- [x] Document hosted deployment status in `docs/HOSTED_DEPLOYMENT_STATUS.md`.
+- [x] Confirm no deployment was performed.
+
 ## Recommended Next Tasks
 
-1. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` against the actual hosting provider configuration before sharing a URL.
-2. [ ] Verify `BOARDSMITH_ACCESS_PASSWORD` and server-only Supabase/OpenAI env vars in the hosting environment.
-3. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
-4. [ ] Polish print preview only if manual browser printing reveals issues.
-5. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
-6. [ ] Later SVG research note.
-7. [ ] Much later DXF/CAD/CNC research.
+1. [ ] Log in and link/import the repo in Vercel or the chosen hosting provider.
+2. [ ] Configure required hosted env vars, including `BOARDSMITH_ACCESS_PASSWORD`, without exposing secrets.
+3. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` against the actual hosted URL before sharing it.
+4. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
+5. [ ] Polish print preview only if manual browser printing reveals issues.
+6. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
+7. [ ] Later SVG research note.
+8. [ ] Much later DXF/CAD/CNC research.
 
 ## Remaining Hardening
 
