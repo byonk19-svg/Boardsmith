@@ -23,7 +23,7 @@ export default async function ProjectDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; generated?: string; generation_error?: string; duplicated?: string }>;
+  searchParams: Promise<{ error?: string; generated?: string; generation_error?: string; duplicated?: string; notes?: string }>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const project = await getProject(id);
@@ -87,6 +87,7 @@ export default async function ProjectDetailPage({
           Duplicated project intake. Generated plans and history were not copied.
         </p>
       ) : null}
+      {query.notes === "updated" ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project notes saved.</p> : null}
 
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <ProjectIntakeCard project={project} />
@@ -108,6 +109,8 @@ export default async function ProjectDetailPage({
           </p>
         </div>
       </section>
+
+      <ProjectNotesCard project={project} />
 
       <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
 
@@ -214,6 +217,34 @@ function ProjectIntakeCard({ project }: { project: Project }) {
         <Row label="Intended use" value={project.intended_use} />
         {project.style_notes ? <Row label="Style notes" value={project.style_notes} /> : null}
       </dl>
+    </section>
+  );
+}
+
+function ProjectNotesCard({ project }: { project: Project }) {
+  return (
+    <section className="no-print rounded-lg border border-sawdust bg-white p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-ink">Project notes</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/65">
+            Notes stay with this project and are not used for AI generation or printable plans.
+          </p>
+        </div>
+      </div>
+      <form action={`/projects/${project.id}/notes`} method="post" className="mt-4 space-y-3">
+        <textarea
+          name="notes"
+          rows={5}
+          maxLength={5000}
+          className="input"
+          placeholder="Material substitutions, measurement reminders, hardware thoughts, finish choices, or lessons learned..."
+          defaultValue={project.notes}
+        />
+        <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+          Save notes
+        </button>
+      </form>
     </section>
   );
 }

@@ -23,6 +23,7 @@ const project: Project = {
   intended_use: "Decorative wall shelf for light objects",
   safety_review_required: true,
   safety_flags: ["Wall mounting review"],
+  notes: "",
 };
 
 const shelfPlan: GeneratedPlan = {

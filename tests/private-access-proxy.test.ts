@@ -29,6 +29,16 @@ describe("private MVP proxy", () => {
     expect(response.headers.get("location")).toBe("https://boardsmith.example/access?returnTo=%2Fprojects%2Fnew");
   });
 
+  it("protects project note update routes when the access password is configured", async () => {
+    process.env.BOARDSMITH_ACCESS_PASSWORD = "private-password";
+    const { proxy } = await import("@/proxy");
+
+    const response = await proxy(new NextRequest("https://boardsmith.example/projects/project-id/notes"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://boardsmith.example/access?returnTo=%2Fprojects%2Fproject-id%2Fnotes");
+  });
+
   it("allows protected routes with a valid access cookie", async () => {
     process.env.BOARDSMITH_ACCESS_PASSWORD = "private-password";
     const cookieValue = await createAccessCookieValue("private-password");

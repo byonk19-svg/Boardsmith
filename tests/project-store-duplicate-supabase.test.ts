@@ -27,6 +27,7 @@ const sourceProject: Project = {
   intended_use: "Light bathroom shelf",
   safety_review_required: true,
   safety_flags: ["Wall mounting review"],
+  notes: "Use stainless screws for bathroom humidity.",
 };
 
 describe("Supabase project duplication", () => {
@@ -74,7 +75,36 @@ describe("Supabase project duplication", () => {
         safety_flags: sourceProject.safety_flags,
       }),
     );
+    expect(insertedProject).not.toHaveProperty("notes");
     expect(duplicate.id).not.toBe(sourceProject.id);
     expect(duplicate.status).toBe("draft");
+    expect(duplicate.notes).toBe("");
+  });
+
+  it("updates project notes on the existing project row", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
+
+    const updatedProject = {
+      ...sourceProject,
+      updated_at: new Date(2).toISOString(),
+      notes: "Confirm bracket screw length.",
+    };
+    const single = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
+    const eq = vi.fn(() => ({ select: () => ({ single }) }));
+    const update = vi.fn(() => ({ eq }));
+    const from = vi.fn(() => ({ update }));
+
+    vi.doMock("@supabase/supabase-js", () => ({
+      createClient: vi.fn(() => ({ from })),
+    }));
+
+    const store = await import("@/lib/storage/project-store");
+    const saved = await store.updateProjectNotes(sourceProject.id, "Confirm bracket screw length.");
+
+    expect(from).toHaveBeenCalledWith("projects");
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ notes: "Confirm bracket screw length." }));
+    expect(eq).toHaveBeenCalledWith("id", sourceProject.id);
+    expect(saved?.notes).toBe("Confirm bracket screw length.");
   });
 });

@@ -25,4 +25,14 @@ describe("Supabase migrations", () => {
     expect(sql).toContain("revoke all on function public.save_generated_plan_atomic");
     expect(sql).toContain("grant execute on function public.save_generated_plan_atomic");
   });
+
+  it("adds a project notes column without changing private MVP grants", async () => {
+    const sql = await readFile("supabase/migrations/20260602004404_add_project_notes.sql", "utf8");
+
+    expect(sql).toContain("alter table public.projects");
+    expect(sql).toContain("add column if not exists notes text not null default ''");
+    expect(sql).not.toContain("grant select");
+    expect(sql).not.toContain("anon");
+    expect(sql).not.toContain("authenticated");
+  });
 });

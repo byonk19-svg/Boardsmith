@@ -29,6 +29,7 @@ const duplicatedProject: Project = {
   intended_use: "Light bathroom shelf",
   safety_review_required: true,
   safety_flags: ["Wall mounting review"],
+  notes: "",
 };
 
 describe("duplicate project route", () => {

@@ -21,6 +21,7 @@ const shelfProject: Project = {
   intended_use: "Books on a wall shelf",
   safety_review_required: true,
   safety_flags: ["Wall mounting review", "Heavy shelving review"],
+  notes: "",
 };
 
 describe("buildProjectPlanPromptContext", () => {

@@ -94,6 +94,7 @@ describe("project store lifecycle", () => {
       ...intake,
       title: `Original shelf ${crypto.randomUUID()}`,
     });
+    await store.updateProjectNotes(original.id, "Use black screws if the pine board looks too plain.");
     await store.saveGeneratedPlan({ projectId: original.id, modelName: "test-model", plan });
 
     const duplicate = await store.duplicateProject(original.id);
@@ -117,6 +118,26 @@ describe("project store lifecycle", () => {
     expect(duplicate.intended_use).toBe(original.intended_use);
     expect(duplicate.safety_review_required).toBe(original.safety_review_required);
     expect(duplicate.safety_flags).toEqual(original.safety_flags);
+    expect(duplicate.notes).toBe("");
     expect(duplicatePlans).toEqual([]);
+  });
+
+  it("saves and updates plain-text project notes without affecting generated plans", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const project = await store.createProject({
+      ...intake,
+      title: `Notes shelf ${crypto.randomUUID()}`,
+    });
+    await store.saveGeneratedPlan({ projectId: project.id, modelName: "test-model", plan });
+
+    const updated = await store.updateProjectNotes(project.id, "Try oak instead of pine.\nConfirm screw length before mounting.");
+    const reloaded = await store.getProject(project.id);
+    const plans = await store.listGeneratedPlans(project.id);
+
+    expect(updated?.notes).toBe("Try oak instead of pine.\nConfirm screw length before mounting.");
+    expect(updated?.updated_at).not.toBe(project.updated_at);
+    expect(reloaded?.notes).toBe(updated?.notes);
+    expect(plans).toHaveLength(1);
+    expect(plans[0]?.is_latest).toBe(true);
   });
 });

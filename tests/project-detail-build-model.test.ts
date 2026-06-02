@@ -42,6 +42,7 @@ const project: Project = {
   intended_use: "Decorative wall shelf for light objects",
   safety_review_required: true,
   safety_flags: ["Wall mounting review", "Heavy shelving review"],
+  notes: "Try walnut stain and verify bracket screw length.",
 };
 
 const storedBuildModel = {
@@ -242,6 +243,26 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('action="/projects/project_saved_bbm/duplicate"');
     expect(markup).toContain('method="post"');
     expect(markup).toContain("Copies intake only. Generated plans and history are not copied.");
+  });
+
+  it("renders editable project notes without adding them to the printable plan sheet", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Project notes");
+    expect(markup).toContain('action="/projects/project_saved_bbm/notes"');
+    expect(markup).toContain('name="notes"');
+    expect(markup).toContain("Try walnut stain and verify bracket screw length.");
+    expect(markup).toContain("Notes stay with this project and are not used for AI generation or printable plans.");
+    expect(markup).not.toContain("Printable Plan Sheet</p><h2 class=\"mt-2 text-2xl font-semibold tracking-tight text-ink\">Generated Plan</h2><p>Try walnut stain");
   });
 
   it("falls back to a derived project structure for older generated plans without saved build models", async () => {

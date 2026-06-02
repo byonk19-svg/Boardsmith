@@ -22,6 +22,7 @@ const project: Project = {
   intended_use: "Toddler book ledge",
   safety_review_required: true,
   safety_flags: ["Wall mounting review", "Child or baby use"],
+  notes: "",
 };
 
 vi.mock("next/cache", () => ({

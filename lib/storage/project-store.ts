@@ -3,7 +3,7 @@ import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { generatedProjectPlanRecordSchema, type GeneratedPlan, type GeneratedProjectPlanRecord, renderPlanMarkdown } from "@/lib/plans/plan-schema";
-import { projectSchema, type Project, type ProjectIntake } from "@/lib/projects/types";
+import { projectNotesSchema, projectSchema, type Project, type ProjectIntake } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 
 type StoreShape = {
@@ -20,13 +20,14 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+type ProjectInsert = Omit<Project, "notes"> & { notes?: string };
 
 type Database = {
   public: {
     Tables: {
       projects: {
         Row: Project;
-        Insert: Project;
+        Insert: ProjectInsert;
         Update: Partial<Project>;
         Relationships: [];
       };
@@ -81,11 +82,18 @@ function normalizeProjectRow(row: unknown): Project {
   return projectSchema.parse({
     ...record,
     safety_flags: Array.isArray(record.safety_flags) ? record.safety_flags : [],
+    notes: typeof record.notes === "string" ? record.notes : "",
   });
 }
 
 function normalizePlanRow(row: unknown): GeneratedProjectPlanRecord {
   return generatedProjectPlanRecordSchema.parse(row);
+}
+
+function projectInsertRow(project: Project): ProjectInsert {
+  const { notes, ...insertableProject } = project;
+  void notes;
+  return insertableProject;
 }
 
 async function readLocalStore(): Promise<StoreShape> {
@@ -160,7 +168,7 @@ export async function createProject(input: ProjectIntake): Promise<Project> {
   });
 
   if (isSupabasePersistenceConfigured()) {
-    const { data, error } = await getSupabase().from("projects").insert(project).select("*").single();
+    const { data, error } = await getSupabase().from("projects").insert(projectInsertRow(project)).select("*").single();
     if (error) throw new Error(error.message);
     return normalizeProjectRow(data);
   }
@@ -187,6 +195,26 @@ export async function duplicateProject(projectId: string): Promise<Project | nul
     tools_available: sourceProject.tools_available,
     style_notes: sourceProject.style_notes,
     intended_use: sourceProject.intended_use,
+  });
+}
+
+export async function updateProjectNotes(projectId: string, notes: string): Promise<Project | null> {
+  const parsedNotes = projectNotesSchema.parse(notes);
+  const now = new Date().toISOString();
+
+  if (isSupabasePersistenceConfigured()) {
+    const { data, error } = await getSupabase().from("projects").update({ notes: parsedNotes }).eq("id", projectId).select("*").single();
+    if (error) throw new Error(error.message);
+    return normalizeProjectRow(data);
+  }
+
+  return mutateLocalStore((store) => {
+    const project = store.projects.find((candidate) => candidate.id === projectId);
+    if (!project) return null;
+
+    project.notes = parsedNotes;
+    project.updated_at = now;
+    return project;
   });
 }
 

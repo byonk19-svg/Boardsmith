@@ -65,6 +65,7 @@ export const projectSchema = projectIntakeSchema.extend({
   status: z.enum(projectStatuses),
   safety_review_required: z.boolean(),
   safety_flags: z.array(z.string()),
+  notes: z.string().max(5000).default(""),
 });
 
 export type ProjectType = (typeof projectTypes)[number];
@@ -73,6 +74,8 @@ export type ProjectStatus = (typeof projectStatuses)[number];
 export type ToolOption = (typeof toolOptions)[number];
 export type ProjectIntake = z.infer<typeof projectIntakeSchema>;
 export type Project = z.infer<typeof projectSchema>;
+
+export const projectNotesSchema = z.string().max(5000);
 
 export function parseProjectFormData(formData: FormData): ProjectIntake {
   const getNumber = (name: string) => Number(formData.get(name));
