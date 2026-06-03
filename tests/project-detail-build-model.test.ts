@@ -232,12 +232,20 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("Printable Plan Sheet");
+    expect(markup).toContain("Latest generated plan");
+    expect(markup).toContain("Plan at a glance");
+    expect(markup).toContain("Overview / Summary");
     expect(markup).toContain("Planning aid");
     expect(markup).toContain("Review before building");
-    expect(markup).toContain("Materials and Cut List");
+    expect(markup).toContain("Materials to verify");
+    expect(markup).toContain("Cut list to verify");
     expect(markup).toContain("Verify all dimensions against your actual space, lumber, and hardware.");
-    expect(markup).toContain("Build Steps and Operations");
-    expect(markup).toContain("Assumptions and Open Questions");
+    expect(markup).toContain("Build steps");
+    expect(markup).toContain("Modeled operations");
+    expect(markup).toContain("Safety notes");
+    expect(markup).toContain("Assumptions");
+    expect(markup).toContain("Open questions");
+    expect(markup).toContain("Finishing notes");
     expect(markup).toContain("Use your own judgment before cutting or assembling.");
     expect(markup).toContain("Verify dimensions, materials, hardware, tool setup, and site conditions before cutting or building.");
     expect(markup).toContain("No export, CAD, CNC, PDF, SVG, or DXF output is generated here.");

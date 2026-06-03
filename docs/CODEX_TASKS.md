@@ -384,6 +384,14 @@
 - [x] Confirm the current commit has a READY production Vercel deployment and that unauthenticated terminal access to a starter route remains blocked by Vercel protection before Boardsmith renders.
 - [x] Keep the pass limited to QA/docs with no code fixes, schema, storage, Supabase cloud, OpenAI prompt/schema/model, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
 
+## Task 54A - Generated Plan Readability Polish
+
+- [x] Split the latest generated plan sheet into clearer review groups: overview, plan at a glance, materials, cut list, build steps, modeled operations, safety notes, assumptions, open questions, finishing notes, beginner tips, and future export notes.
+- [x] Preserve Plan Review, Export Readiness, Material Summary, Cut List Review, Printable Plan Sheet, Plan History, Plan Comparison, Project Record, and browser print preview behavior.
+- [x] Keep the copy clear that generated plans are planning aids and not engineering reviews, certifications, load ratings, wall-safety guarantees, child-safety certifications, or fabrication-ready output.
+- [x] Add focused rendering coverage for the new generated-plan group labels.
+- [x] Keep the pass limited to UI/copy/readability and docs with no schema, storage, Supabase cloud, OpenAI, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Decide whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both are the intended ongoing private hosted access model.

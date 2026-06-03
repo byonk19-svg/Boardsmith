@@ -892,6 +892,8 @@ function PlanView({
 }) {
   const generatedPlan = manifest.generatedPlan;
   if (!generatedPlan || !manifest.cutList) return null;
+  const modeledPieces = manifest.cutList.items.filter((item) => item.sourceLabel === "Modeled piece");
+  const generatedCuts = manifest.cutList.items.filter((item) => item.sourceLabel === "Generated cut");
 
   return (
     <article className="rounded-lg border border-sawdust bg-white p-6 shadow-soft print:border-0 print:p-0 print:shadow-none">
@@ -899,8 +901,8 @@ function PlanView({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Printable Plan Sheet</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Generated Plan</h2>
-            {manifest.sections.projectSummary ? <p className="mt-3 leading-7 text-ink/75">{manifest.sections.projectSummary}</p> : null}
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Latest generated plan</h2>
+            <p className="mt-3 leading-7 text-ink/75">A readable planning sheet assembled from the saved generated plan and deterministic review data.</p>
             <p className="mt-3 text-sm font-medium text-caution">Review before building. Use your own judgment before cutting or assembling.</p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -909,6 +911,7 @@ function PlanView({
           </div>
         </div>
 
+        <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-ink/55">Plan at a glance</h3>
         <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-4">
           <PlanFact label="Time" value={generatedPlan.estimatedTime} />
           <PlanFact label="Difficulty" value={generatedPlan.estimatedDifficulty} />
@@ -918,43 +921,48 @@ function PlanView({
       </header>
 
       <div className="divide-y divide-sawdust">
-        <PlanSheetSection title="Materials and Cut List">
-          <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
-            <div>
-              <MaterialReviewSummaryView summary={manifest.materials} />
-              <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
-              <List
-                items={manifest.cutList.items
-                  .filter((item) => item.sourceLabel === "Modeled piece")
-                  .map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`)}
-              />
-            </div>
+        <PlanSheetSection title="Overview / Summary">
+          {manifest.sections.projectSummary ? (
+            <p className="text-sm leading-7 text-ink/75">{manifest.sections.projectSummary}</p>
+          ) : (
+            <p className="text-sm leading-7 text-ink/65">No project summary was saved with this generated plan.</p>
+          )}
+          <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-4 print:border-sawdust print:bg-white">
+            <p className="text-sm font-semibold text-ink">Planning aid only</p>
+            <p className="mt-2 text-sm leading-6 text-ink/70">
+              Boardsmith cannot verify engineering, load capacity, wall safety, child safety, material condition, or tool setup.
+            </p>
+          </div>
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Materials to verify">
+          <MaterialReviewSummaryView summary={manifest.materials} />
+          <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
+          <List items={modeledPieces.map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`)} />
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Cut list to verify">
+          <div className="mb-5">
+            <CutListReviewSummaryView summary={manifest.cutList} />
+          </div>
+          {generatedCuts.length > 0 ? (
             <div className="overflow-x-auto">
-              <div className="mb-5">
-                <CutListReviewSummaryView summary={manifest.cutList} />
-              </div>
               <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-sawdust text-xs uppercase tracking-wide text-ink/55">
                     <th className="py-2 pr-3">Part</th>
                     <th className="py-2 pr-3">Qty</th>
-                    <th className="py-2 pr-3">Length</th>
-                    <th className="py-2 pr-3">Width</th>
-                    <th className="py-2 pr-3">Thickness</th>
+                    <th className="py-2 pr-3">Dimensions</th>
                     <th className="py-2 pr-3">Material</th>
-                    <th className="py-2">Notes</th>
+                    <th className="py-2">Review notes</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-sawdust">
-                  {manifest.cutList.items
-                    .filter((item) => item.sourceLabel === "Generated cut")
-                    .map((item) => (
+                  {generatedCuts.map((item) => (
                     <tr key={item.id}>
                       <td className="py-3 pr-3 font-semibold text-ink">{item.label}</td>
                       <td className="py-3 pr-3 text-ink/70">{item.quantityLabel}</td>
-                      <td className="py-3 pr-3 text-ink/70" colSpan={3}>
-                        {item.dimensionsLabel}
-                      </td>
+                      <td className="py-3 pr-3 text-ink/70">{item.dimensionsLabel}</td>
                       <td className="py-3 pr-3 text-ink/70">{item.materialLabel}</td>
                       <td className="py-3 text-ink/70">{item.messages.join(" ")}</td>
                     </tr>
@@ -962,33 +970,33 @@ function PlanView({
                 </tbody>
               </table>
             </div>
-          </div>
+          ) : (
+            <p className="text-sm leading-6 text-ink/65">No generated cut rows were saved. Review the modeled pieces above before cutting.</p>
+          )}
         </PlanSheetSection>
 
-        <PlanSheetSection title="Build Steps and Operations">
-          <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-            <ol className="space-y-4">
-              {manifest.sections.buildSteps.map((step) => (
-                <li key={step.step_number} className="border-l-2 border-moss pl-4">
-                  <p className="font-semibold text-ink">
-                    {step.step_number}. {step.title}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-ink/70">{step.instructions}</p>
-                  <p className="mt-2 text-xs font-medium text-ink/55">Tools: {step.tools_used.join(", ")}</p>
-                  {step.safety_note ? <p className="mt-2 text-sm font-medium text-caution">{step.safety_note}</p> : null}
-                </li>
-              ))}
-            </ol>
-            <div>
-              <h4 className="text-sm font-semibold text-ink">Modeled operations</h4>
-              <List items={manifest.sections.modeledOperations.map((operation) => `${operation.sequenceNumber.toString()}. ${operation.title}: ${operation.description}`)} />
-              <h4 className="mt-5 text-sm font-semibold text-ink">Tools</h4>
-              <List items={manifest.sections.tools} />
-            </div>
-          </div>
+        <PlanSheetSection title="Build steps">
+          <ol className="space-y-4">
+            {manifest.sections.buildSteps.map((step) => (
+              <li key={step.step_number} className="border-l-2 border-moss pl-4">
+                <p className="font-semibold text-ink">
+                  {step.step_number}. {step.title}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-ink/70">{step.instructions}</p>
+                <p className="mt-2 text-xs font-medium text-ink/55">Tools: {step.tools_used.join(", ")}</p>
+                {step.safety_note ? <p className="mt-2 text-sm font-medium text-caution">{step.safety_note}</p> : null}
+              </li>
+            ))}
+          </ol>
         </PlanSheetSection>
 
-        <PlanSheetSection title="Safety Notes">
+        <PlanSheetSection title="Modeled operations">
+          <List items={manifest.sections.modeledOperations.map((operation) => `${operation.sequenceNumber.toString()}. ${operation.title}: ${operation.description}`)} />
+          <h4 className="mt-5 text-sm font-semibold text-ink">Tools</h4>
+          <List items={manifest.sections.tools} />
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Safety notes">
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 print:border-sawdust print:bg-white">
             <p className="text-sm font-semibold text-ink">Review before building</p>
             <p className="mt-2 text-sm leading-6 text-ink/70">
@@ -1007,38 +1015,28 @@ function PlanView({
           ) : null}
         </PlanSheetSection>
 
-        <PlanSheetSection title="Assumptions and Open Questions">
-          <div className="grid gap-5 lg:grid-cols-2">
-            <div>
-              <h4 className="text-sm font-semibold text-ink">Assumptions</h4>
-              <List items={manifest.sections.assumptions} />
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-ink">Open questions</h4>
-              {manifest.sections.unresolvedQuestions.length > 0 ? (
-                <List items={manifest.sections.unresolvedQuestions} />
-              ) : (
-                <p className="mt-2 text-sm leading-6 text-ink/65">No unresolved questions listed. Review the full plan before building.</p>
-              )}
-            </div>
-          </div>
+        <PlanSheetSection title="Assumptions">
+          <List items={manifest.sections.assumptions} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Finishing and Future Export Readiness">
-          <div className="grid gap-5 lg:grid-cols-3">
-            <div>
-              <h4 className="text-sm font-semibold text-ink">Finishing</h4>
-              <List items={manifest.sections.finishingSteps} />
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-ink">Beginner tips</h4>
-              <List items={manifest.sections.beginnerTips} />
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-ink">Future export notes</h4>
-              <List items={manifest.futureExportNotes} />
-            </div>
-          </div>
+        <PlanSheetSection title="Open questions">
+          {manifest.sections.unresolvedQuestions.length > 0 ? (
+            <List items={manifest.sections.unresolvedQuestions} />
+          ) : (
+            <p className="text-sm leading-6 text-ink/65">No unresolved questions listed. Review the full plan before building.</p>
+          )}
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Finishing notes">
+          <List items={manifest.sections.finishingSteps} />
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Beginner tips">
+          <List items={manifest.sections.beginnerTips} />
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Future export notes">
+          <List items={manifest.futureExportNotes} />
         </PlanSheetSection>
       </div>
     </article>
