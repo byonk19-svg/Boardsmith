@@ -263,10 +263,10 @@
 
 - [x] Attempt to reach the hosted deployment from the available browser automation session.
 - [x] Confirm the available browser session reaches Vercel login before Boardsmith loads.
-- [x] Document that manual smoke results from a user-authenticated Vercel browser session have not been supplied yet.
-- [ ] User-authenticated Vercel browser session loads the hosted app past Vercel protection.
-- [ ] Boardsmith `/access` gate is verified on the hosted app.
-- [ ] Hosted project creation, notes, duplicate, generation, latest plan, and print preview are verified.
+- [x] Initially document that manual smoke results from a user-authenticated Vercel browser session had not been supplied yet.
+- [x] User-authenticated Vercel browser session loads the hosted app past Vercel protection.
+- [x] Boardsmith `/access` gate is verified on the hosted app.
+- [x] Hosted project creation, notes, duplicate, generation, latest plan, and print preview are verified.
 
 ## Task 45A - Plan History Comparison
 
@@ -303,7 +303,7 @@
 
 - [x] Add `docs/PRIVATE_MVP_READINESS.md` as a concise current-state checkpoint.
 - [x] Summarize verified private MVP capabilities, including persistence, generation, review surfaces, duplicate, notes, build log, access gate, and browser print preview.
-- [x] Document hosted readiness gap: Vercel/env-name readiness exists, but authorized hosted browser smoke has not passed.
+- [x] Document hosted readiness gap at the time: Vercel/env-name readiness existed, but authorized hosted browser smoke had not passed yet.
 - [x] Capture local and hosted smoke checklists.
 - [x] Restate non-goals around PDF/SVG/DXF/CAD/CNC/export, public sharing, safety certification, shopping, pricing, vendor, and inventory scope.
 
@@ -331,17 +331,24 @@
 - [x] Keep raw validation/Zod details out of URLs and user-facing copy.
 - [x] Add focused form-route tests for normal dimensions, decimal thickness, friendly invalid-intake copy, draft preservation, and successful project creation.
 
+## Task 50C - Hosted MVP Smoke Pass
+
+- [x] Record user-supplied authorized Vercel browser smoke results in `docs/HOSTED_DEPLOYMENT_STATUS.md`.
+- [x] Confirm hosted Boardsmith `/access` rendered, wrong password was rejected, and correct `BOARDSMITH_ACCESS_PASSWORD` granted access.
+- [x] Confirm hosted dashboard, project list, New Project, project creation, notes, build log, generation, latest plan, review surfaces, print preview, duplicate project, and project-list indicators passed smoke.
+- [x] Update `docs/PRIVATE_MVP_READINESS.md` to reflect that authorized hosted browser smoke has passed after the project-intake validation fix.
+- [x] Keep the update docs-only with no hosted URL, secrets, screenshots, deployment, app behavior, migrations, packages, cloud schema changes, OpenAI changes, export/CAD work, auth-provider work, public sharing, or shopping/pricing/vendor scope.
+
 ## Recommended Next Tasks
 
-1. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results if they are still outstanding.
-2. [ ] Check Plan History Comparison and Build Log during hosted/local smoke on a project with at least two generated plans.
-3. [ ] Decide whether Vercel-level deployment protection or the Boardsmith `/access` gate is the intended hosted access model.
-4. [ ] Do not share the hosted URL until the hosted smoke checklist passes.
-5. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
-6. [ ] Polish print preview only if manual browser printing reveals issues.
-7. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
-8. [ ] Later SVG research note.
-9. [ ] Much later DXF/CAD/CNC research.
+1. [ ] Decide whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both are the intended ongoing private hosted access model.
+2. [ ] Check Plan History Comparison during hosted/local smoke on a project with at least two generated plans.
+3. [ ] Rerun the hosted smoke checklist after any deployment, env-var change, migration, or access-gate change.
+4. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
+5. [ ] Polish print preview only if manual browser printing reveals issues.
+6. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
+7. [ ] Later SVG research note.
+8. [ ] Much later DXF/CAD/CNC research.
 
 ## Remaining Hardening
 

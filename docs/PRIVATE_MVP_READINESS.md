@@ -1,16 +1,17 @@
 # Boardsmith Private MVP Readiness
 
-Date: June 2, 2026
+Date: June 3, 2026
 
 ## Current Status
 
-Boardsmith is a private MVP woodworking planning app. It is ready for continued private testing and local/cloud smoke checks, but it is not ready for public sharing or production multi-user use.
+Boardsmith is a private MVP woodworking planning app. It is ready for continued private testing and narrow private hosted use behind the chosen access layers, but it is not ready for public sharing or production multi-user use.
 
-The current hosted posture is partially ready: Vercel is linked and required hosted environment variable names are present, but authorized hosted browser smoke has not passed yet. Do not share the hosted URL until the intended access layers are verified from a user-authorized Vercel browser session.
+The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, and user-supplied authorized hosted browser smoke passed after the project-intake validation fix. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
 
 ## What Works Now
 
 - Project creation from `/projects/new`.
+- Hosted project intake accepts normal woodworking values like `12`, `8`, `4`, and material thickness `0.75`.
 - Supabase-backed project, generated-plan, notes, duplicate-project, and build-log persistence.
 - Local JSON fallback when Supabase env vars are absent.
 - OpenAI generated-plan flow when `OPENAI_API_KEY` is present.
@@ -31,13 +32,12 @@ The current hosted posture is partially ready: Vercel is linked and required hos
 - Build log fields for completion status, completion date, actual material, plan changes, and lessons learned.
 - Optional private access gate through `BOARDSMITH_ACCESS_PASSWORD`.
 - Vercel project link and hosted env var name readiness.
+- User-supplied authorized hosted smoke for access gate, project creation, notes, build log, generation, review surfaces, duplicate project, project list indicators, and browser print preview.
 
 ## What Is Not Verified Yet
 
-- Hosted app access from a user-authorized Vercel browser session.
-- Hosted Boardsmith `/access` gate behavior behind the intended Vercel protection model.
-- Hosted end-to-end smoke for project creation, notes, duplicate, build log, generation, latest plan render, and print preview.
-- Whether Vercel-level deployment protection or Boardsmith's `/access` gate is the intended primary hosted access layer.
+- Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
+- Hosted behavior after any future deployment, env-var change, migration, or access-gate change until the hosted smoke checklist is rerun.
 
 ## Non-Goals And Guardrails
 
@@ -118,4 +118,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Finish the authorized hosted browser smoke before sharing the hosted MVP. After that passes, continue with small trust-building polish only; do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, or auth-provider work without an explicit task.
+Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config or deployment change. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, or auth-provider work without an explicit task.

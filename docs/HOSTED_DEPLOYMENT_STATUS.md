@@ -1,10 +1,10 @@
 # Hosted Deployment Status
 
-Date: June 2, 2026
+Date: June 3, 2026
 
 ## Summary
 
-Boardsmith is linked to Vercel and the required hosted environment variable names are present for Preview and Production. Hosted route smoke is still blocked before the app by Vercel-level access protection, so the Boardsmith app-level `/access` gate has not been verified on the hosted deployment yet.
+Boardsmith is linked to Vercel, the required hosted environment variable names are present for Preview and Production, and a user-supplied manual hosted smoke passed from an authorized Vercel browser session after the project-intake validation fix.
 
 No deployment was performed by Codex during this pass.
 
@@ -21,7 +21,7 @@ Current local provider status:
 - `vercel env ls` succeeds.
 - Existing Vercel production deployments are present.
 
-Hosted smoke routes currently return `401 Unauthorized` from Vercel before Boardsmith route handling. The response sets a Vercel SSO nonce cookie, which indicates provider-level protection is active before the app-level private MVP gate.
+Unauthenticated terminal checks previously returned `401 Unauthorized` from Vercel before Boardsmith route handling. That remains expected while Vercel-level deployment protection is enabled. Manual smoke from an authorized Vercel browser session can reach the Boardsmith app.
 
 ## Env Var Checklist Status
 
@@ -61,7 +61,7 @@ Code inspection confirms:
 - The raw password is not stored in the cookie.
 - Static framework assets and access routes remain public so the access page can render.
 
-Hosted access-gate behavior was not verified because Vercel-level protection returns `401 Unauthorized` before Boardsmith routes render.
+Hosted access-gate behavior was verified manually from an authorized Vercel browser session. Boardsmith `/access` rendered, a wrong password was rejected, and the correct `BOARDSMITH_ACCESS_PASSWORD` granted app access.
 
 ## Server-Only Secret Status
 
@@ -75,7 +75,7 @@ Keep `SUPABASE_SERVICE_ROLE_KEY` and `OPENAI_API_KEY` as server-only hosted envi
 
 ## Hosted Smoke Status
 
-Hosted smoke could not complete because Vercel-level protection blocked the app before Boardsmith routes rendered.
+Unauthenticated terminal smoke could not complete because Vercel-level protection blocked the app before Boardsmith routes rendered.
 
 Attempted unauthenticated hosted checks:
 
@@ -84,57 +84,47 @@ Attempted unauthenticated hosted checks:
 - wrong-password POST to `/access/verify` returned `401 Unauthorized` from Vercel
 - Generate Plan POST returned `401 Unauthorized` from Vercel
 
-Not run because provider-level protection blocked the app:
-
-- root route on hosted URL
-- `/projects` redirect to `/access`
-- wrong password rejection
-- correct password access
-- project creation
-- notes save/reload
-- duplicate project
-- generated plan save
-- latest plan render
-- print preview render
-- protected POST route checks
+Authorized browser checks are recorded separately below because Vercel-level protection prevents unauthenticated terminal smoke from reaching Boardsmith routes.
 
 ## Authorized Hosted Smoke Status
 
-Task 44C attempted to verify whether an authorized browser session could reach the hosted app. The available browser automation session was not authenticated with Vercel and landed on the Vercel login page before Boardsmith loaded.
+Task 50C records the user-supplied manual hosted smoke result from an authorized Vercel browser session.
 
-Manual smoke results from a user-authenticated Vercel browser session have not been supplied yet.
+Passed manual checks:
 
-Pending manual checks:
+- Hosted deployment loaded from an authorized Vercel browser session.
+- Boardsmith `/access` rendered.
+- Wrong Boardsmith password was rejected.
+- Correct `BOARDSMITH_ACCESS_PASSWORD` granted access.
+- Dashboard loaded.
+- Projects list loaded.
+- New Project loaded.
+- Project intake accepted normal values like `12`, `8`, `4`, and `0.75` after the validation fix.
+- Hosted smoke project creation worked.
+- Notes saved and persisted after refresh.
+- Build log saved and persisted after refresh.
+- One validated smoke plan generated successfully.
+- Latest plan rendered.
+- Plan Review, Export Readiness, Material Summary, Cut List Review, Printable Plan Sheet, Plan History, Project Record, and print preview rendered.
+- Duplicate project worked and started as a draft without generated plans, notes, or build-log content.
+- Project list indicators and next actions looked normal.
 
-- site loads after Vercel authorization
-- `/projects` redirects to the Boardsmith `/access` page
-- wrong Boardsmith password is rejected
-- correct `BOARDSMITH_ACCESS_PASSWORD` grants app access
-- root, project list, new project, and settings routes load after access
-- hosted smoke project can be created
-- notes save and persist after reload
-- duplicate project excludes notes, generated plans, and history
-- one clearly labeled smoke plan can be generated and rendered
-- Plan Review, Export Readiness, Material Summary, and Cut List Review render
-- browser print preview renders
-- blocked-generation feedback remains calm and does not expose raw Zod/schema/internal errors if a blocked generation occurs
+No hosted URL, screenshots, raw passwords, or secret values were recorded.
 
 ## Missing Setup
 
-Before hosted verification can continue:
+Remaining decisions before broader private sharing:
 
-1. Decide whether Vercel-level deployment protection is intentional for this private MVP.
-2. If Vercel protection is intentional, perform hosted smoke from an authenticated Vercel browser session and record the results.
-3. If the Boardsmith `BOARDSMITH_ACCESS_PASSWORD` gate should be the primary protection, adjust Vercel protection so the app can render `/access`, then rerun the hosted smoke.
-4. Confirm Supabase cloud migrations remain applied.
-5. Run the checklist in `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` against the hosted URL.
+1. Decide whether Vercel-level deployment protection plus Boardsmith `/access` is the intended ongoing private access model.
+2. Keep Supabase cloud migrations applied before relying on hosted writes.
+3. Rerun the hosted smoke checklist after any deployment, env-var change, migration, or access-gate change.
 
-Do not share the hosted URL until either provider-level protection is intentionally accepted or the Boardsmith app-level access gate is verified on the hosted deployment.
+Do not share the hosted URL publicly. Private sharing is reasonable only with intended users who can pass the chosen access layers.
 
 ## Recommendation
 
-Status: provider linked and env names present, but hosted app smoke still needs an authorized Vercel browser session.
+Status: provider linked, hosted env names present, and user-supplied authorized hosted smoke passed.
 
-Do not share Boardsmith as a hosted MVP yet. It is not ready to share privately until the intended access model is confirmed and the hosted smoke checklist passes. If Vercel-level protection is the intended access model, smoke it from an authorized session. If Boardsmith's private MVP gate is the intended access model, allow the hosted app to reach `/access` and verify `BOARDSMITH_ACCESS_PASSWORD` there.
+Boardsmith is safe to share only with intended private users who can pass the active access layers. Keep Vercel-level protection and/or the Boardsmith `/access` gate in place while real OpenAI and Supabase keys are configured.
 
-Browser print remains the supported MVP output path. Do not start app-generated PDF/export work before hosted private access is verified.
+Browser print remains the supported MVP output path. Do not start app-generated PDF/export work as part of hosted smoke follow-up.
