@@ -24,12 +24,33 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
       <section className="space-y-3 text-sm leading-6 text-ink/70">
         <p className="font-medium text-ink">More detail produces better plans.</p>
         <p>
-          Good MVP projects are specific and bounded, like a small wall shelf for a bathroom, simple toddler book ledge, basic outdoor planter box, or cordless lamp riser for a bookshelf.
+          Good MVP projects are specific, bounded, and easy to review before cutting. Boardsmith is a planning aid and may block drafts that fail validation or review.
         </p>
-        <p>
-          Include approximate finished dimensions, material or plywood/board thickness, available tools, mounting or weight-bearing expectations, indoor or outdoor use,
-          finish, stain, or paint preferences, and any safety-sensitive use such as baby, kid, wall-mounted, or outdoor use.
-        </p>
+      </section>
+
+      <section className="grid gap-4 rounded-lg border border-sawdust bg-white p-5 text-sm leading-6 text-ink/70 shadow-soft sm:grid-cols-2">
+        <div className="space-y-3">
+          <h2 className="text-base font-semibold text-ink">Example project details</h2>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>Freestanding plant riser, 12 inches wide, 8 inches tall, 4 inches deep, 3/4 inch pine, indoor use, painted finish.</li>
+            <li>Simple lamp riser for a bookshelf, 10 by 8 by 3 inches, 1/2 inch plywood, drill and sander available, no mounting.</li>
+            <li>Small desktop organizer for pens and sticky notes, 14 by 6 by 5 inches, 1/4 inch plywood, beginner hand tools.</li>
+            <li>Basic outdoor planter box, 24 by 10 by 8 inches, cedar boards, drainage needed, outdoor sealant preferred.</li>
+            <li>Small decorative tray, 16 by 10 by 2 inches, pine board, rounded corners, stain and clear coat.</li>
+          </ul>
+        </div>
+        <div className="space-y-3">
+          <h2 className="text-base font-semibold text-ink">Include these details</h2>
+          <ul className="list-disc space-y-2 pl-5">
+            <li>finished dimensions</li>
+            <li>material and thickness</li>
+            <li>tools available</li>
+            <li>indoor or outdoor use</li>
+            <li>mounting method if applicable</li>
+            <li>finish preference</li>
+            <li>safety-sensitive use such as child, wall-mounted, seating, climbing, or load-bearing</li>
+          </ul>
+        </div>
       </section>
 
       <form action="/projects/create" method="post" className="space-y-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft">

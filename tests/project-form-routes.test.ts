@@ -111,13 +111,22 @@ describe("project form routes", () => {
     const markup = renderToStaticMarkup(await NewProjectPage({}));
 
     expect(markup).toContain("More detail produces better plans.");
-    expect(markup).toContain("small wall shelf for a bathroom");
-    expect(markup).toContain("simple toddler book ledge");
-    expect(markup).toContain("basic outdoor planter box");
-    expect(markup).toContain("cordless lamp riser for a bookshelf");
-    expect(markup).toContain("mounting or weight-bearing expectations");
-    expect(markup).toContain("finish, stain, or paint preferences");
-    expect(markup).toContain("baby, kid, wall-mounted, or outdoor use");
+    expect(markup).toContain("Example project details");
+    expect(markup).toContain("Freestanding plant riser");
+    expect(markup).toContain("Simple lamp riser");
+    expect(markup).toContain("Small desktop organizer");
+    expect(markup).toContain("Basic outdoor planter box");
+    expect(markup).toContain("Small decorative tray");
+    expect(markup).toContain("Include these details");
+    expect(markup).toContain("finished dimensions");
+    expect(markup).toContain("material and thickness");
+    expect(markup).toContain("tools available");
+    expect(markup).toContain("indoor or outdoor use");
+    expect(markup).toContain("mounting method if applicable");
+    expect(markup).toContain("finish preference");
+    expect(markup).toContain("child, wall-mounted, seating, climbing, or load-bearing");
+    expect(markup).toContain("Boardsmith is a planning aid");
+    expect(markup).toContain("may block drafts that fail validation or review");
   });
 
   it("shows friendly project creation error copy", async () => {

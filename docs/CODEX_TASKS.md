@@ -347,6 +347,14 @@
 - [x] Keep the checkpoint private-only and not public-launch ready.
 - [x] Keep the pass docs/git-only with no app behavior, deployment, migration, package, cloud schema, OpenAI, export/CAD, auth-provider, public sharing, shopping/pricing/vendor, secret, hosted URL, screenshot, or runtime-data changes.
 
+## Task 52A - New Project Intake Examples
+
+- [x] Add practical low-risk project examples to the New Project page.
+- [x] Add a concise intake checklist for dimensions, material/thickness, tools, use context, mounting, finish, and safety-sensitive use.
+- [x] Clarify that Boardsmith is a planning aid and may block drafts that fail validation or review.
+- [x] Add focused rendering coverage for the new examples and checklist copy.
+- [x] Keep the pass limited to UI/copy/tests/docs with no schema, storage, Supabase, OpenAI, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Decide whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both are the intended ongoing private hosted access model.
