@@ -1,17 +1,42 @@
 import Link from "next/link";
-import { projectTypeLabels, type Project } from "@/lib/projects/types";
+import { projectTypeLabels, projectTypes, type Project, type ProjectStatus, type ProjectType } from "@/lib/projects/types";
 import { listGeneratedPlans, listProjects } from "@/lib/storage/project-store";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+type ProjectsSearchParams = {
+  error?: string | string[];
+  q?: string | string[];
+  type?: string | string[];
+  status?: string | string[];
+  plan?: string | string[];
+  record?: string | string[];
+};
+
+type ProjectSummary = {
+  project: Project;
+  planCount: number;
+};
+
+type ProjectFilters = {
+  query: string;
+  type: ProjectType | "all";
+  status: ProjectStatus | "built" | "all";
+  plan: "all" | "has_plan" | "no_plan";
+  record: "all" | "has_record" | "no_record";
+};
+
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<ProjectsSearchParams> }) {
   const [projects, params] = await Promise.all([listProjects(), searchParams]);
+  const filters = parseProjectFilters(params);
   const projectSummaries = await Promise.all(
     projects.map(async (project) => ({
       project,
       planCount: (await listGeneratedPlans(project.id)).length,
     })),
   );
+  const filteredProjectSummaries = projectSummaries.filter((summary) => matchesProjectFilters(summary, filters));
+  const filtersActive = areFiltersActive(filters);
 
   return (
     <div className="space-y-6">
@@ -25,7 +50,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         </Link>
       </div>
 
-      {params.error ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{params.error}</p> : null}
+      {typeof params.error === "string" ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{params.error}</p> : null}
 
       {projects.length === 0 ? (
         <div className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
@@ -36,46 +61,194 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {projectSummaries.map(({ project, planCount }) => (
-            <article key={project.id} className="rounded-lg border border-sawdust bg-white p-5 transition hover:border-moss hover:shadow-soft">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <p className="text-lg font-semibold text-ink">{project.title}</p>
-                  <p className="mt-1 text-sm text-ink/65">
-                    {projectTypeLabels[project.project_type]} | {project.width_inches} x {project.height_inches} x {project.depth_inches} in | Updated{" "}
-                    {formatProjectDate(project.updated_at)}
-                  </p>
-                </div>
-                <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">{statusLabel(project)}</span>
-              </div>
-
-              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <ProjectSignal label="Plan" value={planCount > 0 ? "Latest plan saved" : "No generated plan yet"} />
-                <ProjectSignal label="History" value={planCount === 1 ? "1 plan version" : `${planCount.toString()} plan versions`} />
-                <ProjectSignal label="Notes" value={project.notes.trim().length > 0 ? "Notes added" : "No notes yet"} />
-                <ProjectSignal label="Record" value={buildLogLabel(project)} />
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link href={`/projects/${project.id}`} className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-                  Continue project
-                </Link>
-                <Link href={`/projects/${project.id}`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                  {planCount > 0 ? "View latest plan" : "Generate plan"}
-                </Link>
-                {hasProjectRecord(project) ? (
-                  <Link href={`/projects/${project.id}`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                    Review project record
+        <>
+          <section className="rounded-lg border border-sawdust bg-white p-5 shadow-soft">
+            <form action="/projects" className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
+              <label className="grid gap-2 text-sm font-medium text-ink">
+                Search
+                <input
+                  name="q"
+                  type="search"
+                  defaultValue={filters.query}
+                  placeholder="Title, material, use, notes..."
+                  className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss"
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-medium text-ink">
+                Project type
+                <select name="type" defaultValue={filters.type} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
+                  <option value="all">All types</option>
+                  {projectTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {projectTypeLabels[type]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm font-medium text-ink">
+                Status
+                <select name="status" defaultValue={filters.status} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
+                  <option value="all">All statuses</option>
+                  <option value="draft">Draft</option>
+                  <option value="plan_generated">Plan generated</option>
+                  <option value="generation_failed">Needs review</option>
+                  <option value="built">Built</option>
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm font-medium text-ink">
+                Plan
+                <select name="plan" defaultValue={filters.plan} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
+                  <option value="all">Any plan state</option>
+                  <option value="has_plan">Has plan</option>
+                  <option value="no_plan">No plan yet</option>
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm font-medium text-ink">
+                Record
+                <select name="record" defaultValue={filters.record} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
+                  <option value="all">Any record state</option>
+                  <option value="has_record">Has notes or build log</option>
+                  <option value="no_record">No record yet</option>
+                </select>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+                  Apply
+                </button>
+                {filtersActive ? (
+                  <Link href="/projects" className="rounded-md border border-sawdust px-4 py-2 text-sm font-semibold text-ink hover:bg-shop">
+                    Clear filters
                   </Link>
                 ) : null}
               </div>
-            </article>
-          ))}
-        </div>
+            </form>
+            <p className="mt-4 text-sm text-ink/65">
+              Showing {filteredProjectSummaries.length.toString()} of {projectSummaries.length.toString()} projects
+            </p>
+          </section>
+
+          {filteredProjectSummaries.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
+              <p className="font-medium text-ink">No projects match these filters.</p>
+              <p className="mt-2 text-sm text-ink/65">Clear filters or start a new project intake if this is a new planning record.</p>
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <Link href="/projects" className="rounded-md border border-sawdust px-4 py-2 text-sm font-semibold text-ink hover:bg-shop">
+                  Clear filters
+                </Link>
+                <Link href="/projects/new" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+                  New Project
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {filteredProjectSummaries.map(({ project, planCount }) => (
+                <article key={project.id} className="rounded-lg border border-sawdust bg-white p-5 transition hover:border-moss hover:shadow-soft">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <p className="text-lg font-semibold text-ink">{project.title}</p>
+                      <p className="mt-1 text-sm text-ink/65">
+                        {projectTypeLabels[project.project_type]} | {project.width_inches} x {project.height_inches} x {project.depth_inches} in | Updated{" "}
+                        {formatProjectDate(project.updated_at)}
+                      </p>
+                    </div>
+                    <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">{statusLabel(project)}</span>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                    <ProjectSignal label="Plan" value={planCount > 0 ? "Latest plan saved" : "No generated plan yet"} />
+                    <ProjectSignal label="History" value={planCount === 1 ? "1 plan version" : `${planCount.toString()} plan versions`} />
+                    <ProjectSignal label="Notes" value={project.notes.trim().length > 0 ? "Notes added" : "No notes yet"} />
+                    <ProjectSignal label="Record" value={buildLogLabel(project)} />
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Link href={`/projects/${project.id}`} className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+                      Continue project
+                    </Link>
+                    <Link href={`/projects/${project.id}`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+                      {planCount > 0 ? "View latest plan" : "Generate plan"}
+                    </Link>
+                    {hasProjectRecord(project) ? (
+                      <Link href={`/projects/${project.id}`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+                        Review project record
+                      </Link>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
+}
+
+function parseProjectFilters(params: ProjectsSearchParams): ProjectFilters {
+  const type = stringParam(params.type);
+  const status = stringParam(params.status);
+  const plan = stringParam(params.plan);
+  const record = stringParam(params.record);
+
+  return {
+    query: stringParam(params.q).trim(),
+    type: isProjectType(type) ? type : "all",
+    status: isProjectStatusFilter(status) ? status : "all",
+    plan: plan === "has_plan" || plan === "no_plan" ? plan : "all",
+    record: record === "has_record" || record === "no_record" ? record : "all",
+  };
+}
+
+function matchesProjectFilters({ project, planCount }: ProjectSummary, filters: ProjectFilters): boolean {
+  if (filters.query.length > 0 && !projectSearchText(project).includes(filters.query.toLowerCase())) return false;
+  if (filters.type !== "all" && project.project_type !== filters.type) return false;
+  if (filters.status !== "all" && statusFilterValue(project) !== filters.status) return false;
+  if (filters.plan === "has_plan" && planCount === 0) return false;
+  if (filters.plan === "no_plan" && planCount > 0) return false;
+  if (filters.record === "has_record" && !hasProjectRecord(project)) return false;
+  if (filters.record === "no_record" && hasProjectRecord(project)) return false;
+
+  return true;
+}
+
+function areFiltersActive(filters: ProjectFilters): boolean {
+  return filters.query.length > 0 || filters.type !== "all" || filters.status !== "all" || filters.plan !== "all" || filters.record !== "all";
+}
+
+function stringParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
+}
+
+function isProjectType(value: string): value is ProjectType {
+  return projectTypes.includes(value as ProjectType);
+}
+
+function isProjectStatusFilter(value: string): value is ProjectStatus | "built" {
+  return value === "built" || value === "draft" || value === "plan_generated" || value === "generation_failed";
+}
+
+function statusFilterValue(project: Project): ProjectStatus | "built" {
+  if (project.build_completed) return "built";
+  return project.status;
+}
+
+function projectSearchText(project: Project): string {
+  return [
+    project.title,
+    projectTypeLabels[project.project_type],
+    project.material_type,
+    project.style_notes,
+    project.intended_use,
+    project.notes,
+    project.build_actual_material,
+    project.build_plan_changes,
+    project.build_lessons_learned,
+    ...project.safety_flags,
+  ]
+    .join(" ")
+    .toLowerCase();
 }
 
 function ProjectSignal({ label, value }: { label: string; value: string }) {

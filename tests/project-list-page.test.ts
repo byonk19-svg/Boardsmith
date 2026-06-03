@@ -152,4 +152,47 @@ describe("ProjectsPage", () => {
     expect(markup).toContain("Create a project intake to start a private planning record.");
     expect(markup).toContain("Start first project");
   });
+
+  it("filters projects by search text, project type, plan state, and project record state", async () => {
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({
+          q: "bathroom",
+          type: "simple_shelf",
+          plan: "has_plan",
+          record: "has_record",
+        }),
+      }),
+    );
+
+    expect(markup).toContain("Bathroom shelf");
+    expect(markup).not.toContain("/projects/draft_project");
+    expect(markup).toContain("Showing 1 of 2 projects");
+    expect(markup).toContain('value="bathroom"');
+    expect(markup).toContain('value="simple_shelf" selected=""');
+    expect(markup).toContain('value="has_plan" selected=""');
+    expect(markup).toContain('value="has_record" selected=""');
+  });
+
+  it("renders a calm no-results state for project filters", async () => {
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({
+          q: "walnut",
+          type: "door_hanger",
+          status: "built",
+        }),
+      }),
+    );
+
+    expect(markup).toContain("No projects match these filters.");
+    expect(markup).toContain("Clear filters");
+    expect(markup).toContain("New Project");
+    expect(markup).not.toContain("/projects/project_with_history");
+    expect(markup).not.toContain("/projects/draft_project");
+  });
 });

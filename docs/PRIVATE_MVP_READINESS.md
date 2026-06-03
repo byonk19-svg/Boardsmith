@@ -16,9 +16,11 @@ This checkpoint marks the first privately hosted and smoke-tested Boardsmith MVP
 
 This is a rollback/reference point for private MVP testing only. It is not a public launch, not a production multi-user release, and not a claim of engineering review, certification, load rating, fabrication readiness, or export/CAD capability.
 
-## Post-MVP Polish Checkpoint
+## Private MVP 0.2 Polish Checkpoint
 
-This is the current post-checkpoint polish state after `private-mvp-0.1`. The app remains private-only and planning-aid only, but the intake and saved-plan review flow is easier to use.
+Checkpoint: `private-mvp-0.2`.
+
+This checkpoint captures the post-`private-mvp-0.1` polish state. The app remains private-only and planning-aid only, but the intake, saved-plan review, and project retrieval flow are easier to use.
 
 Post-checkpoint improvements:
 
@@ -28,6 +30,7 @@ Post-checkpoint improvements:
 - Local dogfood of all example starter links, including edited starter project creation, invalid-intake draft priority, and generation/rendering checks.
 - Generated-plan readability polish that separates saved plans into overview, plan at a glance, materials, cut list, build steps, modeled operations, safety notes, assumptions, open questions, finishing notes, beginner tips, and future export notes.
 - Generated-plan readability dogfood across no-plan, one-plan, and multiple-plan history states.
+- Project list filtering and search across existing project, plan, and project-record states.
 
 Current guardrails remain unchanged:
 
@@ -42,9 +45,7 @@ Current guardrails remain unchanged:
 Recommended next directions:
 
 1. Small print preview polish if manual browser printing reveals layout or copy issues.
-2. Project list filtering or search using existing project data only.
-3. Create a second private checkpoint tag after deciding the post-MVP polish state is stable.
-4. Revisit export architecture notes only as a decision document, not implementation.
+2. Revisit export architecture notes only as a decision document, not implementation.
 
 ## What Works Now
 
@@ -68,6 +69,7 @@ Recommended next directions:
 - Duplicate project action that copies intake details without generated plans, notes, history, or build log.
 - Project notes.
 - Build log fields for completion status, completion date, actual material, plan changes, and lessons learned.
+- Project list search and filters for project type, status, plan state, and notes/build-log record state.
 - Optional private access gate through `BOARDSMITH_ACCESS_PASSWORD`.
 - Vercel project link and hosted env var name readiness.
 - User-supplied authorized hosted smoke for access gate, project creation, notes, build log, generation, review surfaces, duplicate project, project list indicators, and browser print preview.
@@ -156,4 +158,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config or deployment change. Good next candidates are print preview polish, project list filtering/search, or a second private checkpoint tag. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, or auth-provider work without an explicit task.
+Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config or deployment change. The best next product candidate is print preview polish if manual printing reveals issues. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, or auth-provider work without an explicit task.

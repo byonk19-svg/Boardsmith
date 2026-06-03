@@ -410,12 +410,26 @@
 - [x] Add narrow recommended next directions: print preview polish, project list filtering/search, a second private checkpoint tag, or an export architecture decision note without implementation.
 - [x] Keep the pass docs-only with no app behavior, schema, storage, Supabase cloud, OpenAI, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
 
+## Task 56A - Project List Filtering And Search
+
+- [x] Add query-param-driven project search on `/projects`.
+- [x] Add project type, status, plan state, and project record filters using existing project and generated-plan data only.
+- [x] Show filtered result counts and a calm no-results state with clear-filter and new-project actions.
+- [x] Preserve the existing no-projects empty state.
+- [x] Add focused rendering coverage for filtered results, selected filter values, and no-results behavior.
+- [x] Keep the pass limited to server-rendered list usability with no schema, storage, Supabase cloud, OpenAI, export/CAD, auth/deployment, package, public-sharing, shopping/pricing/vendor changes.
+
+## Task 57A - Private MVP 0.2 Checkpoint
+
+- [x] Document `private-mvp-0.2` as the first post-MVP polish checkpoint.
+- [x] Record that the checkpoint includes intake examples and starters, generated-plan readability polish, and project list filtering/search.
+- [x] Keep the checkpoint private-only and planning-aid only.
+- [x] Keep the pass limited to docs/git with no app behavior beyond the already verified project-list filtering slice, no deployment, migration, package, cloud schema, OpenAI, export/CAD, auth-provider, public sharing, shopping/pricing/vendor, secret, hosted URL, screenshot, or runtime-data changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Small print preview polish if manual browser printing reveals layout or copy issues.
-2. [ ] Project list filtering or search using existing project data only.
-3. [ ] Create a second private checkpoint tag after deciding the post-MVP polish state is stable.
-4. [ ] Revisit export architecture notes only as a decision document, not implementation.
+2. [ ] Revisit export architecture notes only as a decision document, not implementation.
 
 ## Remaining Hardening
 
