@@ -355,6 +355,15 @@
 - [x] Add focused rendering coverage for the new examples and checklist copy.
 - [x] Keep the pass limited to UI/copy/tests/docs with no schema, storage, Supabase, OpenAI, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
 
+## Task 52B - Intake Example Dogfood
+
+- [x] Run a local private dogfood smoke using local JSON fallback and the New Project example descriptions or close variants.
+- [x] Confirm all five examples could create projects successfully: freestanding plant display board, lamp riser, desktop organizer, outdoor planter box shell, and decorative catchall tray.
+- [x] Generate validated plans for all five examples after tightening example copy to avoid unsafe or confusing capacity, mounting, electrical, and multi-piece assumptions.
+- [x] Confirm generated project detail pages render latest plan, Plan Review, Export Readiness, Material Summary, Cut List Review, Printable Plan Sheet, and planning-aid safety copy.
+- [x] Confirm browser print preview renders for the generated dogfood projects.
+- [x] Keep the pass limited to copy/tests/docs with no schema, storage, Supabase cloud, OpenAI prompt/schema/model, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Decide whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both are the intended ongoing private hosted access model.

@@ -32,11 +32,11 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
         <div className="space-y-3">
           <h2 className="text-base font-semibold text-ink">Example project details</h2>
           <ul className="list-disc space-y-2 pl-5">
-            <li>Freestanding plant riser, 12 inches wide, 8 inches tall, 4 inches deep, 3/4 inch pine, indoor use, painted finish.</li>
-            <li>Simple lamp riser for a bookshelf, 10 by 8 by 3 inches, 1/2 inch plywood, drill and sander available, no mounting.</li>
-            <li>Small desktop organizer for pens and sticky notes, 14 by 6 by 5 inches, 1/4 inch plywood, beginner hand tools.</li>
-            <li>Basic outdoor planter box, 24 by 10 by 8 inches, cedar boards, drainage needed, outdoor sealant preferred.</li>
-            <li>Small decorative tray, 16 by 10 by 2 inches, pine board, rounded corners, stain and clear coat.</li>
+            <li>Freestanding plant display board for a decorative faux plant using one shelf board only, 12 inches wide, 4 inches deep, 3/4 inch pine, indoor use, painted finish, no legs or mounting; treat item weight as manual review, not a capacity claim.</li>
+            <li>Simple cordless lamp riser platform using one flat shelf board only, 10 by 8 by 1/2 inches, 1/2 inch plywood, drill and sander available, no mounting or electrical work.</li>
+            <li>Small desktop organizer tray for pens and sticky notes using one flat base panel, 14 by 6 by 1/4 inches, 1/4 inch plywood, beginner hand tools.</li>
+            <li>Basic outdoor planter box shell, 24 by 10 by 8 inches, cedar boards, drainage planning only, outdoor sealant preferred; verify soil and water weight manually.</li>
+            <li>Small decorative catchall tray using one flat base panel, 16 by 10 by 3/4 inches, pine board, rounded corners, stain and clear coat, no handles or raised sides.</li>
           </ul>
         </div>
         <div className="space-y-3">

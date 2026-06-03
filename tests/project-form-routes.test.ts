@@ -112,11 +112,11 @@ describe("project form routes", () => {
 
     expect(markup).toContain("More detail produces better plans.");
     expect(markup).toContain("Example project details");
-    expect(markup).toContain("Freestanding plant riser");
-    expect(markup).toContain("Simple lamp riser");
+    expect(markup).toContain("Freestanding plant display board");
+    expect(markup).toContain("Simple cordless lamp riser platform");
     expect(markup).toContain("Small desktop organizer");
-    expect(markup).toContain("Basic outdoor planter box");
-    expect(markup).toContain("Small decorative tray");
+    expect(markup).toContain("Basic outdoor planter box shell");
+    expect(markup).toContain("Small decorative catchall tray");
     expect(markup).toContain("Include these details");
     expect(markup).toContain("finished dimensions");
     expect(markup).toContain("material and thickness");
