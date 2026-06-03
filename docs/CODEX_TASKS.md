@@ -339,6 +339,14 @@
 - [x] Update `docs/PRIVATE_MVP_READINESS.md` to reflect that authorized hosted browser smoke has passed after the project-intake validation fix.
 - [x] Keep the update docs-only with no hosted URL, secrets, screenshots, deployment, app behavior, migrations, packages, cloud schema changes, OpenAI changes, export/CAD work, auth-provider work, public sharing, or shopping/pricing/vendor scope.
 
+## Task 51A - Private MVP Release Checkpoint
+
+- [x] Confirm `main` is clean at `ffab0a3` before checkpoint docs.
+- [x] Document `private-mvp-0.1` as the first privately hosted and smoke-tested MVP checkpoint.
+- [x] Record that local MVP dogfood and authorized hosted Vercel browser smoke passed.
+- [x] Keep the checkpoint private-only and not public-launch ready.
+- [x] Keep the pass docs/git-only with no app behavior, deployment, migration, package, cloud schema, OpenAI, export/CAD, auth-provider, public sharing, shopping/pricing/vendor, secret, hosted URL, screenshot, or runtime-data changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Decide whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both are the intended ongoing private hosted access model.

@@ -8,6 +8,14 @@ Boardsmith is a private MVP woodworking planning app. It is ready for continued 
 
 The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, and user-supplied authorized hosted browser smoke passed after the project-intake validation fix. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
 
+## Private MVP Checkpoint
+
+Checkpoint: `private-mvp-0.1`.
+
+This checkpoint marks the first privately hosted and smoke-tested Boardsmith MVP state. Local MVP dogfood passed, authorized hosted Vercel browser smoke passed, and the current private workflow includes project creation, notes, build log, validated plan generation, review surfaces, duplicate project, project-list indicators, and browser print preview.
+
+This is a rollback/reference point for private MVP testing only. It is not a public launch, not a production multi-user release, and not a claim of engineering review, certification, load rating, fabrication readiness, or export/CAD capability.
+
 ## What Works Now
 
 - Project creation from `/projects/new`.

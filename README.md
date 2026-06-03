@@ -2,6 +2,12 @@
 
 Boardsmith is a private MVP web app for generating detailed, reviewable woodworking and craft project plans. Users enter project details, the app applies deterministic safety and template context, then OpenAI returns structured JSON that is validated before it can be saved.
 
+## Private MVP Checkpoint
+
+Current checkpoint: `private-mvp-0.1`, created after the first privately hosted and smoke-tested MVP state.
+
+This checkpoint records that local MVP dogfood and authorized hosted Vercel browser smoke passed, including the Boardsmith password gate, hosted project creation, notes, build log, plan generation, review surfaces, duplicate project, and browser print preview. Boardsmith remains private-only and is not public-launch ready.
+
 ## Current MVP Capabilities
 
 - Next.js App Router application shell.
