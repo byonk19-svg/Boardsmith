@@ -364,6 +364,15 @@
 - [x] Confirm browser print preview renders for the generated dogfood projects.
 - [x] Keep the pass limited to copy/tests/docs with no schema, storage, Supabase cloud, OpenAI prompt/schema/model, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
 
+## Task 53A - Example Starter Prefill
+
+- [x] Add short `?example=` starter links for each dogfooded New Project example.
+- [x] Prefill editable starter values for title, project type, skill level, dimensions, material/thickness, tools, style notes, and intended use.
+- [x] Keep the blank manual intake flow unchanged.
+- [x] Preserve invalid-intake draft behavior so user-entered values still win after a failed submit.
+- [x] Keep starter copy clear that the values must be reviewed and remain a planning aid, not certified or load-rated guidance.
+- [x] Keep the pass limited to UI/form usability, helper data, rendering tests, and docs with no schema, storage, Supabase cloud, OpenAI, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Decide whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both are the intended ongoing private hosted access model.

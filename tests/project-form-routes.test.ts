@@ -127,6 +127,35 @@ describe("project form routes", () => {
     expect(markup).toContain("child, wall-mounted, seating, climbing, or load-bearing");
     expect(markup).toContain("Boardsmith is a planning aid");
     expect(markup).toContain("may block drafts that fail validation or review");
+    expect(markup.match(/Use this example/g)?.length).toBe(5);
+    expect(markup).toContain('href="/projects/new?example=plant_display_board"');
+    expect(markup).toContain('href="/projects/new?example=lamp_riser"');
+    expect(markup).toContain('href="/projects/new?example=desktop_organizer"');
+    expect(markup).toContain('href="/projects/new?example=planter_box_shell"');
+    expect(markup).toContain('href="/projects/new?example=decorative_tray"');
+    expect(markup).not.toContain("Starter details loaded");
+  });
+
+  it("prefills editable starter details from a selected intake example", async () => {
+    const markup = renderToStaticMarkup(
+      await NewProjectPage({
+        searchParams: Promise.resolve({ example: "lamp_riser" }),
+      }),
+    );
+
+    expect(markup).toContain("Starter details loaded");
+    expect(markup).toContain("review before creating");
+    expect(markup).toContain('value="Simple cordless lamp riser platform"');
+    expect(markup).toContain('value="10"');
+    expect(markup).toContain('value="8"');
+    expect(markup).toContain('value="0.5"');
+    expect(markup).toContain('value="1/2 inch plywood"');
+    expect(markup).toContain("One flat shelf board only");
+    expect(markup).toContain("Freestanding wooden riser for a small cordless lamp");
+    expect(markup).toContain('checked="" value="tape_measure"');
+    expect(markup).toContain('checked="" value="pencil"');
+    expect(markup).toContain('checked="" value="drill"');
+    expect(markup).toContain('checked="" value="sander"');
   });
 
   it("shows friendly project creation error copy", async () => {

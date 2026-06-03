@@ -1,11 +1,16 @@
 import { cookies } from "next/headers";
+import Link from "next/link";
+import { findProjectIntakeExample, projectIntakeExamples } from "@/lib/projects/intake-examples";
 import { decodeProjectIntakeDraft, projectIntakeDraftCookieName } from "@/lib/projects/intake-draft";
 import { projectTypeLabels, projectTypes, skillLevels, toolLabels, toolOptions } from "@/lib/projects/types";
 
-export default async function NewProjectPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
+export default async function NewProjectPage({ searchParams }: { searchParams?: Promise<{ error?: string; example?: string }> }) {
   const params = searchParams ? await searchParams : {};
+  const selectedExample = findProjectIntakeExample(params.example);
   const draft =
     params.error === "invalid_intake" ? decodeProjectIntakeDraft((await cookies()).get(projectIntakeDraftCookieName)?.value) : undefined;
+  const formValues = draft ?? selectedExample?.draft;
+  const starterLoaded = !draft && selectedExample;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -21,6 +26,13 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
         </section>
       ) : null}
 
+      {starterLoaded ? (
+        <section className="rounded-md border border-moss/30 bg-moss/10 p-4 text-sm leading-6 text-ink">
+          <p className="font-semibold">Starter details loaded — review before creating.</p>
+          <p className="mt-1 text-ink/70">These fields are editable. Boardsmith is still a planning aid, not a certified or load-rated plan.</p>
+        </section>
+      ) : null}
+
       <section className="space-y-3 text-sm leading-6 text-ink/70">
         <p className="font-medium text-ink">More detail produces better plans.</p>
         <p>
@@ -31,12 +43,20 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
       <section className="grid gap-4 rounded-lg border border-sawdust bg-white p-5 text-sm leading-6 text-ink/70 shadow-soft sm:grid-cols-2">
         <div className="space-y-3">
           <h2 className="text-base font-semibold text-ink">Example project details</h2>
-          <ul className="list-disc space-y-2 pl-5">
-            <li>Freestanding plant display board for a decorative faux plant using one shelf board only, 12 inches wide, 4 inches deep, 3/4 inch pine, indoor use, painted finish, no legs or mounting; treat item weight as manual review, not a capacity claim.</li>
-            <li>Simple cordless lamp riser platform using one flat shelf board only, 10 by 8 by 1/2 inches, 1/2 inch plywood, drill and sander available, no mounting or electrical work.</li>
-            <li>Small desktop organizer tray for pens and sticky notes using one flat base panel, 14 by 6 by 1/4 inches, 1/4 inch plywood, beginner hand tools.</li>
-            <li>Basic outdoor planter box shell, 24 by 10 by 8 inches, cedar boards, drainage planning only, outdoor sealant preferred; verify soil and water weight manually.</li>
-            <li>Small decorative catchall tray using one flat base panel, 16 by 10 by 3/4 inches, pine board, rounded corners, stain and clear coat, no handles or raised sides.</li>
+          <ul className="space-y-3">
+            {projectIntakeExamples.map((example) => (
+              <li key={example.slug} className="space-y-1">
+                <p className="font-semibold text-ink">{example.label}</p>
+                <p>{example.description}</p>
+                <Link
+                  aria-label={`Use example: ${example.label}`}
+                  className="inline-flex text-sm font-semibold text-moss hover:text-moss/80"
+                  href={`/projects/new?example=${example.slug}`}
+                >
+                  Use this example
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
         <div className="space-y-3">
@@ -55,12 +75,12 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
 
       <form action="/projects/create" method="post" className="space-y-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft">
         <Field label="Project title">
-          <input name="title" required minLength={2} className="input" placeholder="Small bathroom wall shelf" defaultValue={draft?.title} />
+          <input name="title" required minLength={2} className="input" placeholder="Small bathroom wall shelf" defaultValue={formValues?.title} />
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Project type">
-            <select name="project_type" required className="input" defaultValue={draft?.project_type === "" ? undefined : draft?.project_type}>
+            <select name="project_type" required className="input" defaultValue={formValues?.project_type === "" ? undefined : formValues?.project_type}>
               {projectTypes.map((type) => (
                 <option key={type} value={type}>
                   {projectTypeLabels[type]}
@@ -69,7 +89,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             </select>
           </Field>
           <Field label="Skill level">
-            <select name="skill_level" required className="input" defaultValue={draft?.skill_level === "" ? undefined : draft?.skill_level}>
+            <select name="skill_level" required className="input" defaultValue={formValues?.skill_level === "" ? undefined : formValues?.skill_level}>
               {skillLevels.map((level) => (
                 <option key={level} value={level}>
                   {level[0].toUpperCase()}
@@ -82,13 +102,13 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
 
         <div className="grid gap-4 sm:grid-cols-4">
           <Field label="Width">
-            <input name="width_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="24" defaultValue={draft?.width_inches} />
+            <input name="width_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="24" defaultValue={formValues?.width_inches} />
           </Field>
           <Field label="Height">
-            <input name="height_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="8" defaultValue={draft?.height_inches} />
+            <input name="height_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="8" defaultValue={formValues?.height_inches} />
           </Field>
           <Field label="Depth">
-            <input name="depth_inches" required type="number" min="0" max="240" step="any" className="input" defaultValue={draft ? draft.depth_inches : "0"} />
+            <input name="depth_inches" required type="number" min="0" max="240" step="any" className="input" defaultValue={formValues ? formValues.depth_inches : "0"} />
           </Field>
           <Field label="Thickness">
             <input
@@ -100,7 +120,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
               step="any"
               className="input"
               placeholder="0.75"
-              defaultValue={draft?.material_thickness_inches}
+              defaultValue={formValues?.material_thickness_inches}
             />
           </Field>
         </div>
@@ -112,7 +132,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             minLength={2}
             className="input"
             placeholder="3/4 inch pine board or 1/2 inch plywood"
-            defaultValue={draft?.material_type}
+            defaultValue={formValues?.material_type}
           />
         </Field>
 
@@ -122,7 +142,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             {toolOptions.map((tool) => (
               <label key={tool} className="flex items-center gap-2 rounded-md border border-sawdust px-3 py-2 text-sm text-ink/75">
-                <input name="tools_available" type="checkbox" value={tool} className="h-4 w-4 accent-moss" defaultChecked={draft?.tools_available.includes(tool)} />
+                <input name="tools_available" type="checkbox" value={tool} className="h-4 w-4 accent-moss" defaultChecked={formValues?.tools_available.includes(tool)} />
                 {toolLabels[tool]}
               </label>
             ))}
@@ -135,7 +155,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             rows={4}
             className="input"
             placeholder="Painted white finish, rounded front corners, hidden brackets if possible..."
-            defaultValue={draft?.style_notes}
+            defaultValue={formValues?.style_notes}
           />
         </Field>
 
@@ -146,7 +166,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             rows={4}
             className="input"
             placeholder="Indoor bathroom shelf for light towels; wall-mounted into studs if possible..."
-            defaultValue={draft?.intended_use}
+            defaultValue={formValues?.intended_use}
           />
         </Field>
 
