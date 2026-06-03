@@ -1,11 +1,13 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { isSupabasePersistenceConfigured, listProjects } from "@/lib/storage/project-store";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const projects = await listProjects();
-  const latestTitle = projects.length > 0 ? projects[0]?.title ?? "None yet" : "None yet";
+  const latestProject = projects.length > 0 ? projects[0] : null;
+  const latestTitle = latestProject ? latestProject.title : "None yet";
 
   return (
     <div className="space-y-8">
@@ -38,17 +40,24 @@ export default async function DashboardPage() {
       <section className="grid gap-4 md:grid-cols-3">
         <Metric label="Projects" value={projects.length.toString()} />
         <Metric label="Storage" value={isSupabasePersistenceConfigured() ? "Supabase" : "Local private"} />
-        <Metric label="Latest" value={latestTitle} />
+        <Metric label="Latest" value={latestTitle}>
+          {latestProject ? (
+            <Link href={`/projects/${latestProject.id}`} className="mt-3 inline-flex text-sm font-semibold text-moss hover:text-moss/80">
+              Continue latest project
+            </Link>
+          ) : null}
+        </Metric>
       </section>
     </div>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value, children }: { label: string; value: string; children?: ReactNode }) {
   return (
     <div className="rounded-lg border border-sawdust bg-white p-5">
       <p className="text-sm font-medium text-ink/60">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-ink">{value}</p>
+      {children}
     </div>
   );
 }

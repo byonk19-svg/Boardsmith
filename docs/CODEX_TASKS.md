@@ -307,6 +307,13 @@
 - [x] Capture local and hosted smoke checklists.
 - [x] Restate non-goals around PDF/SVG/DXF/CAD/CNC/export, public sharing, safety certification, shopping, pricing, vendor, and inventory scope.
 
+## Task 49A - Project List MVP Usability
+
+- [x] Improve `/projects` cards with status, latest-plan presence, plan version count, notes/build-log indicators, updated date, and next-action links.
+- [x] Improve the no-projects empty state with a clearer private planning-record prompt and first-project action.
+- [x] Make the dashboard latest-project metric link to the current latest project.
+- [x] Keep the pass limited to existing project and generated-plan data with no schema, storage, Supabase, OpenAI, export, auth, package, hosted, or public-sharing changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results if they are still outstanding.
