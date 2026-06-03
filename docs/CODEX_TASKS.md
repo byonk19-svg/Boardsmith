@@ -314,6 +314,15 @@
 - [x] Make the dashboard latest-project metric link to the current latest project.
 - [x] Keep the pass limited to existing project and generated-plan data with no schema, storage, Supabase, OpenAI, export, auth, package, hosted, or public-sharing changes.
 
+## Task 50A - Local MVP Dogfood Smoke
+
+- [x] Run a local fallback dogfood smoke with `BOARDSMITH_ACCESS_PASSWORD` enabled and Supabase env vars kept out of the dev process.
+- [x] Verify access gate redirect, wrong-password rejection, correct-password access, dashboard, project list, new project creation, no-plan detail state, notes save, build-log save, generation, latest plan render, review surfaces, duplicate project, browser print preview, and project-list indicators.
+- [x] Confirm local OpenAI generation saved one validated smoke plan and did not require Supabase cloud writes.
+- [x] Confirm duplicate project starts without generated plans, notes, or build-log content.
+- [x] Fix project creation failure handling so malformed intake redirects to friendly user-facing copy instead of raw validation details.
+- [x] Keep generated dev-server files, temporary smoke data, logs, and scripts out of the committed diff.
+
 ## Recommended Next Tasks
 
 1. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results if they are still outstanding.

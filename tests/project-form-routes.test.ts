@@ -15,6 +15,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/storage/project-store", () => ({
+  createProject: vi.fn(),
   getProject: vi.fn(() =>
     Promise.resolve({
       id: "project_form_route",
@@ -46,15 +47,15 @@ vi.mock("@/lib/storage/project-store", () => ({
 }));
 
 describe("project form routes", () => {
-  it("uses an explicit POST route for new project creation", () => {
-    const markup = renderToStaticMarkup(React.createElement(NewProjectPage));
+  it("uses an explicit POST route for new project creation", async () => {
+    const markup = renderToStaticMarkup(await NewProjectPage({}));
 
     expect(markup).toContain('action="/projects/create"');
     expect(markup).toContain('method="post"');
   });
 
-  it("shows practical project examples and detail prompts on the intake form", () => {
-    const markup = renderToStaticMarkup(React.createElement(NewProjectPage));
+  it("shows practical project examples and detail prompts on the intake form", async () => {
+    const markup = renderToStaticMarkup(await NewProjectPage({}));
 
     expect(markup).toContain("More detail produces better plans.");
     expect(markup).toContain("small wall shelf for a bathroom");
@@ -64,6 +65,46 @@ describe("project form routes", () => {
     expect(markup).toContain("mounting or weight-bearing expectations");
     expect(markup).toContain("finish, stain, or paint preferences");
     expect(markup).toContain("baby, kid, wall-mounted, or outdoor use");
+  });
+
+  it("shows friendly project creation error copy", async () => {
+    const markup = renderToStaticMarkup(
+      await NewProjectPage({
+        searchParams: Promise.resolve({ error: "invalid_intake" }),
+      }),
+    );
+
+    expect(markup).toContain("Project intake could not be saved.");
+    expect(markup).toContain("Check the required fields, dimensions, tools, and material details before trying again.");
+  });
+
+  it("keeps invalid project creation errors user-facing", async () => {
+    const { POST } = await import("@/app/projects/create/route");
+    const body = new URLSearchParams({
+      title: "Bad smoke project",
+      project_type: "simple_shelf",
+      skill_level: "beginner",
+      width_inches: "24",
+      height_inches: "6",
+      depth_inches: "8",
+      material_thickness_inches: "0.75",
+      material_type: "pine board",
+      tools_available: "invalid_tool",
+      intended_use: "Test malformed form submission.",
+    });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/create", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    const location = response.headers.get("location") ?? "";
+    expect(response.status).toBe(303);
+    expect(location).toContain("/projects/new?error=invalid_intake");
+    expect(location).not.toContain("invalid_tool");
+    expect(location).not.toContain("Invalid%20option");
   });
 
   it("uses an explicit POST route for plan generation", async () => {

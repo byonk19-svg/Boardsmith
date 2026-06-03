@@ -1,12 +1,21 @@
 import { projectTypeLabels, projectTypes, skillLevels, toolLabels, toolOptions } from "@/lib/projects/types";
 
-export default function NewProjectPage() {
+export default async function NewProjectPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
+  const params = searchParams ? await searchParams : {};
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight text-ink">New Project</h1>
         <p className="mt-2 text-sm text-ink/65">Save the intake first. AI generation happens from the project detail page after deterministic safety review.</p>
       </div>
+
+      {params.error === "invalid_intake" ? (
+        <section className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+          <p className="font-semibold">Project intake could not be saved.</p>
+          <p className="mt-1">Check the required fields, dimensions, tools, and material details before trying again.</p>
+        </section>
+      ) : null}
 
       <section className="space-y-3 text-sm leading-6 text-ink/70">
         <p className="font-medium text-ink">More detail produces better plans.</p>

@@ -10,7 +10,7 @@ export async function POST(request: Request): Promise<Response> {
     revalidatePath("/projects");
     return NextResponse.redirect(new URL(`/projects/${project.id}`, request.url), 303);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Project creation failed.";
-    return NextResponse.redirect(new URL(`/projects/new?error=${encodeURIComponent(message)}`, request.url), 303);
+    void error;
+    return NextResponse.redirect(new URL("/projects/new?error=invalid_intake", request.url), 303);
   }
 }
