@@ -299,6 +299,14 @@
 - [x] Preserve planning-aid, no-certification, no-load-rating safety language.
 - [x] Keep the pass limited to UI organization, helper copy, rendering tests, and docs.
 
+## Task 48A - Private MVP Readiness Checkpoint
+
+- [x] Add `docs/PRIVATE_MVP_READINESS.md` as a concise current-state checkpoint.
+- [x] Summarize verified private MVP capabilities, including persistence, generation, review surfaces, duplicate, notes, build log, access gate, and browser print preview.
+- [x] Document hosted readiness gap: Vercel/env-name readiness exists, but authorized hosted browser smoke has not passed.
+- [x] Capture local and hosted smoke checklists.
+- [x] Restate non-goals around PDF/SVG/DXF/CAD/CNC/export, public sharing, safety certification, shopping, pricing, vendor, and inventory scope.
+
 ## Recommended Next Tasks
 
 1. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results if they are still outstanding.
