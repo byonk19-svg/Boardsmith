@@ -323,6 +323,14 @@
 - [x] Fix project creation failure handling so malformed intake redirects to friendly user-facing copy instead of raw validation details.
 - [x] Keep generated dev-server files, temporary smoke data, logs, and scripts out of the committed diff.
 
+## Task 50B - Project Intake Validation Fix
+
+- [x] Fix hosted smoke blocker where ordinary dimensions like `12`, `8`, `4`, and material thickness `0.75` were rejected by browser number input step validation.
+- [x] Align project intake number controls with the server schema by accepting practical decimal values without unusual nearest-valid-value browser prompts.
+- [x] Preserve safe entered intake values through friendly `invalid_intake` redirects with a short-lived server-set draft cookie.
+- [x] Keep raw validation/Zod details out of URLs and user-facing copy.
+- [x] Add focused form-route tests for normal dimensions, decimal thickness, friendly invalid-intake copy, draft preservation, and successful project creation.
+
 ## Recommended Next Tasks
 
 1. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results if they are still outstanding.

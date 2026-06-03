@@ -1,7 +1,11 @@
+import { cookies } from "next/headers";
+import { decodeProjectIntakeDraft, projectIntakeDraftCookieName } from "@/lib/projects/intake-draft";
 import { projectTypeLabels, projectTypes, skillLevels, toolLabels, toolOptions } from "@/lib/projects/types";
 
 export default async function NewProjectPage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
   const params = searchParams ? await searchParams : {};
+  const draft =
+    params.error === "invalid_intake" ? decodeProjectIntakeDraft((await cookies()).get(projectIntakeDraftCookieName)?.value) : undefined;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -30,12 +34,12 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
 
       <form action="/projects/create" method="post" className="space-y-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft">
         <Field label="Project title">
-          <input name="title" required minLength={2} className="input" placeholder="Small bathroom wall shelf" />
+          <input name="title" required minLength={2} className="input" placeholder="Small bathroom wall shelf" defaultValue={draft?.title} />
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Project type">
-            <select name="project_type" required className="input">
+            <select name="project_type" required className="input" defaultValue={draft?.project_type === "" ? undefined : draft?.project_type}>
               {projectTypes.map((type) => (
                 <option key={type} value={type}>
                   {projectTypeLabels[type]}
@@ -44,7 +48,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             </select>
           </Field>
           <Field label="Skill level">
-            <select name="skill_level" required className="input">
+            <select name="skill_level" required className="input" defaultValue={draft?.skill_level === "" ? undefined : draft?.skill_level}>
               {skillLevels.map((level) => (
                 <option key={level} value={level}>
                   {level[0].toUpperCase()}
@@ -57,21 +61,38 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
 
         <div className="grid gap-4 sm:grid-cols-4">
           <Field label="Width">
-            <input name="width_inches" required type="number" min="0.1" max="240" step="0.125" className="input" placeholder="24" />
+            <input name="width_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="24" defaultValue={draft?.width_inches} />
           </Field>
           <Field label="Height">
-            <input name="height_inches" required type="number" min="0.1" max="240" step="0.125" className="input" placeholder="8" />
+            <input name="height_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="8" defaultValue={draft?.height_inches} />
           </Field>
           <Field label="Depth">
-            <input name="depth_inches" required type="number" min="0" max="240" step="0.125" className="input" defaultValue="0" />
+            <input name="depth_inches" required type="number" min="0" max="240" step="any" className="input" defaultValue={draft ? draft.depth_inches : "0"} />
           </Field>
           <Field label="Thickness">
-            <input name="material_thickness_inches" required type="number" min="0.03125" max="12" step="0.03125" className="input" placeholder="0.75" />
+            <input
+              name="material_thickness_inches"
+              required
+              type="number"
+              min="0.03125"
+              max="12"
+              step="any"
+              className="input"
+              placeholder="0.75"
+              defaultValue={draft?.material_thickness_inches}
+            />
           </Field>
         </div>
 
         <Field label="Material type">
-          <input name="material_type" required minLength={2} className="input" placeholder="3/4 inch pine board or 1/2 inch plywood" />
+          <input
+            name="material_type"
+            required
+            minLength={2}
+            className="input"
+            placeholder="3/4 inch pine board or 1/2 inch plywood"
+            defaultValue={draft?.material_type}
+          />
         </Field>
 
         <fieldset>
@@ -80,7 +101,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             {toolOptions.map((tool) => (
               <label key={tool} className="flex items-center gap-2 rounded-md border border-sawdust px-3 py-2 text-sm text-ink/75">
-                <input name="tools_available" type="checkbox" value={tool} className="h-4 w-4 accent-moss" />
+                <input name="tools_available" type="checkbox" value={tool} className="h-4 w-4 accent-moss" defaultChecked={draft?.tools_available.includes(tool)} />
                 {toolLabels[tool]}
               </label>
             ))}
@@ -88,11 +109,24 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
         </fieldset>
 
         <Field label="Style notes">
-          <textarea name="style_notes" rows={4} className="input" placeholder="Painted white finish, rounded front corners, hidden brackets if possible..." />
+          <textarea
+            name="style_notes"
+            rows={4}
+            className="input"
+            placeholder="Painted white finish, rounded front corners, hidden brackets if possible..."
+            defaultValue={draft?.style_notes}
+          />
         </Field>
 
         <Field label="Intended use">
-          <textarea name="intended_use" required rows={4} className="input" placeholder="Indoor bathroom shelf for light towels; wall-mounted into studs if possible..." />
+          <textarea
+            name="intended_use"
+            required
+            rows={4}
+            className="input"
+            placeholder="Indoor bathroom shelf for light towels; wall-mounted into studs if possible..."
+            defaultValue={draft?.intended_use}
+          />
         </Field>
 
         <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
