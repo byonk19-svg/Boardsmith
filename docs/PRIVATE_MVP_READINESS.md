@@ -16,6 +16,36 @@ This checkpoint marks the first privately hosted and smoke-tested Boardsmith MVP
 
 This is a rollback/reference point for private MVP testing only. It is not a public launch, not a production multi-user release, and not a claim of engineering review, certification, load rating, fabrication readiness, or export/CAD capability.
 
+## Post-MVP Polish Checkpoint
+
+This is the current post-checkpoint polish state after `private-mvp-0.1`. The app remains private-only and planning-aid only, but the intake and saved-plan review flow is easier to use.
+
+Post-checkpoint improvements:
+
+- New Project intake examples for low-risk beginner projects.
+- Local dogfood of the intake examples, with example copy tightened to avoid unsafe capacity, mounting, electrical, and multi-piece assumptions.
+- Example starter links on `/projects/new` that prefill editable starter details.
+- Local dogfood of all example starter links, including edited starter project creation, invalid-intake draft priority, and generation/rendering checks.
+- Generated-plan readability polish that separates saved plans into overview, plan at a glance, materials, cut list, build steps, modeled operations, safety notes, assumptions, open questions, finishing notes, beginner tips, and future export notes.
+- Generated-plan readability dogfood across no-plan, one-plan, and multiple-plan history states.
+
+Current guardrails remain unchanged:
+
+- Boardsmith is private-only.
+- Generated plans are planning aids only.
+- No engineering review, certification, load rating, wall-safety guarantee, child-safety certification, or fabrication-ready claim exists.
+- Browser print remains the MVP output path.
+- No app-generated PDF, SVG, DXF, CAD, CNC, or export pipeline exists.
+- No public sharing exists.
+- No shopping, pricing, vendor, purchasing, or inventory features exist.
+
+Recommended next directions:
+
+1. Small print preview polish if manual browser printing reveals layout or copy issues.
+2. Project list filtering or search using existing project data only.
+3. Create a second private checkpoint tag after deciding the post-MVP polish state is stable.
+4. Revisit export architecture notes only as a decision document, not implementation.
+
 ## What Works Now
 
 - Project creation from `/projects/new`.
@@ -126,4 +156,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config or deployment change. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, or auth-provider work without an explicit task.
+Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config or deployment change. Good next candidates are print preview polish, project list filtering/search, or a second private checkpoint tag. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, or auth-provider work without an explicit task.

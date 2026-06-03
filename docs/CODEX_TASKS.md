@@ -401,16 +401,21 @@
 - [x] Confirm no tiny UI/copy/rendering fixes were needed.
 - [x] Keep the pass limited to QA/docs with no schema, storage, Supabase cloud, OpenAI, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
 
+## Task 55A - Post-MVP Polish Checkpoint
+
+- [x] Update `docs/PRIVATE_MVP_READINESS.md` with the current post-`private-mvp-0.1` polish state.
+- [x] Summarize New Project intake examples, intake example dogfood, example starter links, starter dogfood, generated-plan readability polish, and generated-plan readability dogfood.
+- [x] Reconfirm private-only, planning-aid-only guardrails and the absence of engineering/certification/load-rating claims.
+- [x] Reconfirm no app-generated PDF, SVG, DXF, CAD, CNC, export pipeline, public sharing, shopping, pricing, vendor, or inventory scope exists.
+- [x] Add narrow recommended next directions: print preview polish, project list filtering/search, a second private checkpoint tag, or an export architecture decision note without implementation.
+- [x] Keep the pass docs-only with no app behavior, schema, storage, Supabase cloud, OpenAI, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
+
 ## Recommended Next Tasks
 
-1. [ ] Decide whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both are the intended ongoing private hosted access model.
-2. [ ] Check Plan History Comparison during hosted/local smoke on a project with at least two generated plans.
-3. [ ] Rerun the hosted smoke checklist after any deployment, env-var change, migration, or access-gate change.
-4. [ ] Run a full five-scenario live dogfood sweep only if another generation-alignment change is made.
-5. [ ] Polish print preview only if manual browser printing reveals issues.
-6. [ ] Decide later whether to approve a server-side HTML-to-PDF dependency spike.
-7. [ ] Later SVG research note.
-8. [ ] Much later DXF/CAD/CNC research.
+1. [ ] Small print preview polish if manual browser printing reveals layout or copy issues.
+2. [ ] Project list filtering or search using existing project data only.
+3. [ ] Create a second private checkpoint tag after deciding the post-MVP polish state is stable.
+4. [ ] Revisit export architecture notes only as a decision document, not implementation.
 
 ## Remaining Hardening
 
