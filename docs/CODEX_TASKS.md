@@ -373,6 +373,17 @@
 - [x] Keep starter copy clear that the values must be reviewed and remain a planning aid, not certified or load-rated guidance.
 - [x] Keep the pass limited to UI/form usability, helper data, rendering tests, and docs with no schema, storage, Supabase cloud, OpenAI, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
 
+## Task 53B - Example Starter Dogfood
+
+- [x] Run a local private dogfood smoke using local JSON fallback for all five `?example=` starter links.
+- [x] Confirm plant display board, lamp riser, desktop organizer, planter box shell, and decorative tray starters prefill the expected editable fields.
+- [x] Confirm edited starter values can be submitted and each starter creates a draft project successfully.
+- [x] Confirm the blank manual New Project flow still works.
+- [x] Confirm invalid-intake draft preservation takes priority over selected starter values.
+- [x] Generate validated saved plans for two starter-created projects and confirm latest plan, Plan Review, Export Readiness, Material Summary, Cut List Review, Printable Plan Sheet, and browser print preview render.
+- [x] Confirm the current commit has a READY production Vercel deployment and that unauthenticated terminal access to a starter route remains blocked by Vercel protection before Boardsmith renders.
+- [x] Keep the pass limited to QA/docs with no code fixes, schema, storage, Supabase cloud, OpenAI prompt/schema/model, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Decide whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both are the intended ongoing private hosted access model.
