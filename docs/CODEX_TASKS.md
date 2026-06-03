@@ -392,6 +392,15 @@
 - [x] Add focused rendering coverage for the new generated-plan group labels.
 - [x] Keep the pass limited to UI/copy/readability and docs with no schema, storage, Supabase cloud, OpenAI, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
 
+## Task 54B - Generated Plan Readability Dogfood
+
+- [x] Inspect existing local fallback data and confirm it included a no-plan project and one generated project with plan history, but not enough breadth for three generated-plan states.
+- [x] Run a temporary local JSON fallback dogfood smoke covering no-plan, one-plan starter-created, one-plan manual, and multiple-plan history projects without touching Supabase cloud or persistent local data.
+- [x] Confirm the polished latest generated plan renders overview, plan at a glance, materials, cut list, build steps, modeled operations, safety notes, assumptions, open questions, finishing notes, beginner tips, and future export notes.
+- [x] Confirm Plan Review, Export Readiness, Material Summary, Cut List Review, Printable Plan Sheet, Plan History, Plan Comparison, Project Record, and browser print preview still render.
+- [x] Confirm no tiny UI/copy/rendering fixes were needed.
+- [x] Keep the pass limited to QA/docs with no schema, storage, Supabase cloud, OpenAI, validation, export/CAD, auth/deployment, package, public-sharing, or shopping/pricing/vendor changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Decide whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both are the intended ongoing private hosted access model.
