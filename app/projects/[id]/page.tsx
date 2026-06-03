@@ -136,10 +136,6 @@ export default async function ProjectDetailPage({
         </div>
       </section>
 
-      <ProjectNotesCard project={project} />
-
-      <BuildLogCard project={project} />
-
       <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
 
       <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={displayedManifest.materials} cutListReview={displayedManifest.cutList} />
@@ -191,6 +187,8 @@ export default async function ProjectDetailPage({
           </div>
         </section>
       ) : null}
+
+      <ProjectRecordSection project={project} />
     </div>
   );
 }
@@ -230,7 +228,7 @@ function TemplateGuidancePanel({ projectTypeLabel, assumptions, cautions }: { pr
         <div className="text-sm leading-6 text-ink/65">
           <p>Project intake is what you entered.</p>
           <p>AI-generated plan output appears after generation.</p>
-          <p>Plan Review and Export Readiness check the saved plan.</p>
+          <p>Saved review panels check the generated plan.</p>
         </div>
       </div>
 
@@ -277,6 +275,7 @@ function ProjectNotesCard({ project }: { project: Project }) {
           </p>
         </div>
       </div>
+      {project.notes.trim().length === 0 ? <p className="mt-4 rounded-md bg-shop p-3 text-sm leading-6 text-ink/65">No project notes saved yet.</p> : null}
       <form action={`/projects/${project.id}/notes`} method="post" className="mt-4 space-y-3">
         <textarea
           name="notes"
@@ -294,7 +293,31 @@ function ProjectNotesCard({ project }: { project: Project }) {
   );
 }
 
+function ProjectRecordSection({ project }: { project: Project }) {
+  return (
+    <section className="no-print space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold text-ink">Project record</h2>
+        <p className="mt-2 text-sm leading-6 text-ink/65">
+          Private notes and real-build details stay with this project. They do not certify the design or change generated plans.
+        </p>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ProjectNotesCard project={project} />
+        <BuildLogCard project={project} />
+      </div>
+    </section>
+  );
+}
+
 function BuildLogCard({ project }: { project: Project }) {
+  const hasBuildLogDetails =
+    project.build_completed ||
+    project.build_completed_at.length > 0 ||
+    project.build_actual_material.trim().length > 0 ||
+    project.build_plan_changes.trim().length > 0 ||
+    project.build_lessons_learned.trim().length > 0;
+
   return (
     <section className="no-print rounded-lg border border-sawdust bg-white p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -310,10 +333,19 @@ function BuildLogCard({ project }: { project: Project }) {
       <div className="mt-4 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="rounded-md bg-shop p-4">
           <p className="text-sm font-semibold text-ink">{project.build_completed ? "Project was completed" : "Project not marked complete"}</p>
-          {project.build_completed_at ? <p className="mt-2 text-sm leading-6 text-ink/65">Completed: {project.build_completed_at}</p> : null}
-          {project.build_actual_material ? <p className="mt-2 text-sm leading-6 text-ink/65">{project.build_actual_material}</p> : null}
-          {project.build_plan_changes ? <p className="mt-2 text-sm leading-6 text-ink/65">{project.build_plan_changes}</p> : null}
-          {project.build_lessons_learned ? <p className="mt-2 text-sm leading-6 text-ink/65">{project.build_lessons_learned}</p> : null}
+          {hasBuildLogDetails ? (
+            <>
+              {project.build_completed_at ? <p className="mt-2 text-sm leading-6 text-ink/65">Completed: {project.build_completed_at}</p> : null}
+              {project.build_actual_material ? <p className="mt-2 text-sm leading-6 text-ink/65">{project.build_actual_material}</p> : null}
+              {project.build_plan_changes ? <p className="mt-2 text-sm leading-6 text-ink/65">{project.build_plan_changes}</p> : null}
+              {project.build_lessons_learned ? <p className="mt-2 text-sm leading-6 text-ink/65">{project.build_lessons_learned}</p> : null}
+            </>
+          ) : (
+            <div className="mt-2 space-y-2 text-sm leading-6 text-ink/65">
+              <p>Build log has not been filled out yet.</p>
+              <p>Add build notes after you cut, assemble, test-fit, or decide not to build.</p>
+            </div>
+          )}
           <p className="mt-3 text-xs leading-5 text-ink/55">
             This log is not an inspection, certification, load rating, or professional approval.
           </p>

@@ -291,6 +291,14 @@
 - [x] Smoke test cloud-backed build-log save/reload on a clearly labeled smoke project.
 - [x] Confirm a duplicate-style project starts with an empty build log by default.
 
+## Task 47A - Project Detail MVP Polish
+
+- [x] Move private notes and real-build details into a final Project record section.
+- [x] Keep project detail flow ordered as intake, template guidance, project structure, generated-plan review, printable plan sheet, plan history, and project record.
+- [x] Add calm empty states for blank project notes and build log details.
+- [x] Preserve planning-aid, no-certification, no-load-rating safety language.
+- [x] Keep the pass limited to UI organization, helper copy, rendering tests, and docs.
+
 ## Recommended Next Tasks
 
 1. [ ] Run `docs/HOSTED_DEPLOYMENT_DRY_RUN.md` from a user-authenticated Vercel browser session and report the manual results if they are still outstanding.

@@ -130,6 +130,36 @@ describe("ProjectDetailPage project structure", () => {
     vi.clearAllMocks();
   });
 
+  it("orders project setup, generated plan review, plan history, and project record sections for MVP review", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    const projectIntakeIndex = markup.indexOf("Project intake");
+    const templateIndex = markup.indexOf("Template Guidance");
+    const structureIndex = markup.indexOf("Project Structure");
+    const reviewIndex = markup.indexOf("Plan Review");
+    const planSheetIndex = markup.indexOf("Printable Plan Sheet");
+    const historyIndex = markup.indexOf("Plan history");
+    const recordIndex = markup.indexOf("Project record");
+
+    expect(projectIntakeIndex).toBeGreaterThan(-1);
+    expect(templateIndex).toBeGreaterThan(projectIntakeIndex);
+    expect(structureIndex).toBeGreaterThan(templateIndex);
+    expect(reviewIndex).toBeGreaterThan(structureIndex);
+    expect(planSheetIndex).toBeGreaterThan(reviewIndex);
+    expect(historyIndex).toBeGreaterThan(planSheetIndex);
+    expect(recordIndex).toBeGreaterThan(historyIndex);
+    expect(markup).toContain("Private notes and real-build details stay with this project.");
+  });
+
   it("renders the latest saved build model instead of re-deriving project structure", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([planRecord]);
@@ -148,7 +178,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Planning guidance, not a finished plan.");
     expect(markup).toContain("Project intake is what you entered.");
     expect(markup).toContain("AI-generated plan output appears after generation.");
-    expect(markup).toContain("Plan Review and Export Readiness check the saved plan.");
+    expect(markup).toContain("Saved review panels check the generated plan.");
     expect(markup).toContain("Wall mounting is likely.");
     expect(markup).toContain("Plan Review");
     expect(markup).toContain("Review: Blocked");
@@ -390,6 +420,32 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("No generated plan yet");
     expect(markup).toContain("Generate a plan to see Boardsmith&#x27;s review checks.");
     expect(markup).not.toContain("Blocking issues");
+  });
+
+  it("keeps notes and build log useful when no plan or saved record details exist", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      notes: "",
+      build_completed: false,
+      build_completed_at: "",
+      build_actual_material: "",
+      build_plan_changes: "",
+      build_lessons_learned: "",
+    });
+    listGeneratedPlansMock.mockResolvedValue([]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("No generated plan yet");
+    expect(markup).toContain("No project notes saved yet.");
+    expect(markup).toContain("Build log has not been filled out yet.");
+    expect(markup).toContain("Add build notes after you cut, assemble, test-fit, or decide not to build.");
   });
 
   it("shows calm blocked-generation feedback with safety-specific next steps", async () => {
