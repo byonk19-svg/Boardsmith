@@ -16,6 +16,7 @@ import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
 import { GeneratePlanForm } from "./GeneratePlanForm";
+import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -933,6 +934,10 @@ function PlanView({
               Boardsmith cannot verify engineering, load capacity, wall safety, child safety, material condition, or tool setup.
             </p>
           </div>
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Planning diagrams">
+          <PlanningDiagramsSection diagrams={manifest.planningDiagrams.diagrams} fallbackMessage={manifest.planningDiagrams.fallbackMessage} />
         </PlanSheetSection>
 
         <PlanSheetSection title="Materials to verify">

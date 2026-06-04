@@ -235,6 +235,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Latest generated plan");
     expect(markup).toContain("Plan at a glance");
     expect(markup).toContain("Overview / Summary");
+    expect(markup).toContain("Planning diagrams");
+    expect(markup).toContain("Planning diagram — not to scale");
+    expect(markup).toContain("Shelf board overview");
     expect(markup).toContain("Planning aid");
     expect(markup).toContain("Review before building");
     expect(markup).toContain("Materials to verify");

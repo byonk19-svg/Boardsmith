@@ -8,6 +8,7 @@ import type { Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
+import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +61,13 @@ export default async function ProjectPrintPreviewPage({
           </dl>
         </header>
 
+        <PrintBeforeBuild manifest={manifest} />
+
         <PrintReviewStrip manifest={manifest} />
+
+        <PrintSection title="Planning diagrams">
+          <PlanningDiagramsSection diagrams={manifest.planningDiagrams.diagrams} fallbackMessage={manifest.planningDiagrams.fallbackMessage} />
+        </PrintSection>
 
         <PrintSection title="Materials">
           <PrintList title="Primary materials" items={manifest.materials.primaryMaterials.map((item) => `${item.label}: ${item.detail}${item.notes.length > 0 ? ` - ${item.notes.join(" ")}` : ""}`)} />
@@ -81,6 +88,7 @@ export default async function ProjectPrintPreviewPage({
                 <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                   <thead>
                     <tr className="border-b border-sawdust text-xs uppercase tracking-wide text-ink/55">
+                      <th className="py-2 pr-3">Cut?</th>
                       <th className="py-2 pr-3">Piece</th>
                       <th className="py-2 pr-3">Qty</th>
                       <th className="py-2 pr-3">Dimensions</th>
@@ -91,6 +99,9 @@ export default async function ProjectPrintPreviewPage({
                   <tbody className="divide-y divide-sawdust">
                     {manifest.cutList.items.map((item) => (
                       <tr key={item.id}>
+                        <td className="py-3 pr-3 text-ink/70">
+                          <span aria-hidden="true" className="inline-block h-4 w-4 border border-ink/40" />
+                        </td>
                         <td className="py-3 pr-3 font-semibold text-ink">{item.label}</td>
                         <td className="py-3 pr-3 text-ink/70">{item.quantityLabel}</td>
                         <td className="py-3 pr-3 text-ink/70">{item.dimensionsLabel}</td>
@@ -159,6 +170,37 @@ function PrintPreviewEmptyState({ project }: { project: Project }) {
       <h1 className="mt-4 text-2xl font-semibold tracking-tight text-ink">No generated plan to print yet</h1>
       <p className="mt-3 text-sm leading-6 text-ink/65">Generate and validate a plan before using browser print preview.</p>
     </main>
+  );
+}
+
+function PrintBeforeBuild({ manifest }: { manifest: PrintablePlanManifest }) {
+  const primaryMaterial = manifest.materials.primaryMaterials.at(0);
+  const cutListFact = manifest.cutList
+    ? `${manifest.cutList.totalPieces.toString()} rows / ${manifest.cutList.piecesNeedingReview.toString()} need review`
+    : "Generate a plan to review";
+  const tools = manifest.sections.tools.length > 0 ? manifest.sections.tools : manifest.project.intake.tools;
+  const reminders = [
+    ...manifest.sections.safetyFlags.map((flag) => flag.message),
+    ...manifest.sections.safetyNotes,
+    ...manifest.disclaimers,
+  ].slice(0, 5);
+
+  return (
+    <section className="break-inside-avoid rounded-md border border-sawdust p-5 print:break-inside-avoid">
+      <h2 className="text-xl font-semibold tracking-tight text-ink">Before you build</h2>
+      <p className="mt-2 text-sm leading-6 text-ink/65">
+        Quick facts for checking the plan before you measure, cut, fasten, finish, or mount anything.
+      </p>
+      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+        <PrintFact label="Overall dimensions" value={manifest.project.intake.dimensions} />
+        <PrintFact label="Main material" value={primaryMaterial ? `${primaryMaterial.label}: ${primaryMaterial.detail}` : manifest.project.intake.material} />
+        <PrintFact label="Pieces" value={manifest.buildModel.pieceCount.toString()} />
+        <PrintFact label="Cut list" value={cutListFact} />
+        <PrintFact label="Primary tools" value={tools.length > 0 ? tools.slice(0, 4).join(", ") : "Review tools before building"} />
+        <PrintFact label="Review flags" value={manifest.sections.safetyFlags.length.toString()} />
+      </dl>
+      <PrintList title="Key safety and review reminders" items={reminders} emptyCopy="Review the full plan before building." />
+    </section>
   );
 }
 

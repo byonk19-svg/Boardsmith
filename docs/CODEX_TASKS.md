@@ -434,9 +434,18 @@
 - [x] Keep SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, and auth-provider work out of scope.
 - [x] Keep the pass docs-only with no routes, buttons, downloads, packages, migrations, Supabase cloud changes, OpenAI changes, export implementation, runtime data, deployment, or hosted URL changes.
 
+## Task 56A - Browser Print Preview Polish + Planning Diagram Foundation
+
+- [x] Add a beginner-friendly print-preview `Before you build` summary using existing manifest/build-model facts.
+- [x] Add deterministic browser-rendered planning diagram data for shelf boards, book ledges, planter boxes, and connection summaries.
+- [x] Render `Planning diagrams` on project detail generated plan sheets and browser print preview pages.
+- [x] Keep every diagram section labeled `Planning diagram — not to scale.` with fallback copy for unsupported project shapes.
+- [x] Make the print-preview cut list checklist-friendly with a blank `Cut?` column.
+- [x] Keep the pass browser-rendered only with no data-model changes, schema migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, downloads, PDF, SVG export, DXF, CAD, CNC, sharing, shopping, pricing, vendor, inventory, marketplace, payments, or subscriptions.
+
 ## Recommended Next Tasks
 
-1. [ ] Small print preview polish if manual browser printing reveals layout or copy issues.
+1. [ ] Continue small trust-building polish only if manual dogfood reveals a concrete beginner comprehension issue.
 
 ## Remaining Hardening
 

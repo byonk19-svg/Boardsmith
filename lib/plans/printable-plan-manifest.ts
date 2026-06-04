@@ -2,6 +2,7 @@ import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema"
 import { summarizeCutListReview, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
 import { summarizeExportReadiness, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
 import { summarizeMaterialReview, type MaterialReviewSummary } from "@/lib/plans/material-summary";
+import { createPlanDiagrams, type PlanningDiagramSummary } from "@/lib/plans/plan-diagrams";
 import { summarizeGeneratedPlanReview, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/types";
@@ -55,6 +56,7 @@ export type PrintablePlanManifest = {
   };
   materials: MaterialReviewSummary;
   cutList: CutListReviewSummary | null;
+  planningDiagrams: PlanningDiagramSummary;
   planReview: GeneratedPlanReviewSummary | null;
   exportReadiness: ExportReadinessSummary | null;
   sections: {
@@ -181,6 +183,7 @@ export function createPrintablePlanManifest({
     },
     materials: summarizeMaterialReview(plan, buildModel),
     cutList: plan ? summarizeCutListReview(plan, buildModel) : null,
+    planningDiagrams: createPlanDiagrams(buildModel),
     planReview,
     exportReadiness,
     sections: planSections(plan, buildModel),

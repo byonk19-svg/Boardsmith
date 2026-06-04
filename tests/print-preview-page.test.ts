@@ -1,7 +1,8 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
+import { doorHangerBuildModelFixture, simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
+import { createBuildModelDraft, type BuildModelDraftProject } from "@/lib/build-model/create-build-model-draft";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
 import { emptyProjectBuildLog } from "./project-test-helpers";
@@ -109,6 +110,23 @@ const planRecord: GeneratedProjectPlanRecord = {
   is_latest: true,
 };
 
+function buildDraftProject(overrides: Partial<BuildModelDraftProject> = {}): BuildModelDraftProject {
+  return {
+    id: overrides.id ?? "draft_diagram_project",
+    title: overrides.title ?? "Draft diagram project",
+    project_type: overrides.project_type ?? "simple_shelf",
+    skill_level: overrides.skill_level ?? "beginner",
+    width_inches: overrides.width_inches ?? 36,
+    height_inches: overrides.height_inches ?? 6,
+    depth_inches: overrides.depth_inches ?? 10,
+    material_thickness_inches: overrides.material_thickness_inches ?? 0.75,
+    material_type: overrides.material_type ?? "pine board",
+    tools_available: overrides.tools_available ?? ["tape_measure", "pencil", "drill"],
+    style_notes: overrides.style_notes ?? "",
+    intended_use: overrides.intended_use ?? "Planning aid project.",
+  };
+}
+
 describe("ProjectPrintPreviewPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -130,14 +148,126 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Review all dimensions, materials, and safety notes before building.");
     expect(markup).toContain("Plan Review");
     expect(markup).toContain("Export Readiness");
+    expect(markup).toContain("Before you build");
+    expect(markup).toContain("Overall dimensions");
+    expect(markup).toContain("Main material");
+    expect(markup).toContain("Primary tools");
+    expect(markup).toContain("Planning diagrams");
+    expect(markup).toContain("Planning diagram — not to scale");
+    expect(markup).toContain("Shelf board overview");
     expect(markup).toContain("Materials");
     expect(markup).toContain("Cut List Review");
+    expect(markup).toContain("Cut?");
     expect(markup).toContain("Operations and Build Steps");
     expect(markup).toContain("Planning-aid disclaimers");
     expect(markup).toContain("Future export notes");
     expect(markup).toContain("No export, CAD, CNC, PDF, SVG, or DXF output is generated here.");
     expect(markup).toContain('href="/projects/print_preview_project"');
     expect(markup).toContain("Back to project");
+  });
+
+  it("renders book ledge planning diagram labels when supported pieces exist", async () => {
+    const bookLedgeProject: Project = {
+      ...project,
+      title: "Toddler book ledge",
+      style_notes: "Simple book ledge with bottom shelf board, back rail, and front lip.",
+      intended_use: "Book ledge for child-adjacent room with adult review.",
+    };
+    const buildModel = createBuildModelDraft(buildDraftProject(bookLedgeProject));
+    getProjectMock.mockResolvedValue(bookLedgeProject);
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        build_model_json: buildModel,
+        plan_json: {
+          ...planRecord.plan_json,
+          project_summary: "A cautious book ledge plan with adult review before building.",
+        },
+      },
+    ]);
+    const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectPrintPreviewPage({
+        params: Promise.resolve({ id: project.id }),
+      }),
+    );
+
+    expect(markup).toContain("Book ledge overview");
+    expect(markup).toContain("Bottom shelf board");
+    expect(markup).toContain("Back rail");
+    expect(markup).toContain("Front lip");
+  });
+
+  it("renders planter box planning diagram labels when supported pieces exist", async () => {
+    const planterProject: Project = {
+      ...project,
+      title: "Outdoor planter box",
+      project_type: "planter_box",
+      height_inches: 8,
+      depth_inches: 8,
+      material_type: "cedar board",
+      intended_use: "Outdoor herb planter box.",
+    };
+    const buildModel = createBuildModelDraft(buildDraftProject(planterProject));
+    getProjectMock.mockResolvedValue(planterProject);
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        build_model_json: buildModel,
+        plan_json: {
+          ...planRecord.plan_json,
+          project_type: "planter_box",
+          project_summary: "A cautious planter box plan with drainage and outdoor exposure review.",
+        },
+      },
+    ]);
+    const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectPrintPreviewPage({
+        params: Promise.resolve({ id: project.id }),
+      }),
+    );
+
+    expect(markup).toContain("Planter box overview");
+    expect(markup).toContain("Front panel");
+    expect(markup).toContain("Back panel");
+    expect(markup).toContain("Bottom panel");
+  });
+
+  it("renders the planning diagram fallback for unsupported project shapes", async () => {
+    const doorHangerProject: Project = {
+      ...project,
+      title: "Round door hanger",
+      project_type: "door_hanger",
+      depth_inches: 0,
+      material_thickness_inches: 0.25,
+      material_type: "plywood",
+      intended_use: "Indoor seasonal door decoration.",
+    };
+    getProjectMock.mockResolvedValue(doorHangerProject);
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        build_model_json: doorHangerBuildModelFixture,
+        plan_json: {
+          ...planRecord.plan_json,
+          project_type: "door_hanger",
+          project_summary: "A cautious door hanger plan.",
+        },
+      },
+    ]);
+    const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectPrintPreviewPage({
+        params: Promise.resolve({ id: project.id }),
+      }),
+    );
+
+    expect(markup).toContain("Planning diagrams");
+    expect(markup).toContain("No diagram available yet. Review the cut list and build steps before building.");
   });
 
   it("shows a calm print-preview empty state when no generated plan exists", async () => {
