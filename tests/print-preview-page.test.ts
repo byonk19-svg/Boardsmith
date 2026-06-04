@@ -155,6 +155,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Planning diagrams");
     expect(markup).toContain("Planning diagram — not to scale");
     expect(markup).toContain("Shelf board overview");
+    expect(markup.split("Planning diagram — not to scale").length - 1).toBe(1);
     expect(markup).toContain("Materials");
     expect(markup).toContain("Cut List Review");
     expect(markup).toContain("Cut?");

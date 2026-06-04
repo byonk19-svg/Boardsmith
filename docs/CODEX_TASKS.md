@@ -443,6 +443,15 @@
 - [x] Make the print-preview cut list checklist-friendly with a blank `Cut?` column.
 - [x] Keep the pass browser-rendered only with no data-model changes, schema migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, downloads, PDF, SVG export, DXF, CAD, CNC, sharing, shopping, pricing, vendor, inventory, marketplace, payments, or subscriptions.
 
+## Task 56B - Planning Diagram Dogfood Pass
+
+- [x] Dogfood simple shelf, book ledge, planter box, and door-hanger fallback project routes using a temporary local data file.
+- [x] Confirm project detail and print-preview routes render `Planning diagrams` and `Planning diagram — not to scale.` where expected.
+- [x] Confirm print preview renders the `Before you build` summary and checklist-style `Cut?` cut-list column.
+- [x] Confirm unsupported door-hanger-style plans fall back calmly without inventing a diagram.
+- [x] Tighten diagram-card print spacing by keeping the not-to-scale warning at the section level instead of repeating it in every card.
+- [x] Confirm rendered dogfood routes do not add downloads, app-generated PDF, SVG export, DXF, CAD, CNC, fabrication-ready claims, load ratings, wall-safety guarantees, structural approval, schema changes, migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, package changes, new project types, sharing, shopping, pricing, vendor, inventory, marketplace, payments, or subscriptions.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue small trust-building polish only if manual dogfood reveals a concrete beginner comprehension issue.

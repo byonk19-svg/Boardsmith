@@ -25,10 +25,7 @@ export function PlanningDiagramsSection({ diagrams, fallbackMessage }: { diagram
 function PlanningDiagramCard({ diagram }: { diagram: PlanningDiagram }) {
   return (
     <div className="rounded-md border border-sawdust p-4 print:break-inside-avoid">
-      <div className="flex flex-col gap-1">
-        <h4 className="text-sm font-semibold text-ink">{diagram.title}</h4>
-        <p className="text-xs font-medium text-ink/55">{diagram.disclaimer}</p>
-      </div>
+      <h4 className="text-sm font-semibold text-ink">{diagram.title}</h4>
       <PlanningDiagramGraphic diagram={diagram} />
       {diagram.type === "connection_summary" ? (
         <ul className="mt-3 space-y-2">
@@ -135,9 +132,9 @@ function ConnectionMarks({ count }: { count: number }) {
   return (
     <>
       {Array.from({ length: shown }).map((_, index) => (
-        <circle key={index} cx={96 + index * 52} cy="34" r="7" fill="#f4c430" stroke="#7a5b2e" />
+        <circle key={index} cx={102 + index * 48} cy="36" r="7" fill="#f4c430" stroke="#7a5b2e" />
       ))}
-      <text x="180" y="38" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+      <text x="180" y="54" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
         connection review points
       </text>
     </>
