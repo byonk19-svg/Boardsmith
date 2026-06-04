@@ -426,10 +426,17 @@
 - [x] Keep the checkpoint private-only and planning-aid only.
 - [x] Keep the pass limited to docs/git with no app behavior beyond the already verified project-list filtering slice, no deployment, migration, package, cloud schema, OpenAI, export/CAD, auth-provider, public sharing, shopping/pricing/vendor, secret, hosted URL, screenshot, or runtime-data changes.
 
+## Task 58A - Export Boundary Decision Refresh
+
+- [x] Revisit export architecture notes as a decision document, not implementation.
+- [x] Record that `private-mvp-0.2` stays with browser print preview as the supported MVP output path.
+- [x] Keep app-generated PDF gated behind explicit output-need and renderer-dependency approval.
+- [x] Keep SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, and auth-provider work out of scope.
+- [x] Keep the pass docs-only with no routes, buttons, downloads, packages, migrations, Supabase cloud changes, OpenAI changes, export implementation, runtime data, deployment, or hosted URL changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Small print preview polish if manual browser printing reveals layout or copy issues.
-2. [ ] Revisit export architecture notes only as a decision document, not implementation.
 
 ## Remaining Hardening
 

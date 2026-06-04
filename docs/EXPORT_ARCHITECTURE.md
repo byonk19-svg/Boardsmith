@@ -6,6 +6,8 @@ Boardsmith currently has browser print preview at `/projects/[id]/print`. The pr
 
 Boardsmith does not currently generate app-owned PDF, SVG, DXF, CAD, CNC, download, fabrication, shopping, pricing, vendor, or inventory output.
 
+Current private MVP decision after `private-mvp-0.2`: stay with browser print preview. No app-generated PDF, export route, download button, PDF renderer dependency, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, or auth-provider work is approved.
+
 ## Decision
 
 Future export work should consume the printable plan manifest. It should not scrape rendered page UI, parse HTML, or duplicate page-rendering derivation logic.
@@ -21,9 +23,11 @@ The manifest is the boundary between planning data and future output formats. UI
 
 ## Recommended First Export Implementation
 
-The first intentional export implementation should be a narrow app-generated PDF spike only after approval. It should be read-only, use existing manifest data, include safety and planning-aid disclaimers, and avoid changing the generated plan schema unless a real data gap is proven.
+The first intentional export implementation, if later approved, should be a narrow app-generated PDF spike. It should be read-only, use existing manifest data, include safety and planning-aid disclaimers, and avoid changing the generated plan schema unless a real data gap is proven.
 
 Use [docs/PDF_EXPORT_SPIKE_PLAN.md](PDF_EXPORT_SPIKE_PLAN.md) before implementation. That plan keeps browser print as the current MVP path and requires separate approval before adding a server-side PDF renderer dependency.
+
+This approval has not been given for the current private MVP. Browser print preview remains the supported output path.
 
 The first PDF spike should answer:
 
@@ -189,8 +193,8 @@ When actual export is intentionally added:
 
 ## Recommended Next Task Order
 
-1. Decide whether to stay with browser print, approve a server-side HTML-to-PDF dependency spike, or defer PDF.
-2. If approved, implement the narrow PDF spike from `docs/PDF_EXPORT_SPIKE_PLAN.md`.
-3. Or polish print preview if manual use reveals issues.
+1. Stay with browser print for the private MVP.
+2. Polish `/projects/[id]/print` only if manual browser printing reveals layout or copy issues.
+3. Revisit app-generated PDF only after explicit approval of the output need and renderer dependency.
 4. Later SVG research note.
 5. Much later DXF/CAD/CNC research.

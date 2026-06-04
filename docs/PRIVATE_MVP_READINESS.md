@@ -45,7 +45,7 @@ Current guardrails remain unchanged:
 Recommended next directions:
 
 1. Small print preview polish if manual browser printing reveals layout or copy issues.
-2. Revisit export architecture notes only as a decision document, not implementation.
+2. Revisit app-generated PDF only after explicit approval of the output need and renderer dependency.
 
 ## What Works Now
 
@@ -66,6 +66,7 @@ Recommended next directions:
 - Cut List Review for missing dimensions, vague pieces, quantity issues, and duplicate-looking pieces.
 - Manifest-backed Printable Plan Sheet on the project detail page.
 - Browser print preview at `/projects/[id]/print`.
+- Export architecture decision remains browser-print-first for the private MVP; app-generated PDF is not approved.
 - Duplicate project action that copies intake details without generated plans, notes, history, or build log.
 - Project notes.
 - Build log fields for completion status, completion date, actual material, plan changes, and lessons learned.
@@ -158,4 +159,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config or deployment change. The best next product candidate is print preview polish if manual printing reveals issues. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, or auth-provider work without an explicit task.
+Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config or deployment change. The best next product candidate is print preview polish if manual printing reveals issues. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.

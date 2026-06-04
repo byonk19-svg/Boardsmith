@@ -213,7 +213,9 @@ If a real binary PDF is generated:
 
 ## Next Decision
 
-Before implementation, explicitly decide one of these:
+Current decision after `private-mvp-0.2`: stay with browser print for the MVP and do not add app-generated PDF.
+
+Before any future implementation, explicitly decide one of these:
 
 1. Stay with browser print for the MVP and polish `/projects/[id]/print` only if manual use reveals issues.
 2. Approve a narrow server-side HTML-to-PDF spike and approve the specific renderer dependency.
