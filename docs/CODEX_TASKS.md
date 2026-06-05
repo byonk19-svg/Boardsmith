@@ -462,6 +462,15 @@
 - [x] Keep `Planning diagram — not to scale.` visible at the section level and preserve no-export/no-CAD/no-CNC/no-load-rating safety boundaries.
 - [x] Keep the pass limited to UI/copy/helper/test/docs using existing data only, with no schema migrations, Supabase/cloud changes, OpenAI changes, package changes, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, new project types, sharing, shopping, pricing, vendor, or inventory work.
 
+## Task 57B - Connection Diagram Dogfood Pass
+
+- [x] Dogfood simple shelf, book ledge, planter box, and wood-sign fallback routes using a temporary local data file.
+- [x] Confirm `How pieces connect`, `Connection planning aid`, `Needs manual review`, `Verify before building`, and section-level `Planning diagram — not to scale.` render where expected.
+- [x] Confirm supported no-connection fallback remains available for supported diagrams with missing connection data.
+- [x] Polish relationship copy to read `source piece → connection type with hardware → target piece`.
+- [x] Make the connection card more print-friendly by spanning the diagram grid, using a compact marker-only SVG, and laying connection rows out in columns on wider screens.
+- [x] Confirm dogfood routes avoid CAD-ready, CNC-ready, fabrication-ready, construction-approval, structural-approval, child-safety-approval, load-rating, download, export, schema, migration, Supabase/cloud, OpenAI, package, new-project-type, shopping, pricing, vendor, and inventory scope.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue small trust-building polish only if manual dogfood reveals a concrete beginner comprehension issue.

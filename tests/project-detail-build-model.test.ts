@@ -239,7 +239,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Planning diagram — not to scale");
     expect(markup).toContain("Shelf board overview");
     expect(markup).toContain("How pieces connect");
-    expect(markup).toContain("Shelf board → bracket / Wall brackets, Wall anchors or stud fasteners → Shelf board");
+    expect(markup).toContain("Shelf board → bracket with Wall brackets, Wall anchors or stud fasteners → Shelf board");
     expect(markup).toContain("Needs manual review");
     expect(markup).toContain("Planning aid");
     expect(markup).toContain("Review before building");

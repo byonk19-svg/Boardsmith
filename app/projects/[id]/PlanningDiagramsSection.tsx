@@ -23,8 +23,13 @@ export function PlanningDiagramsSection({ diagrams, fallbackMessage }: { diagram
 }
 
 function PlanningDiagramCard({ diagram }: { diagram: PlanningDiagram }) {
+  const cardClass =
+    diagram.type === "connection_summary"
+      ? "rounded-md border border-sawdust p-4 print:break-inside-avoid lg:col-span-2"
+      : "rounded-md border border-sawdust p-4 print:break-inside-avoid";
+
   return (
-    <div className="rounded-md border border-sawdust p-4 print:break-inside-avoid">
+    <div className={cardClass}>
       <h4 className="text-sm font-semibold text-ink">{diagram.title}</h4>
       <PlanningDiagramGraphic diagram={diagram} />
       {diagram.type === "connection_summary" ? (
@@ -50,7 +55,7 @@ function ConnectionSummary({ diagram }: { diagram: PlanningDiagram }) {
   return (
     <div className="mt-3 space-y-3">
       <p className="text-xs font-medium leading-5 text-ink/65">Connection planning aid. Verify hardware and fasteners before building.</p>
-      <ol className="space-y-2">
+      <ol className="grid gap-2 lg:grid-cols-3">
         {diagram.connections.map((connection, index) => (
           <li key={connection.id} className="rounded-md border border-sawdust p-3 text-xs leading-5 text-ink/70">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -72,13 +77,20 @@ function ConnectionSummary({ diagram }: { diagram: PlanningDiagram }) {
 
 function PlanningDiagramGraphic({ diagram }: { diagram: PlanningDiagram }) {
   const pieces = diagram.pieces.slice(0, 6);
+  const heightClass = diagram.type === "connection_summary" ? "h-28" : "h-44";
+
   return (
-    <svg className="mt-4 h-44 w-full rounded-md bg-shop" viewBox="0 0 360 170" role="img" aria-label={diagram.label}>
+    <svg className={`mt-4 w-full rounded-md bg-shop ${heightClass}`} viewBox="0 0 360 170" role="img" aria-label={diagram.label}>
       <rect x="16" y="18" width="328" height="134" rx="6" fill="#fffaf0" stroke="#d7c7a1" />
-      {diagram.kind === "simple_shelf" ? <ShelfBoardSvg pieces={pieces} /> : null}
-      {diagram.kind === "book_ledge" ? <BookLedgeSvg pieces={pieces} /> : null}
-      {diagram.kind === "planter_box" ? <PlanterBoxSvg pieces={pieces} /> : null}
-      {diagram.type === "connection_summary" ? <ConnectionMarks count={diagram.connections.length} /> : null}
+      {diagram.type === "connection_summary" ? (
+        <ConnectionMarks count={diagram.connections.length} />
+      ) : (
+        <>
+          {diagram.kind === "simple_shelf" ? <ShelfBoardSvg pieces={pieces} /> : null}
+          {diagram.kind === "book_ledge" ? <BookLedgeSvg pieces={pieces} /> : null}
+          {diagram.kind === "planter_box" ? <PlanterBoxSvg pieces={pieces} /> : null}
+        </>
+      )}
     </svg>
   );
 }

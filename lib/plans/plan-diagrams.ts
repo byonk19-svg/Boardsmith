@@ -114,7 +114,7 @@ function mapConnections(model: BoardsmithBuildModel, pieceById: Map<string, Buil
         toLabel: toPiece.label,
         connectionLabel,
         hardwareLabel,
-        relationshipLabel: `${fromPiece.label} → ${connectionLabel} / ${hardwareLabel} → ${toPiece.label}`,
+        relationshipLabel: `${fromPiece.label} → ${connectionLabel} with ${hardwareLabel} → ${toPiece.label}`,
         location: connection.locationDescription,
         needsReview: connection.strengthCritical || connection.safetyNotes.length > 0,
         reviewLabel,

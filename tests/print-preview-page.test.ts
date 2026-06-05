@@ -198,8 +198,8 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("How pieces connect");
     expect(markup).toContain("Connection planning aid");
     expect(markup).toContain("Verify hardware and fasteners before building.");
-    expect(markup).toContain("Front lip → screw / Wood screws → Bottom shelf board");
-    expect(markup).toContain("Back rail → screw / Wood screws → Bottom shelf board");
+    expect(markup).toContain("Front lip → screw with Wood screws → Bottom shelf board");
+    expect(markup).toContain("Back rail → screw with Wood screws → Bottom shelf board");
     expect(markup).toContain("Needs manual review");
     expect(markup).toContain("Bottom shelf board");
     expect(markup).toContain("Back rail");
@@ -239,8 +239,8 @@ describe("ProjectPrintPreviewPage", () => {
 
     expect(markup).toContain("Planter box overview");
     expect(markup).toContain("How pieces connect");
-    expect(markup).toContain("Front panel → screw / Outdoor-rated screws → Bottom panel");
-    expect(markup).toContain("Back panel → screw / Outdoor-rated screws → Bottom panel");
+    expect(markup).toContain("Front panel → screw with Outdoor-rated screws → Bottom panel");
+    expect(markup).toContain("Back panel → screw with Outdoor-rated screws → Bottom panel");
     expect(markup).toContain("Verify before building");
     expect(markup).toContain("Front panel");
     expect(markup).toContain("Back panel");

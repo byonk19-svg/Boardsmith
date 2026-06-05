@@ -82,7 +82,7 @@ describe("createPlanDiagrams", () => {
       toLabel: "Shelf board",
       connectionLabel: "bracket",
       hardwareLabel: "Wall brackets, Wall anchors or stud fasteners",
-      relationshipLabel: "Shelf board → bracket / Wall brackets, Wall anchors or stud fasteners → Shelf board",
+      relationshipLabel: "Shelf board → bracket with Wall brackets, Wall anchors or stud fasteners → Shelf board",
       location: "Under shelf board at wall mounting points",
       needsReview: true,
       reviewLabel: "Needs manual review",
