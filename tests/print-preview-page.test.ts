@@ -195,6 +195,12 @@ describe("ProjectPrintPreviewPage", () => {
     );
 
     expect(markup).toContain("Book ledge overview");
+    expect(markup).toContain("How pieces connect");
+    expect(markup).toContain("Connection planning aid");
+    expect(markup).toContain("Verify hardware and fasteners before building.");
+    expect(markup).toContain("Front lip → screw / Wood screws → Bottom shelf board");
+    expect(markup).toContain("Back rail → screw / Wood screws → Bottom shelf board");
+    expect(markup).toContain("Needs manual review");
     expect(markup).toContain("Bottom shelf board");
     expect(markup).toContain("Back rail");
     expect(markup).toContain("Front lip");
@@ -232,9 +238,37 @@ describe("ProjectPrintPreviewPage", () => {
     );
 
     expect(markup).toContain("Planter box overview");
+    expect(markup).toContain("How pieces connect");
+    expect(markup).toContain("Front panel → screw / Outdoor-rated screws → Bottom panel");
+    expect(markup).toContain("Back panel → screw / Outdoor-rated screws → Bottom panel");
+    expect(markup).toContain("Verify before building");
     expect(markup).toContain("Front panel");
     expect(markup).toContain("Back panel");
     expect(markup).toContain("Bottom panel");
+  });
+
+  it("renders a connection fallback when a supported project has no modeled connections", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        build_model_json: {
+          ...simpleShelfBuildModelFixture,
+          connections: [],
+        },
+      },
+    ]);
+    const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectPrintPreviewPage({
+        params: Promise.resolve({ id: project.id }),
+      }),
+    );
+
+    expect(markup).toContain("How pieces connect");
+    expect(markup).toContain("No modeled connections available yet. Review the build steps before assembling.");
+    expect(markup.split("Planning diagram — not to scale").length - 1).toBe(1);
   });
 
   it("renders the planning diagram fallback for unsupported project shapes", async () => {
@@ -269,6 +303,10 @@ describe("ProjectPrintPreviewPage", () => {
 
     expect(markup).toContain("Planning diagrams");
     expect(markup).toContain("No diagram available yet. Review the cut list and build steps before building.");
+    expect(markup).not.toContain("Download");
+    expect(markup).not.toContain("CAD-ready");
+    expect(markup).not.toContain("CNC-ready");
+    expect(markup).not.toContain("construction approval");
   });
 
   it("shows a calm print-preview empty state when no generated plan exists", async () => {

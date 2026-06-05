@@ -1,6 +1,6 @@
 import { doorHangerBuildModelFixture, simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import { createBuildModelDraft, type BuildModelDraftProject } from "@/lib/build-model/create-build-model-draft";
-import { createPlanDiagrams, planningDiagramDisclaimer, planningDiagramFallback } from "@/lib/plans/plan-diagrams";
+import { connectionDiagramFallback, createPlanDiagrams, planningDiagramDisclaimer, planningDiagramFallback } from "@/lib/plans/plan-diagrams";
 import { describe, expect, it } from "vitest";
 
 const baseProject: BuildModelDraftProject = {
@@ -26,7 +26,7 @@ describe("createPlanDiagrams", () => {
     expect(summary.diagrams.map((diagram) => diagram.title)).toEqual([
       "Shelf board overview",
       "Shelf board piece relationship",
-      "Connection summary diagram",
+      "How pieces connect",
     ]);
     expect(summary.diagrams[0]?.disclaimer).toBe(planningDiagramDisclaimer);
     expect(summary.diagrams[0]?.pieces[0]).toMatchObject({
@@ -71,20 +71,34 @@ describe("createPlanDiagrams", () => {
     );
   });
 
-  it("returns a connection summary only when usable connection data exists", () => {
+  it("maps modeled connection relationships with hardware, location, review wording, and concise safety notes", () => {
     const withConnections = createPlanDiagrams(simpleShelfBuildModelFixture);
+    const connectionDiagram = withConnections.diagrams.find((diagram) => diagram.type === "connection_summary");
+
+    expect(connectionDiagram?.title).toBe("How pieces connect");
+    expect(connectionDiagram?.label).toBe("Connection planning aid");
+    expect(connectionDiagram?.connections[0]).toMatchObject({
+      fromLabel: "Shelf board",
+      toLabel: "Shelf board",
+      connectionLabel: "bracket",
+      hardwareLabel: "Wall brackets, Wall anchors or stud fasteners",
+      relationshipLabel: "Shelf board → bracket / Wall brackets, Wall anchors or stud fasteners → Shelf board",
+      location: "Under shelf board at wall mounting points",
+      needsReview: true,
+      reviewLabel: "Needs manual review",
+      safetyNote: "Boardsmith cannot verify load capacity or wall mounting safety.",
+    });
+  });
+
+  it("keeps a connection summary fallback when supported diagrams have no modeled connections", () => {
     const withoutConnections = createPlanDiagrams({
       ...simpleShelfBuildModelFixture,
       connections: [],
     });
+    const connectionDiagram = withoutConnections.diagrams.find((diagram) => diagram.type === "connection_summary");
 
-    expect(withConnections.diagrams.map((diagram) => diagram.type)).toContain("connection_summary");
-    expect(withConnections.diagrams.find((diagram) => diagram.type === "connection_summary")?.connections[0]).toMatchObject({
-      fromLabel: "Shelf board",
-      toLabel: "Shelf board",
-      needsReview: true,
-    });
-    expect(withoutConnections.diagrams.map((diagram) => diagram.type)).not.toContain("connection_summary");
+    expect(connectionDiagram?.connections).toEqual([]);
+    expect(connectionDiagram?.emptyMessage).toBe(connectionDiagramFallback);
   });
 
   it("falls back for unsupported model shapes without inventing a diagram", () => {

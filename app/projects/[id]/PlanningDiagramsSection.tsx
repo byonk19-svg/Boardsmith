@@ -28,17 +28,7 @@ function PlanningDiagramCard({ diagram }: { diagram: PlanningDiagram }) {
       <h4 className="text-sm font-semibold text-ink">{diagram.title}</h4>
       <PlanningDiagramGraphic diagram={diagram} />
       {diagram.type === "connection_summary" ? (
-        <ul className="mt-3 space-y-2">
-          {diagram.connections.map((connection) => (
-            <li key={connection.id} className="text-xs leading-5 text-ink/70">
-              <span className="font-semibold text-ink">
-                {connection.fromLabel} to {connection.toLabel}
-              </span>
-              : {connection.connectionLabel} at {connection.location}
-              {connection.needsReview ? " - review before building" : ""}
-            </li>
-          ))}
-        </ul>
+        <ConnectionSummary diagram={diagram} />
       ) : (
         <ul className="mt-3 space-y-2">
           {diagram.pieces.slice(0, 6).map((piece) => (
@@ -48,6 +38,34 @@ function PlanningDiagramCard({ diagram }: { diagram: PlanningDiagram }) {
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+function ConnectionSummary({ diagram }: { diagram: PlanningDiagram }) {
+  if (diagram.connections.length === 0) {
+    return <p className="mt-3 rounded-md bg-shop p-3 text-xs leading-5 text-ink/70">{diagram.emptyMessage}</p>;
+  }
+
+  return (
+    <div className="mt-3 space-y-3">
+      <p className="text-xs font-medium leading-5 text-ink/65">Connection planning aid. Verify hardware and fasteners before building.</p>
+      <ol className="space-y-2">
+        {diagram.connections.map((connection, index) => (
+          <li key={connection.id} className="rounded-md border border-sawdust p-3 text-xs leading-5 text-ink/70">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <p>
+                <span className="font-semibold text-ink">{(index + 1).toString()}. {connection.relationshipLabel}</span>
+              </p>
+              <span className={`w-fit rounded-md px-2 py-1 font-semibold ${connection.needsReview ? "bg-amber-100 text-amber-950" : "bg-shop text-ink/70"}`}>
+                {connection.reviewLabel}
+              </span>
+            </div>
+            <p className="mt-1">Location: {connection.location}</p>
+            {connection.safetyNote ? <p className="mt-1 font-medium text-caution">{connection.safetyNote}</p> : null}
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
@@ -129,13 +147,32 @@ function PlanterBoxSvg({ pieces }: { pieces: PlanningDiagram["pieces"] }) {
 
 function ConnectionMarks({ count }: { count: number }) {
   const shown = Math.min(count, 4);
+  if (shown === 0) {
+    return (
+      <text x="180" y="88" textAnchor="middle" className="fill-ink text-[12px] font-semibold">
+        no modeled connections yet
+      </text>
+    );
+  }
+
   return (
     <>
       {Array.from({ length: shown }).map((_, index) => (
-        <circle key={index} cx={102 + index * 48} cy="36" r="7" fill="#f4c430" stroke="#7a5b2e" />
+        <g key={index}>
+          <circle cx={86 + index * 62} cy="80" r="13" fill="#f4c430" stroke="#7a5b2e" />
+          <text x={86 + index * 62} y="84" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+            {(index + 1).toString()}
+          </text>
+          {index < shown - 1 ? <line x1={101 + index * 62} y1="80" x2={133 + index * 62} y2="80" stroke="#7a5b2e" strokeWidth="2" markerEnd="url(#connectionArrow)" /> : null}
+        </g>
       ))}
-      <text x="180" y="54" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
-        connection review points
+      <defs>
+        <marker id="connectionArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#7a5b2e" />
+        </marker>
+      </defs>
+      <text x="180" y="116" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+        connection planning aid
       </text>
     </>
   );

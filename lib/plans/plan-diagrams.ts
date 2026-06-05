@@ -1,7 +1,8 @@
-import type { BoardsmithBuildModel, BuildModelConnection, BuildModelPiece } from "@/lib/build-model/build-model-schema";
+import type { BoardsmithBuildModel, BuildModelPiece } from "@/lib/build-model/build-model-schema";
 
 export const planningDiagramDisclaimer = "Planning diagram — not to scale.";
 export const planningDiagramFallback = "No diagram available yet. Review the cut list and build steps before building.";
+export const connectionDiagramFallback = "No modeled connections available yet. Review the build steps before assembling.";
 
 export type PlanningDiagramKind = "simple_shelf" | "book_ledge" | "planter_box";
 export type PlanningDiagramType = "overview" | "piece_relationship" | "connection_summary";
@@ -19,8 +20,12 @@ export type PlanningDiagramConnection = {
   fromLabel: string;
   toLabel: string;
   connectionLabel: string;
+  hardwareLabel: string;
+  relationshipLabel: string;
   location: string;
   needsReview: boolean;
+  reviewLabel: "Needs manual review" | "Verify before building";
+  safetyNote: string | null;
 };
 
 export type PlanningDiagram = {
@@ -32,6 +37,7 @@ export type PlanningDiagram = {
   disclaimer: typeof planningDiagramDisclaimer;
   pieces: PlanningDiagramPiece[];
   connections: PlanningDiagramConnection[];
+  emptyMessage: typeof connectionDiagramFallback | null;
 };
 
 export type PlanningDiagramSummary = {
@@ -82,20 +88,37 @@ function mapPieces(pieces: BuildModelPiece[]): PlanningDiagramPiece[] {
   }));
 }
 
-function mapConnections(connections: BuildModelConnection[], pieceById: Map<string, BuildModelPiece>): PlanningDiagramConnection[] {
-  return connections
+function conciseSafetyNote(notes: string[]): string | null {
+  const note = notes.find((item) => item.trim().length > 0 && item.trim().length <= 140);
+  return note ?? null;
+}
+
+function mapConnections(model: BoardsmithBuildModel, pieceById: Map<string, BuildModelPiece>): PlanningDiagramConnection[] {
+  const hardwareById = new Map(model.hardware.map((hardware) => [hardware.id, hardware]));
+
+  return model.connections
     .map((connection) => {
       const fromPiece = pieceById.get(connection.fromPieceId);
       const toPiece = pieceById.get(connection.toPieceId);
       if (!fromPiece || !toPiece) return null;
+      const hardwareLabels = connection.hardwareIds
+        .map((hardwareId) => hardwareById.get(hardwareId)?.label)
+        .filter((label): label is string => Boolean(label));
+      const connectionLabel = connection.connectionType.replaceAll("_", " ");
+      const hardwareLabel = hardwareLabels.length > 0 ? hardwareLabels.join(", ") : "hardware or fastener to verify";
+      const reviewLabel = connection.strengthCritical ? "Needs manual review" : "Verify before building";
 
       return {
         id: connection.id,
         fromLabel: fromPiece.label,
         toLabel: toPiece.label,
-        connectionLabel: connection.connectionType.replaceAll("_", " "),
+        connectionLabel,
+        hardwareLabel,
+        relationshipLabel: `${fromPiece.label} → ${connectionLabel} / ${hardwareLabel} → ${toPiece.label}`,
         location: connection.locationDescription,
         needsReview: connection.strengthCritical || connection.safetyNotes.length > 0,
+        reviewLabel,
+        safetyNote: conciseSafetyNote(connection.safetyNotes),
       };
     })
     .filter((connection): connection is PlanningDiagramConnection => connection !== null);
@@ -145,7 +168,7 @@ export function createPlanDiagrams(model: BoardsmithBuildModel): PlanningDiagram
 
   const pieceById = new Map(model.pieces.map((piece) => [piece.id, piece]));
   const pieces = mapPieces(model.pieces);
-  const connections = mapConnections(model.connections, pieceById);
+  const connections = mapConnections(model, pieceById);
   const diagrams: PlanningDiagram[] = [
     {
       id: `${kind}_overview`,
@@ -156,6 +179,7 @@ export function createPlanDiagrams(model: BoardsmithBuildModel): PlanningDiagram
       disclaimer: planningDiagramDisclaimer,
       pieces,
       connections: [],
+      emptyMessage: null,
     },
     {
       id: `${kind}_piece_relationship`,
@@ -166,21 +190,21 @@ export function createPlanDiagrams(model: BoardsmithBuildModel): PlanningDiagram
       disclaimer: planningDiagramDisclaimer,
       pieces,
       connections: [],
+      emptyMessage: null,
     },
   ];
 
-  if (connections.length > 0) {
-    diagrams.push({
-      id: `${kind}_connection_summary`,
-      type: "connection_summary",
-      kind,
-      title: "Connection summary diagram",
-      label: "Connection review diagram",
-      disclaimer: planningDiagramDisclaimer,
-      pieces,
-      connections,
-    });
-  }
+  diagrams.push({
+    id: `${kind}_connection_summary`,
+    type: "connection_summary",
+    kind,
+    title: "How pieces connect",
+    label: "Connection planning aid",
+    disclaimer: planningDiagramDisclaimer,
+    pieces,
+    connections,
+    emptyMessage: connectionDiagramFallback,
+  });
 
   return { diagrams, fallbackMessage: planningDiagramFallback };
 }

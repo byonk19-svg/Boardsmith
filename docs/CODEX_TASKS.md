@@ -452,6 +452,16 @@
 - [x] Tighten diagram-card print spacing by keeping the not-to-scale warning at the section level instead of repeating it in every card.
 - [x] Confirm rendered dogfood routes do not add downloads, app-generated PDF, SVG export, DXF, CAD, CNC, fabrication-ready claims, load ratings, wall-safety guarantees, structural approval, schema changes, migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, package changes, new project types, sharing, shopping, pricing, vendor, inventory, marketplace, payments, or subscriptions.
 
+## Task 57A - Connection Diagram Polish
+
+- [x] Improve planning-diagram connection data from existing `buildModel.connections` only.
+- [x] Show readable source piece → connection type / hardware → target piece relationships with location text.
+- [x] Surface strength-critical connections as `Needs manual review` and non-critical connections as `Verify before building`.
+- [x] Render a compact `How pieces connect` / `Connection planning aid` card in project detail and browser print preview.
+- [x] Add a calm connection fallback: `No modeled connections available yet. Review the build steps before assembling.`
+- [x] Keep `Planning diagram — not to scale.` visible at the section level and preserve no-export/no-CAD/no-CNC/no-load-rating safety boundaries.
+- [x] Keep the pass limited to UI/copy/helper/test/docs using existing data only, with no schema migrations, Supabase/cloud changes, OpenAI changes, package changes, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, new project types, sharing, shopping, pricing, vendor, or inventory work.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue small trust-building polish only if manual dogfood reveals a concrete beginner comprehension issue.
