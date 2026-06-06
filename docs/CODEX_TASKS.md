@@ -514,6 +514,14 @@
 - [x] Confirm rendered print-preview cases include the checklist, safe fallback, no persistent checked state, and no CAD/CNC/export/load-rating/approval claims.
 - [x] Keep the pass limited to helper copy/deduping, rendering tests, and docs with no persistent checklist state, schema fields, migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project types, shopping, pricing, vendor, or inventory work.
 
+## Task 61A - Print Plan UX Redesign
+
+- [x] Redesign `/projects/[id]/print` as a beginner-friendly shop-plan flow: `Build Snapshot`, `Project Visuals`, `Check Before Building`, `Materials and Parts`, `Cut Checklist`, `Build Guide`, and `Review Details`.
+- [x] Make the planning diagrams a primary print-preview section with a larger first visual while keeping the section-level `Planning diagram â€” not to scale.` warning.
+- [x] Keep the cut list checklist-style and print-friendly with a `Cut?` column plus compact status checks.
+- [x] Demote detailed review and planning-aid safety language into `Review Details` and remove prominent export-readiness/future-export sections from the print flow.
+- [x] Keep the pass browser-rendered only with existing manifest/build-model data and no schema, storage, Supabase/cloud, OpenAI prompt/model/schema, package, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.

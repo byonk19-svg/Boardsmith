@@ -1,6 +1,14 @@
 import type { PlanningDiagram } from "@/lib/plans/plan-diagrams";
 
-export function PlanningDiagramsSection({ diagrams, fallbackMessage }: { diagrams: PlanningDiagram[]; fallbackMessage: string }) {
+export function PlanningDiagramsSection({
+  diagrams,
+  fallbackMessage,
+  featured = false,
+}: {
+  diagrams: PlanningDiagram[];
+  fallbackMessage: string;
+  featured?: boolean;
+}) {
   if (diagrams.length === 0) {
     return (
       <div className="space-y-3">
@@ -13,25 +21,27 @@ export function PlanningDiagramsSection({ diagrams, fallbackMessage }: { diagram
   return (
     <div className="space-y-4">
       <p className="text-sm font-semibold text-caution">Planning diagram — not to scale.</p>
-      <div className="grid gap-4 lg:grid-cols-2">
-        {diagrams.map((diagram) => (
-          <PlanningDiagramCard key={diagram.id} diagram={diagram} />
+      <div className={featured ? "grid gap-4 lg:grid-cols-[1.15fr_0.85fr]" : "grid gap-4 lg:grid-cols-2"}>
+        {diagrams.map((diagram, index) => (
+          <PlanningDiagramCard key={diagram.id} diagram={diagram} featured={featured && index === 0} />
         ))}
       </div>
     </div>
   );
 }
 
-function PlanningDiagramCard({ diagram }: { diagram: PlanningDiagram }) {
+function PlanningDiagramCard({ diagram, featured }: { diagram: PlanningDiagram; featured: boolean }) {
   const cardClass =
     diagram.type === "connection_summary"
       ? "rounded-md border border-sawdust p-4 print:break-inside-avoid lg:col-span-2"
-      : "rounded-md border border-sawdust p-4 print:break-inside-avoid";
+      : featured
+        ? "rounded-md border border-sawdust p-4 print:break-inside-avoid lg:row-span-2"
+        : "rounded-md border border-sawdust p-4 print:break-inside-avoid";
 
   return (
     <div className={cardClass}>
       <h4 className="text-sm font-semibold text-ink">{diagram.title}</h4>
-      <PlanningDiagramGraphic diagram={diagram} />
+      <PlanningDiagramGraphic diagram={diagram} featured={featured} />
       {diagram.type === "connection_summary" ? (
         <ConnectionSummary diagram={diagram} />
       ) : (
@@ -75,9 +85,9 @@ function ConnectionSummary({ diagram }: { diagram: PlanningDiagram }) {
   );
 }
 
-function PlanningDiagramGraphic({ diagram }: { diagram: PlanningDiagram }) {
+function PlanningDiagramGraphic({ diagram, featured }: { diagram: PlanningDiagram; featured: boolean }) {
   const pieces = diagram.pieces.slice(0, 6);
-  const heightClass = diagram.type === "connection_summary" ? "h-28" : "h-44";
+  const heightClass = diagram.type === "connection_summary" ? "h-28" : featured ? "h-56 print:h-52" : "h-44";
 
   return (
     <svg className={`mt-4 w-full rounded-md bg-shop ${heightClass}`} viewBox="0 0 360 170" role="img" aria-label={diagram.label}>

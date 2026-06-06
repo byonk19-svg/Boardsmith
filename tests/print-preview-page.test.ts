@@ -146,26 +146,26 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Browser print preview");
     expect(markup).toContain("Use your browser&#x27;s print dialog if you want a paper copy.");
     expect(markup).toContain("Review all dimensions, materials, and safety notes before building.");
-    expect(markup).toContain("Plan Review");
-    expect(markup).toContain("Export Readiness");
-    expect(markup).toContain("Before you build");
+    expect(markup).toContain("Build Snapshot");
     expect(markup).toContain("Overall dimensions");
     expect(markup).toContain("Main material");
     expect(markup).toContain("Primary tools");
-    expect(markup).toContain("Check these before building");
+    expect(markup).toContain("Project Visuals");
+    expect(markup).toContain("Check Before Building");
     expect(markup).toContain("Review wall mounting details.");
     expect(markup).toContain("Review flagged safety notes.");
     expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
     expect(markup).not.toContain('name="plan_action_');
     expect(markup).not.toContain("Review child-adjacent or load-related safety flags.");
-    expect(markup).toContain("Planning diagrams");
     expect(markup).toContain("Planning diagram — not to scale");
     expect(markup).toContain("Shelf board overview");
     expect(markup.split("Planning diagram — not to scale").length - 1).toBe(1);
-    expect(markup).toContain("Materials");
-    expect(markup).toContain("Cut List Review");
+    expect(markup).toContain("Materials and Parts");
+    expect(markup).toContain("Parts to identify");
+    expect(markup).toContain("Cut Checklist");
     expect(markup).toContain("Cut?");
-    expect(markup).toContain("Operations and Build Steps");
+    expect(markup).toContain("Check");
+    expect(markup).toContain("Build Guide");
     expect(markup).toContain("Step 1");
     expect(markup).toContain("Inspect / review");
     expect(markup).toContain("Tools");
@@ -177,14 +177,36 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Modeled step");
     expect(markup).toContain("Inspect mounting location");
     expect(markup).toContain("Do not rely on Boardsmith for load ratings.");
-    expect(markup).toContain("Planning-aid disclaimers");
-    expect(markup).toContain("Future export notes");
-    expect(markup).toContain("No export, CAD, CNC, PDF, SVG, or DXF output is generated here.");
+    expect(markup).toContain("Review Details");
+    expect(markup).toContain("Plan review summary");
+    expect(markup).toContain("Planning-aid reminders");
+    expect(markup).toContain("No app-generated export or download is available from this print view.");
+    expect(markup).not.toContain("Export Readiness");
+    expect(markup).not.toContain("Future export notes");
+    expect(markup).not.toContain("Operations and Build Steps");
     expect(markup).not.toContain("CAD-ready");
     expect(markup).not.toContain("CNC-ready");
+    expect(markup).not.toContain("DXF-ready");
+    expect(markup).not.toContain("SVG export");
+    expect(markup).not.toContain("PDF generated");
+    expect(markup).not.toContain("Download");
+    expect(markup).not.toContain("structural approval");
     expect(markup).not.toContain("construction approval");
     expect(markup).toContain('href="/projects/print_preview_project"');
     expect(markup).toContain("Back to project");
+
+    const sectionOrder = [
+      "Build Snapshot",
+      "Project Visuals",
+      "Check Before Building",
+      "Materials and Parts",
+      "Cut Checklist",
+      "Build Guide",
+      "Review Details",
+    ];
+    const sectionIndexes = sectionOrder.map((label) => markup.indexOf(label));
+    expect(sectionIndexes.every((index) => index >= 0)).toBe(true);
+    expect(sectionIndexes).toEqual([...sectionIndexes].sort((a, b) => a - b));
   });
 
   it("renders book ledge planning diagram labels when supported pieces exist", async () => {
@@ -325,7 +347,7 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("Planning diagrams");
+    expect(markup).toContain("Project Visuals");
     expect(markup).toContain("No diagram available yet. Review the cut list and build steps before building.");
     expect(markup).not.toContain("Download");
     expect(markup).not.toContain("CAD-ready");
@@ -422,7 +444,7 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("Check these before building");
+    expect(markup).toContain("Check Before Building");
     expect(markup).toContain("Verify dimensions against the real space and material.");
     expect(markup).toContain("Review tool safety and material condition.");
     expect(markup).toContain("Dry fit before final assembly.");
