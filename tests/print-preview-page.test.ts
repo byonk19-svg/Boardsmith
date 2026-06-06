@@ -154,8 +154,10 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Primary tools");
     expect(markup).toContain("Check these before building");
     expect(markup).toContain("Review wall mounting details.");
+    expect(markup).toContain("Review flagged safety notes.");
     expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
     expect(markup).not.toContain('name="plan_action_');
+    expect(markup).not.toContain("Review child-adjacent or load-related safety flags.");
     expect(markup).toContain("Planning diagrams");
     expect(markup).toContain("Planning diagram — not to scale");
     expect(markup).toContain("Shelf board overview");
@@ -219,6 +221,8 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Front lip → screw with Wood screws → Bottom shelf board");
     expect(markup).toContain("Back rail → screw with Wood screws → Bottom shelf board");
     expect(markup).toContain("Needs manual review");
+    expect(markup).toContain("Review unresolved questions.");
+    expect(markup).toContain("Review finish and drying details.");
     expect(markup).toContain("Bottom shelf board");
     expect(markup).toContain("Back rail");
     expect(markup).toContain("Front lip");
@@ -260,6 +264,8 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Front panel → screw with Outdoor-rated screws → Bottom panel");
     expect(markup).toContain("Back panel → screw with Outdoor-rated screws → Bottom panel");
     expect(markup).toContain("Verify before building");
+    expect(markup).toContain("Review unresolved questions.");
+    expect(markup).toContain("Review finish and drying details.");
     expect(markup).toContain("Front panel");
     expect(markup).toContain("Back panel");
     expect(markup).toContain("Bottom panel");

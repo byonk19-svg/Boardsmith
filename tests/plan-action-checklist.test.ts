@@ -1,4 +1,4 @@
-import { simpleShelfBuildModelFixture, woodSignBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
+import { planterBoxBuildModelFixture, simpleShelfBuildModelFixture, woodSignBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { createPlanActionChecklist } from "@/lib/plans/plan-action-checklist";
 import { summarizeCutListReview } from "@/lib/plans/cut-list-review";
@@ -80,7 +80,6 @@ describe("createPlanActionChecklist", () => {
       "resolve_open_questions",
       "check_cut_list_review_rows",
       "verify_hardware_fasteners",
-      "review_material_assumptions",
     ]);
     expect(checklist[0]).toMatchObject({
       label: "Review wall mounting details.",
@@ -97,6 +96,12 @@ describe("createPlanActionChecklist", () => {
     );
     expect(checklist).toContainEqual(
       expect.objectContaining({
+        label: "Review unresolved questions.",
+        detail: "1 question still needs builder review before the plan is used.",
+      }),
+    );
+    expect(checklist).toContainEqual(
+      expect.objectContaining({
         label: "Verify hardware and fasteners before assembly.",
         category: "hardware",
         priority: "recommended",
@@ -104,7 +109,22 @@ describe("createPlanActionChecklist", () => {
     );
   });
 
-  it("adds material-thickness and child-adjacent actions only when those existing flags are present", () => {
+  it("keeps safety flag wording broad across child-adjacent, outdoor, and load-related scenarios", () => {
+    const planterChecklist = checklistFor({ ...shelfPlan, project_type: "planter_box" }, planterBoxBuildModelFixture);
+
+    expect(planterChecklist).toContainEqual(
+      expect.objectContaining({
+        id: "review_safety_flags",
+        label: "Review flagged safety notes.",
+        detail: "Read each flagged safety note and decide what needs manual review before use.",
+        category: "safety",
+        priority: "required",
+      }),
+    );
+    expect(planterChecklist.map((item) => item.label)).not.toContain("Review child-adjacent or load-related safety flags.");
+  });
+
+  it("adds material-thickness and safety actions only when those existing flags are present", () => {
     const flaggedModel: BoardsmithBuildModel = {
       ...woodSignBuildModelFixture,
       dimensions: {
@@ -143,11 +163,24 @@ describe("createPlanActionChecklist", () => {
     expect(checklist).toContainEqual(
       expect.objectContaining({
         id: "review_safety_flags",
-        label: "Review child-adjacent or load-related safety flags.",
+        label: "Review flagged safety notes.",
         category: "safety",
         priority: "required",
       }),
     );
+  });
+
+  it("does not turn hardware-only unknowns into a material assumptions checklist item", () => {
+    const checklist = checklistFor(shelfPlan);
+
+    expect(checklist).toContainEqual(
+      expect.objectContaining({
+        id: "verify_hardware_fasteners",
+        label: "Verify hardware and fasteners before assembly.",
+      }),
+    );
+    expect(checklist.map((item) => item.id)).not.toContain("review_material_assumptions");
+    expect(checklist.map((item) => item.detail)).not.toContain("Quantity to review for Wall anchors or stud fasteners.");
   });
 
   it("returns a calm default checklist when no specific review signals are present", () => {

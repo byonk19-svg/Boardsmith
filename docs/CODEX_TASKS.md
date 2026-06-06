@@ -505,9 +505,18 @@
 - [x] Surface beginner-friendly dimensions, material-thickness, cut-list, safety, hardware, mounting, finish, unresolved-question, and fallback review actions where the existing data supports them.
 - [x] Preserve private-MVP planning-aid guardrails with no professional approval, structural approval, wall-safety guarantee, child-safety certification, load rating, fabrication-ready claim, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, shopping, pricing, vendor, inventory, marketplace, payments, subscriptions, schema migration, Supabase/cloud, OpenAI prompt/model/schema, or package changes.
 
+## Task 60B - Plan Review Action Checklist Dogfood Pass
+
+- [x] Dogfood checklist output across simple shelf, book ledge, planter box, wood-sign safety, and low-issue fallback scenarios through helper and rendered print-preview coverage.
+- [x] Broaden safety checklist wording to `Review flagged safety notes.` so outdoor, child-adjacent, mounting, and structural review cases read naturally.
+- [x] Prevent hardware-only unknowns and quantity-review notes from creating a confusing materials checklist item when hardware/unresolved-question actions already cover the review.
+- [x] Fix singular unresolved-question copy and keep high-priority checklist items sorted before recommended items.
+- [x] Confirm rendered print-preview cases include the checklist, safe fallback, no persistent checked state, and no CAD/CNC/export/load-rating/approval claims.
+- [x] Keep the pass limited to helper copy/deduping, rendering tests, and docs with no persistent checklist state, schema fields, migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project types, shopping, pricing, vendor, or inventory work.
+
 ## Recommended Next Tasks
 
-1. [ ] Dogfood the action checklist across simple shelf, book ledge, planter, and fallback-style plans; limit fixes to copy, spacing, and deterministic review clarity.
+1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.
 
 ## Remaining Hardening
 

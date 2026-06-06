@@ -76,10 +76,25 @@ function materialReviewSignals(summary: MaterialReviewSummary): string[] {
     .filter((note) => !genericMaterialReviewNotes.has(note))
     .filter((note) => {
       const normalized = note.toLowerCase();
+      const isHardwareOrMountingOnly =
+        (normalized.includes("hardware") ||
+          normalized.includes("fastener") ||
+          normalized.includes("anchor") ||
+          normalized.includes("bracket") ||
+          normalized.includes("mount")) &&
+        !normalized.includes("material") &&
+        !normalized.includes("stock") &&
+        !normalized.includes("thickness") &&
+        !normalized.includes("suitable");
+
+      if (isHardwareOrMountingOnly) return false;
+
       return (
+        normalized.includes("no primary material") ||
+        normalized.includes("material choice") ||
+        normalized.includes("material is") ||
         normalized.includes("unknown") ||
         normalized.includes("unresolved") ||
-        normalized.includes("quantity to review") ||
         normalized.includes("confirm thickness") ||
         normalized.includes("review whether") ||
         normalized.includes("suitable for this project")
@@ -181,7 +196,7 @@ export function createPlanActionChecklist({
   ) {
     items.push({
       id: "review_safety_flags",
-      label: "Review child-adjacent or load-related safety flags.",
+      label: "Review flagged safety notes.",
       detail: "Read each flagged safety note and decide what needs manual review before use.",
       category: "safety",
       priority: "required",
@@ -192,7 +207,7 @@ export function createPlanActionChecklist({
     items.push({
       id: "resolve_open_questions",
       label: "Review unresolved questions.",
-      detail: `${buildModel.unresolvedQuestions.length.toString()} question${buildModel.unresolvedQuestions.length === 1 ? "" : "s"} still need builder review before the plan is used.`,
+      detail: `${buildModel.unresolvedQuestions.length.toString()} question${buildModel.unresolvedQuestions.length === 1 ? " still needs" : "s still need"} builder review before the plan is used.`,
       category: "general",
       priority: "required",
     });
