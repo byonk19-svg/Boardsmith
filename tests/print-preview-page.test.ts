@@ -163,7 +163,17 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain('name="plan_action_');
     expect(markup).not.toContain("Review child-adjacent or load-related safety flags.");
     expect(markup).toContain("Planning diagram — not to scale");
+    expect(markup).toContain("Project anatomy");
+    expect(markup).toContain("Width 36 in");
+    expect(markup).toContain("Height 6 in");
+    expect(markup).toContain("Depth 10 in");
+    expect(markup).toContain("Material thickness 0.75 in");
     expect(markup).toContain("Shelf board overview");
+    expect(markup).toContain("Three-view planning diagram");
+    expect(markup).toContain("Front view");
+    expect(markup).toContain("Top view");
+    expect(markup).toContain("Side view");
+    expect(markup).toContain("Visual piece inventory â€” planning aid only.");
     expect(markup.split("Planning diagram — not to scale").length - 1).toBe(1);
     expect(markup).toContain("Materials and Parts");
     expect(markup).toContain("Parts to identify");
@@ -198,6 +208,8 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("SVG export");
     expect(markup).not.toContain("PDF generated");
     expect(markup).not.toContain("Download");
+    expect(markup).not.toContain("fabrication-ready");
+    expect(markup).not.toContain("approved");
     expect(markup).not.toContain("structural approval");
     expect(markup).not.toContain("construction approval");
     expect(markup).toContain('href="/projects/print_preview_project"');
@@ -357,6 +369,8 @@ describe("ProjectPrintPreviewPage", () => {
 
     expect(markup).toContain("Project Visuals");
     expect(markup).toContain("No diagram available yet. Review the cut list and build steps before building.");
+    expect(markup).toContain("Three-view diagram is not available yet. Review the cut list and build guide before building.");
+    expect(markup).toContain("Visual piece inventory â€” planning aid only.");
     expect(markup).not.toContain("Download");
     expect(markup).not.toContain("CAD-ready");
     expect(markup).not.toContain("CNC-ready");

@@ -1,18 +1,27 @@
-import type { PlanningDiagram } from "@/lib/plans/plan-diagrams";
+import type { PlanningDiagram, ProjectAnatomyVisual, ThreeViewPlanningDiagram, VisualPieceInventory } from "@/lib/plans/plan-diagrams";
 
 export function PlanningDiagramsSection({
   diagrams,
   fallbackMessage,
   featured = false,
+  projectAnatomy,
+  threeView,
+  visualPieceInventory,
 }: {
   diagrams: PlanningDiagram[];
   fallbackMessage: string;
   featured?: boolean;
+  projectAnatomy?: ProjectAnatomyVisual;
+  threeView?: ThreeViewPlanningDiagram;
+  visualPieceInventory?: VisualPieceInventory;
 }) {
   if (diagrams.length === 0) {
     return (
       <div className="space-y-3">
         <p className="text-sm font-semibold text-caution">Planning diagram — not to scale.</p>
+        {featured && projectAnatomy ? <ProjectAnatomyCard visual={projectAnatomy} /> : null}
+        {featured && threeView ? <ThreeViewCard diagram={threeView} /> : null}
+        {featured && visualPieceInventory ? <VisualPieceInventoryCards inventory={visualPieceInventory} /> : null}
         <p className="rounded-md border border-sawdust bg-shop p-4 text-sm leading-6 text-ink/70">{fallbackMessage}</p>
       </div>
     );
@@ -21,11 +30,123 @@ export function PlanningDiagramsSection({
   return (
     <div className="space-y-4">
       <p className="text-sm font-semibold text-caution">Planning diagram — not to scale.</p>
+      {featured && projectAnatomy ? <ProjectAnatomyCard visual={projectAnatomy} /> : null}
+      {featured && threeView ? <ThreeViewCard diagram={threeView} /> : null}
+      {featured && visualPieceInventory ? <VisualPieceInventoryCards inventory={visualPieceInventory} /> : null}
       <div className={featured ? "grid gap-4 lg:grid-cols-[1.15fr_0.85fr]" : "grid gap-4 lg:grid-cols-2"}>
         {diagrams.map((diagram, index) => (
           <PlanningDiagramCard key={diagram.id} diagram={diagram} featured={featured && index === 0} />
         ))}
       </div>
+    </div>
+  );
+}
+
+function ProjectAnatomyCard({ visual }: { visual: ProjectAnatomyVisual }) {
+  return (
+    <div className="break-inside-avoid rounded-md border border-sawdust p-4 print:break-inside-avoid">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <h4 className="text-base font-semibold text-ink">{visual.title}</h4>
+        <span className="text-xs font-semibold uppercase tracking-wide text-ink/50">{visual.materialLabel}</span>
+      </div>
+      {visual.fallbackMessage ? (
+        <p className="mt-3 rounded-md bg-shop p-3 text-sm leading-6 text-ink/70">{visual.fallbackMessage}</p>
+      ) : (
+        <>
+          <svg className="mt-4 h-72 w-full rounded-md bg-shop print:h-60" viewBox="0 0 560 300" role="img" aria-label="Project anatomy planning visual">
+            <rect x="34" y="26" width="492" height="236" rx="8" fill="#fffaf0" stroke="#d7c7a1" />
+            <polygon points="150,100 388,100 430,130 190,130" fill="#d9b77f" stroke="#7a5b2e" strokeWidth="2" />
+            <polygon points="150,100 190,130 190,190 150,158" fill="#b9803c" stroke="#7a5b2e" strokeWidth="2" />
+            <polygon points="190,130 430,130 430,190 190,190" fill="#c99a57" stroke="#7a5b2e" strokeWidth="2" />
+            <line x1="150" y1="78" x2="388" y2="78" stroke="#7a5b2e" strokeWidth="2" />
+            <line x1="150" y1="72" x2="150" y2="84" stroke="#7a5b2e" strokeWidth="2" />
+            <line x1="388" y1="72" x2="388" y2="84" stroke="#7a5b2e" strokeWidth="2" />
+            <text x="269" y="68" textAnchor="middle" className="fill-ink text-[14px] font-semibold">
+              {visual.widthLabel}
+            </text>
+            <line x1="120" y1="100" x2="120" y2="190" stroke="#7a5b2e" strokeWidth="2" />
+            <line x1="114" y1="100" x2="126" y2="100" stroke="#7a5b2e" strokeWidth="2" />
+            <line x1="114" y1="190" x2="126" y2="190" stroke="#7a5b2e" strokeWidth="2" />
+            <text x="88" y="150" textAnchor="middle" className="fill-ink text-[14px] font-semibold" transform="rotate(-90 88 150)">
+              {visual.heightLabel}
+            </text>
+            <line x1="404" y1="100" x2="448" y2="132" stroke="#7a5b2e" strokeWidth="2" />
+            <text x="460" y="112" className="fill-ink text-[13px] font-semibold">
+              {visual.depthLabel}
+            </text>
+            <text x="280" y="218" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
+              {visual.materialThicknessLabel}
+            </text>
+            <text x="280" y="154" textAnchor="middle" className="fill-ink text-[16px] font-semibold">
+              {visual.pieceLabels.slice(0, 2).join(" + ") || "Major pieces"}
+            </text>
+          </svg>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {visual.pieceLabels.map((label) => (
+              <span key={label} className="rounded-md border border-sawdust bg-white px-2.5 py-1 text-xs font-semibold text-ink/70">
+                {label}
+              </span>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ThreeViewCard({ diagram }: { diagram: ThreeViewPlanningDiagram }) {
+  return (
+    <div className="break-inside-avoid rounded-md border border-sawdust p-4 print:break-inside-avoid">
+      <h4 className="text-base font-semibold text-ink">{diagram.title}</h4>
+      {diagram.fallbackMessage ? (
+        <p className="mt-3 rounded-md bg-shop p-3 text-sm leading-6 text-ink/70">{diagram.fallbackMessage}</p>
+      ) : (
+        <div className="mt-4 grid gap-3 md:grid-cols-3 print:grid-cols-3">
+          {diagram.views.map((view) => (
+            <div key={view.id} className="rounded-md border border-sawdust bg-white p-3">
+              <h5 className="text-sm font-semibold text-ink">{view.title}</h5>
+              <svg className="mt-3 h-32 w-full rounded-md bg-shop" viewBox="0 0 220 130" role="img" aria-label={`${view.title} planning view`}>
+                <rect x="34" y="34" width="150" height="58" rx="4" fill="#d9b77f" stroke="#7a5b2e" strokeWidth="2" />
+                <line x1="34" y1="22" x2="184" y2="22" stroke="#7a5b2e" strokeWidth="2" />
+                <text x="109" y="17" textAnchor="middle" className="fill-ink text-[11px] font-semibold">
+                  {view.primaryDimensionLabel}
+                </text>
+                <line x1="22" y1="34" x2="22" y2="92" stroke="#7a5b2e" strokeWidth="2" />
+                <text x="14" y="67" textAnchor="middle" className="fill-ink text-[10px] font-semibold" transform="rotate(-90 14 67)">
+                  {view.secondaryDimensionLabel}
+                </text>
+              </svg>
+              <p className="mt-2 text-xs leading-5 text-ink/65">{view.pieceLabels.slice(0, 3).join(", ")}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VisualPieceInventoryCards({ inventory }: { inventory: VisualPieceInventory }) {
+  return (
+    <div className="break-inside-avoid rounded-md border border-sawdust p-4 print:break-inside-avoid">
+      <h4 className="text-base font-semibold text-ink">{inventory.disclaimer}</h4>
+      {inventory.items.length > 0 ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-3">
+          {inventory.items.slice(0, 6).map((item) => (
+            <div key={item.id} className="rounded-md border border-sawdust bg-white p-3">
+              <div className="h-10 rounded-sm border border-[#7a5b2e] bg-[#d9b77f]" aria-hidden="true" />
+              <p className="mt-2 text-sm font-semibold text-ink">{item.label}</p>
+              <p className="mt-1 text-xs leading-5 text-ink/65">
+                {item.quantityLabel} {item.dimensionsLabel}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-ink/65">{item.materialLabel}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 rounded-md bg-shop p-3 text-sm leading-6 text-ink/70">
+          Visual piece inventory is not available yet. Review the cut list and build guide before building.
+        </p>
+      )}
     </div>
   );
 }

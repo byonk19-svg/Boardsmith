@@ -3,6 +3,9 @@ import type { BoardsmithBuildModel, BuildModelPiece } from "@/lib/build-model/bu
 export const planningDiagramDisclaimer = "Planning diagram — not to scale.";
 export const planningDiagramFallback = "No diagram available yet. Review the cut list and build steps before building.";
 export const connectionDiagramFallback = "No modeled connections available yet. Review the build steps before assembling.";
+export const projectAnatomyFallback = "Project anatomy is not available yet. Review the cut list and build guide before building.";
+export const threeViewDiagramFallback = "Three-view diagram is not available yet. Review the cut list and build guide before building.";
+export const visualPieceInventoryDisclaimer = "Visual piece inventory â€” planning aid only.";
 
 export type PlanningDiagramKind = "simple_shelf" | "book_ledge" | "planter_box";
 export type PlanningDiagramType = "overview" | "piece_relationship" | "connection_summary";
@@ -28,6 +31,40 @@ export type PlanningDiagramConnection = {
   safetyNote: string | null;
 };
 
+export type ProjectAnatomyVisual = {
+  title: "Project anatomy";
+  widthLabel: string;
+  heightLabel: string;
+  depthLabel: string;
+  materialThicknessLabel: string;
+  materialLabel: string;
+  pieceLabels: string[];
+  fallbackMessage: typeof projectAnatomyFallback | null;
+};
+
+export type ThreeViewPlanningDiagramView = {
+  id: "front" | "top" | "side";
+  title: "Front view" | "Top view" | "Side view";
+  primaryDimensionLabel: string;
+  secondaryDimensionLabel: string;
+  pieceLabels: string[];
+};
+
+export type ThreeViewPlanningDiagram = {
+  title: "Three-view planning diagram";
+  views: ThreeViewPlanningDiagramView[];
+  fallbackMessage: typeof threeViewDiagramFallback | null;
+};
+
+export type VisualPieceInventoryItem = PlanningDiagramPiece & {
+  materialLabel: string;
+};
+
+export type VisualPieceInventory = {
+  disclaimer: typeof visualPieceInventoryDisclaimer;
+  items: VisualPieceInventoryItem[];
+};
+
 export type PlanningDiagram = {
   id: string;
   type: PlanningDiagramType;
@@ -43,6 +80,9 @@ export type PlanningDiagram = {
 export type PlanningDiagramSummary = {
   diagrams: PlanningDiagram[];
   fallbackMessage: typeof planningDiagramFallback;
+  projectAnatomy: ProjectAnatomyVisual;
+  threeView: ThreeViewPlanningDiagram;
+  visualPieceInventory: VisualPieceInventory;
 };
 
 function normalize(value: string): string {
@@ -59,6 +99,10 @@ function findPiece(pieces: BuildModelPiece[], terms: RegExp): BuildModelPiece | 
 
 function formatMeasurement(value: number | null): string {
   return value ? `${value.toString()} in` : "unknown";
+}
+
+function dimensionLabel(label: "Width" | "Height" | "Depth" | "Material thickness", value: number | null): string {
+  return `${label} ${formatMeasurement(value)}`;
 }
 
 function formatPieceDimensions(piece: BuildModelPiece): string {
@@ -86,6 +130,80 @@ function mapPieces(pieces: BuildModelPiece[]): PlanningDiagramPiece[] {
     dimensionsLabel: formatPieceDimensions(piece),
     role: roleForPiece(piece),
   }));
+}
+
+function materialLabelForPiece(piece: BuildModelPiece, model: BoardsmithBuildModel): string {
+  return model.materials.find((material) => material.id === piece.materialId)?.label ?? "material to review";
+}
+
+function createVisualPieceInventory(model: BoardsmithBuildModel): VisualPieceInventory {
+  return {
+    disclaimer: visualPieceInventoryDisclaimer,
+    items: model.pieces.map((piece) => ({
+      ...mapPieces([piece])[0],
+      materialLabel: materialLabelForPiece(piece, model),
+    })),
+  };
+}
+
+function hasCompleteDimensions(model: BoardsmithBuildModel): boolean {
+  return Boolean(model.dimensions.widthInches && model.dimensions.heightInches && model.dimensions.depthInches);
+}
+
+function createProjectAnatomyVisual(model: BoardsmithBuildModel): ProjectAnatomyVisual {
+  const pieceLabels = model.pieces.map((piece) => piece.label).slice(0, 4);
+  const isAvailable = hasCompleteDimensions(model) && model.pieces.length > 0;
+
+  return {
+    title: "Project anatomy",
+    widthLabel: dimensionLabel("Width", model.dimensions.widthInches),
+    heightLabel: dimensionLabel("Height", model.dimensions.heightInches),
+    depthLabel: dimensionLabel("Depth", model.dimensions.depthInches),
+    materialThicknessLabel: dimensionLabel("Material thickness", model.dimensions.materialThicknessInches),
+    materialLabel: model.materials[0]?.label ?? "material to review",
+    pieceLabels,
+    fallbackMessage: isAvailable ? null : projectAnatomyFallback,
+  };
+}
+
+function createThreeViewPlanningDiagram(model: BoardsmithBuildModel): ThreeViewPlanningDiagram {
+  if (!hasCompleteDimensions(model) || model.pieces.length === 0) {
+    return {
+      title: "Three-view planning diagram",
+      views: [],
+      fallbackMessage: threeViewDiagramFallback,
+    };
+  }
+
+  const pieceLabels = model.pieces.map((piece) => piece.label).slice(0, 4);
+
+  return {
+    title: "Three-view planning diagram",
+    fallbackMessage: null,
+    views: [
+      {
+        id: "front",
+        title: "Front view",
+        primaryDimensionLabel: dimensionLabel("Width", model.dimensions.widthInches),
+        secondaryDimensionLabel: dimensionLabel("Height", model.dimensions.heightInches),
+        pieceLabels,
+      },
+      {
+        id: "top",
+        title: "Top view",
+        primaryDimensionLabel: dimensionLabel("Width", model.dimensions.widthInches),
+        secondaryDimensionLabel: dimensionLabel("Depth", model.dimensions.depthInches),
+        pieceLabels,
+      },
+      {
+        id: "side",
+        title: "Side view",
+        primaryDimensionLabel: dimensionLabel("Depth", model.dimensions.depthInches),
+        secondaryDimensionLabel: dimensionLabel("Height", model.dimensions.heightInches),
+        pieceLabels,
+      },
+    ],
+  };
 }
 
 function conciseSafetyNote(notes: string[]): string | null {
@@ -161,9 +279,14 @@ function diagramLabel(kind: PlanningDiagramKind): string {
 }
 
 export function createPlanDiagrams(model: BoardsmithBuildModel): PlanningDiagramSummary {
+  const richVisuals = {
+    projectAnatomy: createProjectAnatomyVisual(model),
+    threeView: createThreeViewPlanningDiagram(model),
+    visualPieceInventory: createVisualPieceInventory(model),
+  };
   const kind = detectDiagramKind(model);
   if (!kind) {
-    return { diagrams: [], fallbackMessage: planningDiagramFallback };
+    return { diagrams: [], fallbackMessage: planningDiagramFallback, ...richVisuals };
   }
 
   const pieceById = new Map(model.pieces.map((piece) => [piece.id, piece]));
@@ -206,5 +329,5 @@ export function createPlanDiagrams(model: BoardsmithBuildModel): PlanningDiagram
     emptyMessage: connectionDiagramFallback,
   });
 
-  return { diagrams, fallbackMessage: planningDiagramFallback };
+  return { diagrams, fallbackMessage: planningDiagramFallback, ...richVisuals };
 }

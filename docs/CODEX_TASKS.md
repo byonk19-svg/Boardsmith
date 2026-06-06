@@ -531,6 +531,16 @@
 - [x] Attempt direct browser inspection against the local generated print route; the local private access gate redirected to `/access`, so rendered-route and helper tests were used as fallback without inspecting or committing secrets.
 - [x] Keep the pass limited to UI/copy/layout/tests/docs with no schema, database, migration, Supabase/cloud, OpenAI, package, persistent checklist state, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
 
+## Task 62A - High-Quality Project Visuals
+
+- [x] Add deterministic project anatomy visual data with width, height, depth, material thickness, material, and major piece labels from existing build-model data.
+- [x] Add deterministic three-view planning diagram data for dimensioned projects, with front, top, and side views plus dimension callouts.
+- [x] Add a compact `Visual piece inventory â€” planning aid only.` from modeled pieces, quantities, dimensions, and materials.
+- [x] Render the richer Project Visuals treatment in browser print preview while keeping project detail on the shorter existing diagram cards.
+- [x] Preserve section-level `Planning diagram â€” not to scale.` language and fallback copy for unsupported or insufficient visual data.
+- [x] Attempt direct browser inspection against the local generated print route; the local private access gate redirected to `/access`, so rendered-route and helper tests were used as fallback without inspecting or committing secrets.
+- [x] Keep the pass browser-rendered only with no schema, database, migration, Supabase/cloud, OpenAI prompt/model/schema, package, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.

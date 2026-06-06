@@ -68,7 +68,14 @@ export default async function ProjectPrintPreviewPage({
         </PrintSection>
 
         <PrintSection title="Project Visuals">
-          <PlanningDiagramsSection diagrams={manifest.planningDiagrams.diagrams} fallbackMessage={manifest.planningDiagrams.fallbackMessage} featured />
+          <PlanningDiagramsSection
+            diagrams={manifest.planningDiagrams.diagrams}
+            fallbackMessage={manifest.planningDiagrams.fallbackMessage}
+            projectAnatomy={manifest.planningDiagrams.projectAnatomy}
+            threeView={manifest.planningDiagrams.threeView}
+            visualPieceInventory={manifest.planningDiagrams.visualPieceInventory}
+            featured
+          />
         </PrintSection>
 
         <PrintSection title="Check Before Building">

@@ -1,6 +1,13 @@
 import { doorHangerBuildModelFixture, simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import { createBuildModelDraft, type BuildModelDraftProject } from "@/lib/build-model/create-build-model-draft";
-import { connectionDiagramFallback, createPlanDiagrams, planningDiagramDisclaimer, planningDiagramFallback } from "@/lib/plans/plan-diagrams";
+import {
+  connectionDiagramFallback,
+  createPlanDiagrams,
+  planningDiagramDisclaimer,
+  planningDiagramFallback,
+  threeViewDiagramFallback,
+  visualPieceInventoryDisclaimer,
+} from "@/lib/plans/plan-diagrams";
 import { describe, expect, it } from "vitest";
 
 const baseProject: BuildModelDraftProject = {
@@ -19,6 +26,72 @@ const baseProject: BuildModelDraftProject = {
 };
 
 describe("createPlanDiagrams", () => {
+  it("creates project anatomy visual data from dimensions, material thickness, and modeled pieces", () => {
+    const summary = createPlanDiagrams(simpleShelfBuildModelFixture);
+
+    expect(summary.projectAnatomy).toMatchObject({
+      title: "Project anatomy",
+      widthLabel: "Width 36 in",
+      heightLabel: "Height 6 in",
+      depthLabel: "Depth 10 in",
+      materialThicknessLabel: "Material thickness 0.75 in",
+      materialLabel: "3/4 inch pine board",
+      fallbackMessage: null,
+    });
+    expect(summary.projectAnatomy.pieceLabels).toEqual(["Shelf board"]);
+  });
+
+  it("creates three-view planning data for supported dimensioned projects", () => {
+    const summary = createPlanDiagrams(simpleShelfBuildModelFixture);
+
+    expect(summary.threeView).toMatchObject({
+      title: "Three-view planning diagram",
+      fallbackMessage: null,
+    });
+    expect(summary.threeView.views.map((view) => view.title)).toEqual(["Front view", "Top view", "Side view"]);
+    expect(summary.threeView.views.map((view) => view.primaryDimensionLabel)).toEqual(["Width 36 in", "Width 36 in", "Depth 10 in"]);
+    expect(summary.threeView.views.map((view) => view.secondaryDimensionLabel)).toEqual(["Height 6 in", "Depth 10 in", "Height 6 in"]);
+  });
+
+  it("creates a visual piece inventory from modeled pieces", () => {
+    const summary = createPlanDiagrams(simpleShelfBuildModelFixture);
+
+    expect(summary.visualPieceInventory.disclaimer).toBe(visualPieceInventoryDisclaimer);
+    expect(summary.visualPieceInventory.items[0]).toMatchObject({
+      label: "Shelf board",
+      quantityLabel: "1x",
+      dimensionsLabel: "36 in x 10 in x 0.75 in",
+      materialLabel: "3/4 inch pine board",
+    });
+  });
+
+  it("falls back for three-view planning when dimensions or pieces are insufficient", () => {
+    const summary = createPlanDiagrams({
+      ...simpleShelfBuildModelFixture,
+      dimensions: {
+        ...simpleShelfBuildModelFixture.dimensions,
+        depthInches: null,
+      },
+      pieces: [],
+    });
+
+    expect(summary.threeView.views).toEqual([]);
+    expect(summary.threeView.fallbackMessage).toBe(threeViewDiagramFallback);
+    expect(summary.projectAnatomy.fallbackMessage).toBe("Project anatomy is not available yet. Review the cut list and build guide before building.");
+    expect(summary.visualPieceInventory.items).toEqual([]);
+  });
+
+  it("keeps planning visual labels away from forbidden output or approval wording", () => {
+    const summary = createPlanDiagrams(simpleShelfBuildModelFixture);
+    const labels = JSON.stringify({
+      anatomy: summary.projectAnatomy,
+      threeView: summary.threeView,
+      pieceInventory: summary.visualPieceInventory,
+    });
+
+    expect(labels).not.toMatch(/CAD-ready|CNC-ready|load-rated|approved|fabrication-ready|construction approval/i);
+  });
+
   it("creates deterministic shelf board diagrams from a supported shelf model", () => {
     const summary = createPlanDiagrams(simpleShelfBuildModelFixture);
 
