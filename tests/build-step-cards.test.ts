@@ -1,5 +1,6 @@
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
+import { createBuildModelDraft, type BuildModelDraftProject } from "@/lib/build-model/create-build-model-draft";
 import { createBuildStepCards } from "@/lib/plans/build-step-cards";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
 import { describe, expect, it } from "vitest";
@@ -11,6 +12,21 @@ const baseStep: GeneratedPlan["assembly_steps"][number] = {
   tools_used: ["drill"],
   safety_note: "Do not rely on Boardsmith for load ratings.",
   estimated_time_minutes: 15,
+};
+
+const baseDraftProject: BuildModelDraftProject = {
+  id: "step_card_dogfood",
+  title: "Step card dogfood",
+  project_type: "simple_shelf",
+  skill_level: "beginner",
+  width_inches: 32,
+  height_inches: 5,
+  depth_inches: 6,
+  material_thickness_inches: 0.75,
+  material_type: "pine board",
+  tools_available: ["tape_measure", "pencil", "drill", "miter_saw", "sander"],
+  style_notes: "",
+  intended_use: "Dogfood planning aid.",
 };
 
 describe("createBuildStepCards", () => {
@@ -82,6 +98,110 @@ describe("createBuildStepCards", () => {
     expect(cards[0]?.relatedPieceLabels).toEqual([]);
     expect(cards[0]?.estimatedTimeLabel).toBeNull();
     expect(cards[0]?.safetyNote).toBeNull();
+  });
+
+  it("does not match unrelated operations from sequence number and tool overlap alone", () => {
+    const cards = createBuildStepCards(
+      [
+        {
+          ...baseStep,
+          title: "Gather materials",
+          instructions: "Gather boards, fasteners, and notes before starting.",
+          tools_used: ["tape measure"],
+          safety_note: null,
+          estimated_time_minutes: null,
+        },
+      ],
+      simpleShelfBuildModelFixture,
+    );
+
+    expect(cards[0]?.relatedOperationTitle).toBeNull();
+    expect(cards[0]?.relatedPieceLabels).toEqual([]);
+  });
+
+  it("labels attach-with-screws steps as fastening when no operation match exists", () => {
+    const cards = createBuildStepCards(
+      [
+        {
+          ...baseStep,
+          title: "Attach the front lip",
+          instructions: "Attach the front lip with screws after a dry fit.",
+          tools_used: ["drill"],
+          safety_note: null,
+          estimated_time_minutes: null,
+        },
+      ],
+      { ...simpleShelfBuildModelFixture, operations: [] },
+    );
+
+    expect(cards[0]?.phaseLabel).toBe("Fasten");
+    expect(cards[0]?.relatedOperationTitle).toBeNull();
+  });
+
+  it("keeps book ledge related pieces useful when a multi-piece operation is matched", () => {
+    const bookLedgeModel = createBuildModelDraft({
+      ...baseDraftProject,
+      title: "Toddler book ledge",
+      style_notes: "Book ledge with bottom shelf board, back rail, and front lip.",
+      intended_use: "Child-adjacent book ledge with adult review.",
+    });
+    const cards = createBuildStepCards(
+      [
+        {
+          ...baseStep,
+          step_number: 3,
+          title: "Attach the front lip and back rail",
+          instructions: "Dry fit, clamp, then attach the rails with screws after checking screw length.",
+          tools_used: ["drill", "clamps"],
+          safety_note: "Boardsmith does not certify child safety or load capacity.",
+          estimated_time_minutes: 35,
+        },
+      ],
+      bookLedgeModel,
+    );
+
+    expect(cards[0]?.phaseLabel).toBe("Assemble");
+    expect(cards[0]?.relatedOperationTitle).toBe("Assemble book ledge");
+    expect(cards[0]?.relatedPieceLabels).toEqual(["Bottom shelf board", "Back rail", "Front lip"]);
+  });
+
+  it("labels planter drainage and finish steps from modeled operations", () => {
+    const planterModel = createBuildModelDraft({
+      ...baseDraftProject,
+      title: "Outdoor herb planter",
+      project_type: "planter_box",
+      height_inches: 8,
+      depth_inches: 8,
+      material_type: "cedar board",
+      intended_use: "Outdoor herb planter with drainage and finish review.",
+    });
+    const cards = createBuildStepCards(
+      [
+        {
+          ...baseStep,
+          title: "Drill drainage holes",
+          instructions: "Mark and drill drainage holes in the bottom panel before assembly.",
+          tools_used: ["drill", "pencil"],
+          safety_note: "Clamp work before drilling.",
+          estimated_time_minutes: 15,
+        },
+        {
+          ...baseStep,
+          step_number: 2,
+          title: "Apply exterior finish",
+          instructions: "Apply an outdoor finish only after reviewing product labels.",
+          tools_used: ["paint brush"],
+          safety_note: "Use finishes in a ventilated area.",
+          estimated_time_minutes: 40,
+        },
+      ],
+      planterModel,
+    );
+
+    expect(cards[0]?.phaseLabel).toBe("Drill");
+    expect(cards[0]?.relatedPieceLabels).toEqual(["Bottom panel"]);
+    expect(cards[1]?.phaseLabel).toBe("Finish");
+    expect(cards[1]?.relatedPieceLabels).toEqual(["Front panel", "Back panel", "Left side panel", "Right side panel", "Bottom panel"]);
   });
 
   it("formats longer estimates for compact card metadata", () => {

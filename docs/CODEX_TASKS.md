@@ -479,6 +479,15 @@
 - [x] Fall back to `Build step` and omit invented operation/piece relationships for ambiguous steps.
 - [x] Keep the pass limited to UI/copy/helper/test/docs with no schema migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, shopping, pricing, vendor, inventory, marketplace, payments, subscriptions, or new project types.
 
+## Task 58B - Build Step Cards Dogfood Pass
+
+- [x] Dogfood simple shelf, book ledge, planter box, wood-sign-style, ambiguous-step, and print-preview step-card scenarios through helper/rendering coverage.
+- [x] Attempt direct browser inspection with an ignored local dogfood data file; local `.env.local` Supabase configuration forced cloud lookup for dogfood IDs, so browser route inspection was blocked and rendered markup checks were used as fallback.
+- [x] Tighten operation matching so related pieces do not appear from sequence number and tool overlap alone.
+- [x] Treat attach-with-screws fallback wording as `Fasten` instead of over-labeling it as assembly.
+- [x] Make compact print cards tighter and rename the related-operation label to the beginner-friendlier `Modeled step`.
+- [x] Keep the pass limited to UI/copy/helper/test/docs with no schema migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, shopping, pricing, vendor, inventory, marketplace, payments, subscriptions, or new project types.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue small trust-building polish only if manual dogfood reveals a concrete beginner comprehension issue.

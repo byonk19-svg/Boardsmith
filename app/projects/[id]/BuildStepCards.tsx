@@ -5,12 +5,16 @@ export function BuildStepCards({ cards, compact = false }: { cards: BuildStepCar
     return <p className="text-sm leading-6 text-ink/65">No build step cards available yet. Review the full plan before building.</p>;
   }
 
+  const cardPadding = compact ? "p-3" : "p-4";
+  const bodySpacing = compact ? "mt-2" : "mt-3";
+  const safetyPadding = compact ? "p-2" : "p-3";
+
   return (
     <ol className={compact ? "space-y-3" : "space-y-4"}>
       {cards.map((card) => (
         <li
           key={card.id}
-          className="break-inside-avoid rounded-md border border-sawdust bg-white p-4 print:break-inside-avoid print:p-3"
+          className={`break-inside-avoid rounded-md border border-sawdust bg-white ${cardPadding} print:break-inside-avoid print:p-3`}
         >
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -22,17 +26,17 @@ export function BuildStepCards({ cards, compact = false }: { cards: BuildStepCar
             </span>
           </div>
 
-          <p className="mt-3 text-sm leading-6 text-ink/75">{card.instructions}</p>
+          <p className={`${bodySpacing} text-sm leading-6 text-ink/75`}>{card.instructions}</p>
 
-          <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+          <dl className={`${bodySpacing} grid gap-2 text-xs sm:grid-cols-2`}>
             {card.tools.length > 0 ? <StepMeta label="Tools" value={card.tools.join(", ")} /> : null}
             {card.estimatedTimeLabel ? <StepMeta label="Time" value={card.estimatedTimeLabel} /> : null}
             {card.relatedPieceLabels.length > 0 ? <StepMeta label="Pieces" value={card.relatedPieceLabels.join(", ")} /> : null}
-            {card.relatedOperationTitle ? <StepMeta label="Related operation" value={card.relatedOperationTitle} /> : null}
+            {card.relatedOperationTitle ? <StepMeta label="Modeled step" value={card.relatedOperationTitle} /> : null}
           </dl>
 
           {card.safetyNote ? (
-            <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm font-medium leading-6 text-caution print:border-sawdust print:bg-white">
+            <p className={`${bodySpacing} rounded-md border border-amber-200 bg-amber-50 ${safetyPadding} text-sm font-medium leading-6 text-caution print:border-sawdust print:bg-white`}>
               {card.safetyNote}
             </p>
           ) : null}

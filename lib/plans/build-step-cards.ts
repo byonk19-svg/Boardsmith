@@ -50,8 +50,8 @@ const phaseKeywordRules: { phase: BuildStepPhaseLabel; terms: RegExp }[] = [
   { phase: "Cut", terms: /\b(cut|saw|trim|rip|crosscut)\b/ },
   { phase: "Drill", terms: /\b(drill|hole|pilot)\b/ },
   { phase: "Sand", terms: /\b(sand|smooth|edge treatment|break edges)\b/ },
-  { phase: "Assemble", terms: /\b(assemble|assembly|dry fit|fit together|attach)\b/ },
-  { phase: "Fasten", terms: /\b(fasten|screw|nail|glue|clamp|bracket|anchor|hardware)\b/ },
+  { phase: "Fasten", terms: /\b(fasten|attach|screw|nail|glue|clamp|bracket|anchor|hardware)\b/ },
+  { phase: "Assemble", terms: /\b(assemble|assembly|dry fit|fit together)\b/ },
   { phase: "Finish", terms: /\b(finish|paint|stain|seal|topcoat)\b/ },
   { phase: "Inspect / review", terms: /\b(inspect|review|check|verify|test fit|mounting|mount)\b/ },
 ];
@@ -80,7 +80,7 @@ function hasToolOverlap(step: GeneratedBuildStep, operation: BuildModelOperation
 }
 
 function phaseFromText(step: GeneratedBuildStep): BuildStepPhaseLabel {
-  const text = normalize(`${step.title} ${step.instructions} ${step.tools_used.join(" ")}`);
+  const text = normalize(`${step.title} ${step.instructions}`);
   return phaseKeywordRules.find((rule) => rule.terms.test(text))?.phase ?? "Build step";
 }
 
@@ -97,20 +97,22 @@ function matchOperation(step: GeneratedBuildStep, operations: BuildModelOperatio
       const stepText = `${step.title} ${step.instructions}`;
       const operationText = `${operation.title} ${operation.description}`;
       const phase = operationPhase(operation);
+      const sharedWords = hasSharedWord(stepText, operationText);
+      const phaseMatches = phase !== "Build step" && phaseFromText(step) === phase;
       let score = 0;
 
       if (operation.sequenceNumber === step.step_number) score += 2;
-      if (hasSharedWord(stepText, operationText)) score += 2;
+      if (sharedWords) score += 2;
       if (hasToolOverlap(step, operation)) score += 1;
-      if (phase !== "Build step" && phaseFromText(step) === phase) score += 1;
+      if (phaseMatches) score += 1;
 
-      return { operation, score };
+      return { operation, score, sharedWords, phaseMatches };
     })
     .sort((left, right) => right.score - left.score || left.operation.sequenceNumber - right.operation.sequenceNumber);
 
   if (scored.length === 0) return null;
   const best = scored[0];
-  if (best.score < 3) return null;
+  if (best.score < 3 || (!best.sharedWords && !best.phaseMatches)) return null;
   return best.operation;
 }
 

@@ -255,7 +255,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("15 min");
     expect(markup).toContain("Pieces");
     expect(markup).toContain("Shelf board");
-    expect(markup).toContain("Related operation");
+    expect(markup).toContain("Modeled step");
     expect(markup).toContain("Inspect mounting location");
     expect(markup).toContain("Do not rely on Boardsmith for load ratings.");
     expect(markup).toContain("Modeled operations");

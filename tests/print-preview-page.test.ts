@@ -168,7 +168,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("15 min");
     expect(markup).toContain("Pieces");
     expect(markup).toContain("Shelf board");
-    expect(markup).toContain("Related operation");
+    expect(markup).toContain("Modeled step");
     expect(markup).toContain("Inspect mounting location");
     expect(markup).toContain("Do not rely on Boardsmith for load ratings.");
     expect(markup).toContain("Planning-aid disclaimers");
@@ -358,7 +358,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Think through the plan");
     expect(markup).toContain("Build step");
     expect(markup).toContain("pencil");
-    expect(markup).not.toContain("Related operation");
+    expect(markup).not.toContain("Modeled step");
   });
 
   it("shows a calm print-preview empty state when no generated plan exists", async () => {
