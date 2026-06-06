@@ -57,6 +57,7 @@ describe("createPlanDiagrams", () => {
     const summary = createPlanDiagrams(simpleShelfBuildModelFixture);
 
     expect(summary.visualPieceInventory.disclaimer).toBe(visualPieceInventoryDisclaimer);
+    expect(summary.visualPieceInventory.disclaimer).toBe("Visual piece inventory - planning aid only.");
     expect(summary.visualPieceInventory.items[0]).toMatchObject({
       label: "Shelf board",
       quantityLabel: "1x",

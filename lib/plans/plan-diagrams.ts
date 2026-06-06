@@ -5,7 +5,7 @@ export const planningDiagramFallback = "No diagram available yet. Review the cut
 export const connectionDiagramFallback = "No modeled connections available yet. Review the build steps before assembling.";
 export const projectAnatomyFallback = "Project anatomy is not available yet. Review the cut list and build guide before building.";
 export const threeViewDiagramFallback = "Three-view diagram is not available yet. Review the cut list and build guide before building.";
-export const visualPieceInventoryDisclaimer = "Visual piece inventory â€” planning aid only.";
+export const visualPieceInventoryDisclaimer = "Visual piece inventory - planning aid only.";
 
 export type PlanningDiagramKind = "simple_shelf" | "book_ledge" | "planter_box";
 export type PlanningDiagramType = "overview" | "piece_relationship" | "connection_summary";

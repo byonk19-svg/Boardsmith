@@ -168,12 +168,13 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Height 6 in");
     expect(markup).toContain("Depth 10 in");
     expect(markup).toContain("Material thickness 0.75 in");
-    expect(markup).toContain("Shelf board overview");
+    expect(markup).not.toContain("Shelf board overview");
+    expect(markup).not.toContain("Shelf board piece relationship");
     expect(markup).toContain("Three-view planning diagram");
     expect(markup).toContain("Front view");
     expect(markup).toContain("Top view");
     expect(markup).toContain("Side view");
-    expect(markup).toContain("Visual piece inventory â€” planning aid only.");
+    expect(markup).toContain("Visual piece inventory - planning aid only.");
     expect(markup.split("Planning diagram — not to scale").length - 1).toBe(1);
     expect(markup).toContain("Materials and Parts");
     expect(markup).toContain("Parts to identify");
@@ -256,7 +257,8 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("Book ledge overview");
+    expect(markup).not.toContain("Book ledge overview");
+    expect(markup).not.toContain("Book ledge piece relationship");
     expect(markup).toContain("How pieces connect");
     expect(markup).toContain("Connection planning aid");
     expect(markup).toContain("Verify hardware and fasteners before building.");
@@ -301,7 +303,8 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("Planter box overview");
+    expect(markup).not.toContain("Planter box overview");
+    expect(markup).not.toContain("Planter box piece relationship");
     expect(markup).toContain("How pieces connect");
     expect(markup).toContain("Front panel → screw with Outdoor-rated screws → Bottom panel");
     expect(markup).toContain("Back panel → screw with Outdoor-rated screws → Bottom panel");
@@ -370,7 +373,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Project Visuals");
     expect(markup).toContain("No diagram available yet. Review the cut list and build steps before building.");
     expect(markup).toContain("Three-view diagram is not available yet. Review the cut list and build guide before building.");
-    expect(markup).toContain("Visual piece inventory â€” planning aid only.");
+    expect(markup).toContain("Visual piece inventory - planning aid only.");
     expect(markup).not.toContain("Download");
     expect(markup).not.toContain("CAD-ready");
     expect(markup).not.toContain("CNC-ready");

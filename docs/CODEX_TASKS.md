@@ -541,6 +541,14 @@
 - [x] Attempt direct browser inspection against the local generated print route; the local private access gate redirected to `/access`, so rendered-route and helper tests were used as fallback without inspecting or committing secrets.
 - [x] Keep the pass browser-rendered only with no schema, database, migration, Supabase/cloud, OpenAI prompt/model/schema, package, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
 
+## Task 62B - Project Visuals Dogfood Pass
+
+- [x] Dogfood the higher-quality print visuals through rendered simple shelf, wall-mounted shelf, book ledge, planter box, door-hanger fallback, and insufficient-dimension coverage.
+- [x] Reduce print visual clutter by keeping the richer anatomy, three-view, visual piece inventory, and connection aid while suppressing duplicate overview and piece-relationship cards in the featured print view.
+- [x] Clean the visual piece inventory label to `Visual piece inventory - planning aid only.` and keep the section-level `Planning diagram — not to scale.` warning readable.
+- [x] Attempt direct browser inspection against the local generated print route; the local private access gate redirected to `/access`, so rendered-route and helper tests were used as fallback without inspecting or committing secrets.
+- [x] Keep the pass limited to UI/copy/layout/tests/docs with no schema, database, migration, Supabase/cloud, OpenAI prompt/model/schema, package, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.

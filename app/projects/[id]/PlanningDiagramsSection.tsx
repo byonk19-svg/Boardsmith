@@ -15,6 +15,8 @@ export function PlanningDiagramsSection({
   threeView?: ThreeViewPlanningDiagram;
   visualPieceInventory?: VisualPieceInventory;
 }) {
+  const visibleDiagrams = featured ? diagrams.filter((diagram) => diagram.type === "connection_summary") : diagrams;
+
   if (diagrams.length === 0) {
     return (
       <div className="space-y-3">
@@ -28,16 +30,18 @@ export function PlanningDiagramsSection({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 print:space-y-3">
       <p className="text-sm font-semibold text-caution">Planning diagram — not to scale.</p>
       {featured && projectAnatomy ? <ProjectAnatomyCard visual={projectAnatomy} /> : null}
       {featured && threeView ? <ThreeViewCard diagram={threeView} /> : null}
       {featured && visualPieceInventory ? <VisualPieceInventoryCards inventory={visualPieceInventory} /> : null}
-      <div className={featured ? "grid gap-4 lg:grid-cols-[1.15fr_0.85fr]" : "grid gap-4 lg:grid-cols-2"}>
-        {diagrams.map((diagram, index) => (
-          <PlanningDiagramCard key={diagram.id} diagram={diagram} featured={featured && index === 0} />
-        ))}
-      </div>
+      {visibleDiagrams.length > 0 ? (
+        <div className={featured ? "grid gap-3" : "grid gap-4 lg:grid-cols-2"}>
+          {visibleDiagrams.map((diagram, index) => (
+            <PlanningDiagramCard key={diagram.id} diagram={diagram} featured={featured && index === 0} />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
