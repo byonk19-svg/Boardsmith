@@ -4,9 +4,9 @@ Boardsmith is a private MVP web app for generating detailed, reviewable woodwork
 
 ## Private MVP Checkpoint
 
-Current checkpoint: `private-mvp-0.2`, created after the first post-MVP polish pass.
+Current checkpoint: `private-mvp-0.3`, created after the browser-rendered visual planning usability pass.
 
-This checkpoint records that local MVP dogfood and authorized hosted Vercel browser smoke passed, including the Boardsmith password gate, hosted project creation, notes, build log, plan generation, review surfaces, duplicate project, and browser print preview. It also includes post-MVP polish for intake examples and starters, generated-plan readability, and project list filtering/search. Boardsmith remains private-only and is not public-launch ready.
+This checkpoint records that local MVP dogfood and authorized hosted Vercel browser smoke passed, including the Boardsmith password gate, hosted project creation, notes, build log, plan generation, review surfaces, duplicate project, and browser print preview. It also includes post-MVP polish for intake examples and starters, generated-plan readability, project list filtering/search, and browser-rendered visual planning aids: print-preview summaries, planning diagrams, connection planning aids, and beginner-friendly build step cards. Boardsmith remains private-only and is not public-launch ready.
 
 ## Current MVP Capabilities
 
@@ -23,6 +23,7 @@ This checkpoint records that local MVP dogfood and authorized hosted Vercel brow
 - Material Summary and Cut List Review sections for deterministic review before building.
 - Manifest-backed Printable Plan Sheet on project detail pages.
 - Browser print preview route at `/projects/[id]/print` for paper-copy review through the user's browser print dialog.
+- Browser-rendered planning diagrams, connection planning aids, and beginner-friendly build step cards for supported generated plans.
 - Project detail pages with project metadata, safety flags, template hints, material summary, latest generated plan, browser print preview link, and generated plan history.
 - Project list search and filters for project type, status, plan state, and notes/build-log record state.
 - Optional private MVP password gate for hosted deployments.

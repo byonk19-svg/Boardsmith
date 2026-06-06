@@ -47,6 +47,43 @@ Recommended next directions:
 1. Small print preview polish if manual browser printing reveals layout or copy issues.
 2. Revisit app-generated PDF only after explicit approval of the output need and renderer dependency.
 
+## Visual Planning Usability Checkpoint
+
+Checkpoint: `private-mvp-0.3`.
+
+This checkpoint captures the browser-rendered visual planning usability layer added after the earlier private MVP polish checkpoint. Boardsmith remains a private MVP and a planning aid only. The new visual planning surfaces make generated plans easier to review in the browser and in browser print preview, but they do not change the safety posture, create downloadable files, or certify that any plan is build-ready.
+
+New visual planning improvements:
+
+- A browser print-preview `Before you build` summary with overall dimensions, main material, piece count, cut-list review count, primary tools, and safety/review reminders.
+- A print-friendly cut-list checklist column for paper review.
+- Deterministic planning diagrams for supported simple shelf, book ledge, and planter box shapes, with unsupported projects falling back calmly.
+- Section-level `Planning diagram - not to scale` warnings for diagram surfaces.
+- A connection planning aid that shows modeled piece-to-piece relationships, hardware/fastener wording, location text, and `Needs manual review` when modeled connection data requires extra review.
+- Beginner-friendly build step cards that show step number, title, instructions, phase label, tools, time, safety note, modeled step, and related pieces only when a conservative deterministic match exists.
+
+Dogfood and verification coverage:
+
+- Planning diagrams were dogfooded across simple shelf, book ledge, planter box, and fallback project shapes.
+- Connection diagrams were dogfooded across simple shelf, book ledge, planter box, no-connection, and fallback states.
+- Build step cards were dogfooded across simple shelf, book ledge, planter box, wood-sign-style, ambiguous-step, and print-preview scenarios through helper and rendered markup coverage.
+- Direct browser inspection was attempted during the build-step-card dogfood pass with an ignored local data file, but local `.env.local` Supabase configuration forced cloud lookup for dogfood IDs. The pass used rendered markup and helper checks as the fallback for that limitation.
+- Earlier local browser dogfood remains bounded to private development routes and did not add hosted URLs, screenshots, secrets, logs, or runtime data to the repository.
+
+Guardrails reconfirmed:
+
+- Boardsmith is private-only.
+- Generated plans, diagrams, connections, and step cards are planning aids only.
+- No professional engineering review, structural approval, wall-safety guarantee, child-safety certification, load rating, construction approval, fabrication-ready claim, or CNC-ready claim exists.
+- Browser-rendered UI and browser print preview remain the only current output path.
+- No app-generated PDF, SVG export/download, DXF, CAD, CNC, or export pipeline exists.
+- No image upload, public sharing, shopping, pricing, vendor, purchasing, inventory, marketplace, payment, or subscription feature exists.
+
+Recommended next directions:
+
+1. Keep follow-up work narrow and private-MVP-safe: only small copy, spacing, or deterministic review improvements found through dogfood.
+2. Do not start app-generated PDF, SVG, DXF, CAD, CNC, public sharing, auth-provider, shopping, pricing, vendor, inventory, marketplace, payment, or subscription work without an explicit task and approval where required.
+
 ## What Works Now
 
 - Project creation from `/projects/new`.
@@ -66,6 +103,10 @@ Recommended next directions:
 - Cut List Review for missing dimensions, vague pieces, quantity issues, and duplicate-looking pieces.
 - Manifest-backed Printable Plan Sheet on the project detail page.
 - Browser print preview at `/projects/[id]/print`.
+- Browser print-preview `Before you build` summary and checklist-style cut list.
+- Deterministic browser-rendered planning diagrams for supported simple shelf, book ledge, and planter box plans.
+- Connection planning aids from existing build-model connection data.
+- Beginner-friendly build step cards from existing generated plan and build-model operation data.
 - Export architecture decision remains browser-print-first for the private MVP; app-generated PDF is not approved.
 - Duplicate project action that copies intake details without generated plans, notes, history, or build log.
 - Project notes.

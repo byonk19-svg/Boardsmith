@@ -488,9 +488,18 @@
 - [x] Make compact print cards tighter and rename the related-operation label to the beginner-friendlier `Modeled step`.
 - [x] Keep the pass limited to UI/copy/helper/test/docs with no schema migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, shopping, pricing, vendor, inventory, marketplace, payments, subscriptions, or new project types.
 
+## Task 59A - Visual Planning Usability Checkpoint
+
+- [x] Document `private-mvp-0.3` as the visual planning usability checkpoint because `private-mvp-0.2` already exists for the earlier post-MVP polish checkpoint.
+- [x] Summarize browser print preview polish, deterministic planning diagrams, planning diagram dogfood, connection planning aids, connection dogfood, beginner-friendly build step cards, and build step card dogfood.
+- [x] Reconfirm Boardsmith remains private-MVP-only and planning-aid-only.
+- [x] Reconfirm browser-rendered UI and browser print preview remain the only current output path.
+- [x] Reconfirm no app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, public sharing, shopping, pricing, vendor, inventory, marketplace, payments, subscriptions, professional review, structural approval, wall-safety guarantee, child-safety certification, load rating, fabrication-ready claim, or construction approval was added.
+- [x] Keep the pass limited to docs/checkpoint/tag work with no product UI, schema, storage, Supabase/cloud, OpenAI prompt/model/schema, package, runtime data, hosted URL, screenshot, secret, log, export, sharing, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue small trust-building polish only if manual dogfood reveals a concrete beginner comprehension issue.
+1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.
 
 ## Remaining Hardening
 
