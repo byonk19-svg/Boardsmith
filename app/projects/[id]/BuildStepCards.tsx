@@ -1,0 +1,52 @@
+import type { BuildStepCard } from "@/lib/plans/build-step-cards";
+
+export function BuildStepCards({ cards, compact = false }: { cards: BuildStepCard[]; compact?: boolean }) {
+  if (cards.length === 0) {
+    return <p className="text-sm leading-6 text-ink/65">No build step cards available yet. Review the full plan before building.</p>;
+  }
+
+  return (
+    <ol className={compact ? "space-y-3" : "space-y-4"}>
+      {cards.map((card) => (
+        <li
+          key={card.id}
+          className="break-inside-avoid rounded-md border border-sawdust bg-white p-4 print:break-inside-avoid print:p-3"
+        >
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Step {card.stepNumber.toString()}</p>
+              <h4 className="mt-1 text-base font-semibold text-ink">{card.title}</h4>
+            </div>
+            <span className="w-fit rounded-md bg-shop px-2.5 py-1 text-xs font-semibold text-ink/70 print:border print:border-sawdust print:bg-white">
+              {card.phaseLabel}
+            </span>
+          </div>
+
+          <p className="mt-3 text-sm leading-6 text-ink/75">{card.instructions}</p>
+
+          <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+            {card.tools.length > 0 ? <StepMeta label="Tools" value={card.tools.join(", ")} /> : null}
+            {card.estimatedTimeLabel ? <StepMeta label="Time" value={card.estimatedTimeLabel} /> : null}
+            {card.relatedPieceLabels.length > 0 ? <StepMeta label="Pieces" value={card.relatedPieceLabels.join(", ")} /> : null}
+            {card.relatedOperationTitle ? <StepMeta label="Related operation" value={card.relatedOperationTitle} /> : null}
+          </dl>
+
+          {card.safetyNote ? (
+            <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm font-medium leading-6 text-caution print:border-sawdust print:bg-white">
+              {card.safetyNote}
+            </p>
+          ) : null}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function StepMeta({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="font-semibold uppercase tracking-wide text-ink/55">{label}</dt>
+      <dd className="mt-1 text-sm leading-5 text-ink/70">{value}</dd>
+    </div>
+  );
+}

@@ -8,6 +8,7 @@ import type { Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
+import { BuildStepCards } from "../BuildStepCards";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
 
 export const dynamic = "force-dynamic";
@@ -121,18 +122,7 @@ export default async function ProjectPrintPreviewPage({
 
         <PrintSection title="Operations and Build Steps">
           <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-            <ol className="space-y-4">
-              {manifest.sections.buildSteps.map((step) => (
-                <li key={step.step_number} className="border-l-2 border-moss pl-4">
-                  <p className="font-semibold text-ink">
-                    {step.step_number}. {step.title}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-ink/70">{step.instructions}</p>
-                  <p className="mt-2 text-xs font-medium text-ink/55">Tools: {step.tools_used.join(", ")}</p>
-                  {step.safety_note ? <p className="mt-2 text-sm font-medium text-caution">{step.safety_note}</p> : null}
-                </li>
-              ))}
-            </ol>
+            <BuildStepCards cards={manifest.buildStepCards} compact />
             <PrintList
               title="Modeled operations"
               items={manifest.sections.modeledOperations.map((operation) => `${operation.sequenceNumber.toString()}. ${operation.title}: ${operation.description}`)}

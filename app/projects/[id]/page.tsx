@@ -15,6 +15,7 @@ import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/type
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
+import { BuildStepCards } from "./BuildStepCards";
 import { GeneratePlanForm } from "./GeneratePlanForm";
 import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
 
@@ -981,18 +982,7 @@ function PlanView({
         </PlanSheetSection>
 
         <PlanSheetSection title="Build steps">
-          <ol className="space-y-4">
-            {manifest.sections.buildSteps.map((step) => (
-              <li key={step.step_number} className="border-l-2 border-moss pl-4">
-                <p className="font-semibold text-ink">
-                  {step.step_number}. {step.title}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-ink/70">{step.instructions}</p>
-                <p className="mt-2 text-xs font-medium text-ink/55">Tools: {step.tools_used.join(", ")}</p>
-                {step.safety_note ? <p className="mt-2 text-sm font-medium text-caution">{step.safety_note}</p> : null}
-              </li>
-            ))}
-          </ol>
+          <BuildStepCards cards={manifest.buildStepCards} />
         </PlanSheetSection>
 
         <PlanSheetSection title="Modeled operations">

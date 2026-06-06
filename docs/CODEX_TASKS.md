@@ -471,6 +471,14 @@
 - [x] Make the connection card more print-friendly by spanning the diagram grid, using a compact marker-only SVG, and laying connection rows out in columns on wider screens.
 - [x] Confirm dogfood routes avoid CAD-ready, CNC-ready, fabrication-ready, construction-approval, structural-approval, child-safety-approval, load-rating, download, export, schema, migration, Supabase/cloud, OpenAI, package, new-project-type, shopping, pricing, vendor, and inventory scope.
 
+## Task 58A - Build Step Cards
+
+- [x] Add deterministic build-step card data from existing generated plan steps and build-model operations only.
+- [x] Render compact beginner-friendly step cards in project detail and browser print preview.
+- [x] Show step number, title, instructions, phase label, tools, time, safety note, related operation, and related pieces when safely available.
+- [x] Fall back to `Build step` and omit invented operation/piece relationships for ambiguous steps.
+- [x] Keep the pass limited to UI/copy/helper/test/docs with no schema migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, shopping, pricing, vendor, inventory, marketplace, payments, subscriptions, or new project types.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue small trust-building polish only if manual dogfood reveals a concrete beginner comprehension issue.

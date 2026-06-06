@@ -1,4 +1,5 @@
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
+import { createBuildStepCards, type BuildStepCard } from "@/lib/plans/build-step-cards";
 import { summarizeCutListReview, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
 import { summarizeExportReadiness, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
 import { summarizeMaterialReview, type MaterialReviewSummary } from "@/lib/plans/material-summary";
@@ -57,6 +58,7 @@ export type PrintablePlanManifest = {
   materials: MaterialReviewSummary;
   cutList: CutListReviewSummary | null;
   planningDiagrams: PlanningDiagramSummary;
+  buildStepCards: BuildStepCard[];
   planReview: GeneratedPlanReviewSummary | null;
   exportReadiness: ExportReadinessSummary | null;
   sections: {
@@ -184,6 +186,7 @@ export function createPrintablePlanManifest({
     materials: summarizeMaterialReview(plan, buildModel),
     cutList: plan ? summarizeCutListReview(plan, buildModel) : null,
     planningDiagrams: createPlanDiagrams(buildModel),
+    buildStepCards: plan ? createBuildStepCards(plan.assembly_steps, buildModel) : [],
     planReview,
     exportReadiness,
     sections: planSections(plan, buildModel),

@@ -160,9 +160,23 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Cut List Review");
     expect(markup).toContain("Cut?");
     expect(markup).toContain("Operations and Build Steps");
+    expect(markup).toContain("Step 1");
+    expect(markup).toContain("Inspect / review");
+    expect(markup).toContain("Tools");
+    expect(markup).toContain("drill");
+    expect(markup).toContain("Time");
+    expect(markup).toContain("15 min");
+    expect(markup).toContain("Pieces");
+    expect(markup).toContain("Shelf board");
+    expect(markup).toContain("Related operation");
+    expect(markup).toContain("Inspect mounting location");
+    expect(markup).toContain("Do not rely on Boardsmith for load ratings.");
     expect(markup).toContain("Planning-aid disclaimers");
     expect(markup).toContain("Future export notes");
     expect(markup).toContain("No export, CAD, CNC, PDF, SVG, or DXF output is generated here.");
+    expect(markup).not.toContain("CAD-ready");
+    expect(markup).not.toContain("CNC-ready");
+    expect(markup).not.toContain("construction approval");
     expect(markup).toContain('href="/projects/print_preview_project"');
     expect(markup).toContain("Back to project");
   });
@@ -307,6 +321,44 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("CAD-ready");
     expect(markup).not.toContain("CNC-ready");
     expect(markup).not.toContain("construction approval");
+  });
+
+  it("renders ambiguous build steps as calm generic cards without invented pieces", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        build_model_json: {
+          ...simpleShelfBuildModelFixture,
+          operations: [],
+        },
+        plan_json: {
+          ...planRecord.plan_json,
+          assembly_steps: [
+            {
+              ...planRecord.plan_json.assembly_steps[0],
+              title: "Think through the plan",
+              instructions: "Read the plan and pause if anything is unclear.",
+              tools_used: ["pencil"],
+              safety_note: null,
+              estimated_time_minutes: null,
+            },
+          ],
+        },
+      },
+    ]);
+    const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectPrintPreviewPage({
+        params: Promise.resolve({ id: project.id }),
+      }),
+    );
+
+    expect(markup).toContain("Think through the plan");
+    expect(markup).toContain("Build step");
+    expect(markup).toContain("pencil");
+    expect(markup).not.toContain("Related operation");
   });
 
   it("shows a calm print-preview empty state when no generated plan exists", async () => {

@@ -247,6 +247,17 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Cut list to verify");
     expect(markup).toContain("Verify all dimensions against your actual space, lumber, and hardware.");
     expect(markup).toContain("Build steps");
+    expect(markup).toContain("Step 1");
+    expect(markup).toContain("Inspect / review");
+    expect(markup).toContain("Tools");
+    expect(markup).toContain("drill");
+    expect(markup).toContain("Time");
+    expect(markup).toContain("15 min");
+    expect(markup).toContain("Pieces");
+    expect(markup).toContain("Shelf board");
+    expect(markup).toContain("Related operation");
+    expect(markup).toContain("Inspect mounting location");
+    expect(markup).toContain("Do not rely on Boardsmith for load ratings.");
     expect(markup).toContain("Modeled operations");
     expect(markup).toContain("Safety notes");
     expect(markup).toContain("Assumptions");
@@ -255,6 +266,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Use your own judgment before cutting or assembling.");
     expect(markup).toContain("Verify dimensions, materials, hardware, tool setup, and site conditions before cutting or building.");
     expect(markup).toContain("No export, CAD, CNC, PDF, SVG, or DXF output is generated here.");
+    expect(markup).not.toContain("CAD-ready");
+    expect(markup).not.toContain("CNC-ready");
+    expect(markup).not.toContain("construction approval");
     expect(markup).toContain("Future export notes");
     expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
   });

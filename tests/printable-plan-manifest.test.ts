@@ -113,6 +113,15 @@ describe("createPrintablePlanManifest", () => {
     expect(manifest.planReview?.manualReviewRequired).toBe(true);
     expect(manifest.exportReadiness?.status).toBe("needs_review");
     expect(manifest.sections.buildSteps[0]?.title).toBe("Review mounting");
+    expect(manifest.buildStepCards[0]).toMatchObject({
+      title: "Review mounting",
+      phaseLabel: "Inspect / review",
+      tools: ["drill"],
+      estimatedTimeLabel: "15 min",
+      safetyNote: "Do not rely on Boardsmith for load ratings.",
+      relatedOperationTitle: "Inspect mounting location",
+      relatedPieceLabels: ["Shelf board"],
+    });
     expect(manifest.disclaimers).toEqual(
       expect.arrayContaining([
         "Boardsmith plans are planning aids, not professional engineering reviews.",
