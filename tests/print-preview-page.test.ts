@@ -147,9 +147,14 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Use your browser&#x27;s print dialog if you want a paper copy.");
     expect(markup).toContain("Review all dimensions, materials, and safety notes before building.");
     expect(markup).toContain("Build Snapshot");
+    expect(markup).toContain("Plan date");
+    expect(markup).toContain("Difficulty");
+    expect(markup).toContain("Time estimate");
     expect(markup).toContain("Overall dimensions");
     expect(markup).toContain("Main material");
+    expect(markup).toContain("Major pieces");
     expect(markup).toContain("Primary tools");
+    expect(markup).toContain("First check");
     expect(markup).toContain("Project Visuals");
     expect(markup).toContain("Check Before Building");
     expect(markup).toContain("Review wall mounting details.");
@@ -184,6 +189,9 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Export Readiness");
     expect(markup).not.toContain("Future export notes");
     expect(markup).not.toContain("Operations and Build Steps");
+    expect(markup).not.toContain("Build model");
+    expect(markup).not.toContain("Confidence");
+    expect(markup).not.toContain("test-model");
     expect(markup).not.toContain("CAD-ready");
     expect(markup).not.toContain("CNC-ready");
     expect(markup).not.toContain("DXF-ready");

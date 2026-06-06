@@ -57,9 +57,9 @@ export default async function ProjectPrintPreviewPage({
 
           <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-4">
             <PrintFact label="Project type" value={manifest.project.projectTypeLabel} />
-            <PrintFact label="Generated" value={`${new Date(manifest.generatedPlan.createdAt).toLocaleDateString()} - ${manifest.generatedPlan.modelName}`} />
-            <PrintFact label="Confidence" value={`${manifest.generatedPlan.confidenceLevel} plan / ${manifest.buildModel.confidenceLevel} model`} />
-            <PrintFact label="Build model" value={`${manifest.buildModel.source} - ${manifest.buildModel.pieceCount.toString()} pieces`} />
+            <PrintFact label="Plan date" value={new Date(manifest.generatedPlan.createdAt).toLocaleDateString()} />
+            <PrintFact label="Difficulty" value={manifest.generatedPlan.estimatedDifficulty} />
+            <PrintFact label="Time estimate" value={manifest.generatedPlan.estimatedTime} />
           </dl>
         </header>
 
@@ -110,9 +110,10 @@ function PrintPreviewEmptyState({ project }: { project: Project }) {
 function PrintBuildSnapshot({ manifest }: { manifest: PrintablePlanManifest }) {
   const primaryMaterial = manifest.materials.primaryMaterials.at(0);
   const cutListFact = manifest.cutList
-    ? `${manifest.cutList.totalPieces.toString()} rows / ${manifest.cutList.piecesNeedingReview.toString()} need review`
+    ? `${manifest.cutList.items.length.toString()} rows / ${manifest.cutList.piecesNeedingReview.toString()} need review`
     : "Generate a plan to review";
   const tools = manifest.sections.tools.length > 0 ? manifest.sections.tools : manifest.project.intake.tools;
+  const majorPieces = majorPieceLabels(manifest);
   const topAction = manifest.actionChecklist.find((item) => item.priority === "required") ?? manifest.actionChecklist[0];
   const reviewReminder = topAction.label;
 
@@ -121,15 +122,12 @@ function PrintBuildSnapshot({ manifest }: { manifest: PrintablePlanManifest }) {
       <p className="text-sm leading-6 text-ink/65">Quick shop-plan facts to check before measuring, cutting, fastening, finishing, or mounting.</p>
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3 print:grid-cols-3">
         <PrintFact label="Overall dimensions" value={manifest.project.intake.dimensions} />
-        <PrintFact label="Main material" value={primaryMaterial ? `${primaryMaterial.label}: ${primaryMaterial.detail}` : manifest.project.intake.material} />
-        <PrintFact label="Pieces" value={manifest.buildModel.pieceCount.toString()} />
+        <PrintFact label="Main material" value={primaryMaterial?.label ?? manifest.project.intake.material} />
+        <PrintFact label="Major pieces" value={majorPieces.length > 0 ? majorPieces.join(", ") : `${manifest.buildModel.pieceCount.toString()} pieces`} />
         <PrintFact label="Cut list" value={cutListFact} />
         <PrintFact label="Primary tools" value={tools.length > 0 ? tools.slice(0, 4).join(", ") : "Review tools before building"} />
-        <PrintFact label="Review flags" value={manifest.sections.safetyFlags.length.toString()} />
+        <PrintFact label="First check" value={reviewReminder} />
       </dl>
-      <p className="mt-4 rounded-md border border-sawdust bg-white p-3 text-sm font-semibold leading-6 text-caution print:bg-white">
-        {reviewReminder}
-      </p>
     </div>
   );
 }
@@ -257,6 +255,11 @@ function PrintFact({ label, value }: { label: string; value: string }) {
 
 function formatMaterialItems(items: PrintablePlanManifest["materials"]["primaryMaterials"]): string[] {
   return items.map((item) => `${item.label}: ${item.detail}${item.notes.length > 0 ? ` - ${item.notes.join(" ")}` : ""}`);
+}
+
+function majorPieceLabels(manifest: PrintablePlanManifest): string[] {
+  const modeledPieces = manifest.cutList?.items.filter((item) => item.sourceLabel === "Modeled piece") ?? [];
+  return [...new Set(modeledPieces.map((item) => item.label))].slice(0, 3);
 }
 
 function PrintList({ title, items, emptyCopy = "No items listed." }: { title: string; items: string[]; emptyCopy?: string }) {

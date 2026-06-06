@@ -522,6 +522,15 @@
 - [x] Demote detailed review and planning-aid safety language into `Review Details` and remove prominent export-readiness/future-export sections from the print flow.
 - [x] Keep the pass browser-rendered only with existing manifest/build-model data and no schema, storage, Supabase/cloud, OpenAI prompt/model/schema, package, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
 
+## Task 61B - Print Plan UX Dogfood Pass
+
+- [x] Dogfood the redesigned print hierarchy across rendered simple shelf, book ledge, planter box, door-hanger fallback, high-review, low-issue, diagram, checklist, and build-step-card coverage.
+- [x] Tighten the first printed page by replacing internal `Confidence` / `Build model` header facts with beginner-facing plan date, difficulty, and time estimate facts.
+- [x] Add `Major pieces` and `First check` to the `Build Snapshot` so the first page answers what the major parts are and what to review before cutting or building.
+- [x] Keep `Project Visuals` early, keep `Cut?` in the compact cut checklist, and keep `Review Details` after the build flow.
+- [x] Attempt direct browser inspection against the local generated print route; the local private access gate redirected to `/access`, so rendered-route and helper tests were used as fallback without inspecting or committing secrets.
+- [x] Keep the pass limited to UI/copy/layout/tests/docs with no schema, database, migration, Supabase/cloud, OpenAI, package, persistent checklist state, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.
