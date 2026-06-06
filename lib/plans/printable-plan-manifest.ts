@@ -3,6 +3,7 @@ import { createBuildStepCards, type BuildStepCard } from "@/lib/plans/build-step
 import { summarizeCutListReview, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
 import { summarizeExportReadiness, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
 import { summarizeMaterialReview, type MaterialReviewSummary } from "@/lib/plans/material-summary";
+import { createPlanActionChecklist, type PlanActionChecklistItem } from "@/lib/plans/plan-action-checklist";
 import { createPlanDiagrams, type PlanningDiagramSummary } from "@/lib/plans/plan-diagrams";
 import { summarizeGeneratedPlanReview, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
@@ -59,6 +60,7 @@ export type PrintablePlanManifest = {
   cutList: CutListReviewSummary | null;
   planningDiagrams: PlanningDiagramSummary;
   buildStepCards: BuildStepCard[];
+  actionChecklist: PlanActionChecklistItem[];
   planReview: GeneratedPlanReviewSummary | null;
   exportReadiness: ExportReadinessSummary | null;
   sections: {
@@ -152,6 +154,14 @@ export function createPrintablePlanManifest({
   const plan = planRecord?.plan_json ?? null;
   const planReview = plan ? summarizeGeneratedPlanReview(plan, buildModel, { buildModelSource }) : null;
   const exportReadiness = plan ? summarizeExportReadiness(plan, buildModel, { buildModelSource }) : null;
+  const materials = summarizeMaterialReview(plan, buildModel);
+  const cutList = plan ? summarizeCutListReview(plan, buildModel) : null;
+  const actionChecklist = createPlanActionChecklist({
+    buildModel,
+    materialReview: materials,
+    cutListReview: cutList,
+    planReview,
+  });
 
   return {
     manifestVersion: "1.0",
@@ -183,10 +193,11 @@ export function createPrintablePlanManifest({
       materialCount: buildModel.materials.length,
       operationCount: buildModel.operations.length,
     },
-    materials: summarizeMaterialReview(plan, buildModel),
-    cutList: plan ? summarizeCutListReview(plan, buildModel) : null,
+    materials,
+    cutList,
     planningDiagrams: createPlanDiagrams(buildModel),
     buildStepCards: plan ? createBuildStepCards(plan.assembly_steps, buildModel) : [],
+    actionChecklist,
     planReview,
     exportReadiness,
     sections: planSections(plan, buildModel),

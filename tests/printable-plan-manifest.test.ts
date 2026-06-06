@@ -122,6 +122,20 @@ describe("createPrintablePlanManifest", () => {
       relatedOperationTitle: "Inspect mounting location",
       relatedPieceLabels: ["Shelf board"],
     });
+    expect(manifest.actionChecklist).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Review wall mounting details.",
+          category: "mounting",
+          priority: "required",
+        }),
+        expect.objectContaining({
+          label: "Verify hardware and fasteners before assembly.",
+          category: "hardware",
+          priority: "recommended",
+        }),
+      ]),
+    );
     expect(manifest.disclaimers).toEqual(
       expect.arrayContaining([
         "Boardsmith plans are planning aids, not professional engineering reviews.",

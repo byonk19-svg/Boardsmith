@@ -152,6 +152,10 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Overall dimensions");
     expect(markup).toContain("Main material");
     expect(markup).toContain("Primary tools");
+    expect(markup).toContain("Check these before building");
+    expect(markup).toContain("Review wall mounting details.");
+    expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
+    expect(markup).not.toContain('name="plan_action_');
     expect(markup).toContain("Planning diagrams");
     expect(markup).toContain("Planning diagram — not to scale");
     expect(markup).toContain("Shelf board overview");
@@ -359,6 +363,68 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Build step");
     expect(markup).toContain("pencil");
     expect(markup).not.toContain("Modeled step");
+  });
+
+  it("renders the safe default action checklist when no specific review issues are found", async () => {
+    const lowIssueBuildModel = {
+      ...simpleShelfBuildModelFixture,
+      hardware: [],
+      connections: [],
+      safety: {
+        reviewRequired: false,
+        flags: [],
+        disclaimers: [],
+      },
+      unresolvedQuestions: [],
+      assumptions: [],
+      confidence: {
+        level: "high" as const,
+        reasons: ["Dimensions and material are known for review."],
+      },
+    };
+    getProjectMock.mockResolvedValue({
+      ...project,
+      safety_review_required: false,
+      safety_flags: [],
+    });
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        build_model_json: lowIssueBuildModel,
+        plan_json: {
+          ...planRecord.plan_json,
+          safety_notes: [],
+          assumptions: [],
+          needs_review_flags: [],
+          svg_readiness_notes: [],
+          confidence_level: "high",
+          cut_list: [
+            {
+              ...planRecord.plan_json.cut_list[0],
+              notes: "",
+            },
+          ],
+        },
+        confidence_level: "high",
+      },
+    ]);
+    const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectPrintPreviewPage({
+        params: Promise.resolve({ id: project.id }),
+      }),
+    );
+
+    expect(markup).toContain("Check these before building");
+    expect(markup).toContain("Verify dimensions against the real space and material.");
+    expect(markup).toContain("Review tool safety and material condition.");
+    expect(markup).toContain("Dry fit before final assembly.");
+    expect(markup).toContain("Review before cutting or mounting.");
+    expect(markup).not.toContain("load-rated");
+    expect(markup).not.toContain("structural approval");
+    expect(markup).not.toContain("CAD-ready");
+    expect(markup).not.toContain("CNC-ready");
   });
 
   it("shows a calm print-preview empty state when no generated plan exists", async () => {

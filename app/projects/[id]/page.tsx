@@ -17,6 +17,7 @@ import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
 import { BuildStepCards } from "./BuildStepCards";
 import { GeneratePlanForm } from "./GeneratePlanForm";
+import { PlanActionChecklist } from "./PlanActionChecklist";
 import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
 
 export const dynamic = "force-dynamic";
@@ -935,6 +936,10 @@ function PlanView({
               Boardsmith cannot verify engineering, load capacity, wall safety, child safety, material condition, or tool setup.
             </p>
           </div>
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Check these before building">
+          <PlanActionChecklist items={manifest.actionChecklist} />
         </PlanSheetSection>
 
         <PlanSheetSection title="Planning diagrams">

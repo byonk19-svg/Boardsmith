@@ -497,9 +497,17 @@
 - [x] Reconfirm no app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, public sharing, shopping, pricing, vendor, inventory, marketplace, payments, subscriptions, professional review, structural approval, wall-safety guarantee, child-safety certification, load rating, fabrication-ready claim, or construction approval was added.
 - [x] Keep the pass limited to docs/checkpoint/tag work with no product UI, schema, storage, Supabase/cloud, OpenAI prompt/model/schema, package, runtime data, hosted URL, screenshot, secret, log, export, sharing, shopping, pricing, vendor, or inventory changes.
 
+## Task 60A - Plan Review Action Checklist
+
+- [x] Add deterministic `createPlanActionChecklist` helper using existing build-model, material-review, cut-list-review, and generated-plan review data only.
+- [x] Render `Check these before building` in the project detail generated plan sheet and browser print preview.
+- [x] Keep the checklist read-only with paper-style markers and no persisted checked state.
+- [x] Surface beginner-friendly dimensions, material-thickness, cut-list, safety, hardware, mounting, finish, unresolved-question, and fallback review actions where the existing data supports them.
+- [x] Preserve private-MVP planning-aid guardrails with no professional approval, structural approval, wall-safety guarantee, child-safety certification, load rating, fabrication-ready claim, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, shopping, pricing, vendor, inventory, marketplace, payments, subscriptions, schema migration, Supabase/cloud, OpenAI prompt/model/schema, or package changes.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.
+1. [ ] Dogfood the action checklist across simple shelf, book ledge, planter, and fallback-style plans; limit fixes to copy, spacing, and deterministic review clarity.
 
 ## Remaining Hardening
 

@@ -243,6 +243,12 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Needs manual review");
     expect(markup).toContain("Planning aid");
     expect(markup).toContain("Review before building");
+    expect(markup).toContain("Check these before building");
+    expect(markup).toContain("Review wall mounting details.");
+    expect(markup).toContain("Review unresolved questions.");
+    expect(markup).toContain("Verify hardware and fasteners before assembly.");
+    expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
+    expect(markup).not.toContain('name="plan_action_');
     expect(markup).toContain("Materials to verify");
     expect(markup).toContain("Cut list to verify");
     expect(markup).toContain("Verify all dimensions against your actual space, lumber, and hardware.");

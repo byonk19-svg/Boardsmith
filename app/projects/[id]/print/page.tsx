@@ -9,6 +9,7 @@ import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
 import { BuildStepCards } from "../BuildStepCards";
+import { PlanActionChecklist } from "../PlanActionChecklist";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
 
 export const dynamic = "force-dynamic";
@@ -63,6 +64,10 @@ export default async function ProjectPrintPreviewPage({
         </header>
 
         <PrintBeforeBuild manifest={manifest} />
+
+        <PrintSection title="Check these before building">
+          <PlanActionChecklist items={manifest.actionChecklist} compact />
+        </PrintSection>
 
         <PrintReviewStrip manifest={manifest} />
 
