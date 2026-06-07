@@ -164,10 +164,13 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Review wall mounting details.");
     expect(markup).toContain("Review flagged safety notes.");
     expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
+    expect(markup.indexOf("Verify hardware and fasteners before assembly.")).toBeGreaterThan(markup.indexOf("Review Appendix"));
     expect(markup).not.toContain('name="plan_action_');
     expect(markup).not.toContain("Review child-adjacent or load-related safety flags.");
     expect(markup).toContain("Planning diagram — not to scale");
     expect(markup).toContain("Project anatomy");
+    expect(markup).toContain("print:h-52");
+    expect(markup).not.toContain("print:h-60");
     expect(markup).toContain("Width 36 in");
     expect(markup).toContain("Height 6 in");
     expect(markup).toContain("Depth 10 in");
@@ -184,6 +187,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Materials to gather");
     expect(markup).toContain("Pieces to identify");
     expect(markup).toContain("1 - 36 in x 10 in x 0.75 in");
+    expect(markup).not.toContain("Plan material:");
     expect(markup).not.toContain("Material checks");
     expect(markup).toContain("Cut Checklist");
     expect(markup).toContain("Cut?");
@@ -196,11 +200,12 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("drill");
     expect(markup).toContain("Pieces");
     expect(markup).toContain("Shelf board");
-    expect(markup).toContain("Do not rely on Boardsmith for load ratings.");
+    expect(markup).not.toContain("Do not rely on Boardsmith for load ratings.");
     expect(markup).not.toContain("Modeled step");
     expect(markup).not.toContain("Modeled operations");
     expect(markup).not.toContain("15 min");
     expect(markup).toContain("Review Appendix");
+    expect(markup).toContain("Additional checklist notes");
     expect(markup).toContain("Plan review summary");
     expect(markup).toContain("Planning-aid reminders");
     expect(markup).toContain("No app-generated export or download is available from this print view.");

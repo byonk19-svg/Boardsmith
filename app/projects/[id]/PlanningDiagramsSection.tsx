@@ -30,13 +30,13 @@ export function PlanningDiagramsSection({
   }
 
   return (
-    <div className="space-y-3 print:space-y-3">
+    <div className="space-y-2.5 print:space-y-2">
       <p className="text-sm font-semibold text-caution">Planning diagram — not to scale.</p>
       {featured && projectAnatomy ? <ProjectAnatomyCard visual={projectAnatomy} /> : null}
       {featured && threeView ? <ThreeViewCard diagram={threeView} /> : null}
       {featured && visualPieceInventory ? <VisualPieceInventoryCards inventory={visualPieceInventory} /> : null}
       {visibleDiagrams.length > 0 ? (
-        <div className={featured ? "grid gap-3" : "grid gap-4 lg:grid-cols-2"}>
+        <div className={featured ? "grid gap-2.5" : "grid gap-4 lg:grid-cols-2"}>
           {visibleDiagrams.map((diagram, index) => (
             <PlanningDiagramCard key={diagram.id} diagram={diagram} featured={featured && index === 0} />
           ))}
@@ -48,7 +48,7 @@ export function PlanningDiagramsSection({
 
 function ProjectAnatomyCard({ visual }: { visual: ProjectAnatomyVisual }) {
   return (
-    <div className="break-inside-avoid rounded-md border border-sawdust p-4 print:break-inside-avoid">
+    <div className="break-inside-avoid rounded-md border border-sawdust p-3 print:break-inside-avoid">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <h4 className="text-base font-semibold text-ink">{visual.title}</h4>
         <span className="text-xs font-semibold uppercase tracking-wide text-ink/50">{visual.materialLabel}</span>
@@ -57,7 +57,7 @@ function ProjectAnatomyCard({ visual }: { visual: ProjectAnatomyVisual }) {
         <p className="mt-3 rounded-md bg-shop p-3 text-sm leading-6 text-ink/70">{visual.fallbackMessage}</p>
       ) : (
         <>
-          <svg className="mt-4 h-72 w-full rounded-md bg-shop print:h-60" viewBox="0 0 560 300" role="img" aria-label="Project anatomy planning visual">
+          <svg className="mt-3 h-64 w-full rounded-md bg-shop print:h-52" viewBox="0 0 560 300" role="img" aria-label="Project anatomy planning visual">
             <rect x="34" y="26" width="492" height="236" rx="8" fill="#fffaf0" stroke="#d7c7a1" />
             <polygon points="150,100 388,100 430,130 190,130" fill="#d9b77f" stroke="#7a5b2e" strokeWidth="2" />
             <polygon points="150,100 190,130 190,190 150,158" fill="#b9803c" stroke="#7a5b2e" strokeWidth="2" />
@@ -85,7 +85,7 @@ function ProjectAnatomyCard({ visual }: { visual: ProjectAnatomyVisual }) {
               {visual.pieceLabels.slice(0, 2).join(" + ") || "Major pieces"}
             </text>
           </svg>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {visual.pieceLabels.map((label) => (
               <span key={label} className="rounded-md border border-sawdust bg-white px-2.5 py-1 text-xs font-semibold text-ink/70">
                 {label}
@@ -100,16 +100,16 @@ function ProjectAnatomyCard({ visual }: { visual: ProjectAnatomyVisual }) {
 
 function ThreeViewCard({ diagram }: { diagram: ThreeViewPlanningDiagram }) {
   return (
-    <div className="break-inside-avoid rounded-md border border-sawdust p-4 print:break-inside-avoid">
+    <div className="break-inside-avoid rounded-md border border-sawdust p-3 print:break-inside-avoid">
       <h4 className="text-base font-semibold text-ink">{diagram.title}</h4>
       {diagram.fallbackMessage ? (
         <p className="mt-3 rounded-md bg-shop p-3 text-sm leading-6 text-ink/70">{diagram.fallbackMessage}</p>
       ) : (
-        <div className="mt-4 grid gap-3 md:grid-cols-3 print:grid-cols-3">
+        <div className="mt-3 grid gap-2 md:grid-cols-3 print:grid-cols-3">
           {diagram.views.map((view) => (
-            <div key={view.id} className="rounded-md border border-sawdust bg-white p-3">
+            <div key={view.id} className="rounded-md border border-sawdust bg-white p-2.5">
               <h5 className="text-sm font-semibold text-ink">{view.title}</h5>
-              <svg className="mt-3 h-32 w-full rounded-md bg-shop" viewBox="0 0 220 130" role="img" aria-label={`${view.title} planning view`}>
+              <svg className="mt-2 h-28 w-full rounded-md bg-shop print:h-24" viewBox="0 0 220 130" role="img" aria-label={`${view.title} planning view`}>
                 <rect x="34" y="34" width="150" height="58" rx="4" fill="#d9b77f" stroke="#7a5b2e" strokeWidth="2" />
                 <line x1="34" y1="22" x2="184" y2="22" stroke="#7a5b2e" strokeWidth="2" />
                 <text x="109" y="17" textAnchor="middle" className="fill-ink text-[11px] font-semibold">
@@ -131,14 +131,14 @@ function ThreeViewCard({ diagram }: { diagram: ThreeViewPlanningDiagram }) {
 
 function VisualPieceInventoryCards({ inventory }: { inventory: VisualPieceInventory }) {
   return (
-    <div className="break-inside-avoid rounded-md border border-sawdust p-4 print:break-inside-avoid">
+    <div className="break-inside-avoid rounded-md border border-sawdust p-3 print:break-inside-avoid">
       <h4 className="text-base font-semibold text-ink">{inventory.disclaimer}</h4>
       {inventory.items.length > 0 ? (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-3">
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 print:grid-cols-3">
           {inventory.items.slice(0, 6).map((item) => (
-            <div key={item.id} className="rounded-md border border-sawdust bg-white p-3">
-              <div className="h-10 rounded-sm border border-[#7a5b2e] bg-[#d9b77f]" aria-hidden="true" />
-              <p className="mt-2 text-sm font-semibold text-ink">{item.label}</p>
+            <div key={item.id} className="rounded-md border border-sawdust bg-white p-2.5">
+              <div className="h-8 rounded-sm border border-[#7a5b2e] bg-[#d9b77f]" aria-hidden="true" />
+              <p className="mt-1.5 text-sm font-semibold text-ink">{item.label}</p>
               <p className="mt-1 text-xs leading-5 text-ink/65">
                 {item.quantityLabel} {item.dimensionsLabel}
               </p>
@@ -158,9 +158,9 @@ function VisualPieceInventoryCards({ inventory }: { inventory: VisualPieceInvent
 function PlanningDiagramCard({ diagram, featured }: { diagram: PlanningDiagram; featured: boolean }) {
   const cardClass =
     diagram.type === "connection_summary"
-      ? "rounded-md border border-sawdust p-4 print:break-inside-avoid lg:col-span-2"
+      ? "rounded-md border border-sawdust p-3 print:break-inside-avoid lg:col-span-2"
       : featured
-        ? "rounded-md border border-sawdust p-4 print:break-inside-avoid lg:row-span-2"
+        ? "rounded-md border border-sawdust p-3 print:break-inside-avoid lg:row-span-2"
         : "rounded-md border border-sawdust p-4 print:break-inside-avoid";
 
   return (
@@ -188,11 +188,11 @@ function ConnectionSummary({ diagram }: { diagram: PlanningDiagram }) {
   }
 
   return (
-    <div className="mt-3 space-y-3">
+    <div className="mt-2 space-y-2">
       <p className="text-xs font-medium leading-5 text-ink/65">Connection planning aid. Verify hardware and fasteners before building.</p>
       <ol className="grid gap-2 lg:grid-cols-3">
         {diagram.connections.map((connection, index) => (
-          <li key={connection.id} className="rounded-md border border-sawdust p-3 text-xs leading-5 text-ink/70">
+          <li key={connection.id} className="rounded-md border border-sawdust p-2.5 text-xs leading-5 text-ink/70">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <p>
                 <span className="font-semibold text-ink">{(index + 1).toString()}. {connection.relationshipLabel}</span>

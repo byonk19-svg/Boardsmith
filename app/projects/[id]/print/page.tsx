@@ -72,7 +72,7 @@ export default async function ProjectPrintPreviewPage({
         </PrintSection>
 
         <PrintSection title="Check Before Building">
-          <PlanActionChecklist items={manifest.actionChecklist} compact />
+          <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
         </PrintSection>
 
         <PrintSection title="Materials and Parts">
@@ -229,14 +229,15 @@ function PrintReviewDetails({ manifest }: { manifest: PrintablePlanManifest }) {
       <PrintList title="Safety flags" items={manifest.sections.safetyFlags.map((flag) => flag.message)} emptyCopy="No deterministic safety flags were added. Builder review is still required." />
       <PrintList title="Open questions" items={manifest.sections.unresolvedQuestions} emptyCopy="No unresolved questions listed. Review the full plan before building." />
       <PrintList title="Assumptions" items={manifest.sections.assumptions} />
+      <PrintList title="Additional checklist notes" items={appendixChecklistItems(manifest)} compact emptyCopy="No additional checklist notes." />
       <PrintList title="Material review notes" items={manifest.materials.reviewNotes.slice(0, 6)} />
       <PrintList
         title="Build sequence notes"
         items={manifest.sections.modeledOperations.map((operation) => `${operation.sequenceNumber.toString()}. ${operation.title}: ${operation.description}`)}
         emptyCopy="No build sequence notes are available yet. Review the build steps before building."
       />
-      <PrintList title="Finishing notes" items={manifest.sections.finishingSteps} emptyCopy="No finishing notes are listed yet." />
-      <PrintList title="Planning-aid reminders" items={reminderItems} />
+      <PrintList title="Finishing notes" items={manifest.sections.finishingSteps} compact emptyCopy="No finishing notes are listed yet." />
+      <PrintList title="Planning-aid reminders" items={reminderItems} compact />
     </div>
   );
 }
@@ -262,10 +263,10 @@ function PrintFact({ label, value }: { label: string; value: string }) {
 
 function MaterialRow({ item }: { item: PrintablePlanManifest["materials"]["primaryMaterials"][number] }) {
   return (
-    <div className="break-inside-avoid rounded-md border border-sawdust p-3 print:break-inside-avoid">
+    <div className="break-inside-avoid rounded-md border border-sawdust p-2.5 print:break-inside-avoid">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
         <p className="text-sm font-semibold text-ink">{item.label}</p>
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">{item.detail}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">{compactMaterialDetail(item.detail)}</p>
       </div>
       {item.notes.at(0) ? <p className="mt-1 text-xs leading-5 text-ink/60">{item.notes[0]}</p> : null}
     </div>
@@ -274,7 +275,7 @@ function MaterialRow({ item }: { item: PrintablePlanManifest["materials"]["prima
 
 function PieceRow({ item }: { item: NonNullable<PrintablePlanManifest["cutList"]>["items"][number] }) {
   return (
-    <div className="break-inside-avoid rounded-md border border-sawdust p-3 print:break-inside-avoid">
+    <div className="break-inside-avoid rounded-md border border-sawdust p-2.5 print:break-inside-avoid">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
         <p className="text-sm font-semibold text-ink">{item.label}</p>
         <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">{item.quantityLabel}</p>
@@ -295,25 +296,40 @@ function compactPrintSummary(summary: string): string {
   return `${compact.slice(0, 177).trimEnd()}...`;
 }
 
+function compactMaterialDetail(detail: string): string {
+  return detail.replaceAll(" - ", " / ").replace(" pieces", " pcs").replace(" piece", " pc");
+}
+
 function majorPieceLabels(manifest: PrintablePlanManifest): string[] {
   const modeledPieces = manifest.cutList?.items.filter((item) => item.sourceLabel === "Modeled piece") ?? [];
   return [...new Set(modeledPieces.map((item) => item.label))].slice(0, 3);
 }
 
-function PrintList({ title, items, emptyCopy = "No items listed." }: { title: string; items: string[]; emptyCopy?: string }) {
+function mainChecklistItems(manifest: PrintablePlanManifest) {
+  const requiredItems = manifest.actionChecklist.filter((item) => item.priority === "required");
+  const selected = requiredItems.length > 0 ? requiredItems.slice(0, 3) : manifest.actionChecklist.slice(0, 3);
+  return selected;
+}
+
+function appendixChecklistItems(manifest: PrintablePlanManifest): string[] {
+  const mainIds = new Set(mainChecklistItems(manifest).map((item) => item.id));
+  return manifest.actionChecklist.filter((item) => !mainIds.has(item.id)).map((item) => `${item.label} ${item.detail}`);
+}
+
+function PrintList({ title, items, emptyCopy = "No items listed.", compact = false }: { title: string; items: string[]; emptyCopy?: string; compact?: boolean }) {
   return (
-    <div className="mt-4 first:mt-0">
-      <h3 className="text-sm font-semibold text-ink">{title}</h3>
+    <div className={compact ? "mt-3 first:mt-0" : "mt-4 first:mt-0"}>
+      <h3 className={compact ? "text-xs font-semibold uppercase tracking-wide text-ink/60" : "text-sm font-semibold text-ink"}>{title}</h3>
       {items.length > 0 ? (
-        <ul className="mt-2 space-y-2">
+        <ul className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
           {items.map((item) => (
-            <li key={item} className="text-sm leading-6 text-ink/75">
+            <li key={item} className={compact ? "text-xs leading-5 text-ink/65" : "text-sm leading-6 text-ink/75"}>
               {item}
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-2 text-sm leading-6 text-ink/65">{emptyCopy}</p>
+        <p className={compact ? "mt-1 text-xs leading-5 text-ink/60" : "mt-2 text-sm leading-6 text-ink/65"}>{emptyCopy}</p>
       )}
     </div>
   );

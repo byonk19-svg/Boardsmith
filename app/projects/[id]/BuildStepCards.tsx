@@ -42,7 +42,7 @@ export function BuildStepCards({ cards, compact = false }: { cards: BuildStepCar
             {!compact && card.relatedOperationTitle ? <StepMeta label="Modeled step" value={card.relatedOperationTitle} /> : null}
           </dl>
 
-          {card.safetyNote ? (
+          {shouldShowSafetyNote(card.safetyNote, compact) ? (
             <p className={`${bodySpacing} rounded-md border border-amber-200 bg-amber-50 ${safetyPadding} text-sm font-medium leading-6 text-caution print:border-sawdust print:bg-white`}>
               {card.safetyNote}
             </p>
@@ -51,6 +51,13 @@ export function BuildStepCards({ cards, compact = false }: { cards: BuildStepCar
       ))}
     </ol>
   );
+}
+
+function shouldShowSafetyNote(note: string | null, compact: boolean): note is string {
+  if (!note) return false;
+  if (!compact) return true;
+  const normalized = note.toLowerCase();
+  return !normalized.includes("load rating") && !normalized.includes("load ratings") && !normalized.includes("boardsmith");
 }
 
 function StepMeta({ label, value }: { label: string; value: string }) {

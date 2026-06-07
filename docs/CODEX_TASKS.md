@@ -558,6 +558,16 @@
 - [x] Rename the dense lower section to `Review Appendix` and move safety, assumptions, material notes, build sequence notes, finishing notes, and planning-aid reminders there.
 - [x] Preserve Project Visuals, Cut Checklist with `Cut?`, browser-rendered-only output, private-MVP planning-aid positioning, and no schema, database, migration, Supabase/cloud, OpenAI prompt/model/schema, package, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
 
+## Task 63B - Print Readability Screenshot Cleanup
+
+- [x] Tighten Project Visuals spacing and print heights while keeping the anatomy, three-view, visual piece inventory, and connection aid early in the plan.
+- [x] Keep only the highest-priority checklist items in the main `Check Before Building` flow and move lower-priority checklist notes into the appendix.
+- [x] Make material and piece rows slightly denser with less prose-heavy detail.
+- [x] Suppress generic repeated compact build-step warning blocks while keeping specific safety/check notes available.
+- [x] Make `Review Appendix` denser and lower priority with compact reference lists for checklist, material, finishing, and planning-aid notes.
+- [x] Attempt direct Browser inspection against the local print route; the local private access gate redirected to `/access`, so rendered-route tests were used as fallback without inspecting or committing secrets.
+- [x] Keep the pass limited to UI/copy/layout/tests/docs with no schema, database, migration, Supabase/cloud, OpenAI prompt/model/schema, package, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.

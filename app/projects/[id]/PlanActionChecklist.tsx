@@ -1,13 +1,15 @@
 import type { PlanActionChecklistCategory, PlanActionChecklistItem, PlanActionChecklistPriority } from "@/lib/plans/plan-action-checklist";
 
 export function PlanActionChecklist({ items, compact = false }: { items: PlanActionChecklistItem[]; compact?: boolean }) {
-  const spacing = compact ? "mt-3 grid gap-2" : "mt-4 grid gap-3 lg:grid-cols-2";
-  const padding = compact ? "p-3" : "p-4";
+  const spacing = compact ? "mt-2 grid gap-1.5" : "mt-4 grid gap-3 lg:grid-cols-2";
+  const padding = compact ? "p-2.5" : "p-4";
 
   return (
     <div data-testid="plan-action-checklist">
-      <p className="text-sm leading-6 text-ink/65">
-        Use this paper-style checklist before shopping, cutting, assembling, finishing, or mounting. It is a planning aid, not an approval.
+      <p className={compact ? "text-xs leading-5 text-ink/60" : "text-sm leading-6 text-ink/65"}>
+        {compact
+          ? "Check these first. Paper markers only; nothing is saved."
+          : "Use this paper-style checklist before shopping, cutting, assembling, finishing, or mounting. It is a planning aid, not an approval."}
       </p>
       <ol className={spacing}>
         {items.map((item) => (
@@ -24,14 +26,14 @@ export function PlanActionChecklist({ items, compact = false }: { items: PlanAct
                     {priorityLabel(item.priority)}
                   </span>
                 </div>
-                <p className="mt-1 text-sm leading-6 text-ink/70">{item.detail}</p>
-                <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-ink/50">{categoryLabel(item.category)}</p>
+                <p className={compact ? "mt-0.5 text-xs leading-5 text-ink/65" : "mt-1 text-sm leading-6 text-ink/70"}>{item.detail}</p>
+                {compact ? null : <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-ink/50">{categoryLabel(item.category)}</p>}
               </div>
             </div>
           </li>
         ))}
       </ol>
-      <p className="mt-3 text-xs leading-5 text-ink/55">Check-list markers are for paper or shop review only; nothing is saved.</p>
+      <p className={compact ? "mt-2 text-xs leading-5 text-ink/55" : "mt-3 text-xs leading-5 text-ink/55"}>Check-list markers are for paper or shop review only; nothing is saved.</p>
     </div>
   );
 }
