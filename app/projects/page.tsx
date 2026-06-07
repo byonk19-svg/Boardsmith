@@ -35,7 +35,8 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       planCount: (await listGeneratedPlans(project.id)).length,
     })),
   );
-  const filteredProjectSummaries = projectSummaries.filter((summary) => matchesProjectFilters(summary, filters));
+  const sortedProjectSummaries = sortProjectSummaries(projectSummaries);
+  const filteredProjectSummaries = sortedProjectSummaries.filter((summary) => matchesProjectFilters(summary, filters));
   const filtersActive = areFiltersActive(filters);
 
   return (
@@ -63,14 +64,14 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       ) : (
         <>
           <section className="rounded-lg border border-sawdust bg-white p-5 shadow-soft">
-            <form action="/projects" className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
+            <form action="/projects" className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
               <label className="grid gap-2 text-sm font-medium text-ink">
                 Search
                 <input
                   name="q"
                   type="search"
                   defaultValue={filters.query}
-                  placeholder="Title, material, use, notes..."
+                  placeholder="Title, use, style notes..."
                   className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss"
                 />
               </label>
@@ -123,7 +124,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
               </div>
             </form>
             <p className="mt-4 text-sm text-ink/65">
-              Showing {filteredProjectSummaries.length.toString()} of {projectSummaries.length.toString()} projects
+              Showing {filteredProjectSummaries.length.toString()} of {projectSummaries.length.toString()} projects. Most recently updated first.
             </p>
           </section>
 
@@ -143,7 +144,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           ) : (
             <div className="grid gap-4">
               {filteredProjectSummaries.map(({ project, planCount }) => (
-                <article key={project.id} className="rounded-lg border border-sawdust bg-white p-5 transition hover:border-moss hover:shadow-soft">
+                <article key={project.id} className="rounded-lg border border-sawdust bg-white p-4 transition hover:border-moss hover:shadow-soft">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                       <p className="text-lg font-semibold text-ink">{project.title}</p>
@@ -164,7 +165,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
 
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link href={`/projects/${project.id}`} className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-                      Continue project
+                      Open project
                     </Link>
                     <Link href={`/projects/${project.id}`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
                       {planCount > 0 ? "View latest plan" : "Generate plan"}
@@ -210,6 +211,20 @@ function matchesProjectFilters({ project, planCount }: ProjectSummary, filters: 
   if (filters.record === "no_record" && hasProjectRecord(project)) return false;
 
   return true;
+}
+
+function sortProjectSummaries(projectSummaries: ProjectSummary[]): ProjectSummary[] {
+  return [...projectSummaries].sort((a, b) => compareProjectsByRecentUpdate(a.project, b.project));
+}
+
+function compareProjectsByRecentUpdate(a: Project, b: Project): number {
+  const updatedComparison = b.updated_at.localeCompare(a.updated_at);
+  if (updatedComparison !== 0) return updatedComparison;
+
+  const createdComparison = b.created_at.localeCompare(a.created_at);
+  if (createdComparison !== 0) return createdComparison;
+
+  return a.title.localeCompare(b.title);
 }
 
 function areFiltersActive(filters: ProjectFilters): boolean {

@@ -154,13 +154,13 @@ async function mutateLocalStore<T>(mutator: (store: StoreShape) => T | Promise<T
 
 export async function listProjects(): Promise<Project[]> {
   if (isSupabasePersistenceConfigured()) {
-    const { data, error } = await getSupabase().from("projects").select("*").order("created_at", { ascending: false });
+    const { data, error } = await getSupabase().from("projects").select("*").order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data.map((project) => normalizeProjectRow(project));
   }
 
   const store = await readLocalStore();
-  return [...store.projects].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  return [...store.projects].sort(compareProjectsByRecentUpdate);
 }
 
 export async function getProject(projectId: string): Promise<Project | null> {
@@ -360,4 +360,14 @@ function copyProjectTitle(title: string): string {
   }
 
   return `${baseTitle.slice(0, maxTitleLength - suffix.length).trimEnd()}${suffix}`;
+}
+
+function compareProjectsByRecentUpdate(a: Project, b: Project): number {
+  const updatedComparison = b.updated_at.localeCompare(a.updated_at);
+  if (updatedComparison !== 0) return updatedComparison;
+
+  const createdComparison = b.created_at.localeCompare(a.created_at);
+  if (createdComparison !== 0) return createdComparison;
+
+  return a.title.localeCompare(b.title);
 }

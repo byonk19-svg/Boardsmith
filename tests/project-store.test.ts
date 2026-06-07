@@ -67,6 +67,25 @@ const plan: GeneratedPlan = {
 };
 
 describe("project store lifecycle", () => {
+  it("lists projects by most recent update first", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const firstProject = await store.createProject({
+      ...intake,
+      title: `Recently updated shelf ${crypto.randomUUID()}`,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const secondProject = await store.createProject({
+      ...intake,
+      title: `Newer created shelf ${crypto.randomUUID()}`,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    await store.updateProjectNotes(firstProject.id, "Move this older created project to the top by updating it.");
+
+    const projectIds = (await store.listProjects()).map((project) => project.id);
+
+    expect(projectIds.indexOf(firstProject.id)).toBeLessThan(projectIds.indexOf(secondProject.id));
+  });
+
   it("creates projects with deterministic safety flags and preserves generated plan history", async () => {
     const store = await import("@/lib/storage/project-store");
     const project = await store.createProject(intake);

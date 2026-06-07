@@ -576,9 +576,19 @@
 - [x] Reconfirm no app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, public sharing, shopping, pricing, vendor, inventory, marketplace, payment, subscription, professional approval, structural approval, wall-safety guarantee, child-safety certification, load rating, fabrication-ready claim, or construction approval was added.
 - [x] Keep the checkpoint docs/tag-only with no product UI, schema, storage, Supabase/cloud, OpenAI prompt/model/schema, package, runtime data, hosted URL, screenshot, secret, log, ignored dogfood data, export, sharing, shopping, pricing, vendor, or inventory changes.
 
+## Task 65A - Project List Search and Filtering Polish
+
+- [x] Keep `/projects` discovery simple and URL-query based using existing project and generated-plan data only.
+- [x] Sort projects by most recent update first in both the rendered project list and storage layer, with deterministic tie-breakers for local data.
+- [x] Preserve case-insensitive search across project title, intended use, style notes, material, notes, build record text, and safety flags.
+- [x] Keep compact filters for project type, status, generated-plan presence, and private record state without adding schema fields or folders/tags.
+- [x] Tighten project-card scanability with compact status, plan/history/notes/record signals, updated date, and preserved open/latest-plan/project-record actions.
+- [x] Add focused coverage for updated ordering, search, type/status/plan filters, empty filter state, action links, and Supabase/local storage ordering.
+- [x] Keep the pass private-MVP-safe with no schema migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, auth changes, public sharing, folders, archive/delete, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, shopping, pricing, vendor, or inventory work.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.
+1. [ ] Dogfood the busier `/projects` list against real private MVP data and make only small spacing, label, or empty-state copy fixes if discovery still feels crowded.
 2. [ ] Rerun hosted/private smoke checks after any hosted config, deployment, access-gate, or environment-variable change.
 
 ## Remaining Hardening

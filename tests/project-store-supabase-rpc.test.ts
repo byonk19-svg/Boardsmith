@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
+import type { Project } from "@/lib/projects/types";
 
 const originalEnv = { ...process.env };
 
@@ -53,6 +54,52 @@ const plan: GeneratedPlan = {
 };
 
 describe("Supabase generated plan save RPC", () => {
+  it("lists Supabase projects by most recent update first", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
+
+    const project: Project = {
+      id: "project-id",
+      created_at: "2026-06-01T10:00:00.000Z",
+      updated_at: "2026-06-02T10:00:00.000Z",
+      title: "Updated shelf",
+      project_type: "simple_shelf",
+      skill_level: "beginner",
+      status: "draft",
+      width_inches: 24,
+      height_inches: 8,
+      depth_inches: 7,
+      material_thickness_inches: 0.75,
+      material_type: "pine board",
+      tools_available: ["tape_measure", "pencil"],
+      style_notes: "Simple",
+      intended_use: "Light shelf",
+      safety_review_required: false,
+      safety_flags: [],
+      notes: "",
+      build_completed: false,
+      build_completed_at: "",
+      build_actual_material: "",
+      build_plan_changes: "",
+      build_lessons_learned: "",
+    };
+    const order = vi.fn(() => Promise.resolve({ data: [project], error: null }));
+    const select = vi.fn(() => ({ order }));
+    const from = vi.fn(() => ({ select }));
+
+    vi.doMock("@supabase/supabase-js", () => ({
+      createClient: vi.fn(() => ({ from })),
+    }));
+
+    const store = await import("@/lib/storage/project-store");
+    const projects = await store.listProjects();
+
+    expect(projects).toEqual([project]);
+    expect(from).toHaveBeenCalledWith("projects");
+    expect(select).toHaveBeenCalledWith("*");
+    expect(order).toHaveBeenCalledWith("updated_at", { ascending: false });
+  });
+
   it("saves generated plans through one atomic RPC call in Supabase mode", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";

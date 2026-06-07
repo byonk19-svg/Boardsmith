@@ -12,6 +12,27 @@ vi.mock("next/link", () => ({
 
 const projects: Project[] = [
   {
+    id: "draft_project",
+    created_at: "2026-06-03T10:00:00.000Z",
+    updated_at: "2026-06-01T10:00:00.000Z",
+    title: "Planter box",
+    project_type: "planter_box",
+    skill_level: "beginner",
+    status: "draft",
+    width_inches: 30,
+    height_inches: 14,
+    depth_inches: 12,
+    material_thickness_inches: 0.75,
+    material_type: "cedar board",
+    tools_available: ["tape_measure", "pencil", "drill", "sander"],
+    style_notes: "Outdoor use",
+    intended_use: "Small porch planter",
+    safety_review_required: false,
+    safety_flags: [],
+    notes: "",
+    ...emptyProjectBuildLog,
+  },
+  {
     id: "project_with_history",
     created_at: "2026-06-01T12:00:00.000Z",
     updated_at: "2026-06-02T14:30:00.000Z",
@@ -37,25 +58,29 @@ const projects: Project[] = [
     build_lessons_learned: "",
   },
   {
-    id: "draft_project",
-    created_at: "2026-06-01T10:00:00.000Z",
-    updated_at: "2026-06-01T10:00:00.000Z",
-    title: "Planter box",
-    project_type: "planter_box",
+    id: "completed_sign",
+    created_at: "2026-05-30T09:00:00.000Z",
+    updated_at: "2026-06-05T09:00:00.000Z",
+    title: "Door hanger",
+    project_type: "door_hanger",
     skill_level: "beginner",
-    status: "draft",
-    width_inches: 30,
-    height_inches: 14,
-    depth_inches: 12,
+    status: "plan_generated",
+    width_inches: 12,
+    height_inches: 16,
+    depth_inches: 1,
     material_thickness_inches: 0.75,
-    material_type: "cedar board",
-    tools_available: ["tape_measure", "pencil", "drill", "sander"],
-    style_notes: "Outdoor use",
-    intended_use: "Small porch planter",
+    material_type: "poplar board",
+    tools_available: ["tape_measure", "pencil", "sander"],
+    style_notes: "Rustic painted edges",
+    intended_use: "Seasonal front door hanger",
     safety_review_required: false,
     safety_flags: [],
     notes: "",
-    ...emptyProjectBuildLog,
+    build_completed: true,
+    build_completed_at: "2026-06-05",
+    build_actual_material: "Poplar board with painted finish.",
+    build_plan_changes: "",
+    build_lessons_learned: "",
   },
 ];
 
@@ -111,6 +136,20 @@ vi.mock("@/lib/storage/project-store", () => ({
 }));
 
 describe("ProjectsPage", () => {
+  it("renders projects in most-recently-updated order", async () => {
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup.indexOf("/projects/completed_sign")).toBeLessThan(markup.indexOf("/projects/project_with_history"));
+    expect(markup.indexOf("/projects/project_with_history")).toBeLessThan(markup.indexOf("/projects/draft_project"));
+    expect(markup).toContain("Most recently updated first");
+  });
+
   it("renders project status, plan history, record indicators, and next actions", async () => {
     const { default: ProjectsPage } = await import("@/app/projects/page");
 
@@ -129,11 +168,14 @@ describe("ProjectsPage", () => {
     expect(markup).toContain("View latest plan");
     expect(markup).toContain("Review project record");
     expect(markup).toContain("Updated Jun 2, 2026");
+    expect(markup).toContain('href="/projects/project_with_history"');
 
     expect(markup).toContain("Planter box");
     expect(markup).toContain("Draft");
     expect(markup).toContain("No generated plan yet");
     expect(markup).toContain("Generate plan");
+    expect(markup).toContain("Door hanger");
+    expect(markup).toContain("Built");
   });
 
   it("renders an actionable empty state when no projects exist", async () => {
@@ -169,11 +211,53 @@ describe("ProjectsPage", () => {
 
     expect(markup).toContain("Bathroom shelf");
     expect(markup).not.toContain("/projects/draft_project");
-    expect(markup).toContain("Showing 1 of 2 projects");
+    expect(markup).toContain("Showing 1 of 3 projects");
     expect(markup).toContain('value="bathroom"');
     expect(markup).toContain('value="simple_shelf" selected=""');
     expect(markup).toContain('value="has_plan" selected=""');
     expect(markup).toContain('value="has_record" selected=""');
+  });
+
+  it("searches project title, intended use, and style notes case-insensitively", async () => {
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const intendedUseMarkup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({ q: "PORCH" }),
+      }),
+    );
+    expect(intendedUseMarkup).toContain("Planter box");
+    expect(intendedUseMarkup).not.toContain("/projects/project_with_history");
+    expect(intendedUseMarkup).not.toContain("/projects/completed_sign");
+
+    const styleNotesMarkup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({ q: "rustic" }),
+      }),
+    );
+    expect(styleNotesMarkup).toContain("Door hanger");
+    expect(styleNotesMarkup).not.toContain("/projects/project_with_history");
+    expect(styleNotesMarkup).not.toContain("/projects/draft_project");
+  });
+
+  it("filters projects by built status and no-plan state", async () => {
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({
+          status: "built",
+          plan: "no_plan",
+        }),
+      }),
+    );
+
+    expect(markup).toContain("Door hanger");
+    expect(markup).toContain("Built");
+    expect(markup).not.toContain("/projects/project_with_history");
+    expect(markup).not.toContain("/projects/draft_project");
+    expect(markup).toContain('value="built" selected=""');
+    expect(markup).toContain('value="no_plan" selected=""');
   });
 
   it("renders a calm no-results state for project filters", async () => {
@@ -194,5 +278,6 @@ describe("ProjectsPage", () => {
     expect(markup).toContain("New Project");
     expect(markup).not.toContain("/projects/project_with_history");
     expect(markup).not.toContain("/projects/draft_project");
+    expect(markup).not.toContain("/projects/completed_sign");
   });
 });
