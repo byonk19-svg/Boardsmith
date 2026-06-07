@@ -132,6 +132,43 @@ Recommended next directions:
 2. Rerun hosted/private smoke checks after any hosted config, deployment, access-gate, or environment-variable change.
 3. Do not start app-generated PDF, SVG, DXF, CAD, CNC, public sharing, auth-provider, shopping, pricing, vendor, inventory, marketplace, payment, or subscription work without an explicit task and approval where required.
 
+## Project List Usability Checkpoint
+
+Checkpoint: `private-mvp-0.5`.
+
+This checkpoint captures the project-list usability pass after the print-plan checkpoint. Boardsmith remains a private MVP and a planning aid only. The `/projects` page is easier to use with a crowded private dogfood list, but it is still a private planning workspace, not public browsing or production project management.
+
+Project-list usability improvements:
+
+- Projects sort by most recently updated first in the rendered list and storage reads.
+- Search supports project title, intended use, style notes, material, notes, build-record text, and safety flags.
+- Filters support project type, status, generated-plan state, and private record state using existing data only.
+- Crowded-list rendered dogfood confirmed the default view does not hide projects.
+- Project cards are more compact, with inline scan badges for plan, history, notes, and record state.
+- Primary actions remain clear: `Open project`, `View latest plan`, and `Generate plan`.
+- Empty and no-result copy is simpler and points users back to all projects.
+
+Dogfood and verification coverage:
+
+- Rendered-route tests cover crowded-list default rendering, updated ordering, search by intended use and style notes, combined filters, built/no-plan filters, no-results state, and project action links.
+- Local and Supabase storage tests confirm project reads sort by `updated_at`.
+- Direct browser inspection of `/projects` was attempted during the dogfood pass, but the local private access gate redirected to `/access`. Rendered markup and storage tests were used as fallback without inspecting or committing secrets.
+
+Guardrails reconfirmed:
+
+- Boardsmith is private-only.
+- Generated plans and project-list indicators are planning aids only.
+- No archive/delete, folders, tags, bulk actions, public sharing, marketplace behavior, auth expansion, or production multi-user assumption was added.
+- No schema migration, Supabase/cloud change, OpenAI prompt/model/schema change, or package change was added.
+- No app-generated PDF, SVG export/download, DXF, CAD, CNC, or export pipeline exists.
+- No image upload, shopping, pricing, vendor, purchasing, inventory, marketplace, payment, or subscription feature exists.
+
+Recommended next directions:
+
+1. Consider archive/hide behavior for test projects only if explicitly approved as a separate private-MVP-safe task.
+2. Consider small project detail navigation polish if dogfood shows users lose their place moving between the list, detail pages, and print preview.
+3. Consider dashboard summary polish only if it helps orient private testers without adding public sharing, auth expansion, folders, tags, marketplace, or export scope.
+
 ## What Works Now
 
 - Project creation from `/projects/new`.
@@ -161,7 +198,7 @@ Recommended next directions:
 - Duplicate project action that copies intake details without generated plans, notes, history, or build log.
 - Project notes.
 - Build log fields for completion status, completion date, actual material, plan changes, and lessons learned.
-- Project list search and filters for project type, status, plan state, and notes/build-log record state.
+- Project list search, updated-first ordering, filters for project type/status/plan state/record state, compact scan badges, and clear open/latest-plan/generate actions.
 - Optional private access gate through `BOARDSMITH_ACCESS_PASSWORD`.
 - Vercel project link and hosted env var name readiness.
 - User-supplied authorized hosted smoke for access gate, project creation, notes, build log, generation, review surfaces, duplicate project, project list indicators, and browser print preview.
@@ -250,4 +287,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config or deployment change. The best next product candidate is print preview polish if manual printing reveals issues. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.
+Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config or deployment change. Narrow private-MVP-safe candidates include explicitly approved archive/hide behavior for test projects, project detail navigation polish, or dashboard summary polish. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, archive/delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.

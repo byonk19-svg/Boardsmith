@@ -4,9 +4,9 @@ Boardsmith is a private MVP web app for generating detailed, reviewable woodwork
 
 ## Private MVP Checkpoint
 
-Current checkpoint: `private-mvp-0.4`, created after the browser print-plan usability pass.
+Current checkpoint: `private-mvp-0.5`, created after the project-list usability pass.
 
-This checkpoint records that local MVP dogfood and authorized hosted Vercel browser smoke passed, including the Boardsmith password gate, hosted project creation, notes, build log, plan generation, review surfaces, duplicate project, and browser print preview. It also includes post-MVP polish for intake examples and starters, generated-plan readability, project list filtering/search, browser-rendered visual planning aids, and the improved browser print shop-plan flow with Build Snapshot, Project Visuals, Check Before Building, Materials and Parts, Cut Checklist, Build Guide, and Review Appendix. Boardsmith remains private-only and is not public-launch ready.
+This checkpoint records that local MVP dogfood and authorized hosted Vercel browser smoke passed, including the Boardsmith password gate, hosted project creation, notes, build log, plan generation, review surfaces, duplicate project, and browser print preview. It also includes post-MVP polish for intake examples and starters, generated-plan readability, browser-rendered visual planning aids, the improved browser print shop-plan flow, and project-list search/filter/order polish for crowded private dogfood lists. Boardsmith remains private-only and is not public-launch ready.
 
 ## Current MVP Capabilities
 
@@ -25,7 +25,7 @@ This checkpoint records that local MVP dogfood and authorized hosted Vercel brow
 - Browser print preview route at `/projects/[id]/print` with a shop-plan flow for paper-copy review through the user's browser print dialog.
 - Browser-rendered project anatomy, three-view planning diagram, visual piece inventory, connection planning aids, action checklist, and beginner-friendly build step cards for supported generated plans.
 - Project detail pages with project metadata, safety flags, template hints, material summary, latest generated plan, browser print preview link, and generated plan history.
-- Project list search and filters for project type, status, plan state, and notes/build-log record state.
+- Project list search, updated-first ordering, filters for project type/status/plan state/record state, compact scan badges, and clear open/latest-plan/generate actions.
 - Optional private MVP password gate for hosted deployments.
 
 ## Supported Project Types

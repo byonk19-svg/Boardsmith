@@ -596,10 +596,19 @@
 - [x] Attempt direct browser inspection against `/projects`; the local private access gate redirected to `/access`, so rendered-route and storage tests were used as fallback without inspecting secrets.
 - [x] Keep the pass project-list-only with no delete/archive, folders/tags, bulk actions, public sharing, auth/multi-user changes, schema fields, migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, shopping, pricing, vendor, inventory, generated PDF, SVG export/download, DXF, CAD, CNC, or export work.
 
+## Task 66A - Project List Usability Checkpoint
+
+- [x] Document `private-mvp-0.5` as the project-list usability checkpoint after search, filters, updated-first ordering, crowded-list dogfood, compact cards, and clearer actions.
+- [x] Reconfirm Boardsmith remains private-MVP-only and planning-aid-only.
+- [x] Reconfirm no archive/delete, folders, tags, public sharing, marketplace behavior, auth expansion, production multi-user assumption, schema migration, Supabase/cloud change, OpenAI prompt/model/schema change, package change, app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, shopping, pricing, vendor, or inventory work was added.
+- [x] Keep the checkpoint docs/tag-only with no product UI, runtime data, hosted URL, screenshot, secret, log, ignored dogfood data, export, sharing, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue only narrow private-MVP-safe dogfood polish found through real use, such as wording, spacing, or deterministic review clarity.
-2. [ ] Rerun hosted/private smoke checks after any hosted config, deployment, access-gate, or environment-variable change.
+1. [ ] Consider archive/hide behavior for test projects only if explicitly approved as a separate private-MVP-safe task.
+2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the list, detail pages, and print preview.
+3. [ ] Consider dashboard summary polish only if it helps orient private testers without adding public sharing, auth expansion, folders, tags, marketplace, or export scope.
+4. [ ] Rerun hosted/private smoke checks after any hosted config, deployment, access-gate, or environment-variable change.
 
 ## Remaining Hardening
 
