@@ -63,9 +63,9 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         </div>
       ) : (
         <>
-          <section className="rounded-lg border border-sawdust bg-white p-5 shadow-soft">
+          <section className="rounded-lg border border-sawdust bg-white p-4 shadow-soft">
             <form action="/projects" className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
-              <label className="grid gap-2 text-sm font-medium text-ink">
+              <label className="grid gap-1.5 text-sm font-medium text-ink">
                 Search
                 <input
                   name="q"
@@ -75,7 +75,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss"
                 />
               </label>
-              <label className="grid gap-2 text-sm font-medium text-ink">
+              <label className="grid gap-1.5 text-sm font-medium text-ink">
                 Project type
                 <select name="type" defaultValue={filters.type} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
                   <option value="all">All types</option>
@@ -86,7 +86,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   ))}
                 </select>
               </label>
-              <label className="grid gap-2 text-sm font-medium text-ink">
+              <label className="grid gap-1.5 text-sm font-medium text-ink">
                 Status
                 <select name="status" defaultValue={filters.status} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
                   <option value="all">All statuses</option>
@@ -96,15 +96,15 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   <option value="built">Built</option>
                 </select>
               </label>
-              <label className="grid gap-2 text-sm font-medium text-ink">
-                Plan
+              <label className="grid gap-1.5 text-sm font-medium text-ink">
+                Plan state
                 <select name="plan" defaultValue={filters.plan} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
                   <option value="all">Any plan state</option>
-                  <option value="has_plan">Has plan</option>
+                  <option value="has_plan">Has latest plan</option>
                   <option value="no_plan">No plan yet</option>
                 </select>
               </label>
-              <label className="grid gap-2 text-sm font-medium text-ink">
+              <label className="grid gap-1.5 text-sm font-medium text-ink">
                 Record
                 <select name="record" defaultValue={filters.record} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
                   <option value="all">Any record state</option>
@@ -123,7 +123,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                 ) : null}
               </div>
             </form>
-            <p className="mt-4 text-sm text-ink/65">
+            <p className="mt-3 text-sm text-ink/65">
               Showing {filteredProjectSummaries.length.toString()} of {projectSummaries.length.toString()} projects. Most recently updated first.
             </p>
           </section>
@@ -131,7 +131,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           {filteredProjectSummaries.length === 0 ? (
             <div className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
               <p className="font-medium text-ink">No projects match these filters.</p>
-              <p className="mt-2 text-sm text-ink/65">Clear filters or start a new project intake if this is a new planning record.</p>
+              <p className="mt-2 text-sm text-ink/65">Clear filters to return to all projects.</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Link href="/projects" className="rounded-md border border-sawdust px-4 py-2 text-sm font-semibold text-ink hover:bg-shop">
                   Clear filters
@@ -156,7 +156,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                     <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">{statusLabel(project)}</span>
                   </div>
 
-                  <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="mt-3 flex flex-wrap gap-2 text-sm">
                     <ProjectSignal label="Plan" value={planCount > 0 ? "Latest plan saved" : "No generated plan yet"} />
                     <ProjectSignal label="History" value={planCount === 1 ? "1 plan version" : `${planCount.toString()} plan versions`} />
                     <ProjectSignal label="Notes" value={project.notes.trim().length > 0 ? "Notes added" : "No notes yet"} />
@@ -268,9 +268,9 @@ function projectSearchText(project: Project): string {
 
 function ProjectSignal({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-shop p-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">{label}</p>
-      <p className="mt-1 font-medium text-ink">{value}</p>
+    <div className="inline-flex items-center gap-1.5 rounded-md bg-shop px-2.5 py-1.5">
+      <span className="text-xs font-semibold uppercase tracking-wide text-ink/55">{label}</span>
+      <span className="font-medium text-ink">{value}</span>
     </div>
   );
 }

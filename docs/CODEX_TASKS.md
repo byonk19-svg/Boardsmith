@@ -586,9 +586,19 @@
 - [x] Add focused coverage for updated ordering, search, type/status/plan filters, empty filter state, action links, and Supabase/local storage ordering.
 - [x] Keep the pass private-MVP-safe with no schema migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, auth changes, public sharing, folders, archive/delete, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, shopping, pricing, vendor, or inventory work.
 
+## Task 65B - Project List Search and Filters Dogfood Pass
+
+- [x] Dogfood the `/projects` list through rendered crowded-list, updated-order, search, combined-filter, no-plan, built-status, no-results, and action-link coverage.
+- [x] Make the filter panel slightly denser and clarify the generated-plan filter as `Plan state` / `Has latest plan`.
+- [x] Make project cards more compact by turning the plan/history/notes/record signals into inline scan badges while preserving title, type, dimensions, status, updated date, and actions.
+- [x] Simplify the no-results copy to point users directly back to all projects.
+- [x] Confirm local and Supabase project reads still sort by `updated_at` and that default rendering does not hide crowded projects.
+- [x] Attempt direct browser inspection against `/projects`; the local private access gate redirected to `/access`, so rendered-route and storage tests were used as fallback without inspecting secrets.
+- [x] Keep the pass project-list-only with no delete/archive, folders/tags, bulk actions, public sharing, auth/multi-user changes, schema fields, migrations, Supabase/cloud changes, OpenAI prompt/model/schema changes, packages, shopping, pricing, vendor, inventory, generated PDF, SVG export/download, DXF, CAD, CNC, or export work.
+
 ## Recommended Next Tasks
 
-1. [ ] Dogfood the busier `/projects` list against real private MVP data and make only small spacing, label, or empty-state copy fixes if discovery still feels crowded.
+1. [ ] Continue only narrow private-MVP-safe dogfood polish found through real use, such as wording, spacing, or deterministic review clarity.
 2. [ ] Rerun hosted/private smoke checks after any hosted config, deployment, access-gate, or environment-variable change.
 
 ## Remaining Hardening

@@ -136,6 +136,37 @@ vi.mock("@/lib/storage/project-store", () => ({
 }));
 
 describe("ProjectsPage", () => {
+  it("renders a crowded project list without hiding projects by default", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const crowdedProjects: Project[] = Array.from({ length: 8 }, (_, index) => {
+      const sourceProject = projects[index % projects.length];
+
+      return {
+        ...sourceProject,
+        id: `crowded_project_${index.toString()}`,
+        title: `Dogfood project ${index.toString()}`,
+        created_at: `2026-06-${(index + 1).toString().padStart(2, "0")}T10:00:00.000Z`,
+        updated_at: `2026-06-${(index + 1).toString().padStart(2, "0")}T12:00:00.000Z`,
+      };
+    });
+    vi.mocked(store.listProjects).mockResolvedValueOnce(crowdedProjects);
+
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Showing 8 of 8 projects");
+    expect(markup).toContain("Dogfood project 7");
+    expect(markup).toContain("Dogfood project 0");
+    expect(markup).toContain('href="/projects/crowded_project_7"');
+    expect(markup).toContain("Open project");
+    expect(markup).toContain("Generate plan");
+  });
+
   it("renders projects in most-recently-updated order", async () => {
     const { default: ProjectsPage } = await import("@/app/projects/page");
 
@@ -176,6 +207,7 @@ describe("ProjectsPage", () => {
     expect(markup).toContain("Generate plan");
     expect(markup).toContain("Door hanger");
     expect(markup).toContain("Built");
+    expect(markup).toContain("Plan state");
   });
 
   it("renders an actionable empty state when no projects exist", async () => {
@@ -215,6 +247,7 @@ describe("ProjectsPage", () => {
     expect(markup).toContain('value="bathroom"');
     expect(markup).toContain('value="simple_shelf" selected=""');
     expect(markup).toContain('value="has_plan" selected=""');
+    expect(markup).toContain("Has latest plan");
     expect(markup).toContain('value="has_record" selected=""');
   });
 
@@ -274,6 +307,7 @@ describe("ProjectsPage", () => {
     );
 
     expect(markup).toContain("No projects match these filters.");
+    expect(markup).toContain("Clear filters to return to all projects.");
     expect(markup).toContain("Clear filters");
     expect(markup).toContain("New Project");
     expect(markup).not.toContain("/projects/project_with_history");
