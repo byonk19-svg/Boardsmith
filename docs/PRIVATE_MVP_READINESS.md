@@ -1,6 +1,6 @@
 # Boardsmith Private MVP Readiness
 
-Date: June 3, 2026
+Date: June 7, 2026
 
 ## Current Status
 
@@ -84,6 +84,54 @@ Recommended next directions:
 1. Keep follow-up work narrow and private-MVP-safe: only small copy, spacing, or deterministic review improvements found through dogfood.
 2. Do not start app-generated PDF, SVG, DXF, CAD, CNC, public sharing, auth-provider, shopping, pricing, vendor, inventory, marketplace, payment, or subscription work without an explicit task and approval where required.
 
+## Print Plan Usability Checkpoint
+
+Checkpoint: `private-mvp-0.4`.
+
+This checkpoint captures the browser print-preview usability pass after the visual planning checkpoint. Boardsmith remains a private MVP and a planning aid only. The print preview now reads more like a shop-plan flow for private review, but it still does not create downloadable files, certify build safety, or provide fabrication-ready output.
+
+Print-plan flow now centers on:
+
+- `Build Snapshot`
+- `Project Visuals`
+- `Check Before Building`
+- `Materials and Parts`
+- `Cut Checklist`
+- `Build Guide`
+- `Review Appendix`
+
+Print-plan usability improvements:
+
+- Shorter header summary and visible planning-aid caution.
+- Compact build snapshot with size, material, difficulty, time, major pieces, and first-check facts.
+- Project visuals near the top, including project anatomy, three-view planning diagram, visual piece inventory, and connection planning aid.
+- Compact read-only action checklist with lower-priority checklist notes moved into the appendix.
+- Denser materials and piece rows for scanning before the cut checklist.
+- Checklist-style cut list with a `Cut?` column for paper review.
+- Compact procedural build-step cards with `Do this` instructions, tools, pieces, and specific safety/check notes when useful.
+- Dense review appendix for safety notes, assumptions, unresolved questions, material review notes, build sequence notes, finishing notes, and planning-aid reminders.
+
+Dogfood and verification coverage:
+
+- Rendered-route tests cover the current print hierarchy, visual section, checklist, material/piece rows, cut checklist, build guide cards, review appendix ordering, and forbidden export/CAD/CNC/approval language checks.
+- Browser inspection was attempted during print-layout dogfood and cleanup passes, but the local private access gate redirected print routes to `/access`. Rendered markup tests were used as the fallback without inspecting or committing secrets.
+- No hosted URLs, screenshots, logs, ignored dogfood data, runtime data, or secrets were committed.
+
+Guardrails reconfirmed:
+
+- Boardsmith is private-only.
+- Generated plans, diagrams, checklists, cut lists, and build-step cards are planning aids only.
+- Browser-rendered UI and browser print preview remain the only current output path.
+- No app-generated PDF, SVG export/download, DXF, CAD, CNC, or export pipeline exists.
+- No professional engineering review, structural approval, wall-safety guarantee, child-safety certification, load rating, construction approval, fabrication-ready claim, CAD-ready claim, or CNC-ready claim exists.
+- No image upload, public sharing, shopping, pricing, vendor, purchasing, inventory, marketplace, payment, or subscription feature exists.
+
+Recommended next directions:
+
+1. Keep follow-up work narrow and private-MVP-safe: minor print copy, spacing, fallback wording, or deterministic review clarity only when dogfood reveals a concrete issue.
+2. Rerun hosted/private smoke checks after any hosted config, deployment, access-gate, or environment-variable change.
+3. Do not start app-generated PDF, SVG, DXF, CAD, CNC, public sharing, auth-provider, shopping, pricing, vendor, inventory, marketplace, payment, or subscription work without an explicit task and approval where required.
+
 ## What Works Now
 
 - Project creation from `/projects/new`.
@@ -103,7 +151,9 @@ Recommended next directions:
 - Cut List Review for missing dimensions, vague pieces, quantity issues, and duplicate-looking pieces.
 - Manifest-backed Printable Plan Sheet on the project detail page.
 - Browser print preview at `/projects/[id]/print`.
-- Browser print-preview `Before you build` summary and checklist-style cut list.
+- Browser print-preview shop-plan flow with Build Snapshot, Project Visuals, Check Before Building, Materials and Parts, Cut Checklist, Build Guide, and Review Appendix.
+- Browser print-preview visual aids: project anatomy, three-view planning diagram, visual piece inventory, and connection planning aid.
+- Compact print action checklist, materials/piece rows, checklist-style cut list, and procedural build-step cards.
 - Deterministic browser-rendered planning diagrams for supported simple shelf, book ledge, and planter box plans.
 - Connection planning aids from existing build-model connection data.
 - Beginner-friendly build step cards from existing generated plan and build-model operation data.

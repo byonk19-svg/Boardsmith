@@ -568,9 +568,18 @@
 - [x] Attempt direct Browser inspection against the local print route; the local private access gate redirected to `/access`, so rendered-route tests were used as fallback without inspecting or committing secrets.
 - [x] Keep the pass limited to UI/copy/layout/tests/docs with no schema, database, migration, Supabase/cloud, OpenAI prompt/model/schema, package, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
 
+## Task 64A - Print Plan Usability Checkpoint
+
+- [x] Document `private-mvp-0.4` as the print plan usability checkpoint after action checklist, print-layout redesign, higher-quality visuals, compression, and screenshot cleanup.
+- [x] Summarize the browser print-preview shop-plan flow: `Build Snapshot`, `Project Visuals`, `Check Before Building`, `Materials and Parts`, `Cut Checklist`, `Build Guide`, and `Review Appendix`.
+- [x] Reconfirm Boardsmith remains private-MVP-only, planning-aid-only, and browser-rendered-only.
+- [x] Reconfirm no app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, public sharing, shopping, pricing, vendor, inventory, marketplace, payment, subscription, professional approval, structural approval, wall-safety guarantee, child-safety certification, load rating, fabrication-ready claim, or construction approval was added.
+- [x] Keep the checkpoint docs/tag-only with no product UI, schema, storage, Supabase/cloud, OpenAI prompt/model/schema, package, runtime data, hosted URL, screenshot, secret, log, ignored dogfood data, export, sharing, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.
+2. [ ] Rerun hosted/private smoke checks after any hosted config, deployment, access-gate, or environment-variable change.
 
 ## Remaining Hardening
 
