@@ -603,6 +603,15 @@
 - [x] Reconfirm no archive/delete, folders, tags, public sharing, marketplace behavior, auth expansion, production multi-user assumption, schema migration, Supabase/cloud change, OpenAI prompt/model/schema change, package change, app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, shopping, pricing, vendor, or inventory work was added.
 - [x] Keep the checkpoint docs/tag-only with no product UI, runtime data, hosted URL, screenshot, secret, log, ignored dogfood data, export, sharing, shopping, pricing, vendor, or inventory changes.
 
+## Task 67A - Dashboard Usability Polish
+
+- [x] Rework the dashboard into a private Boardsmith workspace command center instead of a marketing-style landing page.
+- [x] Add compact project counts for total projects, projects with generated plans, projects needing generated plans, and the most recently updated project.
+- [x] Show recent project shortcuts with updated date, type/dimensions, status, plan state, `Open project`, and `View latest plan` or `Generate plan` actions from existing project/plan data only.
+- [x] Add a friendly no-projects empty state and gentle starter example links using existing intake examples.
+- [x] Preserve private-MVP planning-aid positioning without public sharing, export, CAD, CNC, marketplace, auth expansion, schema, Supabase/cloud, OpenAI, package, archive/delete, folders/tags, shopping, pricing, vendor, or inventory scope.
+- [x] Add focused dashboard rendering coverage for recent projects, latest-plan action, generate-plan action, counts, empty state, starter links, and forbidden public-sharing/export/CAD/CNC wording.
+
 ## Recommended Next Tasks
 
 1. [ ] Consider archive/hide behavior for test projects only if explicitly approved as a separate private-MVP-safe task.
