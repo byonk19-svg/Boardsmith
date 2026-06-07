@@ -26,13 +26,20 @@ export function BuildStepCards({ cards, compact = false }: { cards: BuildStepCar
             </span>
           </div>
 
-          <p className={`${bodySpacing} text-sm leading-6 text-ink/75`}>{card.instructions}</p>
+          {compact ? (
+            <div className={`${bodySpacing} rounded-md bg-shop/50 p-2 print:bg-white`}>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Do this</p>
+              <p className="mt-1 text-sm leading-6 text-ink/75">{card.instructions}</p>
+            </div>
+          ) : (
+            <p className={`${bodySpacing} text-sm leading-6 text-ink/75`}>{card.instructions}</p>
+          )}
 
-          <dl className={`${bodySpacing} grid gap-2 text-xs sm:grid-cols-2`}>
+          <dl className={`${bodySpacing} grid gap-2 text-xs ${compact ? "sm:grid-cols-2 print:grid-cols-2" : "sm:grid-cols-2"}`}>
             {card.tools.length > 0 ? <StepMeta label="Tools" value={card.tools.join(", ")} /> : null}
-            {card.estimatedTimeLabel ? <StepMeta label="Time" value={card.estimatedTimeLabel} /> : null}
+            {!compact && card.estimatedTimeLabel ? <StepMeta label="Time" value={card.estimatedTimeLabel} /> : null}
             {card.relatedPieceLabels.length > 0 ? <StepMeta label="Pieces" value={card.relatedPieceLabels.join(", ")} /> : null}
-            {card.relatedOperationTitle ? <StepMeta label="Modeled step" value={card.relatedOperationTitle} /> : null}
+            {!compact && card.relatedOperationTitle ? <StepMeta label="Modeled step" value={card.relatedOperationTitle} /> : null}
           </dl>
 
           {card.safetyNote ? (

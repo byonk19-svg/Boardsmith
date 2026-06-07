@@ -549,6 +549,15 @@
 - [x] Attempt direct browser inspection against the local generated print route; the local private access gate redirected to `/access`, so rendered-route and helper tests were used as fallback without inspecting or committing secrets.
 - [x] Keep the pass limited to UI/copy/layout/tests/docs with no schema, database, migration, Supabase/cloud, OpenAI prompt/model/schema, package, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
 
+## Task 63A - Print Plan Compression and Scannability Pass
+
+- [x] Tighten the print header by using a shorter planning-aid caution and a first-sentence project summary instead of a longer intro block.
+- [x] Compact `Build Snapshot` to beginner-facing size, material, difficulty, time, major pieces, and first-check facts.
+- [x] Make `Materials and Parts` more scannable with compact material and piece rows while moving dense material review notes lower.
+- [x] Make print build-step cards more procedural with a `Do this` instruction block and less print-only metadata.
+- [x] Rename the dense lower section to `Review Appendix` and move safety, assumptions, material notes, build sequence notes, finishing notes, and planning-aid reminders there.
+- [x] Preserve Project Visuals, Cut Checklist with `Cut?`, browser-rendered-only output, private-MVP planning-aid positioning, and no schema, database, migration, Supabase/cloud, OpenAI prompt/model/schema, package, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, sharing, new project type, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue only narrow private-MVP-safe trust polish found through dogfood, such as copy, spacing, fallback wording, or deterministic review clarity.

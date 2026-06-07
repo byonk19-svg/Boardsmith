@@ -52,15 +52,8 @@ export default async function ProjectPrintPreviewPage({
         <header className="border-b border-sawdust pb-6">
           <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Browser print preview</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">{manifest.project.title}</h1>
-          <p className="mt-3 text-sm font-semibold text-caution">Review all dimensions, materials, and safety notes before building.</p>
-          {manifest.sections.projectSummary ? <p className="mt-4 max-w-3xl leading-7 text-ink/75">{manifest.sections.projectSummary}</p> : null}
-
-          <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-4">
-            <PrintFact label="Project type" value={manifest.project.projectTypeLabel} />
-            <PrintFact label="Plan date" value={new Date(manifest.generatedPlan.createdAt).toLocaleDateString()} />
-            <PrintFact label="Difficulty" value={manifest.generatedPlan.estimatedDifficulty} />
-            <PrintFact label="Time estimate" value={manifest.generatedPlan.estimatedTime} />
-          </dl>
+          <p className="mt-3 text-sm font-semibold text-caution">Planning aid: verify dimensions, materials, hardware, and safety notes before building.</p>
+          {manifest.sections.projectSummary ? <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/75">{compactPrintSummary(manifest.sections.projectSummary)}</p> : null}
         </header>
 
         <PrintSection title="Build Snapshot">
@@ -94,7 +87,7 @@ export default async function ProjectPrintPreviewPage({
           <PrintBuildGuide manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Review Details">
+        <PrintSection title="Review Appendix" appendix>
           <PrintReviewDetails manifest={manifest} />
         </PrintSection>
       </article>
@@ -116,23 +109,18 @@ function PrintPreviewEmptyState({ project }: { project: Project }) {
 
 function PrintBuildSnapshot({ manifest }: { manifest: PrintablePlanManifest }) {
   const primaryMaterial = manifest.materials.primaryMaterials.at(0);
-  const cutListFact = manifest.cutList
-    ? `${manifest.cutList.items.length.toString()} rows / ${manifest.cutList.piecesNeedingReview.toString()} need review`
-    : "Generate a plan to review";
-  const tools = manifest.sections.tools.length > 0 ? manifest.sections.tools : manifest.project.intake.tools;
   const majorPieces = majorPieceLabels(manifest);
   const topAction = manifest.actionChecklist.find((item) => item.priority === "required") ?? manifest.actionChecklist[0];
   const reviewReminder = topAction.label;
 
   return (
-    <div className="break-inside-avoid rounded-md border border-sawdust bg-shop/40 p-4 print:break-inside-avoid print:bg-white">
-      <p className="text-sm leading-6 text-ink/65">Quick shop-plan facts to check before measuring, cutting, fastening, finishing, or mounting.</p>
-      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3 print:grid-cols-3">
+    <div className="break-inside-avoid rounded-md border border-sawdust bg-shop/30 p-3 print:break-inside-avoid print:bg-white">
+      <dl className="grid gap-2 text-sm sm:grid-cols-3 print:grid-cols-3">
         <PrintFact label="Overall dimensions" value={manifest.project.intake.dimensions} />
         <PrintFact label="Main material" value={primaryMaterial?.label ?? manifest.project.intake.material} />
+        <PrintFact label="Difficulty" value={manifest.generatedPlan?.estimatedDifficulty ?? "Review before building"} />
+        <PrintFact label="Time estimate" value={manifest.generatedPlan?.estimatedTime ?? "Review before building"} />
         <PrintFact label="Major pieces" value={majorPieces.length > 0 ? majorPieces.join(", ") : `${manifest.buildModel.pieceCount.toString()} pieces`} />
-        <PrintFact label="Cut list" value={cutListFact} />
-        <PrintFact label="Primary tools" value={tools.length > 0 ? tools.slice(0, 4).join(", ") : "Review tools before building"} />
         <PrintFact label="First check" value={reviewReminder} />
       </dl>
     </div>
@@ -141,17 +129,33 @@ function PrintBuildSnapshot({ manifest }: { manifest: PrintablePlanManifest }) {
 
 function PrintMaterialsAndParts({ manifest }: { manifest: PrintablePlanManifest }) {
   const pieceItems = manifest.cutList?.items.filter((item) => item.sourceLabel === "Modeled piece") ?? [];
+  const materialItems = [...manifest.materials.primaryMaterials, ...manifest.materials.hardwareFasteners, ...manifest.materials.finishSupplies];
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+    <div className="grid gap-4 lg:grid-cols-2 print:grid-cols-2">
       <div>
-        <PrintList title="Primary materials" items={formatMaterialItems(manifest.materials.primaryMaterials)} />
-        <PrintList title="Hardware / fasteners" items={formatMaterialItems(manifest.materials.hardwareFasteners)} emptyCopy="No hardware or fastener placeholders are modeled yet." />
-        <PrintList title="Finish / optional supplies" items={formatMaterialItems(manifest.materials.finishSupplies)} emptyCopy="No finish or optional supply notes are listed yet." />
+        <h3 className="text-sm font-semibold text-ink">Materials to gather</h3>
+        {materialItems.length > 0 ? (
+          <div className="mt-2 grid gap-2">
+            {materialItems.slice(0, 8).map((item) => (
+              <MaterialRow key={item.id} item={item} />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 rounded-md border border-sawdust p-3 text-sm leading-6 text-ink/65">No material rows are available yet. Review the full plan before purchasing.</p>
+        )}
       </div>
       <div>
-        <PrintList title="Parts to identify" items={pieceItems.map((item) => `${item.label}: ${item.quantityLabel} - ${item.dimensionsLabel} - ${item.materialLabel}`)} />
-        <PrintList title="Material checks" items={manifest.materials.reviewNotes.slice(0, 6)} />
+        <h3 className="text-sm font-semibold text-ink">Pieces to identify</h3>
+        {pieceItems.length > 0 ? (
+          <div className="mt-2 grid gap-2">
+            {pieceItems.slice(0, 8).map((item) => (
+              <PieceRow key={item.id} item={item} />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 rounded-md border border-sawdust p-3 text-sm leading-6 text-ink/65">No piece rows are available yet. Review the cut checklist before building.</p>
+        )}
       </div>
     </div>
   );
@@ -203,19 +207,7 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
 }
 
 function PrintBuildGuide({ manifest }: { manifest: PrintablePlanManifest }) {
-  return (
-    <div className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
-      <BuildStepCards cards={manifest.buildStepCards} compact />
-      <div>
-        <PrintList
-          title="Modeled operations"
-          items={manifest.sections.modeledOperations.map((operation) => `${operation.sequenceNumber.toString()}. ${operation.title}: ${operation.description}`)}
-          emptyCopy="No modeled operations are available yet. Review the build steps before building."
-        />
-        <PrintList title="Finishing notes" items={manifest.sections.finishingSteps} emptyCopy="No finishing notes are listed yet." />
-      </div>
-    </div>
-  );
+  return <BuildStepCards cards={manifest.buildStepCards} compact />;
 }
 
 function PrintReviewDetails({ manifest }: { manifest: PrintablePlanManifest }) {
@@ -237,31 +229,70 @@ function PrintReviewDetails({ manifest }: { manifest: PrintablePlanManifest }) {
       <PrintList title="Safety flags" items={manifest.sections.safetyFlags.map((flag) => flag.message)} emptyCopy="No deterministic safety flags were added. Builder review is still required." />
       <PrintList title="Open questions" items={manifest.sections.unresolvedQuestions} emptyCopy="No unresolved questions listed. Review the full plan before building." />
       <PrintList title="Assumptions" items={manifest.sections.assumptions} />
+      <PrintList title="Material review notes" items={manifest.materials.reviewNotes.slice(0, 6)} />
+      <PrintList
+        title="Build sequence notes"
+        items={manifest.sections.modeledOperations.map((operation) => `${operation.sequenceNumber.toString()}. ${operation.title}: ${operation.description}`)}
+        emptyCopy="No build sequence notes are available yet. Review the build steps before building."
+      />
+      <PrintList title="Finishing notes" items={manifest.sections.finishingSteps} emptyCopy="No finishing notes are listed yet." />
       <PrintList title="Planning-aid reminders" items={reminderItems} />
     </div>
   );
 }
 
-function PrintSection({ title, children }: { title: string; children: React.ReactNode }) {
+function PrintSection({ title, children, appendix = false }: { title: string; children: React.ReactNode; appendix?: boolean }) {
   return (
-    <section className="break-inside-avoid border-b border-sawdust pb-6 last:border-0 print:break-inside-avoid">
-      <h2 className="text-xl font-semibold tracking-tight text-ink">{title}</h2>
-      <div className="mt-4">{children}</div>
+    <section className={`break-inside-avoid border-b border-sawdust pb-6 last:border-0 print:break-inside-avoid ${appendix ? "text-ink/85" : ""}`}>
+      <h2 className={appendix ? "text-lg font-semibold tracking-tight text-ink/80" : "text-xl font-semibold tracking-tight text-ink"}>{title}</h2>
+      {appendix ? <p className="mt-2 text-sm leading-6 text-ink/60">Reference notes for review after the build flow. Keep these available, but use the sections above to work through the plan.</p> : null}
+      <div className={appendix ? "mt-3" : "mt-4"}>{children}</div>
     </section>
   );
 }
 
 function PrintFact({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-sawdust p-3">
+    <div className="rounded-md border border-sawdust bg-white p-3">
       <dt className="text-xs font-semibold uppercase tracking-wide text-ink/55">{label}</dt>
       <dd className="mt-1 font-medium text-ink">{value}</dd>
     </div>
   );
 }
 
-function formatMaterialItems(items: PrintablePlanManifest["materials"]["primaryMaterials"]): string[] {
-  return items.map((item) => `${item.label}: ${item.detail}${item.notes.length > 0 ? ` - ${item.notes.join(" ")}` : ""}`);
+function MaterialRow({ item }: { item: PrintablePlanManifest["materials"]["primaryMaterials"][number] }) {
+  return (
+    <div className="break-inside-avoid rounded-md border border-sawdust p-3 print:break-inside-avoid">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <p className="text-sm font-semibold text-ink">{item.label}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">{item.detail}</p>
+      </div>
+      {item.notes.at(0) ? <p className="mt-1 text-xs leading-5 text-ink/60">{item.notes[0]}</p> : null}
+    </div>
+  );
+}
+
+function PieceRow({ item }: { item: NonNullable<PrintablePlanManifest["cutList"]>["items"][number] }) {
+  return (
+    <div className="break-inside-avoid rounded-md border border-sawdust p-3 print:break-inside-avoid">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <p className="text-sm font-semibold text-ink">{item.label}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">{item.quantityLabel}</p>
+      </div>
+      <p className="mt-1 text-xs leading-5 text-ink/65">
+        {item.quantityLabel} - {item.dimensionsLabel}
+      </p>
+      <p className="mt-1 text-xs leading-5 text-ink/60">{item.materialLabel}</p>
+    </div>
+  );
+}
+
+function compactPrintSummary(summary: string): string {
+  const trimmed = summary.trim();
+  const firstSentence = /^.*?[.!?](?:\s|$)/.exec(trimmed)?.[0]?.trim();
+  const compact = firstSentence && firstSentence.length >= 24 ? firstSentence : trimmed;
+  if (compact.length <= 180) return compact;
+  return `${compact.slice(0, 177).trimEnd()}...`;
 }
 
 function majorPieceLabels(manifest: PrintablePlanManifest): string[] {

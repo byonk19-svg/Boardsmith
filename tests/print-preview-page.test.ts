@@ -54,7 +54,8 @@ const planRecord: GeneratedProjectPlanRecord = {
   created_at: new Date(1).toISOString(),
   model_name: "test-model",
   plan_json: {
-    project_summary: "A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.",
+    project_summary:
+      "A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use. This extra sentence should stay out of the compressed print header.",
     project_type: "simple_shelf",
     dimensions: {
       width_inches: 36,
@@ -145,16 +146,19 @@ describe("ProjectPrintPreviewPage", () => {
 
     expect(markup).toContain("Browser print preview");
     expect(markup).toContain("Use your browser&#x27;s print dialog if you want a paper copy.");
-    expect(markup).toContain("Review all dimensions, materials, and safety notes before building.");
+    expect(markup).toContain("Planning aid: verify dimensions, materials, hardware, and safety notes before building.");
+    expect(markup).toContain("A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.");
+    expect(markup).not.toContain("This extra sentence should stay out of the compressed print header.");
     expect(markup).toContain("Build Snapshot");
-    expect(markup).toContain("Plan date");
     expect(markup).toContain("Difficulty");
     expect(markup).toContain("Time estimate");
     expect(markup).toContain("Overall dimensions");
     expect(markup).toContain("Main material");
     expect(markup).toContain("Major pieces");
-    expect(markup).toContain("Primary tools");
     expect(markup).toContain("First check");
+    expect(markup).not.toContain("Plan date");
+    expect(markup).not.toContain("Cut list</dt>");
+    expect(markup).not.toContain("Primary tools");
     expect(markup).toContain("Project Visuals");
     expect(markup).toContain("Check Before Building");
     expect(markup).toContain("Review wall mounting details.");
@@ -177,23 +181,26 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Visual piece inventory - planning aid only.");
     expect(markup.split("Planning diagram — not to scale").length - 1).toBe(1);
     expect(markup).toContain("Materials and Parts");
-    expect(markup).toContain("Parts to identify");
+    expect(markup).toContain("Materials to gather");
+    expect(markup).toContain("Pieces to identify");
+    expect(markup).toContain("1 - 36 in x 10 in x 0.75 in");
+    expect(markup).not.toContain("Material checks");
     expect(markup).toContain("Cut Checklist");
     expect(markup).toContain("Cut?");
     expect(markup).toContain("Check");
     expect(markup).toContain("Build Guide");
     expect(markup).toContain("Step 1");
     expect(markup).toContain("Inspect / review");
+    expect(markup).toContain("Do this");
     expect(markup).toContain("Tools");
     expect(markup).toContain("drill");
-    expect(markup).toContain("Time");
-    expect(markup).toContain("15 min");
     expect(markup).toContain("Pieces");
     expect(markup).toContain("Shelf board");
-    expect(markup).toContain("Modeled step");
-    expect(markup).toContain("Inspect mounting location");
     expect(markup).toContain("Do not rely on Boardsmith for load ratings.");
-    expect(markup).toContain("Review Details");
+    expect(markup).not.toContain("Modeled step");
+    expect(markup).not.toContain("Modeled operations");
+    expect(markup).not.toContain("15 min");
+    expect(markup).toContain("Review Appendix");
     expect(markup).toContain("Plan review summary");
     expect(markup).toContain("Planning-aid reminders");
     expect(markup).toContain("No app-generated export or download is available from this print view.");
@@ -223,7 +230,7 @@ describe("ProjectPrintPreviewPage", () => {
       "Materials and Parts",
       "Cut Checklist",
       "Build Guide",
-      "Review Details",
+      "Review Appendix",
     ];
     const sectionIndexes = sectionOrder.map((label) => markup.indexOf(label));
     expect(sectionIndexes.every((index) => index >= 0)).toBe(true);
