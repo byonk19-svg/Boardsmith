@@ -273,12 +273,13 @@ Guardrails reconfirmed:
 - Optional private access gate through `BOARDSMITH_ACCESS_PASSWORD`.
 - Vercel project link and hosted env var name readiness.
 - User-supplied authorized hosted smoke for access gate, project creation, notes, build log, generation, review surfaces, duplicate project, project list indicators, and browser print preview.
+- Hosted archive migration check attempted on June 8, 2026; `public.projects.archived_at` was missing from the hosted Supabase persistence path, so hosted archive/restore smoke remains blocked until the migration is applied.
 
 ## What Is Not Verified Yet
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
 - Hosted behavior after any future deployment, env-var change, migration, or access-gate change until the hosted smoke checklist is rerun.
-- Hosted Supabase archive behavior until the `archived_at` migration is applied to the hosted database and the hosted archive checklist in [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md) passes.
+- Hosted Supabase archive behavior until the `archived_at` migration is applied to the hosted database and the hosted archive checklist in [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md) passes. The June 8, 2026 hosted check found the column missing.
 
 ## Non-Goals And Guardrails
 
@@ -359,4 +360,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config, deployment, or migration change, especially after applying the archive migration to a hosted Supabase environment. Use [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md) before relying on hosted archive/restore. Narrow private-MVP-safe candidates include project detail navigation polish or hosted smoke/checkpoint review. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.
+Keep Boardsmith private and continue with small trust-building polish only. The next hosted step is to apply `supabase/migrations/20260607183000_add_project_archive_metadata.sql` to hosted Supabase through the approved path, then rerun [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md). Narrow private-MVP-safe candidates include project detail navigation polish or hosted smoke/checkpoint review after the migration is applied. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.

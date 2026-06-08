@@ -123,7 +123,9 @@ Do not share the hosted URL publicly. Private sharing is reasonable only with in
 
 ## Archive Migration Note
 
-After `private-mvp-0.7`, hosted archive/restore depends on `public.projects.archived_at` existing in the hosted Supabase database. This checkout has no `supabase/config.toml`, so Codex did not run a Supabase cloud push from here. Before relying on hosted archive/restore, apply or confirm `supabase/migrations/20260607183000_add_project_archive_metadata.sql` through the approved hosted Supabase path and run [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md).
+After `private-mvp-0.7`, hosted archive/restore depends on `public.projects.archived_at` existing in the hosted Supabase database. This checkout has no `supabase/config.toml`, so Codex did not run a Supabase cloud push from here.
+
+Task 71B ran a secret-safe, read-only hosted persistence check on June 8, 2026. The check returned Postgres error `42703`: `column projects.archived_at does not exist`. Hosted archive/restore smoke is blocked until `supabase/migrations/20260607183000_add_project_archive_metadata.sql` is applied through the approved hosted Supabase path. After applying the migration, rerun [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md).
 
 ## Recommendation
 

@@ -660,9 +660,18 @@
 - [x] Confirm no Supabase cloud push was performed from this checkout.
 - [x] Keep the pass docs/checklist-only with no app features, schema changes, migrations, package changes, public sharing, export/CAD/CNC work, image upload, shopping, pricing, vendor, inventory, auth expansion, production multi-user changes, delete, bulk archive, or undo toast system.
 
+## Task 71B - Hosted Archive Migration Confirmation and Smoke
+
+- [x] Inspect current hosted archive readiness docs, deployment status docs, private readiness docs, task ledger, repo state, and Supabase config state.
+- [x] Confirm this checkout still has no `supabase/config.toml`, so no local reset or project-specific Supabase cloud push path is available here.
+- [x] Run a secret-safe, read-only hosted Supabase persistence check without printing env values or project data.
+- [x] Confirm the hosted persistence path currently returns Postgres `42703` because `projects.archived_at` does not exist.
+- [x] Mark hosted archive/restore smoke blocked pending manual application of `supabase/migrations/20260607183000_add_project_archive_metadata.sql` through the approved hosted Supabase path.
+- [x] Confirm no archive/restore hosted actions and no Supabase cloud push were performed from this checkout.
+
 ## Recommended Next Tasks
 
-1. [ ] Apply or confirm the archive migration on hosted Supabase through the approved hosted path, then run the hosted archive smoke checklist.
+1. [ ] Apply `supabase/migrations/20260607183000_add_project_archive_metadata.sql` to hosted Supabase through the approved hosted path, then rerun the hosted archive migration check and smoke checklist.
 2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 3. [ ] Consider small archive-list polish only if additional dogfood shows repeated confusion after using archived filters.
 
