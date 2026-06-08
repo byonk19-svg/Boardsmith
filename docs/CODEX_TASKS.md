@@ -686,9 +686,18 @@
 - [x] Reconfirm hosted archive smoke should run only after the hosted `projects.archived_at` column exists.
 - [x] Keep the pass docs-only with no app features, schema changes, migration edits, package changes, Supabase cloud push, delete, bulk archive, undo toast system, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, or new project types.
 
+## Task 71E - Hosted Archive Migration Push
+
+- [x] Confirm the local ignored Supabase CLI link can reach the hosted database even though no committed `supabase/config.toml` exists.
+- [x] Run `supabase db push --dry-run` and confirm the only pending remote migration is `20260607183000_add_project_archive_metadata.sql`.
+- [x] Apply the archive migration to hosted Supabase with `supabase db push --yes`.
+- [x] Confirm linked migration history shows `20260607183000` on both local and remote.
+- [x] Confirm a secret-safe app-facing Supabase read of `projects.id, archived_at` passes without printing secrets, hosted URLs, project refs, connection strings, or row data.
+- [x] Keep the pass limited to the approved archive migration push and docs status updates; no app code, migration file, schema file, package, auth, export, delete, bulk archive, public sharing, marketplace, shopping, pricing, vendor, or inventory changes were made.
+
 ## Recommended Next Tasks
 
-1. [ ] Apply `supabase/migrations/20260607183000_add_project_archive_metadata.sql` to hosted Supabase using the manual runbook, then rerun the hosted archive migration check and smoke checklist.
+1. [ ] Run the hosted archive/restore UI smoke checklist from the intended private hosted access path using a clearly labeled non-critical test project.
 2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 3. [ ] Consider small archive-list polish only if additional dogfood shows repeated confusion after using archived filters.
 

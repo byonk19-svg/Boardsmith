@@ -19,10 +19,12 @@ alter table public.projects
   add column if not exists archived_at timestamptz;
 ```
 
-- This checkout currently has no `supabase/config.toml`.
+- This checkout currently has no committed `supabase/config.toml`.
 - Because there is no local Supabase config target in this checkout, do not run a local Supabase reset from here.
-- No Supabase cloud push was performed for the archive migration.
-- Migration tests cover the SQL file, but the hosted Supabase project still needs an explicit hosted migration check before relying on archive/restore in Preview or Production.
+- On June 8, 2026, the local ignored Supabase CLI link was sufficient for `supabase migration list --linked`, `supabase db push --dry-run`, and `supabase db push --yes`.
+- The archive migration was applied to the linked hosted Supabase database with `supabase db push --yes`.
+- A secret-safe app-facing Supabase read of `projects.id, archived_at` passed after the migration.
+- Hosted archive/restore UI smoke still needs to be run from the intended private hosted access path.
 
 ## Task 71B Hosted Check Result
 
@@ -86,6 +88,27 @@ where table_schema = 'public'
 6. Success means the verification query returns one row for `archived_at`, with a nullable timestamp-with-time-zone type such as `timestamp with time zone` and `is_nullable` equal to `YES`.
 7. Blocked means the query returns no rows, returns a non-nullable column, returns an unexpected data type, or the SQL editor reports an error. Stop and do not run archive/restore smoke until the hosted database state is corrected.
 8. After success, run the Hosted Archive Smoke Checklist below using a clearly labeled non-critical test project.
+
+## Task 71E Hosted Migration Push Result
+
+Status: migration applied; hosted archive smoke still pending.
+
+Date checked: June 8, 2026.
+
+Codex confirmed the local ignored Supabase CLI link can reach the hosted database without printing secrets, project refs, hosted URLs, connection strings, or row data. A dry run showed exactly one pending migration:
+
+```text
+20260607183000_add_project_archive_metadata.sql
+```
+
+Codex then ran `supabase db push --yes`, which applied only that migration. A follow-up linked migration-list check showed `20260607183000` present on both local and remote migration history, and a secret-safe app-facing Supabase read of `projects.id, archived_at` passed.
+
+Result:
+
+- Hosted `public.projects.archived_at` is now available to the app's Supabase persistence path.
+- No app code, migration file, schema file, package, auth, export, delete, bulk archive, public sharing, or marketplace change was made.
+- Hosted archive/restore UI smoke was not run in this step because it requires the intended private hosted access path and a clearly labeled non-critical test project.
+- The next step is to run the Hosted Archive Smoke Checklist below.
 
 ## Hosted Migration Preflight
 
@@ -154,5 +177,5 @@ If hosted archive routes fail because `archived_at` is missing:
 - Boardsmith remains a private MVP planning aid.
 - Archive/restore preserves project records and generated plans.
 - Permanent delete remains out of scope.
-- No Supabase cloud push should be run from this checkout unless a valid project-specific local config and safe documented deployment path are added later.
+- Further Supabase cloud pushes should run only after a dry run confirms the exact pending migrations and the operator confirms the intended linked hosted project without printing secrets, hosted URLs, project refs, connection strings, or row data.
 - No app-generated PDF, SVG, DXF, CAD, CNC, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user, package, schema, or project-type work belongs in this checklist.

@@ -123,11 +123,13 @@ Do not share the hosted URL publicly. Private sharing is reasonable only with in
 
 ## Archive Migration Note
 
-After `private-mvp-0.7`, hosted archive/restore depends on `public.projects.archived_at` existing in the hosted Supabase database. This checkout has no `supabase/config.toml`, so Codex did not run a Supabase cloud push from here.
+After `private-mvp-0.7`, hosted archive/restore depends on `public.projects.archived_at` existing in the hosted Supabase database.
 
 Task 71B ran a secret-safe, read-only hosted persistence check on June 8, 2026. The check returned Postgres error `42703`: `column projects.archived_at does not exist`. Hosted archive/restore smoke is blocked until `supabase/migrations/20260607183000_add_project_archive_metadata.sql` is applied through the approved hosted Supabase path. After applying the migration, rerun [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md).
 
 Task 71C reran the same secret-safe hosted persistence check on June 8, 2026 after the expected manual migration window. The check still returned Postgres `42703`, so hosted archive/restore smoke remains blocked and no archive/restore hosted actions were run. Task 71D added a copy-paste-ready manual migration runbook in [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md).
+
+Task 71E confirmed the local ignored Supabase CLI link can reach the hosted database even though there is no committed `supabase/config.toml`. `supabase db push --dry-run` showed exactly one pending migration, `20260607183000_add_project_archive_metadata.sql`, and `supabase db push --yes` applied it. A linked migration-list check showed `20260607183000` present on remote migration history, and a secret-safe app-facing Supabase read of `projects.id, archived_at` passed. Hosted archive/restore UI smoke is still pending from the intended private hosted access path.
 
 ## Recommendation
 
