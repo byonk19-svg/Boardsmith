@@ -637,11 +637,18 @@
 - [x] Add Supabase migration `20260607183000_add_project_archive_metadata.sql`; cloud application is intentionally not part of this task.
 - [x] Keep this as archive/hide only: no delete, folders/tags, auth expansion, public sharing, OpenAI changes, packages, export/CAD/CNC work, shopping, pricing, vendor, or inventory features.
 
+## Task 69B - Project Archive Dogfood Pass
+
+- [x] Dogfood archive and restore through rendered route coverage for list actions, archived/all/active filters, dashboard exclusion, archived detail pages, detail restore, and archived print preview access.
+- [x] Tighten archive-filter empty-state copy so restored projects clearly return to the Active projects view.
+- [x] Confirm archive copy preserves project records and generated plans without implying permanent delete or data loss.
+- [x] Keep the pass limited to small copy/tests/docs with no delete, soft-delete expansion, bulk archive, undo toast system, public sharing, auth expansion, package changes, export/CAD/CNC work, image upload, shopping, pricing, vendor, inventory, marketplace, or new project types.
+
 ## Recommended Next Tasks
 
-1. [ ] Dogfood archive/restore on a crowded project list and confirm active dashboard/list views stay focused.
-2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
-3. [ ] Run hosted smoke/checkpoint review after applying the archive migration to any hosted Supabase environment.
+1. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
+2. [ ] Run hosted smoke/checkpoint review after applying the archive migration to any hosted Supabase environment.
+3. [ ] Consider small archive-list polish only if real dogfood shows repeated confusion after using archived filters.
 
 ## Remaining Hardening
 

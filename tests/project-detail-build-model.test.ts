@@ -405,6 +405,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('action="/projects/project_saved_bbm/restore"');
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
     expect(markup).toContain("Latest generated plan");
+    expect(markup).not.toMatch(/deleted|delete project/i);
   });
 
   it("renders a duplicate project action on the project detail page", async () => {

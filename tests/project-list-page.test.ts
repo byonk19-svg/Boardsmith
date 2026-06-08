@@ -328,6 +328,25 @@ describe("ProjectsPage", () => {
     expect(combinedMarkup).toContain("Showing 1 of 3 projects");
   });
 
+  it("keeps restored-project empty states clear when the archived filter is empty", async () => {
+    const store = await import("@/lib/storage/project-store");
+    vi.mocked(store.listProjects).mockResolvedValueOnce(projects.map((project) => ({ ...project, archived_at: null })));
+
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({ archive: "archived", restored: "1" }),
+      }),
+    );
+
+    expect(markup).toContain("Project restored to the active project list.");
+    expect(markup).toContain("No archived projects match these filters.");
+    expect(markup).toContain("Restored projects return to Active projects.");
+    expect(markup).toContain("View active projects");
+    expect(markup).not.toMatch(/deleted|delete project/i);
+  });
+
   it("renders a calm no-results state for project filters", async () => {
     const { default: ProjectsPage } = await import("@/app/projects/page");
 
@@ -341,8 +360,8 @@ describe("ProjectsPage", () => {
       }),
     );
 
-    expect(markup).toContain("No projects match these filters.");
-    expect(markup).toContain("Clear filters to return to all projects.");
+    expect(markup).toContain("No active projects match these filters.");
+    expect(markup).toContain("Archived projects stay hidden unless you choose Archived or All.");
     expect(markup).toContain("Clear filters");
     expect(markup).toContain("New Project");
     expect(markup).not.toContain("/projects/project_with_history");

@@ -285,6 +285,24 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Front lip");
   });
 
+  it("keeps browser print preview available for archived projects", async () => {
+    getProjectMock.mockResolvedValue({ ...project, archived_at: "2026-06-06T10:00:00.000Z" });
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectPrintPreviewPage({
+        params: Promise.resolve({ id: project.id }),
+      }),
+    );
+
+    expect(markup).toContain("Browser print preview");
+    expect(markup).toContain("Build Snapshot");
+    expect(markup).toContain("Project Visuals");
+    expect(markup).toContain("Cut Checklist");
+    expect(markup).not.toMatch(/deleted|delete project/i);
+  });
+
   it("renders planter box planning diagram labels when supported pieces exist", async () => {
     const planterProject: Project = {
       ...project,

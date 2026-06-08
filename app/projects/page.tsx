@@ -43,6 +43,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const archiveFilteredSummaries = sortedProjectSummaries.filter((summary) => matchesArchiveFilter(summary.project, filters.archive));
   const filteredProjectSummaries = archiveFilteredSummaries.filter((summary) => matchesProjectFilters(summary, filters));
   const filtersActive = areFiltersActive(filters);
+  const emptyState = projectListEmptyState(filters);
 
   return (
     <div className="space-y-6">
@@ -145,11 +146,11 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
 
           {filteredProjectSummaries.length === 0 ? (
             <div className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
-              <p className="font-medium text-ink">No projects match these filters.</p>
-              <p className="mt-2 text-sm text-ink/65">Clear filters to return to all projects.</p>
+              <p className="font-medium text-ink">{emptyState.title}</p>
+              <p className="mt-2 text-sm text-ink/65">{emptyState.body}</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <Link href="/projects" className="rounded-md border border-sawdust px-4 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                  Clear filters
+                  {emptyState.clearLabel}
                 </Link>
                 <Link href="/projects/new" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
                   New Project
@@ -326,6 +327,30 @@ function archiveSummaryLabel(archiveFilter: ProjectFilters["archive"]): string {
   if (archiveFilter === "archived") return "archived projects";
   if (archiveFilter === "all") return "projects";
   return "active projects";
+}
+
+function projectListEmptyState(filters: ProjectFilters): { title: string; body: string; clearLabel: string } {
+  if (filters.archive === "archived") {
+    return {
+      title: "No archived projects match these filters.",
+      body: "Restored projects return to Active projects. Clear filters to see the active workspace.",
+      clearLabel: "View active projects",
+    };
+  }
+
+  if (filters.archive === "active") {
+    return {
+      title: "No active projects match these filters.",
+      body: "Archived projects stay hidden unless you choose Archived or All. Clear filters to return to the active list.",
+      clearLabel: "Clear filters",
+    };
+  }
+
+  return {
+    title: "No projects match these filters.",
+    body: "Clear filters to return to active projects.",
+    clearLabel: "Clear filters",
+  };
 }
 
 function statusLabel(project: Project): string {

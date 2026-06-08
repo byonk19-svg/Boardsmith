@@ -55,6 +55,29 @@ describe("project archive routes", () => {
     expect(response.headers.get("location")).toBe("http://localhost/projects?archived=1");
   });
 
+  it("archives and restores from project detail without leaving the detail page", async () => {
+    archiveProjectMock.mockResolvedValue({ ...project, archived_at: new Date(2).toISOString() });
+    restoreProjectMock.mockResolvedValue(project);
+    const archiveFormData = new FormData();
+    archiveFormData.set("return_to", "project_detail");
+    const restoreFormData = new FormData();
+    restoreFormData.set("return_to", "project_detail");
+    const { POST: archivePost } = await import("@/app/projects/[id]/archive/route");
+    const { POST: restorePost } = await import("@/app/projects/[id]/restore/route");
+
+    const archiveResponse = await archivePost(new Request("http://localhost/projects/archive-project-id/archive", { method: "POST", body: archiveFormData }), {
+      params: Promise.resolve({ id: "archive-project-id" }),
+    });
+    const restoreResponse = await restorePost(new Request("http://localhost/projects/archive-project-id/restore", { method: "POST", body: restoreFormData }), {
+      params: Promise.resolve({ id: "archive-project-id" }),
+    });
+
+    expect(archiveResponse.status).toBe(303);
+    expect(archiveResponse.headers.get("location")).toBe("http://localhost/projects/archive-project-id?archived=1");
+    expect(restoreResponse.status).toBe(303);
+    expect(restoreResponse.headers.get("location")).toBe("http://localhost/projects/archive-project-id?restored=1");
+  });
+
   it("restores the project and redirects to the archived filter when requested from the list", async () => {
     restoreProjectMock.mockResolvedValue(project);
     const formData = new FormData();
