@@ -313,6 +313,7 @@ Recommended next direction:
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
 - Hosted behavior after any future deployment, env-var change, migration, access-gate change, or archive-related code change until the hosted smoke checklist is rerun.
+- Hosted `Tweak this plan` UI smoke is still pending until the protected-hosted smoke bypass secret is configured and the authorized private hosted smoke checklist is rerun.
 
 ## Non-Goals And Guardrails
 
@@ -359,7 +360,7 @@ Run this before more product work:
 
 ## Hosted Smoke Checklist
 
-Run this only from the intended hosted access path. Do not commit hosted URLs or screenshots.
+Run this only from the intended hosted access path. Do not commit hosted URLs or screenshots. If Vercel-level Deployment Protection blocks automation before Boardsmith route handling, use [docs/HOSTED_SMOKE_AUTOMATION.md](HOSTED_SMOKE_AUTOMATION.md) to configure a dedicated Protection Bypass for Automation secret without disabling Vercel protection.
 
 1. Open the latest Production deployment from the Vercel dashboard while signed in.
 2. Confirm Vercel-level protection behavior is intentional.

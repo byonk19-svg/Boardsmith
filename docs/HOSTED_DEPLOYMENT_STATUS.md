@@ -163,6 +163,20 @@ Manual hosted smoke still required from an authorized private hosted browser ses
 - Confirm archived projects still block new revisions while preserving detail, plan history, and print-preview access.
 - Confirm copy avoids engineering approval, structural approval, wall-safety guarantee, child-safety certification, load rating, fabrication-ready output, CAD/CNC readiness, and export claims.
 
+## Protected Hosted Smoke Automation
+
+Task 73E added a secret-safe protected-hosted smoke path for future checks. Vercel-level Deployment Protection should remain enabled. Instead of weakening protection or recording private hosted URLs, configure a dedicated Vercel Protection Bypass for Automation secret and store it only in a secret-safe environment variable.
+
+Prepared automation path:
+
+- Runbook: [docs/HOSTED_SMOKE_AUTOMATION.md](HOSTED_SMOKE_AUTOMATION.md).
+- Route helper: `node scripts/hosted-smoke-check.mjs`.
+- Required secret-safe env vars: `BOARDSMITH_HOSTED_SMOKE_URL`, `VERCEL_AUTOMATION_BYPASS_SECRET`, and, when the app-level gate is enabled, `BOARDSMITH_ACCESS_PASSWORD`.
+- The helper sends `x-vercel-protection-bypass`, requests the Vercel bypass cookie with `x-vercel-set-bypass-cookie: true`, and then keeps the Boardsmith `/access` gate intact.
+- Output is sanitized and does not print the hosted URL, host, bypass secret, access password, cookies, request headers, project refs, row data, or sensitive logs.
+
+The protected-hosted smoke bypass path is documented and locally covered by tests, but it still requires the actual `boardsmith-hosted-smoke` Vercel bypass secret to be configured in a secret-safe local, CI, or Codex environment before rerunning hosted `Tweak this plan` smoke.
+
 ## Recommendation
 
 Status: provider linked, hosted env names present, and user-supplied authorized hosted smoke passed.
