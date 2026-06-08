@@ -110,6 +110,28 @@ Result:
 - Hosted archive/restore UI smoke was not run in this step because it requires the intended private hosted access path and a clearly labeled non-critical test project.
 - The next step is to run the Hosted Archive Smoke Checklist below.
 
+## Task 71F Hosted Archive UI Smoke Attempt
+
+Status: blocked by hosted private access protection before Boardsmith routes rendered.
+
+Date checked: June 8, 2026.
+
+Codex attempted secret-safe hosted route checks against the latest ready production deployment without printing hosted URLs, secrets, project refs, connection strings, logs with sensitive values, or row data. The route checks reached Vercel-level protection and returned `401` before Boardsmith route handling for:
+
+- `/`
+- `/projects`
+- `/projects?archive=archived`
+- `/projects?archive=all`
+
+Result:
+
+- Hosted browser access from this Codex environment is blocked by the intended private access layer before the Boardsmith app renders.
+- No hosted archive action was attempted.
+- No hosted restore action was attempted.
+- No hosted project data, row data, screenshots, hosted URLs, passwords, tokens, or logs with sensitive values were recorded.
+- The Supabase archive migration remains applied and the app-facing `projects.id, archived_at` read path remains verified from Task 71E.
+- The Hosted Archive Smoke Checklist below still needs to be run from an authorized private hosted browser session using a clearly labeled non-critical test project.
+
 ## Hosted Migration Preflight
 
 Use the approved private Supabase deployment path for the hosted Boardsmith project. Do not print, paste, commit, or screenshot secrets.

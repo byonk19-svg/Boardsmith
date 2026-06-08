@@ -695,9 +695,17 @@
 - [x] Confirm a secret-safe app-facing Supabase read of `projects.id, archived_at` passes without printing secrets, hosted URLs, project refs, connection strings, or row data.
 - [x] Keep the pass limited to the approved archive migration push and docs status updates; no app code, migration file, schema file, package, auth, export, delete, bulk archive, public sharing, marketplace, shopping, pricing, vendor, or inventory changes were made.
 
+## Task 71F - Hosted Archive/Restore UI Smoke Attempt
+
+- [x] Inspect hosted archive readiness docs, hosted deployment status docs, private readiness docs, task ledger, repo state, and hosted archive migration status.
+- [x] Attempt secret-safe hosted route checks against the latest ready production deployment without printing hosted URLs, secrets, project refs, connection strings, row data, screenshots, or sensitive logs.
+- [x] Confirm `/`, `/projects`, `/projects?archive=archived`, and `/projects?archive=all` return Vercel-level `401` protection before Boardsmith route handling from this Codex environment.
+- [x] Keep hosted archive/restore UI smoke blocked from this environment because the intended private access layer prevents route rendering.
+- [x] Confirm no hosted archive action, restore action, project mutation, row-data inspection, Supabase cloud push, app code change, package change, export/CAD/CNC work, delete, bulk archive, auth expansion, public sharing, marketplace, shopping, pricing, vendor, inventory, or new project type was added.
+
 ## Recommended Next Tasks
 
-1. [ ] Run the hosted archive/restore UI smoke checklist from the intended private hosted access path using a clearly labeled non-critical test project.
+1. [ ] Run the hosted archive/restore UI smoke checklist from an authorized private hosted browser session using a clearly labeled non-critical test project.
 2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 3. [ ] Consider small archive-list polish only if additional dogfood shows repeated confusion after using archived filters.
 
