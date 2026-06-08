@@ -19,6 +19,7 @@ import { BuildStepCards } from "./BuildStepCards";
 import { GeneratePlanForm } from "./GeneratePlanForm";
 import { PlanActionChecklist } from "./PlanActionChecklist";
 import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
+import { TweakPlanForm } from "./TweakPlanForm";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,8 @@ export default async function ProjectDetailPage({
     compare_plan?: string;
     archived?: string;
     restored?: string;
+    revised?: string;
+    revision_error?: string;
   }>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
@@ -124,6 +127,8 @@ export default async function ProjectDetailPage({
       ) : null}
       {query.archived ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project archived. Generated plans and records were preserved.</p> : null}
       {query.restored ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project restored to the active project list.</p> : null}
+      {query.revised ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Revised and saved a new validated plan version.</p> : null}
+      {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} /> : null}
 
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <ProjectIntakeCard project={project} />
@@ -154,6 +159,7 @@ export default async function ProjectDetailPage({
         <>
           {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
           {latestPlanReview.manifest.exportReadiness ? <ExportReadinessPanel summary={latestPlanReview.manifest.exportReadiness} /> : null}
+          <TweakPlanSection project={project} hasLatestPlan={Boolean(latestPlanReview)} />
           <PlanComparisonPanel
             comparison={planComparison}
             comparedVersionLabel={comparedPlanReview ? planVersionLabel(planReviews, comparedPlanReview.plan) : null}
@@ -272,6 +278,63 @@ function ArchiveProjectAction({ project }: { project: Project }) {
 
 function isProjectArchived(project: Project): boolean {
   return typeof project.archived_at === "string" && project.archived_at.length > 0;
+}
+
+const revisionFailureReasons = ["empty", "too_long", "no_plan", "archived"] as const;
+type RevisionFailureReason = (typeof revisionFailureReasons)[number];
+
+function isRevisionFailureReason(value: string | undefined): value is RevisionFailureReason {
+  return revisionFailureReasons.some((reason) => reason === value);
+}
+
+function RevisionFailurePanel({ reason }: { reason: RevisionFailureReason }) {
+  const copy: Record<RevisionFailureReason, string> = {
+    empty: "Describe one change before creating a revised plan.",
+    too_long: "Keep the revision note to 500 characters or fewer.",
+    no_plan: "Generate a first plan before creating a revised version.",
+    archived: "Restore this project before creating a revised plan.",
+  };
+
+  return (
+    <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+      {copy[reason]} No plan version was changed.
+    </p>
+  );
+}
+
+function TweakPlanSection({ project, hasLatestPlan }: { project: Project; hasLatestPlan: boolean }) {
+  if (!hasLatestPlan) return null;
+
+  return (
+    <section className="no-print rounded-lg border border-sawdust bg-white p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-2xl">
+          <h2 className="text-lg font-semibold text-ink">Tweak this plan</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/65">
+            Describe one change. Boardsmith will create a revised plan and keep the current version in history.
+          </p>
+          <p className="mt-2 text-sm leading-6 text-ink/65">
+            For new dimensions, materials, project type, or mounting changes, update or duplicate the project intake first.
+          </p>
+        </div>
+        <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">
+          New plan version
+        </span>
+      </div>
+      <div className="mt-4">
+        {isProjectArchived(project) ? (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm font-semibold text-amber-950">Restore before revising</p>
+            <p className="mt-2 text-sm leading-6 text-amber-900">
+              Archived projects stay viewable, but Boardsmith does not create new revised plans until the project is restored.
+            </p>
+          </div>
+        ) : (
+          <TweakPlanForm action={`/projects/${project.id}/revise`} />
+        )}
+      </div>
+    </section>
+  );
 }
 
 function TemplateGuidancePanel({ projectTypeLabel, assumptions, cautions }: { projectTypeLabel: string; assumptions: string[]; cautions: string[] }) {

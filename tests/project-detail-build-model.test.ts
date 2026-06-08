@@ -278,6 +278,14 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain("construction approval");
     expect(markup).toContain("Future export notes");
     expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
+    expect(markup).toContain("Tweak this plan");
+    expect(markup).toContain("Describe one change to make to the latest plan");
+    expect(markup).toContain("Boardsmith will save this as a new plan version.");
+    expect(markup).toContain("Revised plans still need manual review before cutting or building.");
+    expect(markup).toContain('action="/projects/project_saved_bbm/revise"');
+    expect(markup).toContain('name="revision_instruction"');
+    expect(markup).toContain("Create revised plan");
+    expect(markup).not.toContain("AI chat");
   });
 
   it("renders a read-only comparison between the latest plan and an older history version", async () => {
@@ -346,6 +354,34 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Comparison will be available after another generated plan version exists.");
   });
 
+  it("shows a revised-plan success state with comparison against the prior plan version", async () => {
+    const olderPlanRecord: GeneratedProjectPlanRecord = {
+      ...planRecord,
+      id: "plan_prior_to_revision",
+      created_at: new Date(0).toISOString(),
+      is_latest: false,
+      plan_json: {
+        ...planRecord.plan_json,
+        project_summary: "An older wall shelf plan with fewer beginner details and manual mounting review before use.",
+      },
+    };
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord, olderPlanRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({ revised: "1", compare_plan: olderPlanRecord.id }),
+      }),
+    );
+
+    expect(markup).toContain("Revised and saved a new validated plan version.");
+    expect(markup).toContain("Plan comparison");
+    expect(markup).toContain("Comparing latest plan with Version 1.");
+    expect(markup).toContain("Project summary changed.");
+  });
+
   it("renders a simple build log form and saved completion details", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([planRecord]);
@@ -405,6 +441,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('action="/projects/project_saved_bbm/restore"');
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
     expect(markup).toContain("Latest generated plan");
+    expect(markup).toContain("Restore before revising");
+    expect(markup).toContain("Archived projects stay viewable, but Boardsmith does not create new revised plans until the project is restored.");
+    expect(markup).not.toContain('action="/projects/project_saved_bbm/revise"');
     expect(markup).not.toMatch(/deleted|delete project/i);
   });
 
@@ -479,6 +518,8 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("No generated plan yet");
     expect(markup).toContain("Generate a plan to see Boardsmith&#x27;s review checks.");
     expect(markup).not.toContain("Blocking issues");
+    expect(markup).not.toContain("Tweak this plan");
+    expect(markup).not.toContain('name="revision_instruction"');
   });
 
   it("keeps notes and build log useful when no plan or saved record details exist", async () => {

@@ -1,7 +1,8 @@
 import OpenAI from "openai";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { assertGeneratedPlanQuality } from "@/lib/plans/plan-quality";
-import { generatedPlanJsonSchema, generatedPlanSchema, type GeneratedPlan } from "@/lib/plans/plan-schema";
+import { generatedPlanJsonSchema, generatedPlanSchema, type GeneratedPlan, type GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
+import { addRevisionAssumption } from "@/lib/plans/plan-revisions";
 import type { Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getTemplateHint } from "@/lib/templates/template-hints";
@@ -128,7 +129,77 @@ function buildPrompt(project: Project, buildModel?: BoardsmithBuildModel): strin
   return JSON.stringify(buildProjectPlanPromptContext(project, buildModel), null, 2);
 }
 
+export function buildRevisedProjectPlanPromptContext({
+  project,
+  buildModel,
+  latestPlan,
+  revisionInstruction,
+}: {
+  project: Project;
+  buildModel: BoardsmithBuildModel;
+  latestPlan: GeneratedProjectPlanRecord;
+  revisionInstruction: string;
+}) {
+  return {
+    ...buildProjectPlanPromptContext(project, buildModel),
+    task: "Revise the latest Boardsmith plan using one plain-English instruction. Return a complete replacement woodworking project plan, not a patch, chat response, or partial edit.",
+    revision_context: {
+      revision_instruction: revisionInstruction,
+      previous_plan_id: latestPlan.id,
+      previous_plan_created_at: latestPlan.created_at,
+      previous_plan_json: latestPlan.plan_json,
+      revision_rules: [
+        "Return a complete replacement plan that matches the existing generated-plan schema.",
+        "Save no chat transcript, agent log, or partial patch in the plan output.",
+        "Preserve the same project type unless the saved project intake changes in a future flow.",
+        "Keep dimensions bounded by the saved project intake and build model.",
+        "Keep cut-list pieces and materials mapped to the build model.",
+        "If the requested change conflicts with saved intake or build model data, keep safe bounded values and add the conflict as an assumption or needs-review item.",
+        "Do not claim professional approval, child safety, wall safety, load rating, fabrication readiness, CAD readiness, CNC readiness, or construction approval.",
+      ],
+    },
+  };
+}
+
+function buildRevisedPrompt({
+  project,
+  buildModel,
+  latestPlan,
+  revisionInstruction,
+}: {
+  project: Project;
+  buildModel: BoardsmithBuildModel;
+  latestPlan: GeneratedProjectPlanRecord;
+  revisionInstruction: string;
+}): string {
+  return JSON.stringify(buildRevisedProjectPlanPromptContext({ project, buildModel, latestPlan, revisionInstruction }), null, 2);
+}
+
 export async function generateStructuredProjectPlan(project: Project, buildModel?: BoardsmithBuildModel): Promise<GenerateProjectPlanResult> {
+  return generatePlanFromPrompt(buildPrompt(project, buildModel), buildModel);
+}
+
+export async function generateRevisedStructuredProjectPlan({
+  project,
+  buildModel,
+  latestPlan,
+  revisionInstruction,
+}: {
+  project: Project;
+  buildModel: BoardsmithBuildModel;
+  latestPlan: GeneratedProjectPlanRecord;
+  revisionInstruction: string;
+}): Promise<GenerateProjectPlanResult> {
+  return generatePlanFromPrompt(buildRevisedPrompt({ project, buildModel, latestPlan, revisionInstruction }), buildModel, (plan) =>
+    addRevisionAssumption(plan, revisionInstruction),
+  );
+}
+
+async function generatePlanFromPrompt(
+  input: string,
+  buildModel?: BoardsmithBuildModel,
+  transformPlan: (plan: GeneratedPlan) => GeneratedPlan = (plan) => plan,
+): Promise<GenerateProjectPlanResult> {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is not configured. Add it to .env.local before generating plans.");
   }
@@ -139,7 +210,7 @@ export async function generateStructuredProjectPlan(project: Project, buildModel
     model: modelName,
     instructions:
       "You are Boardsmith, a cautious woodworking planning assistant. Return only structured JSON that matches the schema. Keep all dimensions bounded by the submitted project and build model. Add review flags when safety is uncertain. Never make load-rating, child-safety, structural-approval, fabrication-ready, CNC-ready, or safety-guarantee claims. Do not use phrases like child-safe, kid-safe, safe for toddlers, safe for children, safely supports, load-rated, structurally approved, certified safe, or guaranteed safe. Prefer 'Boardsmith cannot verify ...', 'adult review is required', and 'review before building' language.",
-    input: buildPrompt(project, buildModel),
+    input,
     text: {
       format: {
         type: "json_schema",
@@ -164,9 +235,10 @@ export async function generateStructuredProjectPlan(project: Project, buildModel
   if (buildModel) {
     assertGeneratedPlanQuality(validation.data, buildModel);
   }
+  const plan = transformPlan(validation.data);
 
   return {
-    plan: validation.data,
+    plan,
     modelName,
   };
 }

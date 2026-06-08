@@ -721,9 +721,20 @@
 - [x] Document UI copy, prompt/context shape, validation gates, failure states, and focused implementation test coverage.
 - [x] Keep this pass docs/planning-only with no app code, schema changes, migrations, packages, multi-turn chat, background agents, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user changes, permanent delete, bulk archive, or new project types.
 
+## Task 73B - Add Narrow Tweak This Plan Foundation
+
+- [x] Add a one-shot `Tweak this plan` form on active project detail pages when a latest generated plan exists.
+- [x] Keep archived projects viewable but block revised-plan generation until the project is restored.
+- [x] Add a `/projects/[id]/revise` POST route that reads one plain-English revision instruction, uses existing project data, latest generated plan JSON, and latest saved build model context, then saves a revised result as a new generated plan version.
+- [x] Preserve the prior plan version and redirect successful revisions to `compare_plan=<priorLatestPlanId>` so the existing plan comparison panel opens against the old latest version.
+- [x] Reuse the existing OpenAI structured-output schema, Zod validation, deterministic plan-quality checks, `saveGeneratedPlan`, and plan history/versioning without schema changes or migrations.
+- [x] Add deterministic revision context and a no-schema `Revision request: ...` assumption marker that is re-validated before save.
+- [x] Add focused helper, route, and project-detail rendering coverage for revision context, successful save, validation failure, empty/overlong notes, no-plan state, archived-project behavior, comparison redirect, and forbidden chat/export/CAD/CNC wording.
+- [x] Keep the slice narrow with no multi-turn chat, background agents, image upload, permanent delete, bulk archive, PDF/SVG/DXF/CAD/CNC export, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user changes, hosted Supabase changes, packages, schema changes, migrations, or new project types.
+
 ## Recommended Next Tasks
 
-1. [ ] Implement the no-schema `Tweak this plan` first slice from `docs/TWEAK_THIS_PLAN_PLAN.md`: one-shot form, revision generation helper, new plan version save, prior-version comparison redirect, archived-project guard, and focused tests.
+1. [ ] Dogfood `Tweak this plan` with realistic revision requests, including beginner simplification, finishing guidance, cut reduction, dimension/material conflicts, wall-mounting removal requests, archived-project restore flow, validation failure feedback, and comparison/history readability.
 2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 3. [ ] Consider small archive-list polish only if additional dogfood shows repeated confusion after using archived filters.
 

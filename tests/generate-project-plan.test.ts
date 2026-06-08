@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildProjectPlanPromptContext } from "@/lib/ai/generate-project-plan";
+import { buildProjectPlanPromptContext, buildRevisedProjectPlanPromptContext } from "@/lib/ai/generate-project-plan";
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
+import { addRevisionAssumption } from "@/lib/plans/plan-revisions";
+import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
 import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
@@ -25,6 +27,62 @@ const shelfProject: Project = {
   notes: "",
   ...emptyProjectBuildLog,
   ...activeProjectArchiveFields,
+};
+
+const latestPlan: GeneratedProjectPlanRecord = {
+  id: "latest-plan-id",
+  project_id: shelfProject.id,
+  created_at: new Date(1).toISOString(),
+  model_name: "test-model",
+  plan_json: {
+    project_summary: "A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.",
+    project_type: "simple_shelf",
+    dimensions: {
+      width_inches: 48,
+      height_inches: 8,
+      depth_inches: 12,
+      material_thickness_inches: 0.75,
+    },
+    materials: [{ name: "3/4 inch pine board", quantity: "1 board", notes: "Inspect the board before cutting." }],
+    tools: ["tape measure", "pencil", "drill"],
+    cut_list: [
+      {
+        part_name: "Shelf board",
+        quantity: 1,
+        length_inches: 48,
+        width_inches: 12,
+        thickness_inches: 0.75,
+        material: "pine board",
+        notes: "Review the cut against the actual board before cutting.",
+      },
+    ],
+    assembly_steps: [
+      {
+        step_number: 1,
+        title: "Review layout",
+        instructions: "Mark the shelf board layout and review the wall mounting plan before drilling.",
+        tools_used: ["tape measure", "pencil"],
+        safety_note: "Boardsmith cannot verify wall structure, anchors, fasteners, or load capacity.",
+        estimated_time_minutes: 15,
+      },
+    ],
+    finishing_steps: ["Sand the visible edges before finish."],
+    safety_notes: ["Review before building.", "Boardsmith cannot verify wall structure, anchors, fasteners, or load capacity."],
+    assumptions: ["Light decorative use unless reviewed by the builder."],
+    needs_review_flags: ["Wall mounting review"],
+    beginner_tips: ["Measure twice before cutting."],
+    svg_readiness_notes: ["No export output is generated."],
+    estimated_difficulty: "moderate",
+    estimated_time: "1-2 hours",
+    confidence_level: "low",
+  },
+  build_model_json: simpleShelfBuildModelFixture,
+  plan_markdown: "# test",
+  validation_status: "valid",
+  warnings: ["Review before building.", "Boardsmith cannot verify wall structure, anchors, fasteners, or load capacity."],
+  assumptions: ["Light decorative use unless reviewed by the builder."],
+  confidence_level: "low",
+  is_latest: true,
 };
 
 describe("buildProjectPlanPromptContext", () => {
@@ -113,5 +171,36 @@ describe("buildProjectPlanPromptContext", () => {
     expect(context.output_alignment_rules).toContain(
       "For book ledges, reuse modeled ledge piece names such as bottom shelf board, back rail, and front lip when present; do not add unmodeled child-safety claims.",
     );
+  });
+});
+
+describe("buildRevisedProjectPlanPromptContext", () => {
+  it("includes the prior plan, revision instruction, and complete-replacement rules", () => {
+    const context = buildRevisedProjectPlanPromptContext({
+      project: shelfProject,
+      buildModel: simpleShelfBuildModelFixture,
+      latestPlan,
+      revisionInstruction: "Make the steps easier for a beginner.",
+    });
+
+    expect(context.revision_context.revision_instruction).toBe("Make the steps easier for a beginner.");
+    expect(context.revision_context.previous_plan_id).toBe(latestPlan.id);
+    expect(context.revision_context.previous_plan_json.project_summary).toBe(latestPlan.plan_json.project_summary);
+    expect(context.revision_context.revision_rules).toEqual(
+      expect.arrayContaining([
+        "Return a complete replacement plan that matches the existing generated-plan schema.",
+        "Keep dimensions bounded by the saved project intake and build model.",
+        "Keep cut-list pieces and materials mapped to the build model.",
+        "Do not claim professional approval, child safety, wall safety, load rating, fabrication readiness, CAD readiness, CNC readiness, or construction approval.",
+      ]),
+    );
+  });
+
+  it("adds a deterministic revision assumption without changing the old plan object", () => {
+    const revised = addRevisionAssumption(latestPlan.plan_json, "Add more sanding guidance.");
+
+    expect(revised.assumptions).toContain("Revision request: Add more sanding guidance.");
+    expect(latestPlan.plan_json.assumptions).not.toContain("Revision request: Add more sanding guidance.");
+    expect(addRevisionAssumption(revised, "Add more sanding guidance.").assumptions).toHaveLength(revised.assumptions.length);
   });
 });
