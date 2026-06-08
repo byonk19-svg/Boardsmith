@@ -121,6 +121,10 @@ Remaining decisions before broader private sharing:
 
 Do not share the hosted URL publicly. Private sharing is reasonable only with intended users who can pass the chosen access layers.
 
+## Archive Migration Note
+
+After `private-mvp-0.7`, hosted archive/restore depends on `public.projects.archived_at` existing in the hosted Supabase database. This checkout has no `supabase/config.toml`, so Codex did not run a Supabase cloud push from here. Before relying on hosted archive/restore, apply or confirm `supabase/migrations/20260607183000_add_project_archive_metadata.sql` through the approved hosted Supabase path and run [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md).
+
 ## Recommendation
 
 Status: provider linked, hosted env names present, and user-supplied authorized hosted smoke passed.

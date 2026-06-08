@@ -278,7 +278,7 @@ Guardrails reconfirmed:
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
 - Hosted behavior after any future deployment, env-var change, migration, or access-gate change until the hosted smoke checklist is rerun.
-- Hosted Supabase archive behavior until the `archived_at` migration is applied to the hosted database and smoke checked.
+- Hosted Supabase archive behavior until the `archived_at` migration is applied to the hosted database and the hosted archive checklist in [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md) passes.
 
 ## Non-Goals And Guardrails
 
@@ -359,4 +359,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config, deployment, or migration change, especially after applying the archive migration to a hosted Supabase environment. Narrow private-MVP-safe candidates include project detail navigation polish or hosted smoke/checkpoint review. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.
+Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config, deployment, or migration change, especially after applying the archive migration to a hosted Supabase environment. Use [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md) before relying on hosted archive/restore. Narrow private-MVP-safe candidates include project detail navigation polish or hosted smoke/checkpoint review. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.

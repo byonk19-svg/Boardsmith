@@ -70,7 +70,7 @@ Re-run this inspection before sharing a hosted URL.
 1. Confirm the hosted environment has all required production env vars.
 2. Confirm `BOARDSMITH_ACCESS_PASSWORD` is set before sharing any hosted URL.
 3. Confirm `SUPABASE_SERVICE_ROLE_KEY` and `OPENAI_API_KEY` are configured as server-only secrets.
-4. Confirm Supabase migrations have been applied, including the atomic generated-plan save RPC and `projects.notes`.
+4. Confirm Supabase migrations have been applied, including the atomic generated-plan save RPC, `projects.notes`, project build-log fields, and `projects.archived_at`.
 5. Run `npm run build`.
 6. Deploy only after the build is green.
 7. Open the hosted URL without an access cookie and confirm protected routes redirect to `/access`.
@@ -82,6 +82,8 @@ Re-run this inspection before sharing a hosted URL.
 13. Duplicate the smoke project and confirm generated plans/history/notes are not copied.
 14. Open the browser print preview route for the generated project.
 15. Confirm browser print remains the only MVP output path.
+
+For archive/restore readiness after `private-mvp-0.7`, also run the hosted archive migration and smoke checklist in [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md). This verifies that `supabase/migrations/20260607183000_add_project_archive_metadata.sql` has been applied before relying on hosted archive actions.
 
 ## Post-Deploy Smoke Routes
 
@@ -100,6 +102,8 @@ Also verify these POST routes are protected without a valid access cookie:
 - `/projects/[id]/generate`
 - `/projects/[id]/notes`
 - `/projects/[id]/duplicate`
+- `/projects/[id]/archive`
+- `/projects/[id]/restore`
 
 ## Rollback Notes
 

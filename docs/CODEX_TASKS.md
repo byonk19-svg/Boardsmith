@@ -652,10 +652,18 @@
 - [x] Reconfirm permanent delete, bulk archive, undo toast system, public sharing, auth expansion, production multi-user assumptions, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, shopping, pricing, vendor, inventory, marketplace, and new project types remain out of scope.
 - [x] Keep the checkpoint docs/tag-only with no product UI, schema, migration, Supabase cloud push, OpenAI prompt/model/schema change, package change, runtime data, hosted URL, screenshot, secret, log, export, sharing, shopping, pricing, vendor, or inventory changes.
 
+## Task 71A - Hosted Archive Migration Readiness Check
+
+- [x] Confirm this checkout still has no `supabase/config.toml`, so there is no local Supabase reset target here.
+- [x] Confirm the archive migration exists at `supabase/migrations/20260607183000_add_project_archive_metadata.sql` and adds nullable `projects.archived_at`.
+- [x] Document a hosted archive migration readiness checklist covering hosted column verification, manual application through the approved hosted Supabase path, archive/restore smoke, Archived and All filters, dashboard exclusion, archived detail and print-preview access, and missing-column mitigation.
+- [x] Confirm no Supabase cloud push was performed from this checkout.
+- [x] Keep the pass docs/checklist-only with no app features, schema changes, migrations, package changes, public sharing, export/CAD/CNC work, image upload, shopping, pricing, vendor, inventory, auth expansion, production multi-user changes, delete, bulk archive, or undo toast system.
+
 ## Recommended Next Tasks
 
-1. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
-2. [ ] Run hosted smoke/checkpoint review after applying the archive migration to any hosted Supabase environment.
+1. [ ] Apply or confirm the archive migration on hosted Supabase through the approved hosted path, then run the hosted archive smoke checklist.
+2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 3. [ ] Consider small archive-list polish only if additional dogfood shows repeated confusion after using archived filters.
 
 ## Remaining Hardening
