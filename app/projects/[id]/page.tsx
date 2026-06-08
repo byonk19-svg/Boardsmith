@@ -127,7 +127,11 @@ export default async function ProjectDetailPage({
       ) : null}
       {query.archived ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project archived. Generated plans and records were preserved.</p> : null}
       {query.restored ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project restored to the active project list.</p> : null}
-      {query.revised ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Revised and saved a new validated plan version.</p> : null}
+      {query.revised ? (
+        <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+          Revised and saved a new validated plan version. The comparison below shows the new latest plan against the previous version.
+        </p>
+      ) : null}
       {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} /> : null}
 
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
@@ -163,6 +167,7 @@ export default async function ProjectDetailPage({
           <PlanComparisonPanel
             comparison={planComparison}
             comparedVersionLabel={comparedPlanReview ? planVersionLabel(planReviews, comparedPlanReview.plan) : null}
+            isRevisionComparison={Boolean(query.revised && comparedPlanReview)}
           />
           <PlanView manifest={latestPlanReview.manifest} />
         </>
@@ -196,6 +201,7 @@ export default async function ProjectDetailPage({
                       Review: {reviewStatusLabel(entry.manifest.planReview.status)}
                     </span>
                   ) : null}
+                  {isRevisedPlan(entry.plan) ? <span className="w-fit rounded-md bg-shop px-2.5 py-1 text-xs font-semibold text-ink/70">Revised</span> : null}
                   {entry.plan.is_latest ? <span className="w-fit rounded-md bg-moss px-2.5 py-1 text-xs font-semibold text-white">Latest</span> : null}
                 </div>
               </div>
@@ -229,6 +235,10 @@ function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
 function planVersionLabel(planReviews: ReturnType<typeof buildPlanReview>[], plan: GeneratedProjectPlanRecord): string {
   const index = planReviews.findIndex((entry) => entry.plan.id === plan.id);
   return index >= 0 ? `Version ${(planReviews.length - index).toString()}` : "older version";
+}
+
+function isRevisedPlan(plan: GeneratedProjectPlanRecord): boolean {
+  return plan.assumptions.some((assumption) => assumption.startsWith("Revision request: "));
 }
 
 function ArchivedProjectBanner({ project }: { project: Project }) {
@@ -643,9 +653,11 @@ function ExportReadinessPanel({ summary }: { summary: ExportReadinessSummary }) 
 function PlanComparisonPanel({
   comparison,
   comparedVersionLabel,
+  isRevisionComparison,
 }: {
   comparison: PlanHistoryComparison | null;
   comparedVersionLabel: string | null;
+  isRevisionComparison: boolean;
 }) {
   return (
     <section className="no-print rounded-lg border border-sawdust bg-white p-5">
@@ -653,9 +665,11 @@ function PlanComparisonPanel({
         <div>
           <h2 className="text-lg font-semibold text-ink">Plan comparison</h2>
           <p className="mt-2 text-sm leading-6 text-ink/65">
-            {comparison && comparedVersionLabel
-              ? `Comparing latest plan with ${comparedVersionLabel}.`
-              : "Comparison will be available after another generated plan version exists."}
+            {comparison && comparedVersionLabel && isRevisionComparison
+              ? `Comparing the revised latest plan with the previous version (${comparedVersionLabel}).`
+              : comparison && comparedVersionLabel
+                ? `Comparing latest plan with ${comparedVersionLabel}.`
+                : "Comparison will be available after another generated plan version exists."}
           </p>
         </div>
         <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">

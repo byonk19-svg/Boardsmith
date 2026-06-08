@@ -210,3 +210,14 @@ Task 73B should implement the no-schema first slice:
 - Add focused helper, route, rendering, and no-forbidden-language tests.
 
 Do not add schema fields, migrations, packages, chat UI, background agents, export/download behavior, CAD/CNC work, image upload, public sharing, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, permanent delete, bulk archive, or new project types in Task 73B.
+
+## Task 73B/73C Implementation Notes
+
+Task 73B implemented the no-schema first slice as a one-shot `/projects/[id]/revise` POST route and a `Tweak this plan` form on active project detail pages with a latest generated plan.
+
+Task 73C dogfood kept the feature narrow and made only readability fixes:
+
+- Successful revisions say the comparison below shows the new latest plan against the previous version.
+- The comparison panel labels revised redirects as `Comparing the revised latest plan with the previous version (...)`.
+- Plan history shows a small `Revised` marker when the saved record assumptions include the deterministic `Revision request: ...` prefix.
+- No schema fields, migrations, packages, chat UI, background agents, export/download behavior, CAD/CNC work, image upload, public sharing, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, permanent delete, bulk archive, or new project types were added.

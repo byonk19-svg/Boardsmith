@@ -732,11 +732,23 @@
 - [x] Add focused helper, route, and project-detail rendering coverage for revision context, successful save, validation failure, empty/overlong notes, no-plan state, archived-project behavior, comparison redirect, and forbidden chat/export/CAD/CNC wording.
 - [x] Keep the slice narrow with no multi-turn chat, background agents, image upload, permanent delete, bulk archive, PDF/SVG/DXF/CAD/CNC export, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user changes, hosted Supabase changes, packages, schema changes, migrations, or new project types.
 
+## Task 73C - Dogfood Tweak This Plan Usability
+
+- [x] Dogfood the no-plan, active latest-plan, successful revision, failed revision, archived project, and comparison/history states through rendered-route and helper coverage.
+- [x] Confirm no-plan projects do not show the revision form and still nudge users toward generating the first plan.
+- [x] Confirm active projects with a latest generated plan show a compact one-shot form with new-version and manual-review copy.
+- [x] Confirm archived project details, plan history, and print-preview links remain viewable while revision creation stays blocked until restore.
+- [x] Tighten successful revision copy so users know the new latest plan is being compared with the previous version.
+- [x] Tighten the comparison panel copy for revised redirects so it reads as revised-vs-prior rather than generic history comparison.
+- [x] Add a no-schema `Revised` history marker derived from the existing `Revision request: ...` assumption prefix.
+- [x] Update focused rendering coverage and `docs/TWEAK_THIS_PLAN_PLAN.md` implementation notes.
+- [x] Keep the dogfood pass narrow with no schema changes, migrations, packages, multi-turn chat, background agents, image upload, permanent delete, bulk archive, PDF/SVG/DXF/CAD/CNC export, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user changes, hosted Supabase changes, or new project types.
+
 ## Recommended Next Tasks
 
-1. [ ] Dogfood `Tweak this plan` with realistic revision requests, including beginner simplification, finishing guidance, cut reduction, dimension/material conflicts, wall-mounting removal requests, archived-project restore flow, validation failure feedback, and comparison/history readability.
-2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
-3. [ ] Consider small archive-list polish only if additional dogfood shows repeated confusion after using archived filters.
+1. [ ] Run hosted/private-browser smoke for `Tweak this plan` using a non-critical test project after confirming the hosted OpenAI and Supabase paths are configured for the current deployment.
+2. [ ] Consider a `private-mvp-0.9` checkpoint after hosted `Tweak this plan` smoke passes.
+3. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 
 ## Remaining Hardening
 

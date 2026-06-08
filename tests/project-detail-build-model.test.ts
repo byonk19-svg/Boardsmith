@@ -316,7 +316,7 @@ describe("ProjectDetailPage project structure", () => {
       },
     };
     getProjectMock.mockResolvedValue(project);
-    listGeneratedPlansMock.mockResolvedValue([planRecord, olderPlanRecord]);
+    listGeneratedPlansMock.mockResolvedValue([{ ...planRecord, assumptions: [...planRecord.assumptions, "Revision request: Make the steps easier."] }, olderPlanRecord]);
     const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
 
     const markup = renderToStaticMarkup(
@@ -376,10 +376,12 @@ describe("ProjectDetailPage project structure", () => {
       }),
     );
 
-    expect(markup).toContain("Revised and saved a new validated plan version.");
+    expect(markup).toContain("Revised and saved a new validated plan version. The comparison below shows the new latest plan against the previous version.");
     expect(markup).toContain("Plan comparison");
-    expect(markup).toContain("Comparing latest plan with Version 1.");
+    expect(markup).toContain("Comparing the revised latest plan with the previous version (Version 1).");
     expect(markup).toContain("Project summary changed.");
+    expect(markup).toContain("Revised");
+    expect(markup).toContain("Latest");
   });
 
   it("renders a simple build log form and saved completion details", async () => {
