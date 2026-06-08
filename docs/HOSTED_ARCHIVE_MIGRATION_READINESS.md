@@ -112,7 +112,7 @@ Result:
 
 ## Task 71F Hosted Archive UI Smoke Attempt
 
-Status: blocked by hosted private access protection before Boardsmith routes rendered.
+Status: Codex route checks blocked by hosted private access protection; authorized manual hosted browser smoke passed.
 
 Date checked: June 8, 2026.
 
@@ -130,7 +130,24 @@ Result:
 - No hosted restore action was attempted.
 - No hosted project data, row data, screenshots, hosted URLs, passwords, tokens, or logs with sensitive values were recorded.
 - The Supabase archive migration remains applied and the app-facing `projects.id, archived_at` read path remains verified from Task 71E.
-- The Hosted Archive Smoke Checklist below still needs to be run from an authorized private hosted browser session using a clearly labeled non-critical test project.
+- The Hosted Archive Smoke Checklist could not be run from this Codex environment; the authorized manual hosted browser result is recorded below.
+
+Manual hosted smoke result:
+
+- Date reported: June 8, 2026.
+- The checklist was run manually through an authorized private hosted browser session.
+- Hosted `/projects` loaded.
+- The Active filter excluded archived projects.
+- The Archived filter showed archived projects.
+- The All filter showed both active and archived projects.
+- Archive worked on a clearly labeled non-critical test project.
+- Restore worked.
+- The dashboard excluded archived projects by default.
+- The archived project detail page remained accessible.
+- The archived project print preview remained accessible.
+- Copy avoided permanent delete and data-loss wording.
+- Caveats: none reported.
+- No hosted URLs, screenshots, secrets, project refs, connection strings, row data, or sensitive logs were recorded.
 
 ## Hosted Migration Preflight
 

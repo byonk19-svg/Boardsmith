@@ -133,6 +133,8 @@ Task 71E confirmed the local ignored Supabase CLI link can reach the hosted data
 
 Task 71F attempted secret-safe hosted route checks for `/`, `/projects`, `/projects?archive=archived`, and `/projects?archive=all` against the latest ready production deployment without recording hosted URLs, secrets, project refs, connection strings, row data, screenshots, or sensitive logs. Each route returned Vercel-level `401` protection before Boardsmith route handling, so the hosted archive/restore UI smoke remains blocked from this Codex environment. No hosted archive or restore action was attempted. Run the archive smoke from an authorized private hosted browser session using a clearly labeled non-critical test project.
 
+The authorized manual hosted archive smoke was then reported as passed on June 8, 2026 with no caveats. Hosted `/projects` loaded; Active excluded archived projects; Archived showed archived projects; All showed both active and archived projects; archive and restore worked on a clearly labeled non-critical test project; the dashboard excluded archived projects by default; archived project detail and print preview remained accessible; and copy avoided permanent delete or data-loss wording. No hosted URLs, screenshots, secrets, project refs, connection strings, row data, or sensitive logs were recorded.
+
 ## Recommendation
 
 Status: provider linked, hosted env names present, and user-supplied authorized hosted smoke passed.

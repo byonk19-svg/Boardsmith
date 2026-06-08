@@ -274,13 +274,13 @@ Guardrails reconfirmed:
 - Vercel project link and hosted env var name readiness.
 - User-supplied authorized hosted smoke for access gate, project creation, notes, build log, generation, review surfaces, duplicate project, project list indicators, and browser print preview.
 - Hosted archive migration checks attempted on June 8, 2026; `public.projects.archived_at` was still missing from the hosted Supabase persistence path on the Task 71C retry, then Task 71E applied `20260607183000_add_project_archive_metadata.sql` through the linked Supabase CLI path and verified the app-facing `projects.id, archived_at` read path.
-- Hosted archive/restore UI smoke remains blocked from this Codex environment because the latest ready production deployment returned Vercel-level `401` protection before Boardsmith route handling on the Task 71F route checks.
+- Hosted archive/restore UI smoke was blocked from this Codex environment because the latest ready production deployment returned Vercel-level `401` protection before Boardsmith route handling on the Task 71F route checks.
+- Authorized manual hosted archive smoke passed on June 8, 2026 with no caveats: `/projects` loaded, Active excluded archived projects, Archived showed archived projects, All showed both active and archived projects, archive and restore worked on a clearly labeled non-critical test project, dashboard default state excluded archived projects, archived project detail and print preview remained accessible, and copy avoided permanent delete/data-loss wording.
 
 ## What Is Not Verified Yet
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
-- Hosted behavior after any future deployment, env-var change, migration, or access-gate change until the hosted smoke checklist is rerun.
-- Hosted archive/restore UI behavior until the hosted archive checklist in [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md) passes from an authorized private hosted browser session.
+- Hosted behavior after any future deployment, env-var change, migration, access-gate change, or archive-related code change until the hosted smoke checklist is rerun.
 
 ## Non-Goals And Guardrails
 
