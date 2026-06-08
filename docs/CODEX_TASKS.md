@@ -644,11 +644,19 @@
 - [x] Confirm archive copy preserves project records and generated plans without implying permanent delete or data loss.
 - [x] Keep the pass limited to small copy/tests/docs with no delete, soft-delete expansion, bulk archive, undo toast system, public sharing, auth expansion, package changes, export/CAD/CNC work, image upload, shopping, pricing, vendor, inventory, marketplace, or new project types.
 
+## Task 70A - Archive Usability Checkpoint
+
+- [x] Document `private-mvp-0.7` as the archive/restore usability checkpoint after the archive foundation and dogfood pass.
+- [x] Summarize archive behavior as a private project-organization aid that hides inactive dogfood and smoke-test projects without deleting project records or generated plans.
+- [x] Reconfirm Boardsmith remains private-MVP-only and planning-aid-only.
+- [x] Reconfirm permanent delete, bulk archive, undo toast system, public sharing, auth expansion, production multi-user assumptions, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, shopping, pricing, vendor, inventory, marketplace, and new project types remain out of scope.
+- [x] Keep the checkpoint docs/tag-only with no product UI, schema, migration, Supabase cloud push, OpenAI prompt/model/schema change, package change, runtime data, hosted URL, screenshot, secret, log, export, sharing, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 2. [ ] Run hosted smoke/checkpoint review after applying the archive migration to any hosted Supabase environment.
-3. [ ] Consider small archive-list polish only if real dogfood shows repeated confusion after using archived filters.
+3. [ ] Consider small archive-list polish only if additional dogfood shows repeated confusion after using archived filters.
 
 ## Remaining Hardening
 

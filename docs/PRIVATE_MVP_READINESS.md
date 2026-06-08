@@ -1,6 +1,6 @@
 # Boardsmith Private MVP Readiness
 
-Date: June 7, 2026
+Date: June 8, 2026
 
 ## Current Status
 
@@ -205,9 +205,11 @@ Recommended next directions:
 2. Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 3. Run a hosted smoke/checkpoint review after any hosted config, deployment, access-gate, or environment-variable change.
 
-## Project Archive Foundation
+## Project Archive Usability Checkpoint
 
-After `private-mvp-0.6`, Boardsmith added a private-MVP archive/hide foundation for keeping dogfood, smoke-test, and inactive projects out of the default workspace without deleting records.
+Checkpoint: `private-mvp-0.7`.
+
+This checkpoint captures the private-MVP archive/restore usability milestone after the dashboard checkpoint. Boardsmith can now move dogfood, smoke-test, and inactive projects out of the default workspace without deleting project records or generated plans. This is a project-organization aid only, not a public project-management system and not a data-retention or deletion system.
 
 Archive behavior:
 
@@ -217,6 +219,12 @@ Archive behavior:
 - Dashboard counts and recent shortcuts use active projects by default.
 - Archived project detail pages remain viewable and keep generated plan and browser print preview access.
 - Archive and restore actions preserve project data, notes, build logs, generated plans, and plan history.
+
+Dogfood and verification coverage:
+
+- Rendered-route tests cover archive and restore actions, active/archived/all list filters, dashboard exclusion, archived detail visibility, detail-page restore redirects, restored-project empty-state copy, and archived print-preview access.
+- The `/projects` empty state now explains that restored projects return to Active projects, reducing confusion when the Archived filter becomes empty.
+- Archive copy was checked to avoid permanent-delete or data-loss language.
 
 Migration status:
 
@@ -351,4 +359,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config, deployment, or migration change. Narrow private-MVP-safe candidates include archive/restore dogfood, project detail navigation polish, or hosted smoke/checkpoint review. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.
+Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config, deployment, or migration change, especially after applying the archive migration to a hosted Supabase environment. Narrow private-MVP-safe candidates include project detail navigation polish or hosted smoke/checkpoint review. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.

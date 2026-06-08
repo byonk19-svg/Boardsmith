@@ -4,9 +4,9 @@ Boardsmith is a private MVP web app for generating detailed, reviewable woodwork
 
 ## Private MVP Checkpoint
 
-Current checkpoint: `private-mvp-0.6`, created after the dashboard usability pass.
+Current checkpoint: `private-mvp-0.7`, created after the archive/restore usability pass.
 
-This checkpoint records that local MVP dogfood and authorized hosted Vercel browser smoke passed, including the Boardsmith password gate, hosted project creation, notes, build log, plan generation, review surfaces, duplicate project, and browser print preview. It also includes post-MVP polish for intake examples and starters, generated-plan readability, browser-rendered visual planning aids, the improved browser print shop-plan flow, project-list search/filter/order polish, and a private workspace dashboard with recent-project shortcuts and starter links. After this checkpoint, Boardsmith added an archive/restore foundation for hiding inactive private projects without deleting records. Boardsmith remains private-only and is not public-launch ready.
+This checkpoint records that local MVP dogfood and authorized hosted Vercel browser smoke passed, including the Boardsmith password gate, hosted project creation, notes, build log, plan generation, review surfaces, duplicate project, and browser print preview. It also includes post-MVP polish for intake examples and starters, generated-plan readability, browser-rendered visual planning aids, the improved browser print shop-plan flow, project-list search/filter/order polish, a private workspace dashboard with recent-project shortcuts and starter links, and archive/restore usability for hiding inactive private projects without deleting records or generated plans. Boardsmith remains private-only and is not public-launch ready.
 
 ## Current MVP Capabilities
 
