@@ -711,9 +711,19 @@
 - [x] Reconfirm archive/restore is private workspace organization only, not permanent delete, data-retention infrastructure, public sharing, collaboration, marketplace behavior, fabrication/engineering/structural approval software, CAD/CNC/export software, or public-launch readiness.
 - [x] Keep the checkpoint docs/tag-only with no app features, schema changes, migrations, package changes, Supabase cloud push, permanent delete, bulk archive, undo toast system, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user changes, or new project types.
 
+## Task 73A - Tweak This Plan Planning Pass
+
+- [x] Add `docs/TWEAK_THIS_PLAN_PLAN.md` to scope the smallest safe private-MVP version of `Tweak this plan`.
+- [x] Recommend a one-shot revision form on the latest generated plan that sends the project intake, latest plan JSON, latest build model, and one plain-English revision instruction to OpenAI as structured context.
+- [x] Recommend saving revisions as new generated plan versions through existing history/versioning instead of mutating old plans.
+- [x] Keep the first slice no-schema by reusing existing generated-plan schema, Zod validation, deterministic quality checks, `saveGeneratedPlan`, and plan comparison.
+- [x] Document conservative boundaries for core intake changes such as dimensions, material changes, and wall-mounting removal when they conflict with the saved project intake or build model.
+- [x] Document UI copy, prompt/context shape, validation gates, failure states, and focused implementation test coverage.
+- [x] Keep this pass docs/planning-only with no app code, schema changes, migrations, packages, multi-turn chat, background agents, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user changes, permanent delete, bulk archive, or new project types.
+
 ## Recommended Next Tasks
 
-1. [ ] Plan `Tweak this plan` as a narrow private-MVP-safe slice before adding any edit/regeneration behavior.
+1. [ ] Implement the no-schema `Tweak this plan` first slice from `docs/TWEAK_THIS_PLAN_PLAN.md`: one-shot form, revision generation helper, new plan version save, prior-version comparison redirect, archived-project guard, and focused tests.
 2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 3. [ ] Consider small archive-list polish only if additional dogfood shows repeated confusion after using archived filters.
 
