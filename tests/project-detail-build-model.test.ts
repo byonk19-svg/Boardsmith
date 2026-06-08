@@ -48,6 +48,7 @@ const project: Project = {
   build_actual_material: "Poplar board with water-based finish.",
   build_plan_changes: "Used shorter screws and added a test finish offcut.",
   build_lessons_learned: "Dry fit brackets before final sanding next time.",
+  archived_at: null,
 };
 
 const storedBuildModel = {
@@ -381,6 +382,29 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
     expect(markup).toContain("Browser print preview");
     expect(markup).toContain("Use your browser&#x27;s print dialog if you want a paper copy.");
+  });
+
+  it("keeps archived project details and generated plan links viewable", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      archived_at: "2026-06-06T10:00:00.000Z",
+    });
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Archived project");
+    expect(markup).toContain("This project is hidden from the default project list, but its details and generated plans are preserved.");
+    expect(markup).toContain("Restore project");
+    expect(markup).toContain('action="/projects/project_saved_bbm/restore"');
+    expect(markup).toContain('href="/projects/project_saved_bbm/print"');
+    expect(markup).toContain("Latest generated plan");
   });
 
   it("renders a duplicate project action on the project detail page", async () => {

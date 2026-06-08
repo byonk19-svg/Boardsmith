@@ -49,4 +49,15 @@ describe("Supabase migrations", () => {
     expect(sql).not.toContain("anon");
     expect(sql).not.toContain("authenticated");
   });
+
+  it("adds nullable project archive metadata without changing private MVP grants", async () => {
+    const sql = await readFile("supabase/migrations/20260607183000_add_project_archive_metadata.sql", "utf8");
+
+    expect(sql).toContain("alter table public.projects");
+    expect(sql).toContain("add column if not exists archived_at timestamptz");
+    expect(sql).not.toContain("not null");
+    expect(sql).not.toContain("grant select");
+    expect(sql).not.toContain("anon");
+    expect(sql).not.toContain("authenticated");
+  });
 });

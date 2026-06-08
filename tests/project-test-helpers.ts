@@ -10,3 +10,7 @@ export const emptyProjectBuildLog = {
   Project,
   "build_completed" | "build_completed_at" | "build_actual_material" | "build_plan_changes" | "build_lessons_learned"
 >;
+
+export const activeProjectArchiveFields = {
+  archived_at: null,
+} satisfies Pick<Project, "archived_at">;

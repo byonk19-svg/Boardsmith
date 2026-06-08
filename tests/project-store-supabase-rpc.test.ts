@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
+import { activeProjectArchiveFields } from "./project-test-helpers";
 
 const originalEnv = { ...process.env };
 
@@ -82,6 +83,7 @@ describe("Supabase generated plan save RPC", () => {
       build_actual_material: "",
       build_plan_changes: "",
       build_lessons_learned: "",
+      ...activeProjectArchiveFields,
     };
     const order = vi.fn(() => Promise.resolve({ data: [project], error: null }));
     const select = vi.fn(() => ({ order }));

@@ -23,7 +23,7 @@ type Json = string | number | boolean | null | { [key: string]: Json | undefined
 type ProjectRow = Omit<Project, "build_completed_at"> & { build_completed_at: string | null };
 type ProjectInsert = Omit<
   Project,
-  "notes" | "build_completed" | "build_completed_at" | "build_actual_material" | "build_plan_changes" | "build_lessons_learned"
+  "notes" | "build_completed" | "build_completed_at" | "build_actual_material" | "build_plan_changes" | "build_lessons_learned" | "archived_at"
 > & {
   notes?: string;
   build_completed?: boolean;
@@ -100,6 +100,7 @@ function normalizeProjectRow(row: unknown): Project {
     build_actual_material: typeof record.build_actual_material === "string" ? record.build_actual_material : "",
     build_plan_changes: typeof record.build_plan_changes === "string" ? record.build_plan_changes : "",
     build_lessons_learned: typeof record.build_lessons_learned === "string" ? record.build_lessons_learned : "",
+    archived_at: typeof record.archived_at === "string" ? record.archived_at : null,
   });
 }
 
@@ -108,13 +109,14 @@ function normalizePlanRow(row: unknown): GeneratedProjectPlanRecord {
 }
 
 function projectInsertRow(project: Project): ProjectInsert {
-  const { notes, build_completed, build_completed_at, build_actual_material, build_plan_changes, build_lessons_learned, ...insertableProject } = project;
+  const { notes, build_completed, build_completed_at, build_actual_material, build_plan_changes, build_lessons_learned, archived_at, ...insertableProject } = project;
   void notes;
   void build_completed;
   void build_completed_at;
   void build_actual_material;
   void build_plan_changes;
   void build_lessons_learned;
+  void archived_at;
   return insertableProject;
 }
 
@@ -123,7 +125,7 @@ async function readLocalStore(): Promise<StoreShape> {
     const raw = await readFile(dataFile, "utf8");
     const parsed = JSON.parse(raw) as StoreShape;
     return {
-      projects: parsed.projects.map((project) => projectSchema.parse(project)),
+      projects: parsed.projects.map((project) => normalizeProjectRow(project)),
       plans: parsed.plans.map((plan) => generatedProjectPlanRecordSchema.parse(plan)),
     };
   } catch (error) {
@@ -270,6 +272,44 @@ export async function updateProjectBuildLog(projectId: string, input: ProjectBui
     project.build_actual_material = parsedBuildLog.build_actual_material;
     project.build_plan_changes = parsedBuildLog.build_plan_changes;
     project.build_lessons_learned = parsedBuildLog.build_lessons_learned;
+    project.updated_at = now;
+    return project;
+  });
+}
+
+export async function archiveProject(projectId: string): Promise<Project | null> {
+  const archivedAt = new Date().toISOString();
+
+  if (isSupabasePersistenceConfigured()) {
+    const { data, error } = await getSupabase().from("projects").update({ archived_at: archivedAt }).eq("id", projectId).select("*").single();
+    if (error) throw new Error(error.message);
+    return normalizeProjectRow(data);
+  }
+
+  return mutateLocalStore((store) => {
+    const project = store.projects.find((candidate) => candidate.id === projectId);
+    if (!project) return null;
+
+    project.archived_at = archivedAt;
+    project.updated_at = archivedAt;
+    return project;
+  });
+}
+
+export async function restoreProject(projectId: string): Promise<Project | null> {
+  const now = new Date().toISOString();
+
+  if (isSupabasePersistenceConfigured()) {
+    const { data, error } = await getSupabase().from("projects").update({ archived_at: null }).eq("id", projectId).select("*").single();
+    if (error) throw new Error(error.message);
+    return normalizeProjectRow(data);
+  }
+
+  return mutateLocalStore((store) => {
+    const project = store.projects.find((candidate) => candidate.id === projectId);
+    if (!project) return null;
+
+    project.archived_at = null;
     project.updated_at = now;
     return project;
   });

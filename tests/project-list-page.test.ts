@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
-import { emptyProjectBuildLog } from "./project-test-helpers";
+import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) =>
@@ -31,6 +31,7 @@ const projects: Project[] = [
     safety_flags: [],
     notes: "",
     ...emptyProjectBuildLog,
+    ...activeProjectArchiveFields,
   },
   {
     id: "project_with_history",
@@ -56,6 +57,7 @@ const projects: Project[] = [
     build_actual_material: "Poplar board used for the actual build.",
     build_plan_changes: "",
     build_lessons_learned: "",
+    ...activeProjectArchiveFields,
   },
   {
     id: "completed_sign",
@@ -81,6 +83,7 @@ const projects: Project[] = [
     build_actual_material: "Poplar board with painted finish.",
     build_plan_changes: "",
     build_lessons_learned: "",
+    archived_at: "2026-06-06T10:00:00.000Z",
   },
 ];
 
@@ -136,7 +139,7 @@ vi.mock("@/lib/storage/project-store", () => ({
 }));
 
 describe("ProjectsPage", () => {
-  it("renders a crowded project list without hiding projects by default", async () => {
+  it("renders active crowded projects by default without showing archived projects", async () => {
     const store = await import("@/lib/storage/project-store");
     const crowdedProjects: Project[] = Array.from({ length: 8 }, (_, index) => {
       const sourceProject = projects[index % projects.length];
@@ -147,6 +150,7 @@ describe("ProjectsPage", () => {
         title: `Dogfood project ${index.toString()}`,
         created_at: `2026-06-${(index + 1).toString().padStart(2, "0")}T10:00:00.000Z`,
         updated_at: `2026-06-${(index + 1).toString().padStart(2, "0")}T12:00:00.000Z`,
+        archived_at: null,
       };
     });
     vi.mocked(store.listProjects).mockResolvedValueOnce(crowdedProjects);
@@ -159,7 +163,7 @@ describe("ProjectsPage", () => {
       }),
     );
 
-    expect(markup).toContain("Showing 8 of 8 projects");
+    expect(markup).toContain("Showing 8 of 8 active projects");
     expect(markup).toContain("Dogfood project 7");
     expect(markup).toContain("Dogfood project 0");
     expect(markup).toContain('href="/projects/crowded_project_7"');
@@ -176,8 +180,8 @@ describe("ProjectsPage", () => {
       }),
     );
 
-    expect(markup.indexOf("/projects/completed_sign")).toBeLessThan(markup.indexOf("/projects/project_with_history"));
     expect(markup.indexOf("/projects/project_with_history")).toBeLessThan(markup.indexOf("/projects/draft_project"));
+    expect(markup).not.toContain("/projects/completed_sign");
     expect(markup).toContain("Most recently updated first");
   });
 
@@ -205,9 +209,10 @@ describe("ProjectsPage", () => {
     expect(markup).toContain("Draft");
     expect(markup).toContain("No generated plan yet");
     expect(markup).toContain("Generate plan");
-    expect(markup).toContain("Door hanger");
-    expect(markup).toContain("Built");
     expect(markup).toContain("Plan state");
+    expect(markup).toContain("Active projects");
+    expect(markup).toContain("Archived projects");
+    expect(markup).not.toContain("/projects/completed_sign");
   });
 
   it("renders an actionable empty state when no projects exist", async () => {
@@ -243,7 +248,7 @@ describe("ProjectsPage", () => {
 
     expect(markup).toContain("Bathroom shelf");
     expect(markup).not.toContain("/projects/draft_project");
-    expect(markup).toContain("Showing 1 of 3 projects");
+    expect(markup).toContain("Showing 1 of 2 active projects");
     expect(markup).toContain('value="bathroom"');
     expect(markup).toContain('value="simple_shelf" selected=""');
     expect(markup).toContain('value="has_plan" selected=""');
@@ -265,7 +270,7 @@ describe("ProjectsPage", () => {
 
     const styleNotesMarkup = renderToStaticMarkup(
       await ProjectsPage({
-        searchParams: Promise.resolve({ q: "rustic" }),
+        searchParams: Promise.resolve({ q: "rustic", archive: "all" }),
       }),
     );
     expect(styleNotesMarkup).toContain("Door hanger");
@@ -281,6 +286,7 @@ describe("ProjectsPage", () => {
         searchParams: Promise.resolve({
           status: "built",
           plan: "no_plan",
+          archive: "all",
         }),
       }),
     );
@@ -291,6 +297,35 @@ describe("ProjectsPage", () => {
     expect(markup).not.toContain("/projects/draft_project");
     expect(markup).toContain('value="built" selected=""');
     expect(markup).toContain('value="no_plan" selected=""');
+    expect(markup).toContain('value="all" selected=""');
+  });
+
+  it("filters archived projects and combines archive state with existing filters", async () => {
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const archivedMarkup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({ archive: "archived" }),
+      }),
+    );
+
+    expect(archivedMarkup).toContain("Door hanger");
+    expect(archivedMarkup).toContain("Archived");
+    expect(archivedMarkup).toContain("Restore project");
+    expect(archivedMarkup).toContain('action="/projects/completed_sign/restore"');
+    expect(archivedMarkup).not.toContain("/projects/project_with_history");
+    expect(archivedMarkup).toContain("Showing 1 of 1 archived projects");
+
+    const combinedMarkup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({ archive: "all", type: "simple_shelf", plan: "has_plan" }),
+      }),
+    );
+
+    expect(combinedMarkup).toContain("Bathroom shelf");
+    expect(combinedMarkup).not.toContain("/projects/draft_project");
+    expect(combinedMarkup).not.toContain("/projects/completed_sign");
+    expect(combinedMarkup).toContain("Showing 1 of 3 projects");
   });
 
   it("renders a calm no-results state for project filters", async () => {
@@ -313,5 +348,20 @@ describe("ProjectsPage", () => {
     expect(markup).not.toContain("/projects/project_with_history");
     expect(markup).not.toContain("/projects/draft_project");
     expect(markup).not.toContain("/projects/completed_sign");
+  });
+
+  it("renders archive actions for active projects without adding delete", async () => {
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Archive project");
+    expect(markup).toContain("Hides this project without deleting plans.");
+    expect(markup).toContain('action="/projects/project_with_history/archive"');
+    expect(markup).not.toMatch(/delete project/i);
   });
 });

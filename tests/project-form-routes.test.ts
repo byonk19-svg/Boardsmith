@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import NewProjectPage from "@/app/projects/new/page";
 import { decodeProjectIntakeDraft, encodeProjectIntakeDraft, type ProjectIntakeDraft } from "@/lib/projects/intake-draft";
 import { createProject } from "@/lib/storage/project-store";
+import { activeProjectArchiveFields } from "./project-test-helpers";
 
 const headerMocks = vi.hoisted(() => ({
   cookies: vi.fn(),
@@ -55,6 +56,7 @@ vi.mock("@/lib/storage/project-store", () => ({
       build_actual_material: "",
       build_plan_changes: "",
       build_lessons_learned: "",
+      ...activeProjectArchiveFields,
     }),
   ),
   listGeneratedPlans: vi.fn(() => Promise.resolve([])),
@@ -280,6 +282,7 @@ describe("project form routes", () => {
       build_actual_material: "",
       build_plan_changes: "",
       build_lessons_learned: "",
+      ...activeProjectArchiveFields,
     });
     const { POST } = await import("@/app/projects/create/route");
 

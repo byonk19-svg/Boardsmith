@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
-import { emptyProjectBuildLog } from "./project-test-helpers";
+import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) =>
@@ -30,6 +30,7 @@ const latestProject: Project = {
   safety_flags: [],
   notes: "",
   ...emptyProjectBuildLog,
+  ...activeProjectArchiveFields,
 };
 
 const draftProject: Project = {
@@ -52,6 +53,15 @@ const draftProject: Project = {
   safety_flags: [],
   notes: "",
   ...emptyProjectBuildLog,
+  ...activeProjectArchiveFields,
+};
+
+const archivedProject: Project = {
+  ...latestProject,
+  id: "archived-dashboard-project",
+  title: "Archived dogfood shelf",
+  updated_at: "2026-06-05T14:30:00.000Z",
+  archived_at: "2026-06-06T10:00:00.000Z",
 };
 
 const latestPlan: GeneratedProjectPlanRecord = {
@@ -93,7 +103,7 @@ const latestPlan: GeneratedProjectPlanRecord = {
 
 vi.mock("@/lib/storage/project-store", () => ({
   isSupabasePersistenceConfigured: vi.fn(() => true),
-  listProjects: vi.fn(() => Promise.resolve([latestProject, draftProject])),
+  listProjects: vi.fn(() => Promise.resolve([latestProject, draftProject, archivedProject])),
   listGeneratedPlans: vi.fn((projectId: string) => {
     if (projectId === latestProject.id) return Promise.resolve([latestPlan]);
     return Promise.resolve([]);
@@ -118,6 +128,8 @@ describe("DashboardPage", () => {
     expect(markup).toContain("Recent projects");
     expect(markup).toContain("Very long latest shelf project title for dashboard readability cleanup");
     expect(markup).toContain("Porch planter");
+    expect(markup).not.toContain("Archived dogfood shelf");
+    expect(markup).toContain("Archived projects are hidden from this dashboard.");
     expect(markup).toContain("Open project");
     expect(markup).toContain("View latest plan");
     expect(markup).toContain("Generate plan");

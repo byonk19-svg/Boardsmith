@@ -627,11 +627,21 @@
 - [x] Reconfirm no archive/delete, folders, tags, public sharing, marketplace behavior, auth expansion, production multi-user assumption, schema migration, Supabase/cloud change, OpenAI prompt/model/schema change, package change, app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, shopping, pricing, vendor, or inventory work was added.
 - [x] Keep the checkpoint docs/tag-only with no product UI, runtime data, hosted URL, screenshot, secret, log, ignored dogfood data, export, sharing, shopping, pricing, vendor, or inventory changes.
 
+## Task 69A - Project Archive Foundation
+
+- [x] Add nullable `projects.archived_at` archive metadata with local JSON fallback defaults so older projects remain active when the field is missing.
+- [x] Add archive and restore project actions that preserve project intake, notes, build logs, generated plans, and plan history.
+- [x] Hide archived projects from the default `/projects` view and dashboard counts/recent shortcuts.
+- [x] Add `/projects` archive filtering for active, archived, and all projects while preserving search, project type, status, plan-state, and record filters.
+- [x] Show archived project detail pages with a visible archived banner, restore action, latest plan access, and browser print preview access.
+- [x] Add Supabase migration `20260607183000_add_project_archive_metadata.sql`; cloud application is intentionally not part of this task.
+- [x] Keep this as archive/hide only: no delete, folders/tags, auth expansion, public sharing, OpenAI changes, packages, export/CAD/CNC work, shopping, pricing, vendor, or inventory features.
+
 ## Recommended Next Tasks
 
-1. [ ] Consider archive/hide behavior for test projects only if explicitly approved as a separate private-MVP-safe task.
+1. [ ] Dogfood archive/restore on a crowded project list and confirm active dashboard/list views stay focused.
 2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
-3. [ ] Run hosted smoke/checkpoint review after any hosted config, deployment, access-gate, or environment-variable change.
+3. [ ] Run hosted smoke/checkpoint review after applying the archive migration to any hosted Supabase environment.
 
 ## Remaining Hardening
 

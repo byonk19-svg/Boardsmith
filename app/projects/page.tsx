@@ -11,6 +11,9 @@ type ProjectsSearchParams = {
   status?: string | string[];
   plan?: string | string[];
   record?: string | string[];
+  archive?: string | string[];
+  archived?: string | string[];
+  restored?: string | string[];
 };
 
 type ProjectSummary = {
@@ -24,6 +27,7 @@ type ProjectFilters = {
   status: ProjectStatus | "built" | "all";
   plan: "all" | "has_plan" | "no_plan";
   record: "all" | "has_record" | "no_record";
+  archive: "active" | "archived" | "all";
 };
 
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<ProjectsSearchParams> }) {
@@ -36,7 +40,8 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     })),
   );
   const sortedProjectSummaries = sortProjectSummaries(projectSummaries);
-  const filteredProjectSummaries = sortedProjectSummaries.filter((summary) => matchesProjectFilters(summary, filters));
+  const archiveFilteredSummaries = sortedProjectSummaries.filter((summary) => matchesArchiveFilter(summary.project, filters.archive));
+  const filteredProjectSummaries = archiveFilteredSummaries.filter((summary) => matchesProjectFilters(summary, filters));
   const filtersActive = areFiltersActive(filters);
 
   return (
@@ -52,6 +57,8 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       </div>
 
       {typeof params.error === "string" ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{params.error}</p> : null}
+      {params.archived ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project archived. It is hidden from the active project list, and its plans are preserved.</p> : null}
+      {params.restored ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project restored to the active project list.</p> : null}
 
       {projects.length === 0 ? (
         <div className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
@@ -64,7 +71,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       ) : (
         <>
           <section className="rounded-lg border border-sawdust bg-white p-4 shadow-soft">
-            <form action="/projects" className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
+            <form action="/projects" className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr_auto] xl:items-end">
               <label className="grid gap-1.5 text-sm font-medium text-ink">
                 Search
                 <input
@@ -112,6 +119,14 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   <option value="no_record">No record yet</option>
                 </select>
               </label>
+              <label className="grid gap-1.5 text-sm font-medium text-ink">
+                Archive
+                <select name="archive" defaultValue={filters.archive} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
+                  <option value="active">Active projects</option>
+                  <option value="archived">Archived projects</option>
+                  <option value="all">All projects</option>
+                </select>
+              </label>
               <div className="flex flex-wrap gap-2">
                 <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
                   Apply
@@ -124,7 +139,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
               </div>
             </form>
             <p className="mt-3 text-sm text-ink/65">
-              Showing {filteredProjectSummaries.length.toString()} of {projectSummaries.length.toString()} projects. Most recently updated first.
+              Showing {filteredProjectSummaries.length.toString()} of {archiveFilteredSummaries.length.toString()} {archiveSummaryLabel(filters.archive)}. Most recently updated first.
             </p>
           </section>
 
@@ -153,7 +168,12 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                         {formatProjectDate(project.updated_at)}
                       </p>
                     </div>
-                    <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">{statusLabel(project)}</span>
+                    <div className="flex flex-wrap gap-2">
+                      {isProjectArchived(project) ? (
+                        <span className="w-fit rounded-md bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-900">Archived</span>
+                      ) : null}
+                      <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">{statusLabel(project)}</span>
+                    </div>
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2 text-sm">
@@ -175,6 +195,21 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                         Review project record
                       </Link>
                     ) : null}
+                    {isProjectArchived(project) ? (
+                      <form action={`/projects/${project.id}/restore`} method="post" className="inline-flex flex-col">
+                        <input type="hidden" name="return_to" value="archived_list" />
+                        <button type="submit" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+                          Restore project
+                        </button>
+                      </form>
+                    ) : (
+                      <form action={`/projects/${project.id}/archive`} method="post" className="inline-flex flex-col">
+                        <button type="submit" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+                          Archive project
+                        </button>
+                        <span className="mt-1 text-xs text-ink/55">Hides this project without deleting plans.</span>
+                      </form>
+                    )}
                   </div>
                 </article>
               ))}
@@ -191,6 +226,7 @@ function parseProjectFilters(params: ProjectsSearchParams): ProjectFilters {
   const status = stringParam(params.status);
   const plan = stringParam(params.plan);
   const record = stringParam(params.record);
+  const archive = stringParam(params.archive);
 
   return {
     query: stringParam(params.q).trim(),
@@ -198,6 +234,7 @@ function parseProjectFilters(params: ProjectsSearchParams): ProjectFilters {
     status: isProjectStatusFilter(status) ? status : "all",
     plan: plan === "has_plan" || plan === "no_plan" ? plan : "all",
     record: record === "has_record" || record === "no_record" ? record : "all",
+    archive: archive === "archived" || archive === "all" ? archive : "active",
   };
 }
 
@@ -211,6 +248,12 @@ function matchesProjectFilters({ project, planCount }: ProjectSummary, filters: 
   if (filters.record === "no_record" && hasProjectRecord(project)) return false;
 
   return true;
+}
+
+function matchesArchiveFilter(project: Project, archiveFilter: ProjectFilters["archive"]): boolean {
+  if (archiveFilter === "archived") return isProjectArchived(project);
+  if (archiveFilter === "all") return true;
+  return !isProjectArchived(project);
 }
 
 function sortProjectSummaries(projectSummaries: ProjectSummary[]): ProjectSummary[] {
@@ -228,7 +271,7 @@ function compareProjectsByRecentUpdate(a: Project, b: Project): number {
 }
 
 function areFiltersActive(filters: ProjectFilters): boolean {
-  return filters.query.length > 0 || filters.type !== "all" || filters.status !== "all" || filters.plan !== "all" || filters.record !== "all";
+  return filters.query.length > 0 || filters.type !== "all" || filters.status !== "all" || filters.plan !== "all" || filters.record !== "all" || filters.archive !== "active";
 }
 
 function stringParam(value: string | string[] | undefined): string {
@@ -273,6 +316,16 @@ function ProjectSignal({ label, value }: { label: string; value: string }) {
       <span className="font-medium text-ink">{value}</span>
     </div>
   );
+}
+
+function isProjectArchived(project: Project): boolean {
+  return typeof project.archived_at === "string" && project.archived_at.length > 0;
+}
+
+function archiveSummaryLabel(archiveFilter: ProjectFilters["archive"]): string {
+  if (archiveFilter === "archived") return "archived projects";
+  if (archiveFilter === "all") return "projects";
+  return "active projects";
 }
 
 function statusLabel(project: Project): string {

@@ -71,6 +71,7 @@ export const projectSchema = projectIntakeSchema.extend({
   build_actual_material: z.string().max(2000).default(""),
   build_plan_changes: z.string().max(5000).default(""),
   build_lessons_learned: z.string().max(5000).default(""),
+  archived_at: z.string().nullable().default(null),
 });
 
 export type ProjectType = (typeof projectTypes)[number];

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Project } from "@/lib/projects/types";
-import { emptyProjectBuildLog } from "./project-test-helpers";
+import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
 const duplicateProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 
@@ -32,6 +32,7 @@ const duplicatedProject: Project = {
   safety_flags: ["Wall mounting review"],
   notes: "",
   ...emptyProjectBuildLog,
+  ...activeProjectArchiveFields,
 };
 
 describe("duplicate project route", () => {

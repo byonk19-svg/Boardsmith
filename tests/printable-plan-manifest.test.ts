@@ -4,7 +4,7 @@ import { createPrintablePlanManifest } from "@/lib/plans/printable-plan-manifest
 import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
 import { describe, expect, it } from "vitest";
-import { emptyProjectBuildLog } from "./project-test-helpers";
+import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
 const project: Project = {
   id: "manifest_project",
@@ -26,6 +26,7 @@ const project: Project = {
   safety_flags: ["Wall mounting review"],
   notes: "",
   ...emptyProjectBuildLog,
+  ...activeProjectArchiveFields,
 };
 
 const shelfPlan: GeneratedPlan = {

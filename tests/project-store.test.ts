@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
-import type { ProjectIntake } from "@/lib/projects/types";
+import { projectSchema, type ProjectIntake } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getTemplateHint } from "@/lib/templates/template-hints";
 
@@ -67,6 +67,21 @@ const plan: GeneratedPlan = {
 };
 
 describe("project store lifecycle", () => {
+  it("treats existing projects without archive metadata as active", () => {
+    const existingProject = projectSchema.parse({
+      ...intake,
+      id: "existing-project-without-archive-field",
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+      status: "draft",
+      safety_review_required: false,
+      safety_flags: [],
+      notes: "",
+    });
+
+    expect(existingProject.archived_at).toBeNull();
+  });
+
   it("lists projects by most recent update first", async () => {
     const store = await import("@/lib/storage/project-store");
     const firstProject = await store.createProject({
@@ -187,5 +202,30 @@ describe("project store lifecycle", () => {
     expect(reloaded?.build_plan_changes).toBe(updated?.build_plan_changes);
     expect(plans).toHaveLength(1);
     expect(plans[0]?.is_latest).toBe(true);
+  });
+
+  it("archives and restores projects without deleting generated plans", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const project = await store.createProject({
+      ...intake,
+      title: `Archived lifecycle shelf ${crypto.randomUUID()}`,
+    });
+    await store.saveGeneratedPlan({ projectId: project.id, modelName: "test-model", plan });
+
+    const archived = await store.archiveProject(project.id);
+    const archivedPlans = await store.listGeneratedPlans(project.id);
+
+    expect(archived?.archived_at).toEqual(expect.any(String));
+    expect(archived?.updated_at).not.toBe(project.updated_at);
+    expect(archivedPlans).toHaveLength(1);
+    expect(archivedPlans[0]?.is_latest).toBe(true);
+
+    const restored = await store.restoreProject(project.id);
+    const restoredPlans = await store.listGeneratedPlans(project.id);
+
+    expect(restored?.archived_at).toBeNull();
+    expect(restored?.updated_at).not.toBe(archived?.updated_at);
+    expect(restoredPlans).toHaveLength(1);
+    expect(restoredPlans[0]?.id).toBe(archivedPlans[0]?.id);
   });
 });

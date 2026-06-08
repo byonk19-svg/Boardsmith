@@ -5,7 +5,7 @@ import { doorHangerBuildModelFixture, simpleShelfBuildModelFixture } from "@/lib
 import { createBuildModelDraft, type BuildModelDraftProject } from "@/lib/build-model/create-build-model-draft";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
-import { emptyProjectBuildLog } from "./project-test-helpers";
+import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) =>
@@ -46,6 +46,7 @@ const project: Project = {
   safety_flags: ["Wall mounting review"],
   notes: "",
   ...emptyProjectBuildLog,
+  ...activeProjectArchiveFields,
 };
 
 const planRecord: GeneratedProjectPlanRecord = {

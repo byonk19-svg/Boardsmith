@@ -6,7 +6,7 @@ Boardsmith is a private MVP web app for generating detailed, reviewable woodwork
 
 Current checkpoint: `private-mvp-0.6`, created after the dashboard usability pass.
 
-This checkpoint records that local MVP dogfood and authorized hosted Vercel browser smoke passed, including the Boardsmith password gate, hosted project creation, notes, build log, plan generation, review surfaces, duplicate project, and browser print preview. It also includes post-MVP polish for intake examples and starters, generated-plan readability, browser-rendered visual planning aids, the improved browser print shop-plan flow, project-list search/filter/order polish, and a private workspace dashboard with recent-project shortcuts and starter links. Boardsmith remains private-only and is not public-launch ready.
+This checkpoint records that local MVP dogfood and authorized hosted Vercel browser smoke passed, including the Boardsmith password gate, hosted project creation, notes, build log, plan generation, review surfaces, duplicate project, and browser print preview. It also includes post-MVP polish for intake examples and starters, generated-plan readability, browser-rendered visual planning aids, the improved browser print shop-plan flow, project-list search/filter/order polish, and a private workspace dashboard with recent-project shortcuts and starter links. After this checkpoint, Boardsmith added an archive/restore foundation for hiding inactive private projects without deleting records. Boardsmith remains private-only and is not public-launch ready.
 
 ## Current MVP Capabilities
 
@@ -27,6 +27,7 @@ This checkpoint records that local MVP dogfood and authorized hosted Vercel brow
 - Private dashboard with project counts, latest update date, recent project shortcuts, empty state, and starter example links.
 - Project detail pages with project metadata, safety flags, template hints, material summary, latest generated plan, browser print preview link, and generated plan history.
 - Project list search, updated-first ordering, filters for project type/status/plan state/record state, compact scan badges, and clear open/latest-plan/generate actions.
+- Project archive/restore foundation that hides archived projects from default list and dashboard views while preserving generated plans and records.
 - Optional private MVP password gate for hosted deployments.
 
 ## Supported Project Types
@@ -70,7 +71,7 @@ Supabase is optional for local development. The app uses Supabase only when the 
 
 Keep `SUPABASE_SERVICE_ROLE_KEY` server-only. Do not expose it through `NEXT_PUBLIC_` variables, client components, browser logs, or committed files. For the current private no-auth MVP, use the service-role key only from server-rendered routes/pages through the repository layer.
 
-Apply the SQL in `supabase/migrations/` before running a Supabase-backed smoke. The migrations create `projects`, `generated_project_plans`, the latest-plan partial unique index, the `updated_at` trigger, nullable `build_model_json` plan-version storage, and private MVP grants for server-only `service_role` access.
+Apply the SQL in `supabase/migrations/` before running a Supabase-backed smoke. The migrations create `projects`, `generated_project_plans`, the latest-plan partial unique index, the `updated_at` trigger, nullable `build_model_json` plan-version storage, project notes/build-log/archive metadata, and private MVP grants for server-only `service_role` access.
 
 To verify Supabase persistence, create `.env.local` from `.env.example`, set the Supabase values above, start the dev server, then create a project through `/projects/new`. The project should redirect to `/projects/[id]`, appear in `/projects`, and continue to load with `.data/boardsmith.json` unchanged. If the Supabase env vars are absent, the same flow uses the private local JSON fallback.
 

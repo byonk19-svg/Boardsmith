@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Project } from "@/lib/projects/types";
-import { emptyProjectBuildLog } from "./project-test-helpers";
+import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
 const generateStructuredProjectPlanMock = vi.fn<() => Promise<unknown>>();
 const saveGeneratedPlanMock = vi.fn<(...args: unknown[]) => Promise<unknown>>();
@@ -25,6 +25,7 @@ const project: Project = {
   safety_flags: ["Wall mounting review", "Child or baby use"],
   notes: "",
   ...emptyProjectBuildLog,
+  ...activeProjectArchiveFields,
 };
 
 vi.mock("next/cache", () => ({

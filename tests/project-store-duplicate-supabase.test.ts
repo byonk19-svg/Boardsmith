@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Project } from "@/lib/projects/types";
-import { emptyProjectBuildLog } from "./project-test-helpers";
+import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
 const originalEnv = { ...process.env };
 
@@ -30,6 +30,7 @@ const sourceProject: Project = {
   safety_flags: ["Wall mounting review"],
   notes: "Use stainless screws for bathroom humidity.",
   ...emptyProjectBuildLog,
+  ...activeProjectArchiveFields,
 };
 
 describe("Supabase project duplication", () => {
@@ -78,6 +79,7 @@ describe("Supabase project duplication", () => {
       }),
     );
     expect(insertedProject).not.toHaveProperty("notes");
+    expect(insertedProject).not.toHaveProperty("archived_at");
     expect(duplicate.id).not.toBe(sourceProject.id);
     expect(duplicate.status).toBe("draft");
     expect(duplicate.notes).toBe("");
@@ -154,5 +156,42 @@ describe("Supabase project duplication", () => {
     expect(eq).toHaveBeenCalledWith("id", sourceProject.id);
     expect(saved?.build_completed).toBe(true);
     expect(saved?.build_plan_changes).toBe("Changed brackets after dry fitting.");
+  });
+
+  it("archives and restores a project on the existing Supabase row", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
+
+    const archivedProject = {
+      ...sourceProject,
+      archived_at: "2026-06-06T10:00:00.000Z",
+      updated_at: new Date(4).toISOString(),
+    };
+    const restoredProject = {
+      ...sourceProject,
+      updated_at: new Date(5).toISOString(),
+    };
+    const single = vi
+      .fn()
+      .mockResolvedValueOnce({ data: archivedProject, error: null })
+      .mockResolvedValueOnce({ data: restoredProject, error: null });
+    const eq = vi.fn(() => ({ select: () => ({ single }) }));
+    const update = vi.fn<(payload: { archived_at: string | null }) => { eq: typeof eq }>(() => ({ eq }));
+    const from = vi.fn(() => ({ update }));
+
+    vi.doMock("@supabase/supabase-js", () => ({
+      createClient: vi.fn(() => ({ from })),
+    }));
+
+    const store = await import("@/lib/storage/project-store");
+    const archived = await store.archiveProject(sourceProject.id);
+    const restored = await store.restoreProject(sourceProject.id);
+
+    expect(from).toHaveBeenCalledWith("projects");
+    expect(typeof update.mock.calls[0]?.[0].archived_at).toBe("string");
+    expect(update).toHaveBeenNthCalledWith(2, { archived_at: null });
+    expect(eq).toHaveBeenCalledWith("id", sourceProject.id);
+    expect(archived?.archived_at).toBe("2026-06-06T10:00:00.000Z");
+    expect(restored?.archived_at).toBeNull();
   });
 });

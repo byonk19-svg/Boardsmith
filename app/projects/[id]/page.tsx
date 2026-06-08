@@ -35,6 +35,8 @@ export default async function ProjectDetailPage({
     notes?: string;
     build_log?: string;
     compare_plan?: string;
+    archived?: string;
+    restored?: string;
   }>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
@@ -81,6 +83,7 @@ export default async function ProjectDetailPage({
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">{project.title}</h1>
           <p className="mt-2 text-sm text-ink/65">
             {projectTypeLabels[project.project_type]} · {project.skill_level} · {project.status.replaceAll("_", " ")}
+            {isProjectArchived(project) ? " · archived" : ""}
           </p>
         </div>
         <div className="no-print flex flex-col gap-2 sm:items-end">
@@ -99,9 +102,11 @@ export default async function ProjectDetailPage({
               <p className="mt-1 text-xs text-ink/55">Use your browser's print dialog if you want a paper copy.</p>
             </div>
           ) : null}
+          <ArchiveProjectAction project={project} />
         </div>
       </div>
 
+      {isProjectArchived(project) ? <ArchivedProjectBanner project={project} /> : null}
       {isGenerationFailureReason(query.generation_error) ? (
         <GenerationFailurePanel reason={query.generation_error} safetyFlags={project.safety_flags} />
       ) : query.error ? (
@@ -117,6 +122,8 @@ export default async function ProjectDetailPage({
       {query.build_log === "updated" ? (
         <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Build log saved.</p>
       ) : null}
+      {query.archived ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project archived. Generated plans and records were preserved.</p> : null}
+      {query.restored ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project restored to the active project list.</p> : null}
 
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <ProjectIntakeCard project={project} />
@@ -216,6 +223,55 @@ function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
 function planVersionLabel(planReviews: ReturnType<typeof buildPlanReview>[], plan: GeneratedProjectPlanRecord): string {
   const index = planReviews.findIndex((entry) => entry.plan.id === plan.id);
   return index >= 0 ? `Version ${(planReviews.length - index).toString()}` : "older version";
+}
+
+function ArchivedProjectBanner({ project }: { project: Project }) {
+  return (
+    <section className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-base font-semibold text-amber-950">Archived project</h2>
+          <p className="mt-1 text-sm leading-6 text-amber-900">
+            This project is hidden from the default project list, but its details and generated plans are preserved.
+          </p>
+        </div>
+        <form action={`/projects/${project.id}/restore`} method="post" className="no-print">
+          <input type="hidden" name="return_to" value="project_detail" />
+          <button type="submit" className="rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100">
+            Restore project
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
+function ArchiveProjectAction({ project }: { project: Project }) {
+  if (isProjectArchived(project)) {
+    return (
+      <form action={`/projects/${project.id}/restore`} method="post" className="text-right">
+        <input type="hidden" name="return_to" value="project_detail" />
+        <button type="submit" className="text-sm font-semibold text-moss hover:underline">
+          Restore project
+        </button>
+        <p className="mt-1 text-xs text-ink/55">Returns this project to the active project list.</p>
+      </form>
+    );
+  }
+
+  return (
+    <form action={`/projects/${project.id}/archive`} method="post" className="text-right">
+      <input type="hidden" name="return_to" value="project_detail" />
+      <button type="submit" className="text-sm font-semibold text-moss hover:underline">
+        Archive project
+      </button>
+      <p className="mt-1 text-xs text-ink/55">Hides this project without deleting generated plans.</p>
+    </form>
+  );
+}
+
+function isProjectArchived(project: Project): boolean {
+  return typeof project.archived_at === "string" && project.archived_at.length > 0;
 }
 
 function TemplateGuidancePanel({ projectTypeLabel, assumptions, cautions }: { projectTypeLabel: string; assumptions: string[]; cautions: string[] }) {

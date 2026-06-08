@@ -12,7 +12,7 @@ type ProjectSummary = {
 };
 
 export default async function DashboardPage() {
-  const projects = await listProjects();
+  const projects = (await listProjects()).filter((project) => !isProjectArchived(project));
   const projectSummaries = sortProjectSummaries(
     await Promise.all(
       projects.map(async (project) => ({
@@ -76,7 +76,7 @@ export default async function DashboardPage() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-ink">Recent projects</h2>
-              <p className="mt-1 text-sm text-ink/65">Most recently updated first.</p>
+              <p className="mt-1 text-sm text-ink/65">Most recently updated first. Archived projects are hidden from this dashboard.</p>
             </div>
             <Link href="/projects" className="text-sm font-semibold text-moss hover:text-moss/80">
               Browse all projects
@@ -174,6 +174,10 @@ function statusLabel(project: Project): string {
   if (project.status === "plan_generated") return "Plan generated";
   if (project.status === "generation_failed") return "Needs review";
   return "Draft";
+}
+
+function isProjectArchived(project: Project): boolean {
+  return typeof project.archived_at === "string" && project.archived_at.length > 0;
 }
 
 function formatProjectDate(value: string): string {

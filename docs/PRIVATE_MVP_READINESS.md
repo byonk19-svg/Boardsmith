@@ -205,10 +205,36 @@ Recommended next directions:
 2. Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 3. Run a hosted smoke/checkpoint review after any hosted config, deployment, access-gate, or environment-variable change.
 
+## Project Archive Foundation
+
+After `private-mvp-0.6`, Boardsmith added a private-MVP archive/hide foundation for keeping dogfood, smoke-test, and inactive projects out of the default workspace without deleting records.
+
+Archive behavior:
+
+- Projects have nullable `archived_at` metadata.
+- Existing local JSON projects without archive metadata continue to load as active projects.
+- `/projects` defaults to active projects and adds filters for active, archived, and all projects.
+- Dashboard counts and recent shortcuts use active projects by default.
+- Archived project detail pages remain viewable and keep generated plan and browser print preview access.
+- Archive and restore actions preserve project data, notes, build logs, generated plans, and plan history.
+
+Migration status:
+
+- Local migration added: `supabase/migrations/20260607183000_add_project_archive_metadata.sql`.
+- Supabase cloud migration application was not performed in this task.
+- Hosted smoke should be rerun after applying this migration to any hosted Supabase environment.
+
+Guardrails reconfirmed:
+
+- Archiving is an organization aid only.
+- Delete was intentionally not added.
+- No folders, tags, public sharing, marketplace behavior, auth expansion, production multi-user assumption, OpenAI prompt/model/schema change, package change, app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, shopping, pricing, vendor, purchasing, inventory, payment, or subscription feature was added.
+
 ## What Works Now
 
 - Project creation from `/projects/new`.
 - Private workspace dashboard with project counts, latest update date, recent project shortcuts, empty state, and starter example links.
+- Project archive/restore foundation that hides archived projects from the default project list and dashboard while preserving project records and generated plans.
 - Hosted project intake accepts normal woodworking values like `12`, `8`, `4`, and material thickness `0.75`.
 - Supabase-backed project, generated-plan, notes, duplicate-project, and build-log persistence.
 - Local JSON fallback when Supabase env vars are absent.
@@ -244,6 +270,7 @@ Recommended next directions:
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
 - Hosted behavior after any future deployment, env-var change, migration, or access-gate change until the hosted smoke checklist is rerun.
+- Hosted Supabase archive behavior until the `archived_at` migration is applied to the hosted database and smoke checked.
 
 ## Non-Goals And Guardrails
 
@@ -324,4 +351,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config or deployment change. Narrow private-MVP-safe candidates include explicitly approved archive/hide behavior for test projects, project detail navigation polish, or hosted smoke/checkpoint review. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, archive/delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.
+Keep Boardsmith private and continue with small trust-building polish only. Rerun the hosted smoke checklist after any hosted config, deployment, or migration change. Narrow private-MVP-safe candidates include archive/restore dogfood, project detail navigation polish, or hosted smoke/checkpoint review. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.
