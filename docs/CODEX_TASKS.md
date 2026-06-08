@@ -764,10 +764,19 @@
 - [x] Keep Vercel Deployment Protection enabled and keep hosted `Tweak this plan` UI smoke pending until the actual bypass secret is configured in a secret-safe local, CI, or Codex environment.
 - [x] Keep the pass limited to docs, a smoke helper, and tests with no app features, schema changes, migrations, package changes, public access, disabled Vercel protection, export/CAD/CNC work, image upload, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, or new project types.
 
+## Task 73F - Verify Hosted Smoke Automation Bypass
+
+- [x] Inspect the hosted smoke runbook, helper script, env example, hosted deployment status, and task ledger.
+- [x] Check required hosted smoke environment variable presence without printing values.
+- [x] Confirm the current Codex process environment is missing `BOARDSMITH_HOSTED_SMOKE_URL`, `VERCEL_AUTOMATION_BYPASS_SECRET`, and `BOARDSMITH_ACCESS_PASSWORD`.
+- [x] Run `node scripts/hosted-smoke-check.mjs` and confirm it fails safely with `missing_required_env`, printing only missing variable names and no hosted URL, bypass secret, app access password, cookies, request headers, row data, screenshots, or sensitive logs.
+- [x] Keep the hosted route-level Vercel bypass verification blocked until the dedicated `boardsmith-hosted-smoke` bypass secret and private hosted base URL are configured in a secret-safe environment.
+- [x] Confirm no hosted route request, hosted mutation, app feature, schema change, migration, package change, disabled Vercel protection, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, Supabase cloud change, or new project type was added.
+
 ## Recommended Next Tasks
 
-1. [ ] Configure the dedicated `boardsmith-hosted-smoke` Vercel Protection Bypass for Automation secret in a secret-safe local, CI, or Codex environment, then run `node scripts/hosted-smoke-check.mjs`.
-2. [ ] Rerun the hosted `Tweak this plan` smoke through the intended private hosted access path and record the result without URLs, secrets, screenshots, row data, or sensitive logs.
+1. [ ] Configure `BOARDSMITH_HOSTED_SMOKE_URL`, `VERCEL_AUTOMATION_BYPASS_SECRET`, and, if the app-level gate is enabled, `BOARDSMITH_ACCESS_PASSWORD` in the secret-safe Codex/local environment, then rerun `node scripts/hosted-smoke-check.mjs`.
+2. [ ] After the route-level bypass check passes, rerun the hosted `Tweak this plan` smoke through the intended private hosted access path and record the result without URLs, secrets, screenshots, row data, or sensitive logs.
 3. [ ] Consider a `private-mvp-0.9` checkpoint after authorized hosted `Tweak this plan` smoke passes.
 4. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 

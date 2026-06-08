@@ -177,6 +177,8 @@ Prepared automation path:
 
 The protected-hosted smoke bypass path is documented and locally covered by tests, but it still requires the actual `boardsmith-hosted-smoke` Vercel bypass secret to be configured in a secret-safe local, CI, or Codex environment before rerunning hosted `Tweak this plan` smoke.
 
+Task 73F attempted to verify the protected-hosted smoke bypass path on June 8, 2026. The current Codex process environment did not have `BOARDSMITH_HOSTED_SMOKE_URL`, `VERCEL_AUTOMATION_BYPASS_SECRET`, or `BOARDSMITH_ACCESS_PASSWORD` configured. Running `node scripts/hosted-smoke-check.mjs` failed safely with `missing_required_env` and printed only missing variable names. No hosted route request, hosted mutation, cookie, request header, hosted URL, project ref, row data, secret, screenshot, or sensitive log was produced. The route-level Vercel bypass remains unverified until the dedicated `boardsmith-hosted-smoke` bypass secret and private hosted base URL are provided through a secret-safe environment.
+
 ## Recommendation
 
 Status: provider linked, hosted env names present, and user-supplied authorized hosted smoke passed.
