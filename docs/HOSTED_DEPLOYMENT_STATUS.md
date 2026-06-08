@@ -135,6 +135,8 @@ Task 71F attempted secret-safe hosted route checks for `/`, `/projects`, `/proje
 
 The authorized manual hosted archive smoke was then reported as passed on June 8, 2026 with no caveats. Hosted `/projects` loaded; Active excluded archived projects; Archived showed archived projects; All showed both active and archived projects; archive and restore worked on a clearly labeled non-critical test project; the dashboard excluded archived projects by default; archived project detail and print preview remained accessible; and copy avoided permanent delete or data-loss wording. No hosted URLs, screenshots, secrets, project refs, connection strings, row data, or sensitive logs were recorded.
 
+Task 72A documents this as the `private-mvp-0.8` hosted archive completion checkpoint. Archive/restore remains private workspace organization only; permanent delete, public sharing, production multi-user behavior, app-generated PDF, SVG/DXF/CAD/CNC export, shopping, pricing, vendor, inventory, and marketplace work remain out of scope.
+
 ## Recommendation
 
 Status: provider linked, hosted env names present, and user-supplied authorized hosted smoke passed.

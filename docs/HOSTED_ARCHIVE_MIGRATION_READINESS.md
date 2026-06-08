@@ -24,7 +24,7 @@ alter table public.projects
 - On June 8, 2026, the local ignored Supabase CLI link was sufficient for `supabase migration list --linked`, `supabase db push --dry-run`, and `supabase db push --yes`.
 - The archive migration was applied to the linked hosted Supabase database with `supabase db push --yes`.
 - A secret-safe app-facing Supabase read of `projects.id, archived_at` passed after the migration.
-- Hosted archive/restore UI smoke still needs to be run from the intended private hosted access path.
+- Authorized manual hosted archive/restore UI smoke passed from the intended private hosted access path with no caveats.
 
 ## Task 71B Hosted Check Result
 

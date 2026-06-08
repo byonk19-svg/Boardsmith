@@ -6,7 +6,7 @@ Date: June 8, 2026
 
 Boardsmith is a private MVP woodworking planning app. It is ready for continued private testing and narrow private hosted use behind the chosen access layers, but it is not ready for public sharing or production multi-user use.
 
-The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, and user-supplied authorized hosted browser smoke passed after the project-intake validation fix. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
+The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, user-supplied authorized hosted browser smoke passed after the project-intake validation fix, and authorized hosted archive/restore smoke passed after the archive migration was applied. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
 
 ## Private MVP Checkpoint
 
@@ -238,6 +238,38 @@ Guardrails reconfirmed:
 - Delete was intentionally not added.
 - No folders, tags, public sharing, marketplace behavior, auth expansion, production multi-user assumption, OpenAI prompt/model/schema change, package change, app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, shopping, pricing, vendor, purchasing, inventory, payment, or subscription feature was added.
 
+## Hosted Archive Completion Checkpoint
+
+Checkpoint: `private-mvp-0.8`.
+
+This checkpoint captures the completed hosted archive/restore milestone after the `private-mvp-0.7` archive usability checkpoint. Archive/restore remains private project organization and workspace hygiene: it hides dogfood, smoke-test, or inactive projects from default active workspace views without deleting project records or generated plans.
+
+Hosted completion summary:
+
+- The archive migration `supabase/migrations/20260607183000_add_project_archive_metadata.sql` is applied to hosted Supabase.
+- The app-facing hosted Supabase read path for `projects.id, archived_at` passed after migration.
+- Authorized manual hosted archive smoke passed on June 8, 2026 with no caveats.
+- Hosted `/projects` loaded after private access.
+- Active, Archived, and All filters behaved as expected.
+- Archive and restore worked on a clearly labeled non-critical test project.
+- Dashboard default state excluded archived projects.
+- Archived project detail pages remained accessible.
+- Archived project browser print preview remained accessible.
+- Archive/restore copy avoided permanent delete and data-loss wording.
+- No hosted URLs, screenshots, secrets, project refs, connection strings, row data, or sensitive logs were committed.
+
+Guardrails reconfirmed:
+
+- Boardsmith remains private-MVP-only and planning-aid-only.
+- Archive/restore is not permanent delete, data-retention infrastructure, production lifecycle management, public sharing, collaboration, or marketplace behavior.
+- Permanent delete remains explicitly out of scope.
+- Browser print remains the supported MVP output path.
+- No app-generated PDF, SVG export/download, DXF, CAD, CNC, fabrication-ready output, engineering review, structural approval, load rating, wall-safety guarantee, child-safety certification, public launch, auth expansion, production multi-user assumption, image upload, shopping, pricing, vendor, purchasing, inventory, marketplace, payment, or subscription feature exists.
+
+Recommended next direction:
+
+1. Start a narrow planning pass for `Tweak this plan`, focused on scope, data boundaries, safety language, and private-MVP-safe implementation slices before adding any edit/regeneration behavior.
+
 ## What Works Now
 
 - Project creation from `/projects/new`.
@@ -361,4 +393,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. The next hosted step is to run the archive/restore UI smoke checklist in [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md) from an authorized private hosted browser session using a clearly labeled non-critical test project. Narrow private-MVP-safe candidates include project detail navigation polish or hosted smoke/checkpoint review after the archive smoke passes. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.
+Keep Boardsmith private and continue with small trust-building polish only. The next recommended step is a narrow planning pass for `Tweak this plan`, focused on existing plan data, cautious review language, and safe implementation slices before adding any edit/regeneration behavior. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.

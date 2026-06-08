@@ -704,9 +704,16 @@
 - [x] Document the authorized manual hosted archive smoke result: `/projects` loaded; Active excluded archived projects; Archived showed archived projects; All showed both active and archived projects; archive and restore worked on a clearly labeled non-critical test project; dashboard excluded archived projects by default; archived detail and print preview remained accessible; copy avoided permanent delete/data-loss wording; and no caveats were reported.
 - [x] Confirm no hosted archive action, restore action, project mutation, row-data inspection, Supabase cloud push, app code change, package change, export/CAD/CNC work, delete, bulk archive, auth expansion, public sharing, marketplace, shopping, pricing, vendor, inventory, or new project type was added.
 
+## Task 72A - Hosted Archive Completion Checkpoint
+
+- [x] Document `private-mvp-0.8` as the hosted archive/restore completion checkpoint after archive foundation, archive dogfood, migration readiness, hosted migration application, and authorized manual hosted smoke.
+- [x] Summarize hosted archive completion: hosted Supabase archive migration applied, app-facing `projects.id, archived_at` read path verified, `/projects` loaded, Active/Archived/All filters behaved correctly, archive and restore worked on a non-critical test project, dashboard excluded archived projects, archived detail and print preview remained accessible, and copy avoided permanent delete/data-loss wording.
+- [x] Reconfirm archive/restore is private workspace organization only, not permanent delete, data-retention infrastructure, public sharing, collaboration, marketplace behavior, fabrication/engineering/structural approval software, CAD/CNC/export software, or public-launch readiness.
+- [x] Keep the checkpoint docs/tag-only with no app features, schema changes, migrations, package changes, Supabase cloud push, permanent delete, bulk archive, undo toast system, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user changes, or new project types.
+
 ## Recommended Next Tasks
 
-1. [ ] Consider a private-MVP archive/hosted-smoke checkpoint only if useful before starting the next product polish slice.
+1. [ ] Plan `Tweak this plan` as a narrow private-MVP-safe slice before adding any edit/regeneration behavior.
 2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 3. [ ] Consider small archive-list polish only if additional dogfood shows repeated confusion after using archived filters.
 
