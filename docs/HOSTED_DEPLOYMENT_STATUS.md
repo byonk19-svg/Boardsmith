@@ -127,7 +127,7 @@ After `private-mvp-0.7`, hosted archive/restore depends on `public.projects.arch
 
 Task 71B ran a secret-safe, read-only hosted persistence check on June 8, 2026. The check returned Postgres error `42703`: `column projects.archived_at does not exist`. Hosted archive/restore smoke is blocked until `supabase/migrations/20260607183000_add_project_archive_metadata.sql` is applied through the approved hosted Supabase path. After applying the migration, rerun [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md).
 
-Task 71C reran the same secret-safe hosted persistence check on June 8, 2026 after the expected manual migration window. The check still returned Postgres `42703`, so hosted archive/restore smoke remains blocked and no archive/restore hosted actions were run.
+Task 71C reran the same secret-safe hosted persistence check on June 8, 2026 after the expected manual migration window. The check still returned Postgres `42703`, so hosted archive/restore smoke remains blocked and no archive/restore hosted actions were run. Task 71D added a copy-paste-ready manual migration runbook in [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md).
 
 ## Recommendation
 

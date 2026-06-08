@@ -54,6 +54,39 @@ Result:
 - No Supabase cloud push was performed from this checkout.
 - The manual hosted migration step is still required: apply `supabase/migrations/20260607183000_add_project_archive_metadata.sql` through the approved hosted Supabase migration path, then rerun this checklist.
 
+## Manual Hosted Migration Runbook
+
+Use this runbook only in the correct hosted Supabase project for the private Boardsmith deployment. Do not paste passwords, service-role keys, connection strings, hosted URLs, screenshots, or raw secret values into docs, chat, commits, issue comments, or logs.
+
+1. Open the approved hosted Supabase SQL path for the Boardsmith project.
+2. Confirm you are in the intended hosted Supabase project before running any SQL.
+3. Locate the local migration file for reference:
+
+```text
+supabase/migrations/20260607183000_add_project_archive_metadata.sql
+```
+
+4. Copy and run this exact migration SQL:
+
+```sql
+alter table public.projects
+  add column if not exists archived_at timestamptz;
+```
+
+5. Run this verification query:
+
+```sql
+select column_name, data_type, is_nullable
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'projects'
+  and column_name = 'archived_at';
+```
+
+6. Success means the verification query returns one row for `archived_at`, with a nullable timestamp-with-time-zone type such as `timestamp with time zone` and `is_nullable` equal to `YES`.
+7. Blocked means the query returns no rows, returns a non-nullable column, returns an unexpected data type, or the SQL editor reports an error. Stop and do not run archive/restore smoke until the hosted database state is corrected.
+8. After success, run the Hosted Archive Smoke Checklist below using a clearly labeled non-critical test project.
+
 ## Hosted Migration Preflight
 
 Use the approved private Supabase deployment path for the hosted Boardsmith project. Do not print, paste, commit, or screenshot secrets.

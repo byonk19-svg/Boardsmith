@@ -678,9 +678,17 @@
 - [x] Confirm no Supabase cloud push was performed from this checkout.
 - [x] Document that the manual hosted migration step is still required before rerunning the hosted archive smoke checklist.
 
+## Task 71D - Manual Hosted Archive Migration Runbook
+
+- [x] Add a copy-paste-ready manual hosted migration runbook to `docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md`.
+- [x] Include the local migration file path, exact `archived_at` migration SQL, verification query, success criteria, blocked criteria, and reminder to use the correct hosted Supabase project.
+- [x] Reconfirm secrets, hosted URLs, screenshots, connection strings, and raw env values should not be pasted into docs, chat, commits, issue comments, or logs.
+- [x] Reconfirm hosted archive smoke should run only after the hosted `projects.archived_at` column exists.
+- [x] Keep the pass docs-only with no app features, schema changes, migration edits, package changes, Supabase cloud push, delete, bulk archive, undo toast system, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, or new project types.
+
 ## Recommended Next Tasks
 
-1. [ ] Apply `supabase/migrations/20260607183000_add_project_archive_metadata.sql` to hosted Supabase through the approved hosted path, then rerun the hosted archive migration check and smoke checklist.
+1. [ ] Apply `supabase/migrations/20260607183000_add_project_archive_metadata.sql` to hosted Supabase using the manual runbook, then rerun the hosted archive migration check and smoke checklist.
 2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 3. [ ] Consider small archive-list polish only if additional dogfood shows repeated confusion after using archived filters.
 
