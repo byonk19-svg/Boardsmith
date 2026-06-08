@@ -669,6 +669,15 @@
 - [x] Mark hosted archive/restore smoke blocked pending manual application of `supabase/migrations/20260607183000_add_project_archive_metadata.sql` through the approved hosted Supabase path.
 - [x] Confirm no archive/restore hosted actions and no Supabase cloud push were performed from this checkout.
 
+## Task 71C - Hosted Archive Migration Confirmation and Smoke Retry
+
+- [x] Inspect current hosted archive readiness docs, hosted deployment status docs, private readiness docs, task ledger, repo state, and Supabase config state.
+- [x] Re-run the secret-safe, read-only hosted Supabase persistence check without printing env values or project data.
+- [x] Confirm the hosted persistence path still returns Postgres `42703` because `projects.archived_at` does not exist.
+- [x] Keep hosted archive/restore smoke blocked; no hosted archive, restore, filter, dashboard, detail, or print-preview smoke actions were run against hosted data.
+- [x] Confirm no Supabase cloud push was performed from this checkout.
+- [x] Document that the manual hosted migration step is still required before rerunning the hosted archive smoke checklist.
+
 ## Recommended Next Tasks
 
 1. [ ] Apply `supabase/migrations/20260607183000_add_project_archive_metadata.sql` to hosted Supabase through the approved hosted path, then rerun the hosted archive migration check and smoke checklist.

@@ -39,6 +39,21 @@ Result:
 - No Supabase cloud push was performed from this checkout.
 - The required next step is to apply `supabase/migrations/20260607183000_add_project_archive_metadata.sql` through the approved hosted Supabase migration path, then rerun this checklist.
 
+## Task 71C Hosted Check Result
+
+Status: still blocked pending hosted migration.
+
+Date checked: June 8, 2026.
+
+Codex reran the same secret-safe, read-only hosted Supabase persistence check after the expected manual migration window. The check still returned Postgres error `42703`: `column projects.archived_at does not exist`.
+
+Result:
+
+- Hosted `public.projects.archived_at` is still not available to the app's Supabase persistence path.
+- Hosted archive/restore smoke was not run because archive and restore actions still depend on that missing column.
+- No Supabase cloud push was performed from this checkout.
+- The manual hosted migration step is still required: apply `supabase/migrations/20260607183000_add_project_archive_metadata.sql` through the approved hosted Supabase migration path, then rerun this checklist.
+
 ## Hosted Migration Preflight
 
 Use the approved private Supabase deployment path for the hosted Boardsmith project. Do not print, paste, commit, or screenshot secrets.
