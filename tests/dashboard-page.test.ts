@@ -14,7 +14,7 @@ const latestProject: Project = {
   id: "latest-dashboard-project",
   created_at: "2026-06-01T12:00:00.000Z",
   updated_at: "2026-06-02T14:30:00.000Z",
-  title: "Latest shelf",
+  title: "Very long latest shelf project title for dashboard readability cleanup",
   project_type: "simple_shelf",
   skill_level: "beginner",
   status: "plan_generated",
@@ -113,8 +113,10 @@ describe("DashboardPage", () => {
     expect(markup).toContain("Need generated plans");
     expect(markup).toContain("2");
     expect(markup).toContain("1");
+    expect(markup).toContain("Latest update");
+    expect(markup).toContain("Jun 2, 2026");
     expect(markup).toContain("Recent projects");
-    expect(markup).toContain("Latest shelf");
+    expect(markup).toContain("Very long latest shelf project title for dashboard readability cleanup");
     expect(markup).toContain("Porch planter");
     expect(markup).toContain("Open project");
     expect(markup).toContain("View latest plan");
@@ -123,6 +125,7 @@ describe("DashboardPage", () => {
     expect(markup).toContain('href="/projects/draft-dashboard-project"');
     expect(markup).toContain("Freestanding plant display board");
     expect(markup).toContain("/projects/new?example=plant_display_board");
+    expect(markup).toContain("Use starter");
   });
 
   it("renders a friendly empty state with starter examples", async () => {

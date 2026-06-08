@@ -612,6 +612,13 @@
 - [x] Preserve private-MVP planning-aid positioning without public sharing, export, CAD, CNC, marketplace, auth expansion, schema, Supabase/cloud, OpenAI, package, archive/delete, folders/tags, shopping, pricing, vendor, or inventory scope.
 - [x] Add focused dashboard rendering coverage for recent projects, latest-plan action, generate-plan action, counts, empty state, starter links, and forbidden public-sharing/export/CAD/CNC wording.
 
+## Task 67B - Dashboard Screenshot Cleanup
+
+- [x] Replace the awkward long-title `Most recent` stat value with a compact `Latest update` date while keeping the full project title in the recent-project list.
+- [x] Tighten recent project cards with smaller padding, denser status badges, and layout constraints so long titles do not crowd actions.
+- [x] Clarify clickable starter cards with a visible `Use starter ->` affordance.
+- [x] Keep the pass limited to dashboard UI/copy/tests/docs with existing data only and no schema, Supabase/cloud, OpenAI, package, archive/delete, folders/tags, auth, public sharing, generated PDF, SVG export/download, DXF, CAD, CNC, shopping, pricing, vendor, or inventory work.
+
 ## Recommended Next Tasks
 
 1. [ ] Consider archive/hide behavior for test projects only if explicitly approved as a separate private-MVP-safe task.

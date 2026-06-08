@@ -55,7 +55,7 @@ export default async function DashboardPage() {
         <Metric label="Total projects" value={projectSummaries.length.toString()} />
         <Metric label="With generated plans" value={projectsWithPlans.toString()} />
         <Metric label="Need generated plans" value={projectsNeedingPlans.toString()} />
-        <Metric label="Most recent" value={latestProjectSummary ? latestProjectSummary.project.title : "None yet"} />
+        <Metric label="Latest update" value={latestProjectSummary ? formatProjectDate(latestProjectSummary.project.updated_at) : "None yet"} />
       </section>
 
       {projectSummaries.length === 0 ? (
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
           </div>
         </section>
       ) : (
-        <section className="rounded-lg border border-sawdust bg-white p-5 shadow-soft">
+        <section className="rounded-lg border border-sawdust bg-white p-4 shadow-soft">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-ink">Recent projects</h2>
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
 
-          <div className="mt-4 grid gap-3">
+          <div className="mt-3 grid gap-2.5">
             {recentProjects.map((summary) => (
               <ProjectShortcut key={summary.project.id} summary={summary} />
             ))}
@@ -106,6 +106,7 @@ export default async function DashboardPage() {
             <Link key={example.slug} href={`/projects/new?example=${example.slug}`} className="rounded-md border border-sawdust p-3 text-sm hover:bg-shop">
               <span className="font-semibold text-ink">{example.label}</span>
               <span className="mt-1 block leading-6 text-ink/65">{example.description}</span>
+              <span className="mt-2 inline-flex font-semibold text-moss">Use starter -&gt;</span>
             </Link>
           ))}
         </div>
@@ -118,20 +119,20 @@ function ProjectShortcut({ summary }: { summary: ProjectSummary }) {
   const { project, planCount } = summary;
 
   return (
-    <article className="rounded-md border border-sawdust p-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h3 className="font-semibold text-ink">{project.title}</h3>
+    <article className="rounded-md border border-sawdust p-3">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div className="min-w-0">
+          <h3 className="break-words font-semibold text-ink">{project.title}</h3>
           <p className="mt-1 text-sm text-ink/65">
             {projectTypeLabels[project.project_type]} | {project.width_inches} x {project.height_inches} x {project.depth_inches} in | Updated{" "}
             {formatProjectDate(project.updated_at)}
           </p>
-          <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wide text-ink/60">
+          <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink/60">
             <span className="rounded-md bg-shop px-2 py-1">{statusLabel(project)}</span>
             <span className="rounded-md bg-shop px-2 py-1">{planCount > 0 ? "Latest plan saved" : "No generated plan yet"}</span>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 lg:shrink-0">
           <Link href={`/projects/${project.id}`} className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
             Open project
           </Link>
