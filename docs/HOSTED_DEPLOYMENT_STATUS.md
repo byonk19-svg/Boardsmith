@@ -137,6 +137,32 @@ The authorized manual hosted archive smoke was then reported as passed on June 8
 
 Task 72A documents this as the `private-mvp-0.8` hosted archive completion checkpoint. Archive/restore remains private workspace organization only; permanent delete, public sharing, production multi-user behavior, app-generated PDF, SVG/DXF/CAD/CNC export, shopping, pricing, vendor, inventory, and marketplace work remain out of scope.
 
+## Tweak This Plan Hosted Smoke
+
+Task 73D attempted a secret-safe hosted route check on June 8, 2026 before checkpointing the new one-shot `Tweak this plan` flow.
+
+Result from this Codex environment:
+
+- A ready hosted deployment target was discoverable without printing the hosted URL.
+- `/` returned Vercel-level `401` before Boardsmith route handling.
+- `/projects` returned Vercel-level `401` before Boardsmith route handling.
+- The `Tweak this plan` UI smoke was not run from this environment.
+- No hosted revision, generation, archive, restore, project mutation, row-data inspection, Supabase cloud action, or secret-bearing output was attempted.
+- No hosted URLs, secrets, project refs, connection strings, row data, screenshots, or sensitive logs were recorded.
+
+Manual hosted smoke still required from an authorized private hosted browser session:
+
+- Open an active non-critical project with a latest generated plan.
+- Confirm the `Tweak this plan` form appears.
+- Submit one simple revision instruction.
+- Confirm the revised plan becomes latest and the old plan remains in history.
+- Confirm success copy explains the new latest plan is compared with the previous version.
+- Confirm comparison copy reads as revised-vs-prior.
+- Confirm the `Revised` marker appears in plan history.
+- Confirm print preview works for the revised latest plan.
+- Confirm archived projects still block new revisions while preserving detail, plan history, and print-preview access.
+- Confirm copy avoids engineering approval, structural approval, wall-safety guarantee, child-safety certification, load rating, fabrication-ready output, CAD/CNC readiness, and export claims.
+
 ## Recommendation
 
 Status: provider linked, hosted env names present, and user-supplied authorized hosted smoke passed.

@@ -744,10 +744,20 @@
 - [x] Update focused rendering coverage and `docs/TWEAK_THIS_PLAN_PLAN.md` implementation notes.
 - [x] Keep the dogfood pass narrow with no schema changes, migrations, packages, multi-turn chat, background agents, image upload, permanent delete, bulk archive, PDF/SVG/DXF/CAD/CNC export, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user changes, hosted Supabase changes, or new project types.
 
+## Task 73D - Hosted Tweak This Plan Smoke
+
+- [x] Inspect hosted deployment status, private readiness docs, task ledger, current repo state, and the `Tweak this plan` implementation status.
+- [x] Attempt a secret-safe hosted route check against a ready deployment target without printing hosted URLs, secrets, project refs, connection strings, row data, screenshots, or sensitive logs.
+- [x] Confirm `/` returns Vercel-level `401` before Boardsmith route handling from this Codex environment.
+- [x] Confirm `/projects` returns Vercel-level `401` before Boardsmith route handling from this Codex environment.
+- [x] Keep hosted `Tweak this plan` UI smoke blocked from this environment because the intended private hosted access layer prevents route rendering.
+- [x] Confirm no hosted revision, generation, archive, restore, project mutation, row-data inspection, Supabase cloud action, app code change, package change, schema change, migration, export/CAD/CNC work, delete, bulk archive, auth expansion, public sharing, marketplace, shopping, pricing, vendor, inventory, or new project type was added.
+- [x] Document the manual hosted smoke steps still required from an authorized private hosted browser session in `docs/HOSTED_DEPLOYMENT_STATUS.md`.
+
 ## Recommended Next Tasks
 
-1. [ ] Run hosted/private-browser smoke for `Tweak this plan` using a non-critical test project after confirming the hosted OpenAI and Supabase paths are configured for the current deployment.
-2. [ ] Consider a `private-mvp-0.9` checkpoint after hosted `Tweak this plan` smoke passes.
+1. [ ] Run the documented manual hosted `Tweak this plan` smoke from an authorized private browser session and record the result without URLs, secrets, screenshots, row data, or sensitive logs.
+2. [ ] Consider a `private-mvp-0.9` checkpoint after authorized hosted `Tweak this plan` smoke passes.
 3. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 
 ## Remaining Hardening
