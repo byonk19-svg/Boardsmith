@@ -619,12 +619,19 @@
 - [x] Clarify clickable starter cards with a visible `Use starter ->` affordance.
 - [x] Keep the pass limited to dashboard UI/copy/tests/docs with existing data only and no schema, Supabase/cloud, OpenAI, package, archive/delete, folders/tags, auth, public sharing, generated PDF, SVG export/download, DXF, CAD, CNC, shopping, pricing, vendor, or inventory work.
 
+## Task 68A - Dashboard Usability Checkpoint
+
+- [x] Document `private-mvp-0.6` as the dashboard usability checkpoint after the command-center dashboard polish and screenshot cleanup.
+- [x] Summarize the dashboard state: private workspace, project counts, latest update date, recent project shortcuts, clear `Open project` / `View latest plan` / `Generate plan` actions, empty state, and existing starter links with `Use starter ->`.
+- [x] Reconfirm Boardsmith remains private-MVP-only and planning-aid-only.
+- [x] Reconfirm no archive/delete, folders, tags, public sharing, marketplace behavior, auth expansion, production multi-user assumption, schema migration, Supabase/cloud change, OpenAI prompt/model/schema change, package change, app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, shopping, pricing, vendor, or inventory work was added.
+- [x] Keep the checkpoint docs/tag-only with no product UI, runtime data, hosted URL, screenshot, secret, log, ignored dogfood data, export, sharing, shopping, pricing, vendor, or inventory changes.
+
 ## Recommended Next Tasks
 
 1. [ ] Consider archive/hide behavior for test projects only if explicitly approved as a separate private-MVP-safe task.
-2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the list, detail pages, and print preview.
-3. [ ] Consider dashboard summary polish only if it helps orient private testers without adding public sharing, auth expansion, folders, tags, marketplace, or export scope.
-4. [ ] Rerun hosted/private smoke checks after any hosted config, deployment, access-gate, or environment-variable change.
+2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
+3. [ ] Run hosted smoke/checkpoint review after any hosted config, deployment, access-gate, or environment-variable change.
 
 ## Remaining Hardening
 
