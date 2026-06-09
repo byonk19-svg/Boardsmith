@@ -790,9 +790,19 @@
 - [x] Confirm `/projects` returned `200` with final path `/login?next=%2Fprojects`, meaning Vercel protection was bypassed and the hosted app handled the route normally through its auth/login flow.
 - [x] Keep the pass docs-only with no app feature, schema change, migration, package change, hosted mutation, disabled Vercel protection, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, Supabase cloud change, or new project type.
 
+## Task 73I - Hosted Tweak This Plan UI Smoke With Bypass Path
+
+- [x] Inspect hosted smoke automation docs, hosted deployment status, `Tweak this plan` planning notes, task ledger, project detail rendering coverage, and revise-route tests.
+- [x] Confirm `.env.hosted-smoke.local` remains ignored by `.env*.local` and does not appear in `git status --short`.
+- [x] Run `npm run smoke:hosted` and confirm the route-level bypass still passes with sanitized output and no Vercel-level `401`.
+- [x] Run a follow-up secret-safe marker check without printing hosted URLs, secrets, cookies, request headers, project refs, row data, screenshots, or sensitive logs.
+- [x] Confirm the marker check reached `200` responses but landed on the hosted login/auth flow for `/` and `/projects`, with `/projects` ending at `/login?next=%2Fprojects`.
+- [x] Keep hosted `Tweak this plan` UI smoke blocked from this Codex environment because an authorized hosted browser/login session is still required before project-detail UI can be reached.
+- [x] Confirm no active project was opened, no revision was submitted, no hosted mutation was attempted, and no app feature, schema change, migration, package change, disabled Vercel protection, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, Supabase cloud change, or new project type was added.
+
 ## Recommended Next Tasks
 
-1. [ ] Run the hosted `Tweak this plan` UI smoke through the bypass path using a clearly labeled non-critical test project, then record the result without URLs, secrets, screenshots, row data, or sensitive logs.
+1. [ ] Run the hosted `Tweak this plan` UI smoke from an authorized private hosted browser/login session using a clearly labeled non-critical test project, then record the result without URLs, secrets, screenshots, row data, or sensitive logs.
 2. [ ] Consider a `private-mvp-0.9` checkpoint after authorized hosted `Tweak this plan` smoke passes.
 3. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 
