@@ -50,6 +50,34 @@ function sanitizePathForOutput(path) {
   return path.replace(/\/projects\/[^/?#]+/g, "/projects/[id]");
 }
 
+function detectHostedAuthMechanism(bodyText) {
+  const lowerBody = bodyText.toLowerCase();
+  const inputTypes = Array.from(bodyText.matchAll(/<input\b[^>]*type=["']?([^"'\s>]+)/gi)).map((match) => match[1].toLowerCase());
+  const inputNames = Array.from(bodyText.matchAll(/<input\b[^>]*name=["']?([^"'\s>]+)/gi)).map((match) => match[1].toLowerCase());
+  const hasEmailInput = inputTypes.includes("email") || inputNames.some((name) => name.includes("email"));
+  const hasPasswordInput = inputTypes.includes("password") || inputNames.some((name) => name.includes("password"));
+  const hasOAuthText = lowerBody.includes("google") || lowerBody.includes("github") || lowerBody.includes("oauth");
+  const hasMagicLinkText = lowerBody.includes("magic link") || lowerBody.includes("email link") || lowerBody.includes("one-time");
+  const mode = hasEmailInput && hasPasswordInput
+    ? "email_password"
+    : hasEmailInput && hasOAuthText
+      ? "interactive_email_or_oauth"
+      : hasEmailInput
+        ? "interactive_email"
+        : hasOAuthText
+          ? "interactive_oauth"
+          : "interactive_session";
+
+  return {
+    mode,
+    hasForm: /<form\b/i.test(bodyText),
+    hasEmailInput,
+    hasPasswordInput,
+    hasMagicLinkText,
+    hasOAuthText,
+  };
+}
+
 function createCookieHeader(cookieJar) {
   return Array.from(cookieJar.entries())
     .map(([name, value]) => `${name}=${value}`)
@@ -129,6 +157,7 @@ function classifyRouteCheck({ response, finalUrl, bodyText, requestedPath, appAc
     vercelBlocked,
     boardsmithAccessGate,
     hostedAuthLogin,
+    ...(hostedAuthLogin ? { hostedAuthMechanism: detectHostedAuthMechanism(bodyText) } : {}),
     boardsmithRendered,
     blockedReason: vercelBlocked
       ? "vercel_protection"

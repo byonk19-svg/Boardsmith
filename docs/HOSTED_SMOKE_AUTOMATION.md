@@ -64,7 +64,7 @@ Notes:
 - `VERCEL_AUTOMATION_BYPASS_SECRET` is the Vercel bypass secret. Do not print it.
 - `BOARDSMITH_ACCESS_PASSWORD` is the separate Boardsmith app-level access password. Do not print it.
 - If the app-level gate is disabled for a specific private environment, omit `BOARDSMITH_ACCESS_PASSWORD`; the helper will report whether it reaches app routes without it.
-- `BOARDSMITH_HOSTED_SMOKE_EMAIL` and `BOARDSMITH_HOSTED_SMOKE_PASSWORD` are placeholders for a future browser/session harness only. Do not use personal credentials for repeatable automation; create a dedicated non-critical smoke account if hosted login requires email/password.
+- `BOARDSMITH_HOSTED_SMOKE_EMAIL` and `BOARDSMITH_HOSTED_SMOKE_PASSWORD` are placeholders for a future browser/session harness only. Do not use personal credentials for repeatable automation. If the hosted login layer is email-link or OAuth-only, use an authorized local browser session for UI smoke instead of storing a personal password.
 
 ## Route-Level Check
 
@@ -101,7 +101,7 @@ Blocked results:
 
 - `vercel_protection`: the bypass secret is missing, wrong, revoked, or not attached to the correct Vercel project.
 - `boardsmith_access_password_missing`: Vercel protection was bypassed, but the app-level `/access` gate still needs `BOARDSMITH_ACCESS_PASSWORD`.
-- `hosted_auth_login_required`: Vercel protection was bypassed and the Boardsmith `/access` helper ran, but the hosted deployment routed to `/login`. This login layer is outside the current Boardsmith app code and requires an authorized hosted browser/session before project-detail UI smoke can run.
+- `hosted_auth_login_required`: Vercel protection was bypassed and the Boardsmith `/access` helper ran, but the hosted deployment routed to `/login`. This login layer is outside the current Boardsmith app code and requires an authorized hosted browser/session before project-detail UI smoke can run. The helper reports sanitized `hostedAuthMechanism` booleans such as whether an email input, password input, or OAuth text was present; it does not print login page content.
 - `invalid_hosted_smoke_url` or `request_error`: check local env values without printing them.
 
 If the output says `missing_required_env`, confirm `.env.hosted-smoke.local` exists in the repo root and contains the required values. Do not paste its values into chat, docs, commits, screenshots, or logs.
@@ -120,6 +120,29 @@ Safe path:
 6. Do not commit `BOARDSMITH_HOSTED_SMOKE_EMAIL`, `BOARDSMITH_HOSTED_SMOKE_PASSWORD`, cookies, session storage, screenshots, or login logs.
 
 The current route helper does not submit hosted `/login` credentials. Add browser/session automation only after the hosted auth mechanism is documented well enough to avoid printing credentials, cookies, headers, hosted URLs, project refs, row data, screenshots, or sensitive logs.
+
+### Observed Hosted Login Requirement
+
+Task 73K ran a read-only hosted login probe on June 9, 2026 using the ignored local env file and sanitized output only. After Vercel bypass and the Boardsmith `/access` helper, `/projects` redirected through a hosted auth redirect and ended at `/login?next=%2Fprojects`.
+
+Sanitized mechanism indicators:
+
+- hosted login page present
+- form present
+- email input present
+- OAuth text present
+- password input not detected
+
+Treat the hosted auth layer as an interactive email/OAuth session requirement, not a simple password-submittable route check. A dedicated non-critical smoke account is still the right account boundary, but the current no-dependency route helper should not try to submit hosted login credentials.
+
+Safe setup path:
+
+1. Create or confirm a dedicated non-critical smoke identity in the hosted auth provider used by the private deployment.
+2. Prefer an account label such as `boardsmith-hosted-smoke` if the provider supports labels or aliases.
+3. Grant only the minimum hosted access needed to open the private Boardsmith deployment and run smoke on clearly labeled non-critical projects.
+4. If the hosted login uses email link or OAuth, sign in through a local authorized browser session for UI smoke. Do not commit browser storage state, cookies, screenshots, or login logs.
+5. If a future browser harness supports a safe email/password login path, read `BOARDSMITH_HOSTED_SMOKE_EMAIL` and `BOARDSMITH_HOSTED_SMOKE_PASSWORD` from `.env.hosted-smoke.local` only, redact them from all output, and keep them out of docs, chat, commits, and screenshots.
+6. If no dedicated smoke identity can be created, record the hosted UI smoke as blocked. Do not use a personal account for repeatable automation unless it is explicitly documented as a temporary local-only manual fallback.
 
 ## Browser Smoke With Bypass Header
 

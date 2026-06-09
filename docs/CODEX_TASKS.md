@@ -811,9 +811,22 @@
 - [x] Add placeholder env names `BOARDSMITH_HOSTED_SMOKE_EMAIL` and `BOARDSMITH_HOSTED_SMOKE_PASSWORD` for future browser/session smoke only; do not use personal credentials for repeatable automation.
 - [x] Keep the pass limited to smoke helper classification, docs, placeholders, and tests with no app feature, schema change, migration, package change, hosted mutation, disabled Vercel protection, personal credential logging, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion unrelated to smoke, production multi-user behavior, Supabase cloud change, or new project type.
 
+## Task 73K - Authenticated Hosted Smoke Account Path
+
+- [x] Confirm `.env.hosted-smoke.local` remains ignored by `.env*.local` and does not appear in `git status --short`.
+- [x] Inspect the current Boardsmith access gate, hosted smoke helper, hosted smoke runbook, hosted deployment status, env example, package/test tooling, and task ledger.
+- [x] Confirm Boardsmith source still provides only the `/access` private MVP password gate and no app-owned `/login` route.
+- [x] Run a secret-safe read-only hosted login probe without printing hosted URLs, secrets, cookies, request headers, project refs, row data, screenshots, or sensitive logs.
+- [x] Confirm the hosted auth layer redirects `/projects` through a hosted auth redirect to `/login?next=%2Fprojects` after Vercel bypass and Boardsmith `/access` handling.
+- [x] Determine the observed hosted auth mechanism is an interactive email/OAuth session: hosted login form present, email input present, OAuth text present, and no password input detected.
+- [x] Update the hosted smoke helper to report sanitized `hostedAuthMechanism` details for hosted `/login` blockers without printing login page content.
+- [x] Add focused smoke-helper coverage for the observed email/OAuth hosted login blocker and redacted output.
+- [x] Document the safe setup path: create or confirm a dedicated non-critical hosted smoke identity/session in the hosted auth provider, use an authorized local browser session when auth is email-link or OAuth-only, and do not use personal credentials for repeatable automation.
+- [x] Keep the pass limited to smoke helper mechanism detection, docs, placeholders, and tests with no app feature, schema change, migration, package change, hosted mutation, disabled Vercel protection, personal credential logging, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion unrelated to smoke, production multi-user behavior, Supabase cloud change, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Create or confirm a dedicated non-critical hosted smoke login/session path, then run hosted `Tweak this plan` UI smoke with a clearly labeled non-critical project and record the result without URLs, secrets, screenshots, row data, or sensitive logs.
+1. [ ] Run hosted `Tweak this plan` UI smoke through an authorized dedicated non-critical hosted smoke account/session, using a clearly labeled non-critical project and recording the result without URLs, secrets, screenshots, row data, or sensitive logs.
 2. [ ] Consider a `private-mvp-0.9` checkpoint after authorized hosted `Tweak this plan` smoke passes.
 3. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 

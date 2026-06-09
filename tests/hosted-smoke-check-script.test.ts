@@ -25,6 +25,14 @@ type SmokeCheckResult = {
     vercelBlocked: boolean;
     boardsmithAccessGate: boolean;
     hostedAuthLogin: boolean;
+    hostedAuthMechanism?: {
+      mode: string;
+      hasForm: boolean;
+      hasEmailInput: boolean;
+      hasPasswordInput: boolean;
+      hasMagicLinkText: boolean;
+      hasOAuthText: boolean;
+    };
     boardsmithRendered: boolean;
     blockedReason: string | null;
   }[];
@@ -101,7 +109,15 @@ async function startSmokeServer({ hostedLoginRequired = false } = {}) {
 
     if (request.url?.startsWith("/login")) {
       response.writeHead(200, { "content-type": "text/html" });
-      response.end("<main>Hosted login</main>");
+      response.end(`
+        <main>
+          <form action="/login" method="post">
+            <label>Email<input name="email" type="email" /></label>
+            <button type="submit">Continue with email</button>
+          </form>
+          <button type="button">Continue with GitHub</button>
+        </main>
+      `);
       return;
     }
 
@@ -194,6 +210,14 @@ describe("hosted smoke check script", () => {
         vercelBlocked: false,
         boardsmithAccessGate: false,
         hostedAuthLogin: true,
+        hostedAuthMechanism: {
+          mode: "interactive_email_or_oauth",
+          hasForm: true,
+          hasEmailInput: true,
+          hasPasswordInput: false,
+          hasMagicLinkText: false,
+          hasOAuthText: true,
+        },
         boardsmithRendered: false,
         blockedReason: "hosted_auth_login_required",
       },
