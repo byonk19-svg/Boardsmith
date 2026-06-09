@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "smoke:hosted": "node --env-file-if-exists=.env.hosted-smoke.local scripts/hosted-smoke-check.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",

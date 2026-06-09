@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { once } from "node:events";
+import { readFile } from "node:fs/promises";
 import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -26,6 +27,10 @@ type SmokeCheckResult = {
     boardsmithRendered: boolean;
     blockedReason: string | null;
   }[];
+};
+
+type PackageJson = {
+  scripts?: Record<string, string>;
 };
 
 afterEach(async () => {
@@ -106,6 +111,12 @@ async function startSmokeServer() {
 }
 
 describe("hosted smoke check script", () => {
+  it("keeps a local hosted smoke npm command that loads the ignored env file", async () => {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8")) as PackageJson;
+
+    expect(packageJson.scripts?.["smoke:hosted"]).toBe("node --env-file-if-exists=.env.hosted-smoke.local scripts/hosted-smoke-check.mjs");
+  });
+
   it("sends Vercel bypass headers and redacts secret-bearing values", async () => {
     const { baseUrl, capturedRequests } = await startSmokeServer();
 

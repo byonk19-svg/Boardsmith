@@ -170,14 +170,14 @@ Task 73E added a secret-safe protected-hosted smoke path for future checks. Verc
 Prepared automation path:
 
 - Runbook: [docs/HOSTED_SMOKE_AUTOMATION.md](HOSTED_SMOKE_AUTOMATION.md).
-- Route helper: `node scripts/hosted-smoke-check.mjs`.
+- Route helper: `npm run smoke:hosted`, which loads `.env.hosted-smoke.local` when present.
 - Required secret-safe env vars: `BOARDSMITH_HOSTED_SMOKE_URL`, `VERCEL_AUTOMATION_BYPASS_SECRET`, and, when the app-level gate is enabled, `BOARDSMITH_ACCESS_PASSWORD`.
 - The helper sends `x-vercel-protection-bypass`, requests the Vercel bypass cookie with `x-vercel-set-bypass-cookie: true`, and then keeps the Boardsmith `/access` gate intact.
 - Output is sanitized and does not print the hosted URL, host, bypass secret, access password, cookies, request headers, project refs, row data, or sensitive logs.
 
 The protected-hosted smoke bypass path is documented and locally covered by tests, but it still requires the actual `boardsmith-hosted-smoke` Vercel bypass secret to be configured in a secret-safe local, CI, or Codex environment before rerunning hosted `Tweak this plan` smoke.
 
-Task 73F attempted to verify the protected-hosted smoke bypass path on June 8, 2026. The current Codex process environment did not have `BOARDSMITH_HOSTED_SMOKE_URL`, `VERCEL_AUTOMATION_BYPASS_SECRET`, or `BOARDSMITH_ACCESS_PASSWORD` configured. Running `node scripts/hosted-smoke-check.mjs` failed safely with `missing_required_env` and printed only missing variable names. No hosted route request, hosted mutation, cookie, request header, hosted URL, project ref, row data, secret, screenshot, or sensitive log was produced. The route-level Vercel bypass remains unverified until the dedicated `boardsmith-hosted-smoke` bypass secret and private hosted base URL are provided through a secret-safe environment.
+Task 73F attempted to verify the protected-hosted smoke bypass path on June 8, 2026. The current Codex process environment did not have `BOARDSMITH_HOSTED_SMOKE_URL`, `VERCEL_AUTOMATION_BYPASS_SECRET`, or `BOARDSMITH_ACCESS_PASSWORD` configured. Running the hosted smoke helper failed safely with `missing_required_env` and printed only missing variable names. No hosted route request, hosted mutation, cookie, request header, hosted URL, project ref, row data, secret, screenshot, or sensitive log was produced. The route-level Vercel bypass remains unverified until the dedicated `boardsmith-hosted-smoke` bypass secret and private hosted base URL are provided through a secret-safe environment.
 
 ## Recommendation
 

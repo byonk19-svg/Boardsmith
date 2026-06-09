@@ -88,7 +88,7 @@ Re-run this inspection before sharing a hosted URL.
 
 For archive/restore readiness after `private-mvp-0.7`, also run the hosted archive migration and smoke checklist in [docs/HOSTED_ARCHIVE_MIGRATION_READINESS.md](HOSTED_ARCHIVE_MIGRATION_READINESS.md). This verifies that `supabase/migrations/20260607183000_add_project_archive_metadata.sql` has been applied before relying on hosted archive actions.
 
-If Vercel-level Deployment Protection blocks route checks from automation, use [docs/HOSTED_SMOKE_AUTOMATION.md](HOSTED_SMOKE_AUTOMATION.md). Keep Vercel protection enabled, configure a dedicated Protection Bypass for Automation secret, run `node scripts/hosted-smoke-check.mjs`, and then continue any UI smoke through the intended private access path.
+If Vercel-level Deployment Protection blocks route checks from automation, use [docs/HOSTED_SMOKE_AUTOMATION.md](HOSTED_SMOKE_AUTOMATION.md). Keep Vercel protection enabled, configure a dedicated Protection Bypass for Automation secret, run `npm run smoke:hosted`, and then continue any UI smoke through the intended private access path.
 
 ## Post-Deploy Smoke Routes
 

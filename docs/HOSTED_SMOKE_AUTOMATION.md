@@ -33,11 +33,13 @@ VERCEL_AUTOMATION_BYPASS_SECRET=
 
 This secret bypasses Vercel Deployment Protection only. If `BOARDSMITH_ACCESS_PASSWORD` is configured, the Boardsmith app-level private access gate still applies.
 
-## Required Smoke Env Vars
+## Local Env File
 
-Set these only in the shell or secret manager used for hosted smoke. Do not commit them.
+For repeatable local runs, create an ignored file named `.env.hosted-smoke.local` in the repo root. The existing `.gitignore` pattern `.env*.local` covers this file, so it must stay untracked.
 
-```bash
+Do not commit this file.
+
+```env
 BOARDSMITH_HOSTED_SMOKE_URL=
 VERCEL_AUTOMATION_BYPASS_SECRET=
 BOARDSMITH_ACCESS_PASSWORD=
@@ -45,7 +47,7 @@ BOARDSMITH_ACCESS_PASSWORD=
 
 Optional route list for the route-level helper:
 
-```bash
+```env
 BOARDSMITH_HOSTED_SMOKE_PATHS=/,/projects
 ```
 
@@ -54,14 +56,17 @@ Notes:
 - `BOARDSMITH_HOSTED_SMOKE_URL` is the private hosted base URL. Do not print it in logs or docs.
 - `VERCEL_AUTOMATION_BYPASS_SECRET` is the Vercel bypass secret. Do not print it.
 - `BOARDSMITH_ACCESS_PASSWORD` is the separate Boardsmith app-level access password. Do not print it.
+- If the app-level gate is disabled for a specific private environment, omit `BOARDSMITH_ACCESS_PASSWORD`; the helper will report whether it reaches app routes without it.
 
 ## Route-Level Check
 
 Use the no-dependency helper for a secret-safe route reachability check:
 
 ```bash
-node scripts/hosted-smoke-check.mjs
+npm run smoke:hosted
 ```
+
+The npm command uses Node's `--env-file-if-exists=.env.hosted-smoke.local` flag. If the file is missing, the helper still runs and reports the missing env vars in sanitized JSON.
 
 The helper:
 
@@ -89,6 +94,8 @@ Blocked results:
 - `vercel_protection`: the bypass secret is missing, wrong, revoked, or not attached to the correct Vercel project.
 - `boardsmith_access_password_missing`: Vercel protection was bypassed, but the app-level `/access` gate still needs `BOARDSMITH_ACCESS_PASSWORD`.
 - `invalid_hosted_smoke_url` or `request_error`: check local env values without printing them.
+
+If the output says `missing_required_env`, confirm `.env.hosted-smoke.local` exists in the repo root and contains the required values. Do not paste its values into chat, docs, commits, screenshots, or logs.
 
 ## Browser Smoke With Bypass Header
 
@@ -147,7 +154,7 @@ Rotate or revoke the `boardsmith-hosted-smoke` bypass secret if:
 After rotation:
 
 1. Update only the secret-safe environment variable or secret manager value.
-2. Rerun `node scripts/hosted-smoke-check.mjs`.
+2. Rerun `npm run smoke:hosted`.
 3. Do not commit the new secret or any output containing it.
 
 ## Non-Goals
