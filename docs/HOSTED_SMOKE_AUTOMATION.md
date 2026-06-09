@@ -51,12 +51,20 @@ Optional route list for the route-level helper:
 BOARDSMITH_HOSTED_SMOKE_PATHS=/,/projects
 ```
 
+Optional future browser/session smoke values, only if the hosted login layer requires an email/password account:
+
+```env
+BOARDSMITH_HOSTED_SMOKE_EMAIL=
+BOARDSMITH_HOSTED_SMOKE_PASSWORD=
+```
+
 Notes:
 
 - `BOARDSMITH_HOSTED_SMOKE_URL` is the private hosted base URL. Do not print it in logs or docs.
 - `VERCEL_AUTOMATION_BYPASS_SECRET` is the Vercel bypass secret. Do not print it.
 - `BOARDSMITH_ACCESS_PASSWORD` is the separate Boardsmith app-level access password. Do not print it.
 - If the app-level gate is disabled for a specific private environment, omit `BOARDSMITH_ACCESS_PASSWORD`; the helper will report whether it reaches app routes without it.
+- `BOARDSMITH_HOSTED_SMOKE_EMAIL` and `BOARDSMITH_HOSTED_SMOKE_PASSWORD` are placeholders for a future browser/session harness only. Do not use personal credentials for repeatable automation; create a dedicated non-critical smoke account if hosted login requires email/password.
 
 ## Route-Level Check
 
@@ -93,9 +101,25 @@ Blocked results:
 
 - `vercel_protection`: the bypass secret is missing, wrong, revoked, or not attached to the correct Vercel project.
 - `boardsmith_access_password_missing`: Vercel protection was bypassed, but the app-level `/access` gate still needs `BOARDSMITH_ACCESS_PASSWORD`.
+- `hosted_auth_login_required`: Vercel protection was bypassed and the Boardsmith `/access` helper ran, but the hosted deployment routed to `/login`. This login layer is outside the current Boardsmith app code and requires an authorized hosted browser/session before project-detail UI smoke can run.
 - `invalid_hosted_smoke_url` or `request_error`: check local env values without printing them.
 
 If the output says `missing_required_env`, confirm `.env.hosted-smoke.local` exists in the repo root and contains the required values. Do not paste its values into chat, docs, commits, screenshots, or logs.
+
+## Authenticated Hosted UI Smoke
+
+Current repo inspection shows Boardsmith itself has only the `/access` password gate. There is no `/login` route in the app source. If `npm run smoke:hosted` reports `hosted_auth_login_required` or a final path like `/login?next=%2Fprojects`, the remaining blocker is a hosted login/auth layer outside this repo's app-level access gate.
+
+Safe path:
+
+1. Keep Vercel Deployment Protection enabled.
+2. Keep using `VERCEL_AUTOMATION_BYPASS_SECRET` for the Vercel layer.
+3. Keep using `BOARDSMITH_ACCESS_PASSWORD` for the Boardsmith `/access` layer when configured.
+4. For the hosted `/login` layer, use an authorized browser session or a dedicated non-critical smoke account.
+5. Do not automate with a personal account unless this is explicitly documented as a temporary local-only manual choice.
+6. Do not commit `BOARDSMITH_HOSTED_SMOKE_EMAIL`, `BOARDSMITH_HOSTED_SMOKE_PASSWORD`, cookies, session storage, screenshots, or login logs.
+
+The current route helper does not submit hosted `/login` credentials. Add browser/session automation only after the hosted auth mechanism is documented well enough to avoid printing credentials, cookies, headers, hosted URLs, project refs, row data, screenshots, or sensitive logs.
 
 ## Browser Smoke With Bypass Header
 

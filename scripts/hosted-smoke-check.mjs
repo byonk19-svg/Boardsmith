@@ -112,13 +112,15 @@ async function fetchWithCookies(url, { method = "GET", headers = {}, body, cooki
 }
 
 function classifyRouteCheck({ response, finalUrl, bodyText, requestedPath, appAccessPasswordProvided }) {
-  const finalPath = sanitizePathForOutput(`${new URL(finalUrl).pathname}${new URL(finalUrl).search}`);
+  const finalUrlParts = new URL(finalUrl);
+  const finalPath = sanitizePathForOutput(`${finalUrlParts.pathname}${finalUrlParts.search}`);
   const requestedPathLabel = sanitizePathForOutput(requestedPath);
   const boardsmithAccessGate = response.status >= 300 && response.status < 400
     ? false
-    : new URL(finalUrl).pathname === "/access" || bodyText.includes("Private access");
+    : finalUrlParts.pathname === "/access" || bodyText.includes("Private access");
+  const hostedAuthLogin = finalUrlParts.pathname === "/login";
   const vercelBlocked = response.status === 401;
-  const boardsmithRendered = response.status >= 200 && response.status < 300 && !vercelBlocked && !boardsmithAccessGate;
+  const boardsmithRendered = response.status >= 200 && response.status < 300 && !vercelBlocked && !boardsmithAccessGate && !hostedAuthLogin;
 
   return {
     path: requestedPathLabel,
@@ -126,9 +128,12 @@ function classifyRouteCheck({ response, finalUrl, bodyText, requestedPath, appAc
     statusCode: response.status,
     vercelBlocked,
     boardsmithAccessGate,
+    hostedAuthLogin,
     boardsmithRendered,
     blockedReason: vercelBlocked
       ? "vercel_protection"
+      : hostedAuthLogin
+        ? "hosted_auth_login_required"
       : boardsmithAccessGate && !appAccessPasswordProvided
         ? "boardsmith_access_password_missing"
         : null,
@@ -233,8 +238,9 @@ export async function runHostedSmokeCheck(env = process.env) {
 
     const vercelBlocked = checks.some((check) => check.vercelBlocked);
     const appGateBlocked = checks.some((check) => check.blockedReason === "boardsmith_access_password_missing");
+    const hostedAuthBlocked = checks.some((check) => check.blockedReason === "hosted_auth_login_required");
     const serverFailed = checks.some((check) => check.statusCode >= 500);
-    const status = vercelBlocked || appGateBlocked ? "blocked" : serverFailed ? "failed" : "passed";
+    const status = vercelBlocked || appGateBlocked || hostedAuthBlocked ? "blocked" : serverFailed ? "failed" : "passed";
 
     return {
       status,

@@ -800,9 +800,20 @@
 - [x] Keep hosted `Tweak this plan` UI smoke blocked from this Codex environment because an authorized hosted browser/login session is still required before project-detail UI can be reached.
 - [x] Confirm no active project was opened, no revision was submitted, no hosted mutation was attempted, and no app feature, schema change, migration, package change, disabled Vercel protection, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, Supabase cloud change, or new project type was added.
 
+## Task 73J - Secret-Safe Authenticated Hosted Smoke Path
+
+- [x] Inspect current app auth/access surfaces, hosted smoke helper, hosted smoke runbook, hosted deployment status, env example, package/test tooling, and task ledger.
+- [x] Determine that Boardsmith app code currently implements the `/access` private MVP password gate but does not define a `/login` route.
+- [x] Determine that the hosted `/login?next=...` layer is outside the current Boardsmith app-level access implementation, so `BOARDSMITH_ACCESS_PASSWORD` alone is not enough for full hosted project-detail UI smoke.
+- [x] Update `scripts/hosted-smoke-check.mjs` so `/login` final paths are classified as `hosted_auth_login_required` instead of a rendered Boardsmith page.
+- [x] Add focused smoke-helper coverage for hosted login redirects, redacted output, and the new blocker category.
+- [x] Document the safe authenticated smoke path: continue using Vercel bypass and Boardsmith access password, then use an authorized browser session or a dedicated non-critical hosted smoke account for the hosted login layer.
+- [x] Add placeholder env names `BOARDSMITH_HOSTED_SMOKE_EMAIL` and `BOARDSMITH_HOSTED_SMOKE_PASSWORD` for future browser/session smoke only; do not use personal credentials for repeatable automation.
+- [x] Keep the pass limited to smoke helper classification, docs, placeholders, and tests with no app feature, schema change, migration, package change, hosted mutation, disabled Vercel protection, personal credential logging, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion unrelated to smoke, production multi-user behavior, Supabase cloud change, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Run the hosted `Tweak this plan` UI smoke from an authorized private hosted browser/login session using a clearly labeled non-critical test project, then record the result without URLs, secrets, screenshots, row data, or sensitive logs.
+1. [ ] Create or confirm a dedicated non-critical hosted smoke login/session path, then run hosted `Tweak this plan` UI smoke with a clearly labeled non-critical project and record the result without URLs, secrets, screenshots, row data, or sensitive logs.
 2. [ ] Consider a `private-mvp-0.9` checkpoint after authorized hosted `Tweak this plan` smoke passes.
 3. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 

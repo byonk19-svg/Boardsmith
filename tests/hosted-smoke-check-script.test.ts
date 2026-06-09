@@ -24,6 +24,7 @@ type SmokeCheckResult = {
     statusCode: number;
     vercelBlocked: boolean;
     boardsmithAccessGate: boolean;
+    hostedAuthLogin: boolean;
     boardsmithRendered: boolean;
     blockedReason: string | null;
   }[];
@@ -51,7 +52,7 @@ afterEach(async () => {
   servers.length = 0;
 });
 
-async function startSmokeServer() {
+async function startSmokeServer({ hostedLoginRequired = false } = {}) {
   const capturedRequests: CapturedRequest[] = [];
   const server = createServer((request: IncomingMessage, response: ServerResponse) => {
     capturedRequests.push({
@@ -81,6 +82,12 @@ async function startSmokeServer() {
     }
 
     if (request.url?.startsWith("/projects")) {
+      if (hostedLoginRequired) {
+        response.writeHead(307, { location: "/login?next=%2Fprojects" });
+        response.end();
+        return;
+      }
+
       if (!request.headers.cookie?.includes("boardsmith_access=test-cookie")) {
         response.writeHead(307, { location: "/access?returnTo=%2Fprojects" });
         response.end();
@@ -89,6 +96,12 @@ async function startSmokeServer() {
 
       response.writeHead(200, { "content-type": "text/html" });
       response.end("<main>Boardsmith projects</main>");
+      return;
+    }
+
+    if (request.url?.startsWith("/login")) {
+      response.writeHead(200, { "content-type": "text/html" });
+      response.end("<main>Hosted login</main>");
       return;
     }
 
@@ -133,13 +146,61 @@ describe("hosted smoke check script", () => {
 
     const result = JSON.parse(stdout) as SmokeCheckResult;
     expect(result.status).toBe("passed");
-    expect(result.checks).toEqual([{ path: "/projects", finalPath: "/projects", statusCode: 200, vercelBlocked: false, boardsmithAccessGate: false, boardsmithRendered: true, blockedReason: null }]);
+    expect(result.checks).toEqual([
+      {
+        path: "/projects",
+        finalPath: "/projects",
+        statusCode: 200,
+        vercelBlocked: false,
+        boardsmithAccessGate: false,
+        hostedAuthLogin: false,
+        boardsmithRendered: true,
+        blockedReason: null,
+      },
+    ]);
     expect(capturedRequests.some((request) => request.bypassHeader === "test-bypass-secret")).toBe(true);
     expect(capturedRequests.every((request) => request.setBypassCookieHeader === "true")).toBe(true);
     expect(capturedRequests.some((request) => request.cookie?.includes("boardsmith_access=test-cookie"))).toBe(true);
     expect(stdout).not.toContain("test-bypass-secret");
     expect(stdout).not.toContain("test-access-password");
     expect(stdout).not.toContain(baseUrl);
+  });
+
+  it("reports hosted login redirects as an auth blocker instead of a rendered Boardsmith page", async () => {
+    const { baseUrl } = await startSmokeServer({ hostedLoginRequired: true });
+
+    const failure = await execFileAsync("node", ["scripts/hosted-smoke-check.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        BOARDSMITH_HOSTED_SMOKE_URL: baseUrl,
+        VERCEL_AUTOMATION_BYPASS_SECRET: "test-bypass-secret",
+        BOARDSMITH_ACCESS_PASSWORD: "test-access-password",
+        BOARDSMITH_HOSTED_SMOKE_PATHS: "/projects",
+      },
+    }).catch((error: unknown) => error);
+
+    if (!failure || typeof failure !== "object" || !("stdout" in failure)) {
+      throw new Error("Expected hosted smoke check script to fail with stdout.");
+    }
+
+    const result = JSON.parse((failure as { stdout: string }).stdout) as SmokeCheckResult;
+    expect(result.status).toBe("blocked");
+    expect(result.checks).toEqual([
+      {
+        path: "/projects",
+        finalPath: "/login?next=%2Fprojects",
+        statusCode: 200,
+        vercelBlocked: false,
+        boardsmithAccessGate: false,
+        hostedAuthLogin: true,
+        boardsmithRendered: false,
+        blockedReason: "hosted_auth_login_required",
+      },
+    ]);
+    expect((failure as { stdout: string }).stdout).not.toContain("test-bypass-secret");
+    expect((failure as { stdout: string }).stdout).not.toContain("test-access-password");
+    expect((failure as { stdout: string }).stdout).not.toContain(baseUrl);
   });
 
   it("fails clearly when the bypass secret is missing without printing env values", async () => {
