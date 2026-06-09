@@ -781,12 +781,20 @@
 - [x] Update `.env.example`, `docs/HOSTED_SMOKE_AUTOMATION.md`, hosted deployment status, and deployment readiness docs with the ignored-file workflow and the npm command.
 - [x] Keep the pass limited to local smoke configuration/docs with no app feature, schema change, migration, package change, disabled Vercel protection, hosted mutation, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, Supabase cloud change, or new project type.
 
+## Task 73H - Hosted Smoke Local Env Bypass Verification
+
+- [x] Confirm `.env.hosted-smoke.local` remains ignored by `.gitignore` via `.env*.local` and does not appear in `git status --short`.
+- [x] Record the sanitized `npm run smoke:hosted` pass without printing or committing the hosted URL, bypass secret, app access password, cookies, request headers, project refs, connection strings, row data, screenshots, or sensitive logs.
+- [x] Confirm the route-level smoke bypass got past Vercel-level protection: `/` and `/projects` both returned `vercelBlocked: false`.
+- [x] Confirm `/` returned `200` and rendered the hosted app.
+- [x] Confirm `/projects` returned `200` with final path `/login?next=%2Fprojects`, meaning Vercel protection was bypassed and the hosted app handled the route normally through its auth/login flow.
+- [x] Keep the pass docs-only with no app feature, schema change, migration, package change, hosted mutation, disabled Vercel protection, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, Supabase cloud change, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Create `.env.hosted-smoke.local` locally with `BOARDSMITH_HOSTED_SMOKE_URL`, `VERCEL_AUTOMATION_BYPASS_SECRET`, and, if the app-level gate is enabled, `BOARDSMITH_ACCESS_PASSWORD`, then run `npm run smoke:hosted`.
-2. [ ] After the route-level bypass check passes, rerun the hosted `Tweak this plan` smoke through the intended private hosted access path and record the result without URLs, secrets, screenshots, row data, or sensitive logs.
-3. [ ] Consider a `private-mvp-0.9` checkpoint after authorized hosted `Tweak this plan` smoke passes.
-4. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
+1. [ ] Run the hosted `Tweak this plan` UI smoke through the bypass path using a clearly labeled non-critical test project, then record the result without URLs, secrets, screenshots, row data, or sensitive logs.
+2. [ ] Consider a `private-mvp-0.9` checkpoint after authorized hosted `Tweak this plan` smoke passes.
+3. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 
 ## Remaining Hardening
 
