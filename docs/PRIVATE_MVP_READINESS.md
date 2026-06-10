@@ -338,6 +338,7 @@ Recommended next directions:
 - Project notes.
 - Build log fields for completion status, completion date, actual material, plan changes, and lessons learned.
 - Project list search, updated-first ordering, filters for project type/status/plan state/record state, compact scan badges, and clear open/latest-plan/generate actions.
+- Project detail navigation polish with no-print section jump links and grouped project actions, hosted-smoked across latest-plan, no-plan, archived, and print-preview states.
 - Optional private access gate through `BOARDSMITH_ACCESS_PASSWORD`.
 - Vercel project link and hosted env var name readiness.
 - User-supplied authorized hosted smoke for access gate, project creation, notes, build log, generation, review surfaces, duplicate project, project list indicators, and browser print preview.
@@ -346,6 +347,7 @@ Recommended next directions:
 - Authorized manual hosted archive smoke passed on June 8, 2026 with no caveats: `/projects` loaded, Active excluded archived projects, Archived showed archived projects, All showed both active and archived projects, archive and restore worked on a clearly labeled non-critical test project, dashboard default state excluded archived projects, archived project detail and print preview remained accessible, and copy avoided permanent delete/data-loss wording.
 - Authenticated hosted `Tweak this plan` active-project UI smoke passed on June 10, 2026: route smoke reached `/projects` without a hosted-login blocker, the active revision flow saved a new latest plan while preserving the prior version, revised-vs-prior comparison and `Revised` history marker appeared, the revised latest print preview rendered expected shop-plan sections, and forbidden engineering/approval/load/CAD/CNC/export-certainty copy was absent.
 - Hosted archived-project `Tweak this plan` blocking smoke passed on June 10, 2026: a clearly labeled non-critical smoke/test project with a latest plan was archived during smoke, the Archived filter exposed it, Active excluded it, archived detail stayed accessible, restore action was visible, the revision form was absent until restore, and archived print preview rendered expected shop-plan sections.
+- Hosted project-detail navigation smoke passed on June 10, 2026: `Project sections` links targeted rendered sections for latest-plan pages, no-plan pages omitted absent plan-only links, `Project actions` preserved existing actions, archived detail still blocked revisions until restore, and browser print preview omitted the no-print navigation/action polish.
 
 ## What Is Not Verified Yet
 

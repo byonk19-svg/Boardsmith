@@ -197,6 +197,8 @@ Task 74A promotes this hosted active-flow result into the `private-mvp-0.9` chec
 
 Task 75A closed the archived-project hosted smoke caveat on June 10, 2026. A clearly labeled non-critical smoke/test project with a latest generated plan was archived during the smoke, then verified without recording hosted URLs, project IDs, titles, row data, cookies, headers, screenshots, or sensitive logs. The Archived filter exposed the project, the Active filter excluded it, the archived detail page remained accessible, the restore action was visible, `Tweak this plan` showed the restore-before-revising state instead of a revision form, and the archived print preview rendered expected shop-plan sections. No revision, generation, restore, delete, sharing, export, schema, package, or Supabase cloud change was made.
 
+Task 76B smoke-tested the hosted project-detail navigation polish on June 10, 2026. `npm run smoke:hosted` passed first, then sanitized hosted checks confirmed a latest-plan smoke/test project showed the `Project sections` nav, all expected section links pointed to rendered section IDs, `Project actions` grouped Generate Plan, Duplicate project, Browser print preview, Archive/Restore, and Back to projects, a no-plan smoke/test project omitted absent plan-only section links, an archived project still blocked revisions until restore, and browser print preview rendered expected shop-plan sections without the no-print navigation/action polish. No hosted URLs, project IDs, titles, row data, cookies, headers, screenshots, or sensitive logs were recorded.
+
 ## Recommendation
 
 Status: provider linked, hosted env names present, and user-supplied authorized hosted smoke passed.

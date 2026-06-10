@@ -875,11 +875,22 @@
 - [x] Add focused rendered-markup coverage for section nav links, absent no-plan links, no-print navigation/action wrappers, archived revision blocking, and forbidden-claim guardrails.
 - [x] Keep the pass limited to UI/test/docs with no schema change, migration, package change, OpenAI prompt/model change, hosted mutation, PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, or new project type.
 
+## Task 76B - Hosted Project Detail Navigation Smoke
+
+- [x] Run `npm run smoke:hosted` and confirm hosted route smoke still passes through the protected hosted access path.
+- [x] Confirm a clearly labeled non-critical latest-plan smoke/test project shows the `Project sections` nav and that links target rendered section IDs for project intake, project structure, plan review, `Tweak this plan`, plan comparison, printable plan sheet, plan history, and project record.
+- [x] Confirm the `Project actions` panel shows existing actions without changing behavior: Generate Plan, Duplicate project, Browser print preview, Archive/Restore, and Back to projects.
+- [x] Confirm a no-plan smoke/test project omits absent plan-only links and does not show Browser print preview.
+- [x] Confirm an archived project still shows restore-before-revising copy and no revision form.
+- [x] Confirm browser print preview renders expected shop-plan sections and omits the no-print navigation/action polish.
+- [x] Keep hosted smoke output sanitized with no hosted URLs, project IDs, project titles, row data, cookies, headers, screenshots, session-file contents, or sensitive logs recorded.
+- [x] Keep the pass smoke/docs-only with no app feature change, schema change, migration, package change, OpenAI prompt/model change, PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Dogfood the project detail navigation polish across no-plan, latest-plan, revised-comparison, and archived-project states.
-2. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
-3. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, or `Tweak this plan` change.
+1. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
+2. [ ] Consider a small private-MVP checkpoint only after another meaningful usability milestone, not for every smoke pass.
+3. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, project detail, or `Tweak this plan` change.
 
 ## Remaining Hardening
 
