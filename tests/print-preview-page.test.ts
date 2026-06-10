@@ -134,7 +134,7 @@ describe("ProjectPrintPreviewPage", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the latest generated plan as a browser print preview from the printable manifest", async () => {
+  it("renders the latest generated plan as a browser print plan from the printable manifest", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([planRecord]);
     const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
@@ -145,8 +145,9 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("Browser print preview");
+    expect(markup).toContain("Browser print plan");
     expect(markup).toContain("Use your browser&#x27;s print dialog if you want a paper copy.");
+    expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
     expect(markup).toContain("Planning aid: verify dimensions, materials, hardware, and safety notes before building.");
     expect(markup).toContain("A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.");
     expect(markup).not.toContain("This extra sentence should stay out of the compressed print header.");
@@ -209,7 +210,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Additional checklist notes");
     expect(markup).toContain("Plan review summary");
     expect(markup).toContain("Planning-aid reminders");
-    expect(markup).toContain("No app-generated export or download is available from this print view.");
+    expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
     expect(markup).not.toContain("Export Readiness");
     expect(markup).not.toContain("Future export notes");
     expect(markup).not.toContain("Operations and Build Steps");
@@ -285,7 +286,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Front lip");
   });
 
-  it("keeps browser print preview available for archived projects", async () => {
+  it("keeps browser print plan available for archived projects", async () => {
     getProjectMock.mockResolvedValue({ ...project, archived_at: "2026-06-06T10:00:00.000Z" });
     listGeneratedPlansMock.mockResolvedValue([planRecord]);
     const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
@@ -296,7 +297,7 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("Browser print preview");
+    expect(markup).toContain("Browser print plan");
     expect(markup).toContain("Build Snapshot");
     expect(markup).toContain("Project Visuals");
     expect(markup).toContain("Cut Checklist");
@@ -523,7 +524,7 @@ describe("ProjectPrintPreviewPage", () => {
     );
 
     expect(markup).toContain("No generated plan to print yet");
-    expect(markup).toContain("Generate and validate a plan before using browser print preview.");
+    expect(markup).toContain("Generate and validate a plan before using the browser print plan.");
     expect(markup).not.toContain("Download");
   });
 });

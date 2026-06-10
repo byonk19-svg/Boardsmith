@@ -36,7 +36,7 @@ export function GeneratePlanForm({ action, idleLabel = defaultIdleLabel, pending
       </button>
       {isSubmitting ? (
         <p aria-live="polite" className="mt-2 text-xs font-medium text-ink/60">
-          Generating can take a minute. Please keep this page open.
+          Generating can take a minute. Boardsmith may block unsafe or incomplete output instead of saving it.
         </p>
       ) : null}
     </form>

@@ -228,7 +228,7 @@ function createProjectSectionLinks({
     ...(hasPlanReview ? [{ label: "Plan review", href: "#plan-review" } satisfies ProjectSectionLink] : []),
     ...(hasLatestPlan ? [{ label: "Tweak this plan", href: "#tweak-this-plan" } satisfies ProjectSectionLink] : []),
     ...(hasLatestPlan ? [{ label: "Plan comparison", href: "#plan-comparison" } satisfies ProjectSectionLink] : []),
-    ...(hasPrintablePlan ? [{ label: "Printable Plan Sheet", href: "#printable-plan-sheet" } satisfies ProjectSectionLink] : []),
+    ...(hasPrintablePlan ? [{ label: "Browser print plan", href: "#printable-plan-sheet" } satisfies ProjectSectionLink] : []),
     ...(hasPlanHistory ? [{ label: "Plan history", href: "#plan-history" } satisfies ProjectSectionLink] : []),
     { label: "Project record", href: "#project-record" },
   ];
@@ -247,10 +247,13 @@ function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project:
         />
         {hasLatestPlan ? (
           <Link href={printPreviewHref} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-            Browser print preview
+            Browser print plan
           </Link>
         ) : null}
       </div>
+      {hasLatestPlan ? (
+        <p className="mt-3 text-xs leading-5 text-ink/55">This MVP uses browser print only; no PDF or CAD download is generated.</p>
+      ) : null}
       <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
         <form action={`/projects/${project.id}/duplicate`} method="post" className="inline-flex flex-col">
           <button type="submit" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
@@ -618,7 +621,9 @@ function EmptyPlanState() {
   return (
     <section className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
       <h2 className="text-lg font-semibold text-ink">No generated plan yet</h2>
-      <p className="mt-2 text-sm text-ink/65">Generate a plan to see Boardsmith's review checks. Invalid generated JSON will not be saved.</p>
+      <p className="mt-2 text-sm leading-6 text-ink/65">
+        Generate a first plan from Project actions. Boardsmith saves only validated plans; if review blocks generation, you will see what needs attention.
+      </p>
     </section>
   );
 }
@@ -688,9 +693,9 @@ function ExportReadinessPanel({ summary }: { summary: ExportReadinessSummary }) 
     <section className={`rounded-lg border p-5 ${exportPanelClass(summary.status)}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-ink">Export Readiness</h2>
+          <h2 className="text-lg font-semibold text-ink">Future output notes</h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            This checks whether the saved plan structure is ready for future printable, SVG, or PDF polish. No export files are generated here.
+            This records future output review notes only. This MVP uses browser print only; no PDF or CAD download is generated.
           </p>
         </div>
         <span className={`w-fit rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${exportBadgeClass(summary.status)}`}>
@@ -707,7 +712,7 @@ function ExportReadinessPanel({ summary }: { summary: ExportReadinessSummary }) 
       {summary.blockingIssueCount > 0 ? (
         <ReviewMessageGroup title="Not ready yet" messages={summary.blockingIssues.map((issue) => issue.message)} tone="blocked" />
       ) : (
-        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm font-medium text-ink">No blocking export-readiness issues found.</p>
+        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm font-medium text-ink">No blocking future-output review issues found.</p>
       )}
 
       {summary.warningCount > 0 ? <ReviewMessageGroup title="Needs review" messages={summary.warnings.map((issue) => issue.message)} tone="warning" /> : null}
@@ -715,7 +720,7 @@ function ExportReadinessPanel({ summary }: { summary: ExportReadinessSummary }) 
       {summary.exportReadinessNotes.length > 0 ? <ReviewMessageGroup title="Build-model readiness notes" messages={summary.exportReadinessNotes} tone="info" /> : null}
 
       <p className="mt-4 text-sm leading-6 text-ink/70">
-        Future exports still require human review and safe woodworking judgment. This does not create production-ready CAD, CNC, DXF, SVG, or PDF output.
+        Future output work still requires human review and safe woodworking judgment. This panel does not create export files or production-ready CAD, CNC, DXF, SVG, or PDF output.
       </p>
     </section>
   );
@@ -832,7 +837,7 @@ function ReviewMessageGroup({ title, messages, tone }: { title: string; messages
 function exportStatusLabel(status: ExportReadinessStatus): string {
   if (status === "not_ready") return "Not ready yet";
   if (status === "needs_review") return "Needs review";
-  return "Looks ready for future export polish";
+  return "Looks ready for future output review";
 }
 
 function exportPanelClass(status: ExportReadinessStatus): string {
@@ -966,10 +971,11 @@ function BuildModelView({
       </div>
 
       <div className="mt-5 rounded-md bg-shop p-4">
-        <p className="text-sm font-semibold text-ink">Export readiness</p>
+        <p className="text-sm font-semibold text-ink">Future output notes</p>
         <p className="mt-2 text-sm leading-6 text-ink/65">
-          SVG: {readinessLabel(buildModel.exportReadiness.svgCandidate)} - PDF: {readinessLabel(buildModel.exportReadiness.pdfCandidate)} - DXF:{" "}
-          {readinessLabel(buildModel.exportReadiness.dxfCandidate)} - CAD: {readinessLabel(buildModel.exportReadiness.cadCandidate)}
+          This MVP uses browser print only; no PDF or CAD download is generated. Future output review: SVG{" "}
+          {readinessLabel(buildModel.exportReadiness.svgCandidate)}, PDF {readinessLabel(buildModel.exportReadiness.pdfCandidate)}, DXF{" "}
+          {readinessLabel(buildModel.exportReadiness.dxfCandidate)}, CAD {readinessLabel(buildModel.exportReadiness.cadCandidate)}.
         </p>
         {buildModel.exportReadiness.notes.length > 0 ? <p className="mt-2 text-sm leading-6 text-ink/65">{buildModel.exportReadiness.notes.join(" ")}</p> : null}
       </div>
@@ -1107,10 +1113,11 @@ function PlanView({
       <header className="border-b border-sawdust pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Printable Plan Sheet</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Browser print plan</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Latest generated plan</h2>
             <p className="mt-3 leading-7 text-ink/75">A readable planning sheet assembled from the saved generated plan and deterministic review data.</p>
             <p className="mt-3 text-sm font-medium text-caution">Review before building. Use your own judgment before cutting or assembling.</p>
+            <p className="mt-2 text-sm leading-6 text-ink/65">This MVP uses browser print only; no PDF or CAD download is generated.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">Planning aid</span>
@@ -1239,7 +1246,7 @@ function PlanView({
           <List items={manifest.sections.beginnerTips} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Future export notes">
+        <PlanSheetSection title="Future output notes">
           <List items={manifest.futureExportNotes} />
         </PlanSheetSection>
       </div>

@@ -253,9 +253,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Wall mounting is likely.");
     expect(markup).toContain("Plan Review");
     expect(markup).toContain("Review: Blocked");
-    expect(markup).toContain("Export Readiness");
-    expect(markup).toContain("This checks whether the saved plan structure is ready for future printable, SVG, or PDF polish.");
-    expect(markup).toContain("No export files are generated here.");
+    expect(markup).toContain("Future output notes");
+    expect(markup).toContain("This records future output review notes only.");
+    expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
   });
 
   it("renders a read-only material summary from the displayed build model", async () => {
@@ -302,7 +302,7 @@ describe("ProjectDetailPage project structure", () => {
       }),
     );
 
-    expect(markup).toContain("Printable Plan Sheet");
+    expect(markup).toContain("Browser print plan");
     expect(markup).toContain("Latest generated plan");
     expect(markup).toContain("Plan at a glance");
     expect(markup).toContain("Overview / Summary");
@@ -342,11 +342,11 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Finishing notes");
     expect(markup).toContain("Use your own judgment before cutting or assembling.");
     expect(markup).toContain("Verify dimensions, materials, hardware, tool setup, and site conditions before cutting or building.");
-    expect(markup).toContain("No export, CAD, CNC, PDF, SVG, or DXF output is generated here.");
+    expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
     expect(markup).not.toContain("CAD-ready");
     expect(markup).not.toContain("CNC-ready");
     expect(markup).not.toContain("construction approval");
-    expect(markup).toContain("Future export notes");
+    expect(markup).toContain("Future output notes");
     expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
     expect(markup).toContain("Tweak this plan");
     expect(markup).toContain("Describe one change to the latest plan.");
@@ -481,7 +481,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("This log is not an inspection, certification, load rating, or professional approval.");
   });
 
-  it("links generated plans to the browser print preview page", async () => {
+  it("links generated plans to the browser print plan page", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([planRecord]);
     const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
@@ -494,7 +494,7 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
-    expect(markup).toContain("Browser print preview");
+    expect(markup).toContain("Browser print plan");
   });
 
   it("keeps archived project details and generated plan links viewable", async () => {
@@ -560,7 +560,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('name="notes"');
     expect(markup).toContain("Try walnut stain and verify bracket screw length.");
     expect(markup).toContain("Notes stay with this project and are not used for AI generation or printable plans.");
-    expect(markup).not.toContain("Printable Plan Sheet</p><h2 class=\"mt-2 text-2xl font-semibold tracking-tight text-ink\">Generated Plan</h2><p>Try walnut stain");
+    expect(markup).not.toContain("Browser print plan</p><h2 class=\"mt-2 text-2xl font-semibold tracking-tight text-ink\">Generated Plan</h2><p>Try walnut stain");
   });
 
   it("falls back to a derived project structure for older generated plans without saved build models", async () => {
@@ -578,7 +578,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("A deterministic planning model derived from the project intake.");
     expect(markup).toContain("fresh intake material");
     expect(markup).toContain("Review uses a derived project structure because this plan version did not store a build model.");
-    expect(markup).toContain("Future export work should use a generated plan with stored build-model JSON.");
+    expect(markup).toContain("Future output review should use a generated plan with stored build-model JSON.");
   });
 
   it("shows a calm empty review state before any plan is generated", async () => {
@@ -596,7 +596,8 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("No generated plan yet");
     expect(markup).toContain(">Generate Plan</button>");
     expect(markup).not.toContain("Generate another plan version");
-    expect(markup).toContain("Generate a plan to see Boardsmith&#x27;s review checks.");
+    expect(markup).toContain("Generate a first plan from Project actions.");
+    expect(markup).toContain("Boardsmith saves only validated plans; if review blocks generation, you will see what needs attention.");
     expect(markup).toContain("Project sections");
     expect(markup).toContain('href="#project-intake"');
     expect(markup).toContain('href="#project-structure"');
@@ -609,7 +610,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain("Blocking issues");
     expect(markup).not.toContain("Tweak this plan");
     expect(markup).not.toContain('name="revision_instruction"');
-    expect(markup).not.toContain("Browser print preview");
+    expect(markup).not.toContain("Browser print plan");
   });
 
   it("keeps notes and build log useful when no plan or saved record details exist", async () => {

@@ -248,7 +248,7 @@ function createDoorHangerParts(project: BuildModelDraftProject, materialId: stri
       widthInches: null,
       thicknessInches: thickness,
       grainDirection: "not_applicable",
-      notes: ["Placeholder for future layer geometry; no SVG export is generated yet."],
+      notes: ["Placeholder for future layer geometry; no download or export is generated yet."],
     }),
   ];
   const hangingHardware = hardware({
@@ -604,7 +604,7 @@ function createBookLedgeParts(project: BuildModelDraftProject, materialId: strin
       pdfCandidate: true,
       dxfCandidate: false,
       cadCandidate: false,
-      notes: ["Book ledge pieces are modeled for planning review only.", "No export, CAD, CNC, or production cut file is implemented."],
+      notes: ["Book ledge pieces are modeled for planning review only.", "This MVP uses browser print only; no PDF or CAD download is generated."],
     },
   };
 }
@@ -746,8 +746,8 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
       dxfCandidate: false,
       cadCandidate: false,
       notes: wallMounted
-        ? [...templateHint.svgReadiness, "Export readiness is limited until mounting and support details are reviewed."]
-        : ["Future exports should distinguish the shelf board or riser top from any optional supports.", "No file export is implemented."],
+        ? [...templateHint.svgReadiness, "Future output review is limited until mounting and support details are reviewed."]
+        : ["Future output review should distinguish the shelf board or riser top from any optional supports.", "This MVP uses browser print only; no PDF or CAD download is generated."],
     },
   };
 }

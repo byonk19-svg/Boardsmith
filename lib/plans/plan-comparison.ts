@@ -50,7 +50,7 @@ export function createPlanHistoryComparison(params: {
   });
   const reviewChanges = [
     reviewSummaryChange("Plan Review", params.latestPlanReview, params.comparedPlanReview),
-    reviewSummaryChange("Export Readiness", params.latestExportReadiness, params.comparedExportReadiness),
+    reviewSummaryChange("Future output notes", params.latestExportReadiness, params.comparedExportReadiness),
   ].filter((change): change is PlanComparisonChange => change !== null);
   const allChanges = [...summaryChanges, ...materialChanges, ...cutListChanges, ...stepChanges, ...reviewChanges];
 

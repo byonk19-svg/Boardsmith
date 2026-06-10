@@ -12,7 +12,7 @@ export const templateHints: Record<ProjectType, TemplateHint> = {
     projectType: "door_hanger",
     assumptions: ["Likely made from 1/4 inch plywood or similar sheet stock.", "Hanging hardware or ribbon is usually needed."],
     cautions: ["Check door clearance and avoid sharp edges.", "Do not assume exterior weather resistance unless material and finish support it."],
-    svgReadiness: ["Keep outline shapes closed.", "Separate decorative layers from the backer in future SVG exports."],
+    svgReadiness: ["Keep outline shapes closed.", "Separate decorative layers from the backer for future output review."],
   },
   layered_cutout: {
     projectType: "layered_cutout",
@@ -30,13 +30,13 @@ export const templateHints: Record<ProjectType, TemplateHint> = {
     projectType: "simple_shelf",
     assumptions: ["Wall mounting is likely.", "Brackets, screws, anchors, or studs may be required."],
     cautions: ["Load rating cannot be guaranteed.", "Include stud/anchor caution and require user review before use."],
-    svgReadiness: ["Future exports should distinguish shelf board, supports, and drilling references."],
+    svgReadiness: ["Future output review should distinguish shelf board, supports, and drilling references."],
   },
   planter_box: {
     projectType: "planter_box",
     assumptions: ["Outdoor finish and drainage are important.", "Rot-resistant material or liner may be needed."],
     cautions: ["Soil and water add weight.", "Drainage holes and weather-safe fasteners should be reviewed."],
-    svgReadiness: ["Future exports should separate side, end, bottom, and trim parts."],
+    svgReadiness: ["Future output review should separate side, end, bottom, and trim parts."],
   },
 };
 

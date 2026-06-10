@@ -122,24 +122,24 @@ function baseDisclaimers(buildModel: BoardsmithBuildModel): string[] {
   return [
     "Boardsmith plans are planning aids, not professional engineering reviews.",
     "Verify dimensions, materials, hardware, tool setup, and site conditions before cutting or building.",
-    "No export, CAD, CNC, PDF, SVG, or DXF output is generated here.",
+    "This MVP uses browser print only; no PDF or CAD download is generated.",
     ...buildModel.safety.disclaimers,
   ];
 }
 
 function futureExportNotes(planRecord: GeneratedProjectPlanRecord | null, exportReadiness: ExportReadinessSummary | null): string[] {
   if (!planRecord || !exportReadiness) {
-    return ["Generate and validate a plan before using this manifest for future print or export work."];
+    return ["Generate and validate a plan before using this manifest for future browser print or output review."];
   }
 
   const notes = [
-    "Future print and export work can use this internal data shape, but no files or downloads are created here.",
+    "Future output review can use this internal data shape, but no files or downloads are created here.",
     ...exportReadiness.exportReadinessNotes,
     ...exportReadiness.topMessages,
   ];
 
   if (exportReadiness.exportCandidates.length > 0) {
-    notes.push(`Future export candidates: ${exportReadiness.exportCandidates.join(", ")}.`);
+    notes.push(`Future output candidates for later review: ${exportReadiness.exportCandidates.join(", ")}.`);
   }
 
   return [...new Set(notes)];

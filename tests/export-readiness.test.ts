@@ -48,13 +48,13 @@ const exportFriendlyPlan: GeneratedPlan = {
 };
 
 describe("export readiness summary", () => {
-  it("reports ready when the saved build model has pieces, dimensions, materials, operations, and future export candidates", () => {
+  it("reports ready when the saved build model has pieces, dimensions, materials, operations, and future output candidates", () => {
     const readyBuildModel: BoardsmithBuildModel = {
       ...doorHangerBuildModelFixture,
       unresolvedQuestions: [],
       confidence: {
         ...doorHangerBuildModelFixture.confidence,
-        reasons: ["Dimensions, material, operations, and outline are known enough for future export polish."],
+        reasons: ["Dimensions, material, operations, and outline are known enough for future output review."],
       },
     };
 
@@ -63,7 +63,7 @@ describe("export readiness summary", () => {
     expect(summary.status).toBe("ready");
     expect(summary.blockingIssueCount).toBe(0);
     expect(summary.warningCount).toBe(0);
-    expect(summary.topMessages).toContain("Looks ready for future export polish.");
+    expect(summary.topMessages).toContain("Looks ready for future output review.");
     expect(summary.exportCandidates).toEqual(["SVG", "PDF"]);
   });
 

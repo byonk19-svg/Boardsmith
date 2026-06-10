@@ -59,7 +59,7 @@ export function summarizeExportReadiness(
   if (options.buildModelSource !== "saved") {
     warnings.push({
       code: "derived_build_model",
-      message: "Future export work should use a generated plan with stored build-model JSON.",
+      message: "Future output review should use a generated plan with stored build-model JSON.",
     });
   }
 
@@ -75,7 +75,7 @@ export function summarizeExportReadiness(
     if (piece.label.trim().length === 0) {
       blockingIssues.push({
         code: "piece_name_missing",
-        message: `Piece ${pieceNumber} needs a usable name before future export work.`,
+        message: `Piece ${pieceNumber} needs a usable name before future output review.`,
       });
     }
 
@@ -86,7 +86,7 @@ export function summarizeExportReadiness(
     ].filter((dimension) => dimension.length > 0);
 
     if (missingDimensions.length > 0) {
-      const message = `Piece "${piece.label.trim() || pieceNumber}" is missing ${missingDimensions.join(", ")} for future export checks.`;
+      const message = `Piece "${piece.label.trim() || pieceNumber}" is missing ${missingDimensions.join(", ")} for future output review.`;
       if (hasContextForUnknowns) {
         warnings.push({ code: "piece_dimensions_need_review", message });
       } else {
@@ -96,7 +96,7 @@ export function summarizeExportReadiness(
   }
 
   if (buildModel.materials.length === 0) {
-    const message = "No material choices are available for future export notes.";
+    const message = "No material choices are available for future output notes.";
     if (hasContextForUnknowns) {
       warnings.push({ code: "materials_need_review", message });
     } else {
@@ -114,14 +114,14 @@ export function summarizeExportReadiness(
   if (plan.cut_list.length === 0) {
     blockingIssues.push({
       code: "cut_list_missing",
-      message: "The generated plan has no cut list to review for future export work.",
+      message: "The generated plan has no cut list to review for future output review.",
     });
   }
 
   if (plan.assembly_steps.length === 0) {
     blockingIssues.push({
       code: "assembly_steps_missing",
-      message: "The generated plan has no build steps to review for future export work.",
+      message: "The generated plan has no build steps to review for future output review.",
     });
   }
 
@@ -135,14 +135,14 @@ export function summarizeExportReadiness(
   if (buildModel.safety.disclaimers.length === 0 || plan.safety_notes.length === 0) {
     warnings.push({
       code: "safety_notes_need_review",
-      message: "Safety notes should be reviewed before any future export work.",
+      message: "Safety notes should be reviewed before any future output review.",
     });
   }
 
   if (buildModel.confidence.level === "low") {
     warnings.push({
       code: "low_build_model_confidence",
-      message: "Build-model confidence is low, so future export work needs review.",
+      message: "Build-model confidence is low, so future output review needs manual review.",
     });
   }
 
@@ -150,14 +150,14 @@ export function summarizeExportReadiness(
   if (candidates.length === 0) {
     warnings.push({
       code: "no_export_candidate",
-      message: "No future export format is marked as a candidate yet.",
+      message: "No future output format is marked as a candidate yet.",
     });
   }
 
   for (const question of buildModel.unresolvedQuestions) {
     warnings.push({
       code: "unresolved_question",
-      message: `Unresolved before export polish: ${question}`,
+      message: `Unresolved before future output review: ${question}`,
     });
   }
 
@@ -167,7 +167,7 @@ export function summarizeExportReadiness(
   const topMessages = [
     ...uniqueBlockingIssues.map((issue) => issue.message),
     ...uniqueWarnings.map((issue) => issue.message),
-    ...(uniqueBlockingIssues.length === 0 && uniqueWarnings.length === 0 ? ["Looks ready for future export polish."] : []),
+    ...(uniqueBlockingIssues.length === 0 && uniqueWarnings.length === 0 ? ["Looks ready for future output review."] : []),
   ].slice(0, 4);
 
   return {

@@ -44,13 +44,14 @@ export default async function ProjectPrintPreviewPage({
           <Link href={`/projects/${project.id}`} className="text-sm font-semibold text-moss hover:underline">
             Back to project
           </Link>
-          <p className="mt-2 text-sm text-ink/65">Use your browser's print dialog if you want a paper copy.</p>
+          <p className="mt-2 text-sm text-ink/65">Browser print plan. Use your browser's print dialog if you want a paper copy.</p>
+          <p className="mt-1 text-sm text-ink/65">This MVP uses browser print only; no PDF or CAD download is generated.</p>
         </div>
       </div>
 
       <article className="space-y-7 print:space-y-5">
         <header className="border-b border-sawdust pb-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Browser print preview</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Browser print plan</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">{manifest.project.title}</h1>
           <p className="mt-3 text-sm font-semibold text-caution">Planning aid: verify dimensions, materials, hardware, and safety notes before building.</p>
           {manifest.sections.projectSummary ? <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/75">{compactPrintSummary(manifest.sections.projectSummary)}</p> : null}
@@ -102,7 +103,7 @@ function PrintPreviewEmptyState({ project }: { project: Project }) {
         Back to project
       </Link>
       <h1 className="mt-4 text-2xl font-semibold tracking-tight text-ink">No generated plan to print yet</h1>
-      <p className="mt-3 text-sm leading-6 text-ink/65">Generate and validate a plan before using browser print preview.</p>
+      <p className="mt-3 text-sm leading-6 text-ink/65">Generate and validate a plan before using the browser print plan.</p>
     </main>
   );
 }
@@ -219,7 +220,7 @@ function PrintReviewDetails({ manifest }: { manifest: PrintablePlanManifest }) {
     : ["Generate a plan to see Boardsmith's review checks."];
   const reminderItems = [
     ...manifest.disclaimers.filter((item) => !item.toLowerCase().includes("no export")),
-    "No app-generated export or download is available from this print view.",
+    "This MVP uses browser print only; no PDF or CAD download is generated.",
   ];
 
   return (

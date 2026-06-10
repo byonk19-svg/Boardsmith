@@ -141,7 +141,7 @@ describe("createPrintablePlanManifest", () => {
       expect.arrayContaining([
         "Boardsmith plans are planning aids, not professional engineering reviews.",
         "Verify dimensions, materials, hardware, tool setup, and site conditions before cutting or building.",
-        "No export, CAD, CNC, PDF, SVG, or DXF output is generated here.",
+        "This MVP uses browser print only; no PDF or CAD download is generated.",
       ]),
     );
   });
@@ -154,7 +154,7 @@ describe("createPrintablePlanManifest", () => {
     expect(manifest.exportReadiness).toBeNull();
     expect(manifest.cutList).toBeNull();
     expect(manifest.buildModel.source).toBe("derived");
-    expect(manifest.futureExportNotes).toContain("Generate and validate a plan before using this manifest for future print or export work.");
+    expect(manifest.futureExportNotes).toContain("Generate and validate a plan before using this manifest for future browser print or output review.");
   });
 
   it("marks older plans without stored build model JSON as derived", () => {
@@ -189,7 +189,7 @@ describe("createPrintablePlanManifest", () => {
     expect(manifest.exportReadiness?.status).toBe("not_ready");
   });
 
-  it("preserves export-readiness status when a plan is ready for future export polish", () => {
+  it("preserves export-readiness status when a plan is ready for future output review", () => {
     const readyModel: BoardsmithBuildModel = {
       ...doorHangerBuildModelFixture,
       unresolvedQuestions: [],
@@ -237,6 +237,6 @@ describe("createPrintablePlanManifest", () => {
     });
 
     expect(manifest.exportReadiness?.status).toBe("ready");
-    expect(manifest.futureExportNotes).toContain("Future export candidates: SVG, PDF, DXF.");
+    expect(manifest.futureExportNotes).toContain("Future output candidates for later review: SVG, PDF, DXF.");
   });
 });
