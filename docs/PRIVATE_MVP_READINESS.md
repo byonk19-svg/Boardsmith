@@ -313,7 +313,7 @@ Recommended next direction:
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
 - Hosted behavior after any future deployment, env-var change, migration, access-gate change, or archive-related code change until the hosted smoke checklist is rerun.
-- Hosted `Tweak this plan` UI smoke is still pending until the protected-hosted smoke bypass secret is configured and the authorized private hosted smoke checklist is rerun.
+- Hosted `Tweak this plan` active-project UI smoke passed through the authenticated hosted smoke session on June 10, 2026. The archived-project live UI check still has a narrow caveat because the hosted Archived filter did not expose an archived project card to open in that session.
 
 ## Non-Goals And Guardrails
 
@@ -394,4 +394,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. The next recommended step is a narrow planning pass for `Tweak this plan`, focused on existing plan data, cautious review language, and safe implementation slices before adding any edit/regeneration behavior. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.
+Keep Boardsmith private and continue with small trust-building polish only. The next recommended step is either a narrow `private-mvp-0.9` checkpoint for the hosted `Tweak this plan` milestone or, if desired first, a small hosted archived-project smoke check using a clearly labeled archived non-critical project. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.
