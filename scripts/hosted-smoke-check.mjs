@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { readFile } from "node:fs/promises";
+
 const bypassHeaderName = "x-vercel-protection-bypass";
 const setBypassCookieHeaderName = "x-vercel-set-bypass-cookie";
 const defaultSmokePaths = ["/", "/projects"];
@@ -106,6 +108,53 @@ function updateCookieJar(cookieJar, headers) {
   }
 }
 
+function storageStateCookieMatchesOrigin(cookie, origin) {
+  if (!cookie || typeof cookie.name !== "string" || typeof cookie.value !== "string") {
+    return false;
+  }
+
+  if (typeof cookie.expires === "number" && cookie.expires !== -1 && cookie.expires < Date.now() / 1000) {
+    return false;
+  }
+
+  if (cookie.secure === true && origin.protocol !== "https:") {
+    return false;
+  }
+
+  if (typeof cookie.domain !== "string" || !cookie.domain) {
+    return false;
+  }
+
+  const cookieDomain = cookie.domain.startsWith(".") ? cookie.domain.slice(1) : cookie.domain;
+  return origin.hostname === cookieDomain || origin.hostname.endsWith(`.${cookieDomain}`);
+}
+
+async function loadStorageStateCookies(storageStatePath, origin) {
+  let parsed;
+  try {
+    parsed = JSON.parse(await readFile(storageStatePath, "utf8"));
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      return { status: "missing" };
+    }
+
+    return { status: "invalid" };
+  }
+
+  if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.cookies)) {
+    return { status: "invalid" };
+  }
+
+  const cookies = parsed.cookies.filter((cookie) => storageStateCookieMatchesOrigin(cookie, origin));
+  return { status: "loaded", cookies };
+}
+
+function addStorageStateCookies(cookieJar, cookies) {
+  for (const cookie of cookies) {
+    cookieJar.set(cookie.name, cookie.value);
+  }
+}
+
 async function fetchWithCookies(url, { method = "GET", headers = {}, body, cookieJar, maxRedirects = 4 }) {
   let nextUrl = url;
   let response;
@@ -181,6 +230,7 @@ export async function runHostedSmokeCheck(env = process.env) {
   const baseUrl = env.BOARDSMITH_HOSTED_SMOKE_URL;
   const bypassSecret = env.VERCEL_AUTOMATION_BYPASS_SECRET;
   const accessPassword = env.BOARDSMITH_ACCESS_PASSWORD;
+  const storageStatePath = env.BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE;
   const missing = [];
 
   if (!baseUrl) {
@@ -214,8 +264,39 @@ export async function runHostedSmokeCheck(env = process.env) {
   const cookieJar = new Map();
   const paths = parseSmokePaths(env.BOARDSMITH_HOSTED_SMOKE_PATHS);
   const warnings = [];
+  let storageStateCookiesLoaded = 0;
 
   try {
+    if (storageStatePath) {
+      const storageState = await loadStorageStateCookies(storageStatePath, origin);
+      if (storageState.status === "missing") {
+        return {
+          status: "failed",
+          reason: "missing_storage_state_file",
+          checkedAt: new Date().toISOString(),
+          target: "redacted",
+          vercelBypassSecretProvided: true,
+          boardsmithAccessPasswordProvided: Boolean(accessPassword),
+          hostedSmokeStorageStateProvided: true,
+        };
+      }
+
+      if (storageState.status === "invalid") {
+        return {
+          status: "failed",
+          reason: "invalid_storage_state_file",
+          checkedAt: new Date().toISOString(),
+          target: "redacted",
+          vercelBypassSecretProvided: true,
+          boardsmithAccessPasswordProvided: Boolean(accessPassword),
+          hostedSmokeStorageStateProvided: true,
+        };
+      }
+
+      addStorageStateCookies(cookieJar, storageState.cookies);
+      storageStateCookiesLoaded = storageState.cookies.length;
+    }
+
     await fetchWithCookies(new URL("/access?returnTo=/projects", origin).toString(), {
       headers,
       cookieJar,
@@ -277,6 +358,8 @@ export async function runHostedSmokeCheck(env = process.env) {
       target: "redacted",
       vercelBypassSecretProvided: true,
       boardsmithAccessPasswordProvided: Boolean(accessPassword),
+      hostedSmokeStorageStateProvided: Boolean(storageStatePath),
+      hostedSmokeStorageStateCookiesLoaded: storageStateCookiesLoaded,
       warnings,
       checks,
     };

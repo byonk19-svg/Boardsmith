@@ -51,6 +51,12 @@ Optional route list for the route-level helper:
 BOARDSMITH_HOSTED_SMOKE_PATHS=/,/projects
 ```
 
+Optional local authenticated session state:
+
+```env
+BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE=.auth/hosted-smoke-storage-state.json
+```
+
 Optional future browser/session smoke values, only if the hosted login layer requires an email/password account:
 
 ```env
@@ -64,6 +70,7 @@ Notes:
 - `VERCEL_AUTOMATION_BYPASS_SECRET` is the Vercel bypass secret. Do not print it.
 - `BOARDSMITH_ACCESS_PASSWORD` is the separate Boardsmith app-level access password. Do not print it.
 - If the app-level gate is disabled for a specific private environment, omit `BOARDSMITH_ACCESS_PASSWORD`; the helper will report whether it reaches app routes without it.
+- `BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE` is an optional local path to an authenticated browser storage-state JSON file. `.auth/` is ignored by git. Do not commit this file or paste its contents anywhere.
 - `BOARDSMITH_HOSTED_SMOKE_EMAIL` and `BOARDSMITH_HOSTED_SMOKE_PASSWORD` are placeholders for a future browser/session harness only. Do not use personal credentials for repeatable automation. If the hosted login layer is email-link or OAuth-only, use an authorized local browser session for UI smoke instead of storing a personal password.
 
 ## Route-Level Check
@@ -82,6 +89,7 @@ The helper:
 - sends `x-vercel-protection-bypass`
 - asks Vercel to set a bypass cookie with `x-vercel-set-bypass-cookie: true`
 - posts to `/access/verify` only when `BOARDSMITH_ACCESS_PASSWORD` is provided
+- loads matching cookies from `BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE` when configured
 - checks `/` and `/projects` by default
 - redacts the hosted URL, host, bypass secret, and app access password from error output
 - prints sanitized status only
@@ -102,6 +110,8 @@ Blocked results:
 - `vercel_protection`: the bypass secret is missing, wrong, revoked, or not attached to the correct Vercel project.
 - `boardsmith_access_password_missing`: Vercel protection was bypassed, but the app-level `/access` gate still needs `BOARDSMITH_ACCESS_PASSWORD`.
 - `hosted_auth_login_required`: Vercel protection was bypassed and the Boardsmith `/access` helper ran, but the hosted deployment routed to `/login`. This login layer is outside the current Boardsmith app code and requires an authorized hosted browser/session before project-detail UI smoke can run. The helper reports sanitized `hostedAuthMechanism` booleans such as whether an email input, password input, or OAuth text was present; it does not print login page content.
+- `missing_storage_state_file`: `BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE` is configured, but the local session-state file is missing.
+- `invalid_storage_state_file`: the configured local session-state file is not readable as a Playwright-style storage-state JSON object with a `cookies` array.
 - `invalid_hosted_smoke_url` or `request_error`: check local env values without printing them.
 
 If the output says `missing_required_env`, confirm `.env.hosted-smoke.local` exists in the repo root and contains the required values. Do not paste its values into chat, docs, commits, screenshots, or logs.
@@ -143,6 +153,50 @@ Safe setup path:
 4. If the hosted login uses email link or OAuth, sign in through a local authorized browser session for UI smoke. Do not commit browser storage state, cookies, screenshots, or login logs.
 5. If a future browser harness supports a safe email/password login path, read `BOARDSMITH_HOSTED_SMOKE_EMAIL` and `BOARDSMITH_HOSTED_SMOKE_PASSWORD` from `.env.hosted-smoke.local` only, redact them from all output, and keep them out of docs, chat, commits, and screenshots.
 6. If no dedicated smoke identity can be created, record the hosted UI smoke as blocked. Do not use a personal account for repeatable automation unless it is explicitly documented as a temporary local-only manual fallback.
+
+## Local Authenticated Session State
+
+Task 73L added a local session-state path for authenticated hosted smoke without adding packages or changing app auth. This path is for private local verification only.
+
+Ignored file:
+
+```text
+.auth/hosted-smoke-storage-state.json
+```
+
+The repo ignores `.auth/`, so this file must not appear in `git status --short`. Treat it like a secret because it can contain cookies or other session material.
+
+One-time local capture:
+
+1. Use a dedicated non-critical hosted smoke identity in the hosted auth provider.
+2. Open the hosted app through the intended private hosted access path.
+3. Complete Vercel bypass, the Boardsmith `/access` gate, and the hosted `/login` layer in a local browser session.
+4. Export browser storage state to `.auth/hosted-smoke-storage-state.json` using a local browser tool that can save Playwright-style storage state.
+5. Do not commit the storage-state file, screenshots, cookies, browser profile data, or login logs.
+6. Confirm the file is ignored:
+
+```bash
+git check-ignore -v .auth/hosted-smoke-storage-state.json
+git status --short
+```
+
+Route-level authenticated check:
+
+1. Set this in `.env.hosted-smoke.local`:
+
+```env
+BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE=.auth/hosted-smoke-storage-state.json
+```
+
+2. Run:
+
+```bash
+npm run smoke:hosted
+```
+
+When the session file is valid for the hosted domain, the helper loads only matching cookies into memory and checks the configured paths. Output reports only whether a storage-state path was provided and how many matching cookies were loaded. It does not print cookie names, values, the storage-state path, the hosted URL, request headers, project refs, row data, or page content.
+
+If the session is stale or missing, rerun the one-time local capture. If the smoke identity is no longer needed or may be exposed, remove `.auth/hosted-smoke-storage-state.json` and rotate or revoke the hosted auth session in the provider.
 
 ## Browser Smoke With Bypass Header
 

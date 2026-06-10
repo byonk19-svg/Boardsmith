@@ -3,6 +3,7 @@ node_modules/
 .env
 .env*.local
 .data/
+.auth/
 .omx/
 supabase/.temp/
 coverage/

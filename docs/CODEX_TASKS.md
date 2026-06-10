@@ -824,9 +824,21 @@
 - [x] Document the safe setup path: create or confirm a dedicated non-critical hosted smoke identity/session in the hosted auth provider, use an authorized local browser session when auth is email-link or OAuth-only, and do not use personal credentials for repeatable automation.
 - [x] Keep the pass limited to smoke helper mechanism detection, docs, placeholders, and tests with no app feature, schema change, migration, package change, hosted mutation, disabled Vercel protection, personal credential logging, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion unrelated to smoke, production multi-user behavior, Supabase cloud change, or new project type.
 
+## Task 73L - Local Authenticated Hosted Smoke Session Path
+
+- [x] Inspect existing package scripts, test tooling, hosted smoke helper, ignore rules, env example, hosted smoke runbook, hosted deployment status, and task ledger.
+- [x] Confirm the repo has no Playwright dependency or config, so adding a package or browser automation harness is out of scope for this narrow pass.
+- [x] Add `.auth/` to `.gitignore` for local authenticated smoke session files.
+- [x] Add `BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE=.auth/hosted-smoke-storage-state.json` as a placeholder local-only storage-state path in `.env.example`.
+- [x] Update `scripts/hosted-smoke-check.mjs` so `npm run smoke:hosted` can load matching cookies from a Playwright-style storage-state JSON file when `BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE` is configured.
+- [x] Keep storage-state output sanitized: report only whether a storage-state path was provided and how many matching cookies were loaded; do not print cookie names, values, the storage-state path, hosted URLs, request headers, project refs, row data, or page content.
+- [x] Add focused coverage for authenticated storage-state route success and safe missing-file failure.
+- [x] Document the local runbook for creating or confirming a dedicated non-critical hosted smoke identity, capturing an ignored storage-state file, checking it is ignored, rerunning hosted route smoke with the session, and rotating/removing stale session state.
+- [x] Keep the pass limited to local smoke helper/session-path docs and tests with no app product feature, schema change, migration, package change, hosted mutation, disabled Vercel protection, personal credential logging, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion unrelated to smoke, production multi-user behavior, Supabase cloud change, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Run hosted `Tweak this plan` UI smoke through an authorized dedicated non-critical hosted smoke account/session, using a clearly labeled non-critical project and recording the result without URLs, secrets, screenshots, row data, or sensitive logs.
+1. [ ] Capture `.auth/hosted-smoke-storage-state.json` locally with a dedicated non-critical hosted smoke identity, run `npm run smoke:hosted` to confirm `/projects` renders through the authenticated session, then run hosted `Tweak this plan` UI smoke on a clearly labeled non-critical project without recording URLs, secrets, screenshots, row data, or sensitive logs.
 2. [ ] Consider a `private-mvp-0.9` checkpoint after authorized hosted `Tweak this plan` smoke passes.
 3. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
 
