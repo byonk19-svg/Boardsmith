@@ -193,6 +193,8 @@ Task 73M verified the authenticated hosted smoke session path on June 10, 2026. 
 
 The hosted `Tweak this plan` UI smoke was then run through the authenticated session on a clearly labeled non-critical smoke/test project. The active-project flow passed: the `Tweak this plan` form appeared, one simple revision instruction was submitted, the revised plan became latest, the prior plan remained in history, success and comparison copy read as revised-vs-prior, the `Revised` marker appeared in plan history, forbidden engineering/approval/load/CAD/CNC/export-certainty copy was absent, and the revised latest plan's print preview route rendered the expected shop-plan sections. The archived-project live UI check was not completed because the hosted Archived filter did not expose an archived project card to open in this session; existing rendered-route coverage still covers archived revision blocking. No archive, restore, delete, sharing, export, schema, package, or Supabase cloud change was made.
 
+Task 74A promotes this hosted active-flow result into the `private-mvp-0.9` checkpoint. The checkpoint keeps Boardsmith private-MVP-only and planning-aid-only; it is not a public launch, fabrication approval, CAD/CNC/export milestone, or production multi-user milestone.
+
 ## Recommendation
 
 Status: provider linked, hosted env names present, and user-supplied authorized hosted smoke passed.

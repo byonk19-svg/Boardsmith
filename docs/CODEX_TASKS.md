@@ -847,11 +847,20 @@
 - [x] Note the hosted archived-project UI check caveat: the Archived filter did not expose an archived project card to open in this session, so archived revision blocking was not rechecked live; existing rendered-route coverage still covers archived revision blocking.
 - [x] Keep the pass limited to hosted smoke verification and docs with no app product feature, schema change, migration, package change, disabled Vercel protection, personal credential logging, delete, bulk archive, app-generated PDF/SVG/DXF/CAD/CNC export, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion unrelated to smoke, production multi-user behavior, Supabase cloud change, or new project type.
 
+## Task 74A - Private MVP 0.9 Hosted Tweak Checkpoint
+
+- [x] Document `private-mvp-0.9` as the authenticated hosted `Tweak this plan` checkpoint after route smoke and active-flow UI smoke passed.
+- [x] Summarize that hosted `/projects` returned `200`, ended at `/projects`, did not land on hosted login, rendered Boardsmith, and had no blocked reason.
+- [x] Summarize the active hosted revision flow: form visible, one simple revision submitted, revised plan became latest, prior plan remained in history, revised-vs-prior success/comparison copy appeared, the `Revised` marker appeared, and revised latest print preview rendered expected shop-plan sections.
+- [x] Note the archived-project live-smoke caveat without treating it as a checkpoint blocker because rendered-route tests still cover archived revision blocking.
+- [x] Reconfirm Boardsmith remains private-MVP-only, planning-aid-only, browser-print-first, not fabrication/engineering/structural approval software, not CAD/CNC/export software, and not public-launch-ready.
+- [x] Keep the pass docs/checkpoint/tag-only with no app product feature, schema change, migration, package change, hosted mutation, disabled Vercel protection, personal credential logging, permanent delete, bulk archive, app-generated PDF/SVG/DXF/CAD/CNC export, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, Supabase cloud change, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Optionally create or identify a clearly labeled archived non-critical project and rerun only the archived-project hosted UI check, if live archived revision blocking must be verified before checkpointing.
-2. [ ] Consider a `private-mvp-0.9` checkpoint for the authenticated hosted `Tweak this plan` milestone.
-3. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, and print preview.
+1. [ ] Optionally create or identify a clearly labeled archived non-critical project and rerun only the archived-project hosted UI check, if live archived revision blocking should be verified outside rendered-route coverage.
+2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, comparison, and print preview.
+3. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
 
 ## Remaining Hardening
 

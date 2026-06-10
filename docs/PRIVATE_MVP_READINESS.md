@@ -6,7 +6,7 @@ Date: June 8, 2026
 
 Boardsmith is a private MVP woodworking planning app. It is ready for continued private testing and narrow private hosted use behind the chosen access layers, but it is not ready for public sharing or production multi-user use.
 
-The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, user-supplied authorized hosted browser smoke passed after the project-intake validation fix, and authorized hosted archive/restore smoke passed after the archive migration was applied. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
+The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, user-supplied authorized hosted browser smoke passed after the project-intake validation fix, authorized hosted archive/restore smoke passed after the archive migration was applied, and authenticated hosted `Tweak this plan` active-flow smoke passed. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
 
 ## Private MVP Checkpoint
 
@@ -268,7 +268,42 @@ Guardrails reconfirmed:
 
 Recommended next direction:
 
-1. Start a narrow planning pass for `Tweak this plan`, focused on scope, data boundaries, safety language, and private-MVP-safe implementation slices before adding any edit/regeneration behavior.
+1. Completed by `private-mvp-0.9`: the narrow `Tweak this plan` slice was planned, implemented, dogfooded, and smoke-tested through the authenticated hosted active-project flow.
+
+## Hosted Tweak This Plan Checkpoint
+
+Checkpoint: `private-mvp-0.9`.
+
+This checkpoint captures the authenticated hosted `Tweak this plan` milestone after the hosted archive completion checkpoint. Boardsmith now supports the first private-MVP revision loop: generate a plan, submit one plain-English revision request, save the revised result as a new generated-plan version, preserve the prior version in history, and compare the revised latest plan against the previous version.
+
+Hosted completion summary:
+
+- Hosted route smoke passed through the protected hosted access path.
+- `/projects` returned `200`, ended at `/projects`, did not land on hosted login, rendered Boardsmith, and had no blocked reason.
+- Hosted `Tweak this plan` active-flow smoke passed on a clearly labeled non-critical smoke/test project.
+- The revision form was visible, one simple revision was submitted, the revised plan became latest, and the prior plan remained in history.
+- Revised-vs-prior success and comparison copy appeared.
+- The no-schema `Revised` marker appeared in plan history.
+- The revised latest plan's browser print preview rendered the expected shop-plan sections.
+- Forbidden engineering approval, structural approval, load-rating guarantee, CAD/CNC readiness, export-readiness, and fabrication-certainty copy was not introduced.
+- No hosted URLs, screenshots, secrets, project refs, connection strings, row data, cookies, request headers, session-file contents, or sensitive logs were committed.
+
+Caveat:
+
+- The archived-project live UI smoke was not completed because the hosted Archived filter did not expose an archived project card to open in that session. This is not treated as a blocker for the checkpoint because existing rendered-route tests still cover archived revision blocking, while archived project detail and print viewing remain part of the archive behavior.
+
+Guardrails reconfirmed:
+
+- Boardsmith remains private-MVP-only and planning-aid-only.
+- `Tweak this plan` creates a new generated-plan version; it is not multi-turn chat, background agent work, fabrication approval, CAD/CNC/export readiness, or construction approval.
+- Browser print remains the supported MVP output path.
+- Permanent delete, bulk archive, public sharing, marketplace behavior, auth expansion, production multi-user assumption, app-generated PDF, SVG export/download, DXF, CAD, CNC, image upload, shopping, pricing, vendor, purchasing, inventory, payment, and subscription work remain out of scope.
+
+Recommended next directions:
+
+1. Optionally close the archived-project live-smoke caveat by identifying a clearly labeled archived non-critical project and verifying that archived detail blocks revisions while preserving plan/detail/print viewing.
+2. Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, comparison, and print preview.
+3. Keep using the app manually before adding broader features; do not start export/CAD/CNC, public sharing, marketplace, auth expansion, delete, or new project type work without an explicit task and approval where required.
 
 ## What Works Now
 
@@ -285,6 +320,7 @@ Recommended next direction:
 - Stored `build_model_json` on generated plan versions.
 - Plan history that preserves earlier versions.
 - Read-only plan comparison between the latest plan and an older saved version.
+- One-shot `Tweak this plan` active-project revision flow that saves revised output as a new generated-plan version, preserves the previous version in history, and redirects into revised-vs-prior comparison.
 - Deterministic Plan Review status.
 - Deterministic Export Readiness status for future export work.
 - Material Summary grouped for review.
@@ -308,12 +344,13 @@ Recommended next direction:
 - Hosted archive migration checks attempted on June 8, 2026; `public.projects.archived_at` was still missing from the hosted Supabase persistence path on the Task 71C retry, then Task 71E applied `20260607183000_add_project_archive_metadata.sql` through the linked Supabase CLI path and verified the app-facing `projects.id, archived_at` read path.
 - Hosted archive/restore UI smoke was blocked from this Codex environment because the latest ready production deployment returned Vercel-level `401` protection before Boardsmith route handling on the Task 71F route checks.
 - Authorized manual hosted archive smoke passed on June 8, 2026 with no caveats: `/projects` loaded, Active excluded archived projects, Archived showed archived projects, All showed both active and archived projects, archive and restore worked on a clearly labeled non-critical test project, dashboard default state excluded archived projects, archived project detail and print preview remained accessible, and copy avoided permanent delete/data-loss wording.
+- Authenticated hosted `Tweak this plan` active-project UI smoke passed on June 10, 2026: route smoke reached `/projects` without a hosted-login blocker, the active revision flow saved a new latest plan while preserving the prior version, revised-vs-prior comparison and `Revised` history marker appeared, the revised latest print preview rendered expected shop-plan sections, and forbidden engineering/approval/load/CAD/CNC/export-certainty copy was absent.
 
 ## What Is Not Verified Yet
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
-- Hosted behavior after any future deployment, env-var change, migration, access-gate change, or archive-related code change until the hosted smoke checklist is rerun.
-- Hosted `Tweak this plan` active-project UI smoke passed through the authenticated hosted smoke session on June 10, 2026. The archived-project live UI check still has a narrow caveat because the hosted Archived filter did not expose an archived project card to open in that session.
+- Hosted behavior after any future deployment, env-var change, migration, access-gate change, archive-related code change, or `Tweak this plan` code change until the hosted smoke checklist is rerun.
+- The archived-project live UI check for `Tweak this plan` still has a narrow caveat because the hosted Archived filter did not expose an archived project card to open in the Task 73M hosted session; rendered-route tests still cover archived revision blocking.
 
 ## Non-Goals And Guardrails
 
@@ -394,4 +431,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. The next recommended step is either a narrow `private-mvp-0.9` checkpoint for the hosted `Tweak this plan` milestone or, if desired first, a small hosted archived-project smoke check using a clearly labeled archived non-critical project. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, or auth-provider work without an explicit task and, for PDF, explicit renderer dependency approval.
+Keep Boardsmith private and continue with small trust-building polish only. The next recommended step is either a small hosted archived-project smoke check using a clearly labeled archived non-critical project, project detail navigation polish, or more manual dogfood of the existing private planning workflow. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, auth expansion, or new project type work without an explicit task and, for PDF, explicit renderer dependency approval.
