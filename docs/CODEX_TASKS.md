@@ -886,11 +886,22 @@
 - [x] Keep hosted smoke output sanitized with no hosted URLs, project IDs, project titles, row data, cookies, headers, screenshots, session-file contents, or sensitive logs recorded.
 - [x] Keep the pass smoke/docs-only with no app feature change, schema change, migration, package change, OpenAI prompt/model change, PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, or new project type.
 
+## Task 77A - Real Project Dogfood Sweep
+
+- [x] Run `npm run smoke:hosted` and confirm hosted route smoke still passes through the protected hosted access path.
+- [x] Reuse clearly labeled non-critical hosted dogfood/smoke projects across representative supported project styles without recording hosted URLs, project IDs, project titles, row data, cookies, headers, screenshots, session-file contents, or sensitive logs.
+- [x] Cover at least one no-plan project, one generated-plan project, one revised-plan project, one project with notes/build-log usage, and one project where browser print preview opened.
+- [x] Evaluate project detail navigation, Project actions, Plan Review, `Tweak this plan`, comparison, plan history, print preview, and project record sections.
+- [x] Record product findings in `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md`, including what worked, rough edges, possible narrow copy/navigation follow-ups, and what should not be built yet.
+- [x] Keep the pass dogfood/docs-only because no small app defect justified a product code change.
+- [x] Keep scope unchanged with no schema change, migration, package change, OpenAI prompt/model change, PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, hosted Supabase change, permanent delete, bulk archive, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
-2. [ ] Consider a small private-MVP checkpoint only after another meaningful usability milestone, not for every smoke pass.
-3. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, project detail, or `Tweak this plan` change.
+1. [ ] Pick at most one narrow follow-up from repeated dogfood friction, such as clearer "generate another plan version" copy on projects that already have a latest plan.
+2. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
+3. [ ] Consider a small private-MVP checkpoint only after another meaningful usability milestone, not for every smoke pass.
+4. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, project detail, or `Tweak this plan` change.
 
 ## Remaining Hardening
 
