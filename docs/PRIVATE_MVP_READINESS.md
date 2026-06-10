@@ -288,9 +288,9 @@ Hosted completion summary:
 - Forbidden engineering approval, structural approval, load-rating guarantee, CAD/CNC readiness, export-readiness, and fabrication-certainty copy was not introduced.
 - No hosted URLs, screenshots, secrets, project refs, connection strings, row data, cookies, request headers, session-file contents, or sensitive logs were committed.
 
-Caveat:
+Caveat status:
 
-- The archived-project live UI smoke was not completed because the hosted Archived filter did not expose an archived project card to open in that session. This is not treated as a blocker for the checkpoint because existing rendered-route tests still cover archived revision blocking, while archived project detail and print viewing remain part of the archive behavior.
+- The original checkpoint caveat was that the archived-project live UI smoke could not be completed during Task 73M because the hosted Archived filter did not expose an archived project card to open in that session. Task 75A closed this caveat on June 10, 2026 by archiving a clearly labeled non-critical smoke/test project with a latest generated plan, confirming the Archived filter exposed it, and confirming archived detail blocked revisions until restore while preserving print preview access.
 
 Guardrails reconfirmed:
 
@@ -345,12 +345,12 @@ Recommended next directions:
 - Hosted archive/restore UI smoke was blocked from this Codex environment because the latest ready production deployment returned Vercel-level `401` protection before Boardsmith route handling on the Task 71F route checks.
 - Authorized manual hosted archive smoke passed on June 8, 2026 with no caveats: `/projects` loaded, Active excluded archived projects, Archived showed archived projects, All showed both active and archived projects, archive and restore worked on a clearly labeled non-critical test project, dashboard default state excluded archived projects, archived project detail and print preview remained accessible, and copy avoided permanent delete/data-loss wording.
 - Authenticated hosted `Tweak this plan` active-project UI smoke passed on June 10, 2026: route smoke reached `/projects` without a hosted-login blocker, the active revision flow saved a new latest plan while preserving the prior version, revised-vs-prior comparison and `Revised` history marker appeared, the revised latest print preview rendered expected shop-plan sections, and forbidden engineering/approval/load/CAD/CNC/export-certainty copy was absent.
+- Hosted archived-project `Tweak this plan` blocking smoke passed on June 10, 2026: a clearly labeled non-critical smoke/test project with a latest plan was archived during smoke, the Archived filter exposed it, Active excluded it, archived detail stayed accessible, restore action was visible, the revision form was absent until restore, and archived print preview rendered expected shop-plan sections.
 
 ## What Is Not Verified Yet
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
 - Hosted behavior after any future deployment, env-var change, migration, access-gate change, archive-related code change, or `Tweak this plan` code change until the hosted smoke checklist is rerun.
-- The archived-project live UI check for `Tweak this plan` still has a narrow caveat because the hosted Archived filter did not expose an archived project card to open in the Task 73M hosted session; rendered-route tests still cover archived revision blocking.
 
 ## Non-Goals And Guardrails
 

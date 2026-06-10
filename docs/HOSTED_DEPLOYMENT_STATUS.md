@@ -195,6 +195,8 @@ The hosted `Tweak this plan` UI smoke was then run through the authenticated ses
 
 Task 74A promotes this hosted active-flow result into the `private-mvp-0.9` checkpoint. The checkpoint keeps Boardsmith private-MVP-only and planning-aid-only; it is not a public launch, fabrication approval, CAD/CNC/export milestone, or production multi-user milestone.
 
+Task 75A closed the archived-project hosted smoke caveat on June 10, 2026. A clearly labeled non-critical smoke/test project with a latest generated plan was archived during the smoke, then verified without recording hosted URLs, project IDs, titles, row data, cookies, headers, screenshots, or sensitive logs. The Archived filter exposed the project, the Active filter excluded it, the archived detail page remained accessible, the restore action was visible, `Tweak this plan` showed the restore-before-revising state instead of a revision form, and the archived print preview rendered expected shop-plan sections. No revision, generation, restore, delete, sharing, export, schema, package, or Supabase cloud change was made.
+
 ## Recommendation
 
 Status: provider linked, hosted env names present, and user-supplied authorized hosted smoke passed.

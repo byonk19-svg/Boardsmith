@@ -856,11 +856,21 @@
 - [x] Reconfirm Boardsmith remains private-MVP-only, planning-aid-only, browser-print-first, not fabrication/engineering/structural approval software, not CAD/CNC/export software, and not public-launch-ready.
 - [x] Keep the pass docs/checkpoint/tag-only with no app product feature, schema change, migration, package change, hosted mutation, disabled Vercel protection, personal credential logging, permanent delete, bulk archive, app-generated PDF/SVG/DXF/CAD/CNC export, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, Supabase cloud change, or new project type.
 
+## Task 75A - Hosted Archived Revision Blocking Smoke
+
+- [x] Run authenticated hosted route smoke and confirm `/projects` still loads through the protected hosted access path.
+- [x] Locate a clearly labeled non-critical smoke/test project with a latest generated plan and archive it during the smoke so the Archived filter has a project card to expose.
+- [x] Confirm the Archived filter exposes the archived smoke/test project and the Active filter excludes it.
+- [x] Open the archived project detail page and confirm the archived banner, restore action, `Tweak this plan` section, restore-before-revising copy, and absence of the revision form.
+- [x] Confirm archived print preview remains accessible and renders expected shop-plan sections.
+- [x] Keep output sanitized: no hosted URLs, project IDs, titles, row data, cookies, headers, screenshots, session-file contents, or sensitive logs recorded.
+- [x] Keep the pass smoke/docs-only with no app feature, schema change, migration, package change, revision generation, restore, delete, bulk archive, app-generated PDF/SVG/DXF/CAD/CNC export, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, Supabase cloud change, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Optionally create or identify a clearly labeled archived non-critical project and rerun only the archived-project hosted UI check, if live archived revision blocking should be verified outside rendered-route coverage.
-2. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, comparison, and print preview.
-3. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
+1. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, comparison, and print preview.
+2. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
+3. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, or `Tweak this plan` change.
 
 ## Remaining Hardening
 
