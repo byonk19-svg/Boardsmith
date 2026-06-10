@@ -75,12 +75,18 @@ export default async function ProjectDetailPage({
         })
       : null;
   const printPreviewHref = `/projects/${project.id}/print` as Route;
+  const sectionLinks = createProjectSectionLinks({
+    hasLatestPlan: Boolean(latestPlanReview),
+    hasPlanReview: Boolean(latestPlanReview?.manifest.planReview),
+    hasPrintablePlan: Boolean(latestPlanReview?.manifest.generatedPlan && latestPlanReview.manifest.cutList),
+    hasPlanHistory: planReviews.length > 0,
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link href="/projects" className="text-sm font-medium text-moss hover:underline">
+          <Link href="/projects" className="no-print text-sm font-medium text-moss hover:underline">
             Back to projects
           </Link>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">{project.title}</h1>
@@ -89,24 +95,7 @@ export default async function ProjectDetailPage({
             {isProjectArchived(project) ? " · archived" : ""}
           </p>
         </div>
-        <div className="no-print flex flex-col gap-2 sm:items-end">
-          <GeneratePlanForm action={`/projects/${project.id}/generate`} />
-          <form action={`/projects/${project.id}/duplicate`} method="post" className="text-right">
-            <button type="submit" className="text-sm font-semibold text-moss hover:underline">
-              Duplicate project
-            </button>
-            <p className="mt-1 text-xs text-ink/55">Copies intake only. Generated plans and history are not copied.</p>
-          </form>
-          {latestPlanReview ? (
-            <div className="text-right">
-              <Link href={printPreviewHref} className="text-sm font-semibold text-moss hover:underline">
-                Browser print preview
-              </Link>
-              <p className="mt-1 text-xs text-ink/55">Use your browser's print dialog if you want a paper copy.</p>
-            </div>
-          ) : null}
-          <ArchiveProjectAction project={project} />
-        </div>
+        <ProjectActions project={project} hasLatestPlan={Boolean(latestPlanReview)} printPreviewHref={printPreviewHref} />
       </div>
 
       {isProjectArchived(project) ? <ArchivedProjectBanner project={project} /> : null}
@@ -133,6 +122,8 @@ export default async function ProjectDetailPage({
         </p>
       ) : null}
       {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} /> : null}
+
+      <ProjectSectionsNav links={sectionLinks} />
 
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <ProjectIntakeCard project={project} />
@@ -176,7 +167,7 @@ export default async function ProjectDetailPage({
       )}
 
       {planReviews.length > 0 ? (
-        <section className="no-print rounded-lg border border-sawdust bg-white p-5">
+        <section id="plan-history" className="no-print scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
           <h2 className="text-lg font-semibold text-ink">Plan history</h2>
           <div className="mt-4 divide-y divide-sawdust">
             {planReviews.map((entry, index) => (
@@ -212,6 +203,82 @@ export default async function ProjectDetailPage({
 
       <ProjectRecordSection project={project} />
     </div>
+  );
+}
+
+type ProjectSectionLink = {
+  label: string;
+  href: `#${string}`;
+};
+
+function createProjectSectionLinks({
+  hasLatestPlan,
+  hasPlanReview,
+  hasPrintablePlan,
+  hasPlanHistory,
+}: {
+  hasLatestPlan: boolean;
+  hasPlanReview: boolean;
+  hasPrintablePlan: boolean;
+  hasPlanHistory: boolean;
+}): ProjectSectionLink[] {
+  return [
+    { label: "Project intake", href: "#project-intake" },
+    { label: "Project structure", href: "#project-structure" },
+    ...(hasPlanReview ? [{ label: "Plan review", href: "#plan-review" } satisfies ProjectSectionLink] : []),
+    ...(hasLatestPlan ? [{ label: "Tweak this plan", href: "#tweak-this-plan" } satisfies ProjectSectionLink] : []),
+    ...(hasLatestPlan ? [{ label: "Plan comparison", href: "#plan-comparison" } satisfies ProjectSectionLink] : []),
+    ...(hasPrintablePlan ? [{ label: "Printable Plan Sheet", href: "#printable-plan-sheet" } satisfies ProjectSectionLink] : []),
+    ...(hasPlanHistory ? [{ label: "Plan history", href: "#plan-history" } satisfies ProjectSectionLink] : []),
+    { label: "Project record", href: "#project-record" },
+  ];
+}
+
+function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project: Project; hasLatestPlan: boolean; printPreviewHref: Route }) {
+  return (
+    <aside className="no-print rounded-lg border border-sawdust bg-white p-4 shadow-soft sm:min-w-[18rem]">
+      <p className="text-sm font-semibold text-ink">Project actions</p>
+      <p className="mt-1 text-xs leading-5 text-ink/55">Plan versions stay in history. Review before cutting or building.</p>
+      <div className="mt-4 flex flex-wrap gap-2 sm:justify-end">
+        <GeneratePlanForm action={`/projects/${project.id}/generate`} />
+        {hasLatestPlan ? (
+          <Link href={printPreviewHref} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+            Browser print preview
+          </Link>
+        ) : null}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
+        <form action={`/projects/${project.id}/duplicate`} method="post" className="inline-flex flex-col">
+          <button type="submit" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+            Duplicate project
+          </button>
+          <span className="mt-1 text-xs text-ink/55">Copies intake only.</span>
+        </form>
+        <ArchiveProjectAction project={project} />
+      </div>
+    </aside>
+  );
+}
+
+function ProjectSectionsNav({ links }: { links: ProjectSectionLink[] }) {
+  if (links.length === 0) return null;
+
+  return (
+    <nav aria-label="Project sections" className="no-print rounded-lg border border-sawdust bg-white p-4 shadow-soft">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-ink">Project sections</p>
+          <p className="mt-1 text-xs leading-5 text-ink/55">Jump to the parts of this private planning record.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {links.map((link) => (
+            <a key={link.href} href={link.href} className="rounded-md border border-sawdust px-3 py-1.5 text-sm font-semibold text-ink hover:bg-shop">
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
+    </nav>
   );
 }
 
@@ -265,23 +332,23 @@ function ArchivedProjectBanner({ project }: { project: Project }) {
 function ArchiveProjectAction({ project }: { project: Project }) {
   if (isProjectArchived(project)) {
     return (
-      <form action={`/projects/${project.id}/restore`} method="post" className="text-right">
+      <form action={`/projects/${project.id}/restore`} method="post" className="inline-flex flex-col">
         <input type="hidden" name="return_to" value="project_detail" />
-        <button type="submit" className="text-sm font-semibold text-moss hover:underline">
+        <button type="submit" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
           Restore project
         </button>
-        <p className="mt-1 text-xs text-ink/55">Returns this project to the active project list.</p>
+        <span className="mt-1 text-xs text-ink/55">Returns this project to the active list.</span>
       </form>
     );
   }
 
   return (
-    <form action={`/projects/${project.id}/archive`} method="post" className="text-right">
+    <form action={`/projects/${project.id}/archive`} method="post" className="inline-flex flex-col">
       <input type="hidden" name="return_to" value="project_detail" />
-      <button type="submit" className="text-sm font-semibold text-moss hover:underline">
+      <button type="submit" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
         Archive project
       </button>
-      <p className="mt-1 text-xs text-ink/55">Hides this project without deleting generated plans.</p>
+      <span className="mt-1 text-xs text-ink/55">Hides without deleting plans.</span>
     </form>
   );
 }
@@ -316,7 +383,7 @@ function TweakPlanSection({ project, hasLatestPlan }: { project: Project; hasLat
   if (!hasLatestPlan) return null;
 
   return (
-    <section className="no-print rounded-lg border border-sawdust bg-white p-5">
+    <section id="tweak-this-plan" className="no-print scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
           <h2 className="text-lg font-semibold text-ink">Tweak this plan</h2>
@@ -380,7 +447,7 @@ function TemplateGuidancePanel({ projectTypeLabel, assumptions, cautions }: { pr
 
 function ProjectIntakeCard({ project }: { project: Project }) {
   return (
-    <section className="rounded-lg border border-sawdust bg-white p-5">
+    <section id="project-intake" className="scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
       <h2 className="text-lg font-semibold text-ink">Project intake</h2>
       <dl className="mt-4 grid gap-3 text-sm">
         <Row
@@ -427,7 +494,7 @@ function ProjectNotesCard({ project }: { project: Project }) {
 
 function ProjectRecordSection({ project }: { project: Project }) {
   return (
-    <section className="no-print space-y-4">
+    <section id="project-record" className="no-print scroll-mt-6 space-y-4">
       <div>
         <h2 className="text-lg font-semibold text-ink">Project record</h2>
         <p className="mt-2 text-sm leading-6 text-ink/65">
@@ -578,7 +645,7 @@ function GenerationFailurePanel({ reason, safetyFlags }: { reason: GenerationFai
 
 function PlanReviewPanel({ summary }: { summary: GeneratedPlanReviewSummary }) {
   return (
-    <section className={`rounded-lg border p-5 ${reviewPanelClass(summary.status)}`}>
+    <section id="plan-review" className={`scroll-mt-6 rounded-lg border p-5 ${reviewPanelClass(summary.status)}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-ink">Plan Review</h2>
@@ -660,7 +727,7 @@ function PlanComparisonPanel({
   isRevisionComparison: boolean;
 }) {
   return (
-    <section className="no-print rounded-lg border border-sawdust bg-white p-5">
+    <section id="plan-comparison" className="no-print scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-ink">Plan comparison</h2>
@@ -806,7 +873,7 @@ function BuildModelView({
   cutListReview: CutListReviewSummary | null;
 }) {
   return (
-    <section className="rounded-lg border border-sawdust bg-white p-5">
+    <section id="project-structure" className="scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-ink">Project Structure</h2>
@@ -1032,7 +1099,7 @@ function PlanView({
   const generatedCuts = manifest.cutList.items.filter((item) => item.sourceLabel === "Generated cut");
 
   return (
-    <article className="rounded-lg border border-sawdust bg-white p-6 shadow-soft print:border-0 print:p-0 print:shadow-none">
+    <article id="printable-plan-sheet" className="scroll-mt-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft print:border-0 print:p-0 print:shadow-none">
       <header className="border-b border-sawdust pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-3xl">

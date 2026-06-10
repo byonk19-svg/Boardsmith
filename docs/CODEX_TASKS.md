@@ -866,9 +866,18 @@
 - [x] Keep output sanitized: no hosted URLs, project IDs, titles, row data, cookies, headers, screenshots, session-file contents, or sensitive logs recorded.
 - [x] Keep the pass smoke/docs-only with no app feature, schema change, migration, package change, revision generation, restore, delete, bulk archive, app-generated PDF/SVG/DXF/CAD/CNC export, image upload, public sharing, marketplace, shopping, pricing, vendor, auth expansion, production multi-user behavior, Supabase cloud change, or new project type.
 
+## Task 76A - Project Detail Navigation Polish
+
+- [x] Add a no-print `Project sections` jump-nav near the top of project detail pages.
+- [x] Add stable section IDs for project intake, project structure, plan review, `Tweak this plan`, plan comparison, printable plan sheet, plan history, and project record when those sections render.
+- [x] Group top project actions into a no-print `Project actions` panel while preserving Generate Plan, Duplicate project, Browser print preview, Archive/Restore, and Back to projects behavior.
+- [x] Preserve no-plan, latest-plan, revised comparison, archived detail, restore-before-revising, and browser print-preview behavior.
+- [x] Add focused rendered-markup coverage for section nav links, absent no-plan links, no-print navigation/action wrappers, archived revision blocking, and forbidden-claim guardrails.
+- [x] Keep the pass limited to UI/test/docs with no schema change, migration, package change, OpenAI prompt/model change, hosted mutation, PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, comparison, and print preview.
+1. [ ] Dogfood the project detail navigation polish across no-plan, latest-plan, revised-comparison, and archived-project states.
 2. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
 3. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, or `Tweak this plan` change.
 

@@ -143,13 +143,13 @@ describe("ProjectDetailPage project structure", () => {
       }),
     );
 
-    const projectIntakeIndex = markup.indexOf("Project intake");
+    const projectIntakeIndex = markup.indexOf('id="project-intake"');
     const templateIndex = markup.indexOf("Template Guidance");
-    const structureIndex = markup.indexOf("Project Structure");
-    const reviewIndex = markup.indexOf("Plan Review");
-    const planSheetIndex = markup.indexOf("Printable Plan Sheet");
-    const historyIndex = markup.indexOf("Plan history");
-    const recordIndex = markup.indexOf("Project record");
+    const structureIndex = markup.indexOf('id="project-structure"');
+    const reviewIndex = markup.indexOf('id="plan-review"');
+    const planSheetIndex = markup.indexOf('id="printable-plan-sheet"');
+    const historyIndex = markup.indexOf('id="plan-history"');
+    const recordIndex = markup.indexOf('id="project-record"');
 
     expect(projectIntakeIndex).toBeGreaterThan(-1);
     expect(templateIndex).toBeGreaterThan(projectIntakeIndex);
@@ -159,6 +159,74 @@ describe("ProjectDetailPage project structure", () => {
     expect(historyIndex).toBeGreaterThan(planSheetIndex);
     expect(recordIndex).toBeGreaterThan(historyIndex);
     expect(markup).toContain("Private notes and real-build details stay with this project.");
+  });
+
+  it("renders no-print project section navigation with links to existing latest-plan sections", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain('aria-label="Project sections"');
+    expect(markup).toContain("Project actions");
+    expect(markup).toContain("Project sections");
+    expect(markup).toContain('href="#project-intake"');
+    expect(markup).toContain('id="project-intake"');
+    expect(markup).toContain('href="#project-structure"');
+    expect(markup).toContain('id="project-structure"');
+    expect(markup).toContain('href="#plan-review"');
+    expect(markup).toContain('id="plan-review"');
+    expect(markup).toContain('href="#tweak-this-plan"');
+    expect(markup).toContain('id="tweak-this-plan"');
+    expect(markup).toContain('href="#plan-comparison"');
+    expect(markup).toContain('id="plan-comparison"');
+    expect(markup).toContain('href="#printable-plan-sheet"');
+    expect(markup).toContain('id="printable-plan-sheet"');
+    expect(markup).toContain('href="#plan-history"');
+    expect(markup).toContain('id="plan-history"');
+    expect(markup).toContain('href="#project-record"');
+    expect(markup).toContain('id="project-record"');
+  });
+
+  it("keeps project navigation and top action polish hidden from print styling", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain('class="no-print text-sm font-medium text-moss hover:underline"');
+    expect(markup).toContain('<aside class="no-print');
+    expect(markup).toContain('<nav aria-label="Project sections" class="no-print');
+  });
+
+  it("keeps section navigation copy away from forbidden product claims", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const navStart = markup.indexOf('aria-label="Project sections"');
+    const navEnd = markup.indexOf("</nav>", navStart);
+    const navMarkup = markup.slice(navStart, navEnd);
+
+    expect(navMarkup).not.toMatch(/professional approval|load rating|CAD-ready|CNC-ready|export certainty|child-safe|certified|public sharing|marketplace|shopping|pricing|vendor|inventory/i);
   });
 
   it("renders the latest saved build model instead of re-deriving project structure", async () => {
@@ -419,7 +487,6 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
     expect(markup).toContain("Browser print preview");
-    expect(markup).toContain("Use your browser&#x27;s print dialog if you want a paper copy.");
   });
 
   it("keeps archived project details and generated plan links viewable", async () => {
@@ -464,7 +531,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Duplicate project");
     expect(markup).toContain('action="/projects/project_saved_bbm/duplicate"');
     expect(markup).toContain('method="post"');
-    expect(markup).toContain("Copies intake only. Generated plans and history are not copied.");
+    expect(markup).toContain("Copies intake only.");
   });
 
   it("renders editable project notes without adding them to the printable plan sheet", async () => {
@@ -519,9 +586,19 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("No generated plan yet");
     expect(markup).toContain("Generate a plan to see Boardsmith&#x27;s review checks.");
+    expect(markup).toContain("Project sections");
+    expect(markup).toContain('href="#project-intake"');
+    expect(markup).toContain('href="#project-structure"');
+    expect(markup).toContain('href="#project-record"');
+    expect(markup).not.toContain('href="#plan-review"');
+    expect(markup).not.toContain('href="#tweak-this-plan"');
+    expect(markup).not.toContain('href="#plan-comparison"');
+    expect(markup).not.toContain('href="#printable-plan-sheet"');
+    expect(markup).not.toContain('href="#plan-history"');
     expect(markup).not.toContain("Blocking issues");
     expect(markup).not.toContain("Tweak this plan");
     expect(markup).not.toContain('name="revision_instruction"');
+    expect(markup).not.toContain("Browser print preview");
   });
 
   it("keeps notes and build log useful when no plan or saved record details exist", async () => {
