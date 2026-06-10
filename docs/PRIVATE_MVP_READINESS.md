@@ -301,9 +301,43 @@ Guardrails reconfirmed:
 
 Recommended next directions:
 
-1. Optionally close the archived-project live-smoke caveat by identifying a clearly labeled archived non-critical project and verifying that archived detail blocks revisions while preserving plan/detail/print viewing.
-2. Consider project detail navigation polish if dogfood shows users lose their place moving between the dashboard, project list, detail pages, comparison, and print preview.
-3. Keep using the app manually before adding broader features; do not start export/CAD/CNC, public sharing, marketplace, auth expansion, delete, or new project type work without an explicit task and approval where required.
+1. Completed by `private-mvp-1.0`: the archived-project caveat was closed, project-detail navigation was polished and smoke-tested, versioning/revision copy was tightened, and a fresh hosted end-to-end dogfood project completed without product defects.
+
+## Private MVP 1.0 Baseline
+
+Checkpoint: `private-mvp-1.0`.
+
+This checkpoint captures Boardsmith as a private MVP planning baseline after the hosted archive, hosted `Tweak this plan`, project-detail navigation, versioning-copy, and fresh end-to-end dogfood passes. It is a pause point for manual use and product judgment, not a public launch or fabrication/export milestone.
+
+Verified hosted behavior:
+
+- Authenticated hosted route smoke passes through the protected hosted access path.
+- Project list and project detail pages work for active, archived, no-plan, generated-plan, and revised-plan states.
+- No-plan projects show first-time generation copy and omit absent plan-only actions.
+- First plan generation works for a clearly labeled non-critical supported hosted dogfood project.
+- `Tweak this plan` works as a one-shot revision flow.
+- The revised plan becomes the latest plan.
+- The prior plan remains in plan history.
+- Revised-vs-prior comparison works.
+- Browser print preview works and remains the supported build-facing output path.
+- Project notes and build-log notes save and render.
+- Archive and restore work.
+- Archived projects remain viewable and block revision creation until restored.
+- Hosted dogfood output avoids recording hosted URLs, screenshots, secrets, project refs, connection strings, row data, cookies, request headers, session-file contents, and sensitive logs.
+
+Guardrails reconfirmed:
+
+- Boardsmith remains private-MVP-only and planning-aid-only.
+- Generated plans are not professional engineering review, structural approval, construction approval, fabrication-ready output, wall-safety guarantees, child-safety certification, or load ratings.
+- `Tweak this plan` is a one-shot plan revision that creates another saved plan version; it is not multi-turn chat, background agent work, construction approval, or fabrication approval.
+- Browser print remains enough for the private MVP baseline.
+- No public launch, real auth/RLS expansion, production multi-user assumption, app-generated PDF, SVG export/download, DXF, CAD, CNC, export pipeline, image upload, public sharing, marketplace, shopping, pricing, vendor, purchasing, inventory, payment, subscription, permanent delete, bulk archive, folders, tags, or new project type exists.
+
+Recommended next direction:
+
+1. Pause broad feature work and use Boardsmith manually as a private planning aid.
+2. Select the next major lane only after repeated manual dogfood shows the same pain point.
+3. Do not start app-generated PDF/export, CAD/CNC, public sharing, marketplace/shopping, auth expansion, delete, or new project type work without an explicit scoped task and required approvals.
 
 ## What Works Now
 
@@ -348,6 +382,7 @@ Recommended next directions:
 - Authenticated hosted `Tweak this plan` active-project UI smoke passed on June 10, 2026: route smoke reached `/projects` without a hosted-login blocker, the active revision flow saved a new latest plan while preserving the prior version, revised-vs-prior comparison and `Revised` history marker appeared, the revised latest print preview rendered expected shop-plan sections, and forbidden engineering/approval/load/CAD/CNC/export-certainty copy was absent.
 - Hosted archived-project `Tweak this plan` blocking smoke passed on June 10, 2026: a clearly labeled non-critical smoke/test project with a latest plan was archived during smoke, the Archived filter exposed it, Active excluded it, archived detail stayed accessible, restore action was visible, the revision form was absent until restore, and archived print preview rendered expected shop-plan sections.
 - Hosted project-detail navigation smoke passed on June 10, 2026: `Project sections` links targeted rendered sections for latest-plan pages, no-plan pages omitted absent plan-only links, `Project actions` preserved existing actions, archived detail still blocked revisions until restore, and browser print preview omitted the no-print navigation/action polish.
+- Fresh hosted end-to-end dogfood passed on June 10, 2026: a clearly labeled non-critical supported project was created, generated a first validated plan, created a one-shot revised plan, preserved the prior version in history, showed revised-vs-prior comparison, rendered browser print preview, saved notes and build-log notes, archived, and restored without product defects.
 
 ## What Is Not Verified Yet
 
@@ -433,4 +468,4 @@ git diff --check
 
 ## Recommended Next Step
 
-Keep Boardsmith private and continue with small trust-building polish only. The next recommended step is either a small hosted archived-project smoke check using a clearly labeled archived non-critical project, project detail navigation polish, or more manual dogfood of the existing private planning workflow. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, auth expansion, or new project type work without an explicit task and, for PDF, explicit renderer dependency approval.
+Keep Boardsmith private and pause broad feature work. Use the current `private-mvp-1.0` baseline manually before selecting another major lane. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, auth expansion, or new project type work without an explicit task and, for PDF/export work, explicit renderer/dependency approval.

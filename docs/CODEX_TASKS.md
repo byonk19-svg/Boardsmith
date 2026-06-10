@@ -915,10 +915,19 @@
 - [x] Keep the pass dogfood/docs-only because no clear product defect justified code changes.
 - [x] Keep scope unchanged with no schema change, migration, package change, OpenAI prompt/model change, PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, purchasing, inventory, multi-turn chat, background agent, auth expansion, production multi-user behavior, hosted Supabase change, permanent delete, bulk archive, or new project type.
 
+## Task 80A - Private MVP 1.0 Baseline Checkpoint
+
+- [x] Document `private-mvp-1.0` in `docs/PRIVATE_MVP_READINESS.md` after the fresh hosted end-to-end dogfood pass completed without product defects.
+- [x] Summarize verified hosted behavior: authenticated hosted smoke, project list/detail, no-plan flow, first plan generation, one-shot `Tweak this plan`, revised latest plan, preserved prior history, revised-vs-prior comparison, print preview, notes/build-log, archive/restore, and archived revision blocking.
+- [x] Reconfirm Boardsmith remains private-MVP-only and planning-aid-only, not public launch software, not fabrication/engineering/structural approval software, and not CAD/CNC/export software.
+- [x] Reconfirm no public launch, real auth/RLS expansion, app-generated PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, payments, subscriptions, permanent delete, bulk archive, folders, tags, or new project types were added.
+- [x] Recommend pausing broad feature work and using the current baseline manually before selecting another major lane.
+- [x] Keep the pass docs/checkpoint/tag-only with no app product feature, schema change, migration, package change, hosted mutation, disabled hosted protection, personal credential logging, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, Supabase cloud change, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
-2. [ ] Consider a small private-MVP checkpoint only after another meaningful usability milestone, not for every smoke pass.
+1. [ ] Pause broad feature work and use the `private-mvp-1.0` baseline manually before selecting another major lane.
+2. [ ] Choose the next lane only from repeated manual dogfood friction.
 3. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, project detail, or `Tweak this plan` change.
 
 ## Remaining Hardening

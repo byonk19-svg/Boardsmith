@@ -100,3 +100,5 @@ Browser print assessment:
 Browser print remains enough for the private MVP. The printed shop-plan flow is clearer than the generated-plan detail page for build review, and this dogfood pass did not surface a need to start PDF/export/CAD/CNC work.
 
 No product code change was needed from this fresh dogfood pass. Larger feature ideas remain documentation-only and should not be built without a separate scoped task.
+
+This fresh pass is the dogfood evidence for the `private-mvp-1.0` baseline checkpoint. It supports pausing broad feature work and using the app manually before choosing another major lane.
