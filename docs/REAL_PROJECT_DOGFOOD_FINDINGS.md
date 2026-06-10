@@ -60,3 +60,43 @@ No hosted URL, project ID, project title, row data, cookie, request header, sess
 ## Result
 
 No small app defect was found that justified product code changes in this task. The right outcome is to keep using Boardsmith manually and select a narrow follow-up only from a repeated dogfood pain point.
+
+## Fresh End-To-End Hosted Dogfood
+
+Date: June 10, 2026
+
+Scope: one fresh clearly labeled non-critical hosted dogfood project from a realistic supported craft project type. The project title, hosted URL, project ID, plan IDs, row data, cookies, request headers, screenshots, session-file content, and sensitive logs are intentionally not recorded.
+
+Coverage:
+
+- Created one fresh non-critical supported project.
+- Confirmed the no-plan detail state showed first-time generation copy, project navigation, project actions, and project record.
+- Generated a first validated plan.
+- Confirmed the generated-plan detail state showed version-aware `Generate another plan version` copy, Plan Review, `Tweak this plan`, Plan comparison, Plan history, Printable Plan Sheet, and Project record.
+- Submitted one `Tweak this plan` revision instruction.
+- Confirmed the revised plan became latest, the prior plan remained in history, the `Revised` marker appeared, and comparison against the prior version was available.
+- Opened browser print preview and confirmed the shop-plan sections rendered.
+- Saved a small private project note.
+- Saved a small build-log note.
+- Archived the project, confirmed the revision form was blocked while archived, then restored it.
+
+What felt clear:
+
+- The updated `Generate another plan version` action made the second generation path easier to understand.
+- The `Tweak this plan` section made the one-change revision flow understandable without making it feel like chat.
+- Revised-vs-prior comparison and the plan-history markers made the saved-version model clear.
+- Browser print preview remained the clearest build-facing view.
+- Project notes and build-log fields were easy to reach from the Project record section.
+- Archive/restore copy continued to read as hide/restore, not delete.
+
+What felt annoying:
+
+- The hosted generation and revision waits are still noticeable. The current "keep this page open" copy is useful, but this remains the slowest part of the flow.
+- The project detail page is long after a plan exists. The section navigation helps, but users still need to move through several review surfaces.
+- The print preview is strong, but opening a separate route still feels like a context switch.
+
+Browser print assessment:
+
+Browser print remains enough for the private MVP. The printed shop-plan flow is clearer than the generated-plan detail page for build review, and this dogfood pass did not surface a need to start PDF/export/CAD/CNC work.
+
+No product code change was needed from this fresh dogfood pass. Larger feature ideas remain documentation-only and should not be built without a separate scoped task.

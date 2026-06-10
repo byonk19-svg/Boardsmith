@@ -905,6 +905,16 @@
 - [x] Update rendered-markup coverage for no-plan, latest-plan, `Tweak this plan`, archived project, and forbidden-copy states.
 - [x] Keep the pass UI copy/test/docs-only with no schema change, migration, package change, OpenAI prompt/model change, hosted mutation, PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, purchasing, inventory, multi-turn chat, background agent, auth expansion, production multi-user behavior, or new project type.
 
+## Task 79A - Fresh End-To-End Private Dogfood
+
+- [x] Run `npm run smoke:hosted` and confirm hosted route smoke still passes through the protected hosted access path.
+- [x] Create one fresh clearly labeled non-critical hosted dogfood project from a realistic supported project type without recording the hosted URL, project ID, project title, row data, cookies, request headers, screenshots, session-file content, or sensitive logs.
+- [x] Generate a first validated plan, then use `Tweak this plan` once to create a revised latest plan while preserving the prior version in history.
+- [x] Confirm revised-vs-prior comparison, plan history, `Revised` marker, version-aware generate copy, one-shot revision copy, Plan Review, Project actions, Project record, notes, build-log, print preview, archive, and restore behavior.
+- [x] Document what felt clear, what felt annoying, and that browser print remains enough for the private MVP in `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md`.
+- [x] Keep the pass dogfood/docs-only because no clear product defect justified code changes.
+- [x] Keep scope unchanged with no schema change, migration, package change, OpenAI prompt/model change, PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, purchasing, inventory, multi-turn chat, background agent, auth expansion, production multi-user behavior, hosted Supabase change, permanent delete, bulk archive, or new project type.
+
 ## Recommended Next Tasks
 
 1. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
