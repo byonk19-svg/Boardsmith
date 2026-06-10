@@ -497,7 +497,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Browser print plan");
   });
 
-  it("keeps archived project details and generated plan links viewable", async () => {
+  it("renders archived generated-plan projects as read-only until restored", async () => {
     getProjectMock.mockResolvedValue({
       ...project,
       archived_at: "2026-06-06T10:00:00.000Z",
@@ -513,16 +513,75 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("Archived project");
-    expect(markup).toContain("This project is hidden from the default project list, but its details and generated plans are preserved.");
+    expect(markup).toContain("Read-only archived project");
+    expect(markup).toContain("This project is archived. Restore it before revising or generating another plan.");
+    expect(markup).toContain("This project is hidden from the default project list and is read-only until restored.");
+    expect(markup).toContain("Existing details, generated plans, history, review notes, and browser print remain available.");
+    expect(markup).toContain("Restore it before revising, generating another plan, or making edit-like changes.");
     expect(markup).toContain("Restore project");
+    expect(markup).toContain("Restoring re-enables generation and revisions.");
     expect(markup).toContain('action="/projects/project_saved_bbm/restore"');
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
+    expect(markup).toContain("Browser print plan");
     expect(markup).toContain("Latest generated plan");
-    expect(markup).toContain("Restore before revising");
-    expect(markup).toContain("Archived projects stay viewable, but Boardsmith does not create new revised plans until the project is restored.");
+    expect(markup).toContain("Plan history");
+    expect(markup).toContain("Future output notes");
+    expect(markup).toContain("This archived project record is read-only until restored.");
+    expect(markup).toContain("Restore this project before editing notes.");
+    expect(markup).toContain("Restore this project before editing the build log.");
+    expect(markup).not.toContain("Generate another plan version");
+    expect(markup).not.toContain(">Generate Plan</button>");
+    expect(markup).not.toContain("Tweak this plan");
+    expect(markup).not.toContain('href="#tweak-this-plan"');
+    expect(markup).not.toContain('id="tweak-this-plan"');
     expect(markup).not.toContain('action="/projects/project_saved_bbm/revise"');
+    expect(markup).not.toContain('action="/projects/project_saved_bbm/generate"');
+    expect(markup).not.toContain('action="/projects/project_saved_bbm/duplicate"');
+    expect(markup).not.toContain('action="/projects/project_saved_bbm/notes"');
+    expect(markup).not.toContain('action="/projects/project_saved_bbm/build-log"');
+    expect(markup).not.toContain("Duplicate project");
+    expect(markup).not.toContain("Archive project");
+    expect(markup).not.toContain("Save notes");
+    expect(markup).not.toContain("Save build log");
     expect(markup).not.toContain('name="revision_instruction"');
     expect(markup).not.toMatch(/deleted|delete project/i);
+  });
+
+  it("renders archived no-plan projects without generation affordances", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      status: "draft",
+      archived_at: "2026-06-06T10:00:00.000Z",
+    });
+    listGeneratedPlansMock.mockResolvedValue([]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Read-only archived project");
+    expect(markup).toContain("This project is archived. Restore it before revising or generating another plan.");
+    expect(markup).toContain("No generated plan yet");
+    expect(markup).toContain("This archived project has no generated plan. Restore it before generating a first plan.");
+    expect(markup).toContain("This archived project record is read-only until restored.");
+    expect(markup).toContain("Restore project");
+    expect(markup).toContain('action="/projects/project_saved_bbm/restore"');
+    expect(markup).not.toContain(">Generate Plan</button>");
+    expect(markup).not.toContain("Generate another plan version");
+    expect(markup).not.toContain("Browser print plan");
+    expect(markup).not.toContain("Tweak this plan");
+    expect(markup).not.toContain('action="/projects/project_saved_bbm/generate"');
+    expect(markup).not.toContain('action="/projects/project_saved_bbm/revise"');
+    expect(markup).not.toContain('action="/projects/project_saved_bbm/notes"');
+    expect(markup).not.toContain('action="/projects/project_saved_bbm/build-log"');
+    expect(markup).not.toContain('name="revision_instruction"');
+    expect(markup).not.toContain("Save notes");
+    expect(markup).not.toContain("Save build log");
+    expect(markup).not.toContain("Duplicate project");
   });
 
   it("renders a duplicate project action on the project detail page", async () => {

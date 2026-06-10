@@ -76,6 +76,7 @@ export default async function ProjectDetailPage({
       : null;
   const printPreviewHref = `/projects/${project.id}/print` as Route;
   const sectionLinks = createProjectSectionLinks({
+    isArchived: isProjectArchived(project),
     hasLatestPlan: Boolean(latestPlanReview),
     hasPlanReview: Boolean(latestPlanReview?.manifest.planReview),
     hasPrintablePlan: Boolean(latestPlanReview?.manifest.generatedPlan && latestPlanReview.manifest.cutList),
@@ -154,7 +155,7 @@ export default async function ProjectDetailPage({
         <>
           {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
           {latestPlanReview.manifest.exportReadiness ? <ExportReadinessPanel summary={latestPlanReview.manifest.exportReadiness} /> : null}
-          <TweakPlanSection project={project} hasLatestPlan={Boolean(latestPlanReview)} />
+          {!isProjectArchived(project) ? <TweakPlanSection project={project} hasLatestPlan={Boolean(latestPlanReview)} /> : null}
           <PlanComparisonPanel
             comparison={planComparison}
             comparedVersionLabel={comparedPlanReview ? planVersionLabel(planReviews, comparedPlanReview.plan) : null}
@@ -163,7 +164,7 @@ export default async function ProjectDetailPage({
           <PlanView manifest={latestPlanReview.manifest} />
         </>
       ) : (
-        <EmptyPlanState />
+        <EmptyPlanState isArchived={isProjectArchived(project)} />
       )}
 
       {planReviews.length > 0 ? (
@@ -201,7 +202,7 @@ export default async function ProjectDetailPage({
         </section>
       ) : null}
 
-      <ProjectRecordSection project={project} />
+      <ProjectRecordSection project={project} isArchived={isProjectArchived(project)} />
     </div>
   );
 }
@@ -212,11 +213,13 @@ type ProjectSectionLink = {
 };
 
 function createProjectSectionLinks({
+  isArchived,
   hasLatestPlan,
   hasPlanReview,
   hasPrintablePlan,
   hasPlanHistory,
 }: {
+  isArchived: boolean;
   hasLatestPlan: boolean;
   hasPlanReview: boolean;
   hasPrintablePlan: boolean;
@@ -226,7 +229,7 @@ function createProjectSectionLinks({
     { label: "Project intake", href: "#project-intake" },
     { label: "Project structure", href: "#project-structure" },
     ...(hasPlanReview ? [{ label: "Plan review", href: "#plan-review" } satisfies ProjectSectionLink] : []),
-    ...(hasLatestPlan ? [{ label: "Tweak this plan", href: "#tweak-this-plan" } satisfies ProjectSectionLink] : []),
+    ...(hasLatestPlan && !isArchived ? [{ label: "Tweak this plan", href: "#tweak-this-plan" } satisfies ProjectSectionLink] : []),
     ...(hasLatestPlan ? [{ label: "Plan comparison", href: "#plan-comparison" } satisfies ProjectSectionLink] : []),
     ...(hasPrintablePlan ? [{ label: "Browser print plan", href: "#printable-plan-sheet" } satisfies ProjectSectionLink] : []),
     ...(hasPlanHistory ? [{ label: "Plan history", href: "#plan-history" } satisfies ProjectSectionLink] : []),
@@ -235,6 +238,34 @@ function createProjectSectionLinks({
 }
 
 function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project: Project; hasLatestPlan: boolean; printPreviewHref: Route }) {
+  if (isProjectArchived(project)) {
+    return (
+      <aside className="no-print rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-soft sm:min-w-[18rem]">
+        <p className="text-sm font-semibold text-amber-950">Read-only archived project</p>
+        <p className="mt-1 text-xs leading-5 text-amber-900">
+          This project is archived. Restore it before revising or generating another plan.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2 sm:justify-end">
+          <form action={`/projects/${project.id}/restore`} method="post" className="inline-flex flex-col">
+            <input type="hidden" name="return_to" value="project_detail" />
+            <button type="submit" className="w-fit rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100">
+              Restore project
+            </button>
+            <span className="mt-1 text-xs text-amber-900/75">Restoring re-enables generation and revisions.</span>
+          </form>
+          {hasLatestPlan ? (
+            <Link href={printPreviewHref} className="rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100">
+              Browser print plan
+            </Link>
+          ) : null}
+        </div>
+        {hasLatestPlan ? (
+          <p className="mt-3 text-xs leading-5 text-amber-900/75">Existing plans, review notes, history, and browser print remain available for review.</p>
+        ) : null}
+      </aside>
+    );
+  }
+
   return (
     <aside className="no-print rounded-lg border border-sawdust bg-white p-4 shadow-soft sm:min-w-[18rem]">
       <p className="text-sm font-semibold text-ink">Project actions</p>
@@ -322,7 +353,10 @@ function ArchivedProjectBanner({ project }: { project: Project }) {
         <div>
           <h2 className="text-base font-semibold text-amber-950">Archived project</h2>
           <p className="mt-1 text-sm leading-6 text-amber-900">
-            This project is hidden from the default project list, but its details and generated plans are preserved.
+            This project is hidden from the default project list and is read-only until restored. Existing details, generated plans, history, review notes, and browser print remain available.
+          </p>
+          <p className="mt-1 text-sm leading-6 text-amber-900">
+            Restore it before revising, generating another plan, or making edit-like changes.
           </p>
         </div>
         <form action={`/projects/${project.id}/restore`} method="post" className="no-print">
@@ -470,7 +504,7 @@ function ProjectIntakeCard({ project }: { project: Project }) {
   );
 }
 
-function ProjectNotesCard({ project }: { project: Project }) {
+function ProjectNotesCard({ project, isArchived }: { project: Project; isArchived: boolean }) {
   return (
     <section className="no-print rounded-lg border border-sawdust bg-white p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -481,25 +515,33 @@ function ProjectNotesCard({ project }: { project: Project }) {
           </p>
         </div>
       </div>
-      {project.notes.trim().length === 0 ? <p className="mt-4 rounded-md bg-shop p-3 text-sm leading-6 text-ink/65">No project notes saved yet.</p> : null}
-      <form action={`/projects/${project.id}/notes`} method="post" className="mt-4 space-y-3">
-        <textarea
-          name="notes"
-          rows={5}
-          maxLength={5000}
-          className="input"
-          placeholder="Material substitutions, measurement reminders, hardware thoughts, finish choices, or lessons learned..."
-          defaultValue={project.notes}
-        />
-        <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-          Save notes
-        </button>
-      </form>
+      {project.notes.trim().length === 0 ? (
+        <p className="mt-4 rounded-md bg-shop p-3 text-sm leading-6 text-ink/65">No project notes saved yet.</p>
+      ) : (
+        <p className="mt-4 rounded-md bg-shop p-3 text-sm leading-6 text-ink/75">{project.notes}</p>
+      )}
+      {isArchived ? (
+        <p className="mt-3 text-xs leading-5 text-ink/55">Restore this project before editing notes.</p>
+      ) : (
+        <form action={`/projects/${project.id}/notes`} method="post" className="mt-4 space-y-3">
+          <textarea
+            name="notes"
+            rows={5}
+            maxLength={5000}
+            className="input"
+            placeholder="Material substitutions, measurement reminders, hardware thoughts, finish choices, or lessons learned..."
+            defaultValue={project.notes}
+          />
+          <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+            Save notes
+          </button>
+        </form>
+      )}
     </section>
   );
 }
 
-function ProjectRecordSection({ project }: { project: Project }) {
+function ProjectRecordSection({ project, isArchived }: { project: Project; isArchived: boolean }) {
   return (
     <section id="project-record" className="no-print scroll-mt-6 space-y-4">
       <div>
@@ -507,16 +549,19 @@ function ProjectRecordSection({ project }: { project: Project }) {
         <p className="mt-2 text-sm leading-6 text-ink/65">
           Private notes and real-build details stay with this project. They do not certify the design or change generated plans.
         </p>
+        {isArchived ? (
+          <p className="mt-2 text-sm leading-6 text-ink/65">This archived project record is read-only until restored.</p>
+        ) : null}
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
-        <ProjectNotesCard project={project} />
-        <BuildLogCard project={project} />
+        <ProjectNotesCard project={project} isArchived={isArchived} />
+        <BuildLogCard project={project} isArchived={isArchived} />
       </div>
     </section>
   );
 }
 
-function BuildLogCard({ project }: { project: Project }) {
+function BuildLogCard({ project, isArchived }: { project: Project; isArchived: boolean }) {
   const hasBuildLogDetails =
     project.build_completed ||
     project.build_completed_at.length > 0 ||
@@ -557,52 +602,59 @@ function BuildLogCard({ project }: { project: Project }) {
           </p>
         </div>
 
-        <form action={`/projects/${project.id}/build-log`} method="post" className="space-y-3">
-          <label className="flex items-center gap-2 text-sm font-medium text-ink">
-            <input type="checkbox" name="build_completed" defaultChecked={project.build_completed} className="h-4 w-4" />
-            Project was completed
-          </label>
-          <label className="block text-sm font-medium text-ink">
-            Completion date
-            <input type="date" name="build_completed_at" defaultValue={project.build_completed_at} className="input mt-1" />
-          </label>
-          <label className="block text-sm font-medium text-ink">
-            Material actually used
-            <textarea
-              name="build_actual_material"
-              rows={3}
-              maxLength={2000}
-              className="input mt-1"
-              placeholder="Actual board, plywood, hardware, finish, or substitution notes..."
-              defaultValue={project.build_actual_material}
-            />
-          </label>
-          <label className="block text-sm font-medium text-ink">
-            What changed from the generated plan
-            <textarea
-              name="build_plan_changes"
-              rows={4}
-              maxLength={5000}
-              className="input mt-1"
-              placeholder="Dimension adjustments, hardware changes, skipped steps, added steps, or fit issues..."
-              defaultValue={project.build_plan_changes}
-            />
-          </label>
-          <label className="block text-sm font-medium text-ink">
-            Lessons learned / next time notes
-            <textarea
-              name="build_lessons_learned"
-              rows={4}
-              maxLength={5000}
-              className="input mt-1"
-              placeholder="What you would measure, cut, sand, finish, or assemble differently next time..."
-              defaultValue={project.build_lessons_learned}
-            />
-          </label>
-          <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-            Save build log
-          </button>
-        </form>
+        {isArchived ? (
+          <div className="rounded-md border border-sawdust p-4">
+            <p className="text-sm font-semibold text-ink">Read-only while archived</p>
+            <p className="mt-2 text-sm leading-6 text-ink/65">Restore this project before editing the build log.</p>
+          </div>
+        ) : (
+          <form action={`/projects/${project.id}/build-log`} method="post" className="space-y-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-ink">
+              <input type="checkbox" name="build_completed" defaultChecked={project.build_completed} className="h-4 w-4" />
+              Project was completed
+            </label>
+            <label className="block text-sm font-medium text-ink">
+              Completion date
+              <input type="date" name="build_completed_at" defaultValue={project.build_completed_at} className="input mt-1" />
+            </label>
+            <label className="block text-sm font-medium text-ink">
+              Material actually used
+              <textarea
+                name="build_actual_material"
+                rows={3}
+                maxLength={2000}
+                className="input mt-1"
+                placeholder="Actual board, plywood, hardware, finish, or substitution notes..."
+                defaultValue={project.build_actual_material}
+              />
+            </label>
+            <label className="block text-sm font-medium text-ink">
+              What changed from the generated plan
+              <textarea
+                name="build_plan_changes"
+                rows={4}
+                maxLength={5000}
+                className="input mt-1"
+                placeholder="Dimension adjustments, hardware changes, skipped steps, added steps, or fit issues..."
+                defaultValue={project.build_plan_changes}
+              />
+            </label>
+            <label className="block text-sm font-medium text-ink">
+              Lessons learned / next time notes
+              <textarea
+                name="build_lessons_learned"
+                rows={4}
+                maxLength={5000}
+                className="input mt-1"
+                placeholder="What you would measure, cut, sand, finish, or assemble differently next time..."
+                defaultValue={project.build_lessons_learned}
+              />
+            </label>
+            <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+              Save build log
+            </button>
+          </form>
+        )}
       </div>
     </section>
   );
@@ -617,13 +669,19 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function EmptyPlanState() {
+function EmptyPlanState({ isArchived }: { isArchived: boolean }) {
   return (
     <section className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
       <h2 className="text-lg font-semibold text-ink">No generated plan yet</h2>
-      <p className="mt-2 text-sm leading-6 text-ink/65">
-        Generate a first plan from Project actions. Boardsmith saves only validated plans; if review blocks generation, you will see what needs attention.
-      </p>
+      {isArchived ? (
+        <p className="mt-2 text-sm leading-6 text-ink/65">
+          This archived project has no generated plan. Restore it before generating a first plan.
+        </p>
+      ) : (
+        <p className="mt-2 text-sm leading-6 text-ink/65">
+          Generate a first plan from Project actions. Boardsmith saves only validated plans; if review blocks generation, you will see what needs attention.
+        </p>
+      )}
     </section>
   );
 }
