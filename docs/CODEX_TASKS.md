@@ -896,12 +896,20 @@
 - [x] Keep the pass dogfood/docs-only because no small app defect justified a product code change.
 - [x] Keep scope unchanged with no schema change, migration, package change, OpenAI prompt/model change, PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, hosted Supabase change, permanent delete, bulk archive, or new project type.
 
+## Task 78A - Versioning And Revision Copy Polish
+
+- [x] Change latest-plan project detail generate action copy from generic `Generate Plan` to version-aware `Generate another plan version` copy.
+- [x] Preserve no-plan first-time generation copy so projects without a latest plan still read naturally.
+- [x] Tighten `Tweak this plan` copy so it asks for one change and states the flow saves a new plan version for review as a one-shot revision, not a chat thread.
+- [x] Preserve route/action behavior, plan history, revised markers, comparison redirects, archived revision blocking, print preview, project actions grouping, and section navigation.
+- [x] Update rendered-markup coverage for no-plan, latest-plan, `Tweak this plan`, archived project, and forbidden-copy states.
+- [x] Keep the pass UI copy/test/docs-only with no schema change, migration, package change, OpenAI prompt/model change, hosted mutation, PDF/SVG/DXF/CAD/CNC/export implementation, image upload, public sharing, marketplace, shopping, pricing, vendor, purchasing, inventory, multi-turn chat, background agent, auth expansion, production multi-user behavior, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Pick at most one narrow follow-up from repeated dogfood friction, such as clearer "generate another plan version" copy on projects that already have a latest plan.
-2. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
-3. [ ] Consider a small private-MVP checkpoint only after another meaningful usability milestone, not for every smoke pass.
-4. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, project detail, or `Tweak this plan` change.
+1. [ ] Continue manual dogfood of the existing private planning workflow before adding broader features.
+2. [ ] Consider a small private-MVP checkpoint only after another meaningful usability milestone, not for every smoke pass.
+3. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, project detail, or `Tweak this plan` change.
 
 ## Remaining Hardening
 

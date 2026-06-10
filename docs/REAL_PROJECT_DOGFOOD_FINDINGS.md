@@ -45,9 +45,9 @@ No hosted URL, project ID, project title, row data, cookie, request header, sess
 
 ## Copy Or Navigation Follow-Ups To Consider
 
-- Consider changing the generated-plan action copy from `Generate Plan` to something like `Generate another plan version` when a latest plan already exists.
+- Addressed in Task 78A: latest-plan project detail pages now use version-aware generate copy, while no-plan pages keep first-time generation copy.
 - Consider a small current-section or sticky behavior for the no-print project-section nav only if manual use shows users still lose their place.
-- Consider adding one sentence near `Tweak this plan` that reinforces it is a one-shot revision, not a chat thread, if users try to use it conversationally.
+- Addressed in Task 78A: `Tweak this plan` copy now reinforces that the user should describe one change and that the flow is a one-shot revision, not a chat thread.
 - Consider making the Project record jump label slightly more descriptive only if users miss notes/build-log fields during manual use.
 
 ## Do Not Build Yet
@@ -60,4 +60,3 @@ No hosted URL, project ID, project title, row data, cookie, request header, sess
 ## Result
 
 No small app defect was found that justified product code changes in this task. The right outcome is to keep using Boardsmith manually and select a narrow follow-up only from a repeated dogfood pain point.
-

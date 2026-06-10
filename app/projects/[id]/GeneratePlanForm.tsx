@@ -4,11 +4,14 @@ import { useState, type SyntheticEvent } from "react";
 
 type GeneratePlanFormProps = {
   action: string;
+  idleLabel?: string;
+  pendingLabel?: string;
 };
 
-const pendingLabel = "Generating plan...";
+const defaultIdleLabel = "Generate Plan";
+const defaultPendingLabel = "Generating plan...";
 
-export function GeneratePlanForm({ action }: GeneratePlanFormProps) {
+export function GeneratePlanForm({ action, idleLabel = defaultIdleLabel, pendingLabel = defaultPendingLabel }: GeneratePlanFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
@@ -29,7 +32,7 @@ export function GeneratePlanForm({ action }: GeneratePlanFormProps) {
         data-pending-label={pendingLabel}
         className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90 disabled:cursor-wait disabled:bg-moss/70"
       >
-        {isSubmitting ? pendingLabel : "Generate Plan"}
+        {isSubmitting ? pendingLabel : idleLabel}
       </button>
       {isSubmitting ? (
         <p aria-live="polite" className="mt-2 text-xs font-medium text-ink/60">

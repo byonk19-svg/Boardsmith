@@ -176,6 +176,8 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('aria-label="Project sections"');
     expect(markup).toContain("Project actions");
     expect(markup).toContain("Project sections");
+    expect(markup).toContain("Generate another plan version");
+    expect(markup).not.toContain(">Generate Plan</button>");
     expect(markup).toContain('href="#project-intake"');
     expect(markup).toContain('id="project-intake"');
     expect(markup).toContain('href="#project-structure"');
@@ -347,6 +349,8 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Future export notes");
     expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
     expect(markup).toContain("Tweak this plan");
+    expect(markup).toContain("Describe one change to the latest plan.");
+    expect(markup).toContain("Boardsmith saves a new plan version for review; this is a one-shot revision, not a chat thread.");
     expect(markup).toContain("Describe one change to make to the latest plan");
     expect(markup).toContain("Boardsmith will save this as a new plan version.");
     expect(markup).toContain("Revised plans still need manual review before cutting or building.");
@@ -354,6 +358,10 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('name="revision_instruction"');
     expect(markup).toContain("Create revised plan");
     expect(markup).not.toContain("AI chat");
+    const tweakStart = markup.indexOf('id="tweak-this-plan"');
+    const tweakEnd = markup.indexOf("</section>", tweakStart);
+    const tweakMarkup = markup.slice(tweakStart, tweakEnd);
+    expect(tweakMarkup).not.toMatch(/background agent|professional approval|structural approval|certification|CAD-ready|CNC-ready|fabrication-ready/i);
   });
 
   it("renders a read-only comparison between the latest plan and an older history version", async () => {
@@ -513,6 +521,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Restore before revising");
     expect(markup).toContain("Archived projects stay viewable, but Boardsmith does not create new revised plans until the project is restored.");
     expect(markup).not.toContain('action="/projects/project_saved_bbm/revise"');
+    expect(markup).not.toContain('name="revision_instruction"');
     expect(markup).not.toMatch(/deleted|delete project/i);
   });
 
@@ -585,6 +594,8 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("No generated plan yet");
+    expect(markup).toContain(">Generate Plan</button>");
+    expect(markup).not.toContain("Generate another plan version");
     expect(markup).toContain("Generate a plan to see Boardsmith&#x27;s review checks.");
     expect(markup).toContain("Project sections");
     expect(markup).toContain('href="#project-intake"');

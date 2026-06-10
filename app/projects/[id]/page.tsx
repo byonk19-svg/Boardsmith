@@ -240,7 +240,11 @@ function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project:
       <p className="text-sm font-semibold text-ink">Project actions</p>
       <p className="mt-1 text-xs leading-5 text-ink/55">Plan versions stay in history. Review before cutting or building.</p>
       <div className="mt-4 flex flex-wrap gap-2 sm:justify-end">
-        <GeneratePlanForm action={`/projects/${project.id}/generate`} />
+        <GeneratePlanForm
+          action={`/projects/${project.id}/generate`}
+          idleLabel={hasLatestPlan ? "Generate another plan version" : undefined}
+          pendingLabel={hasLatestPlan ? "Generating another plan version..." : undefined}
+        />
         {hasLatestPlan ? (
           <Link href={printPreviewHref} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
             Browser print preview
@@ -388,7 +392,7 @@ function TweakPlanSection({ project, hasLatestPlan }: { project: Project; hasLat
         <div className="max-w-2xl">
           <h2 className="text-lg font-semibold text-ink">Tweak this plan</h2>
           <p className="mt-2 text-sm leading-6 text-ink/65">
-            Describe one change. Boardsmith will create a revised plan and keep the current version in history.
+            Describe one change to the latest plan. Boardsmith saves a new plan version for review; this is a one-shot revision, not a chat thread.
           </p>
           <p className="mt-2 text-sm leading-6 text-ink/65">
             For new dimensions, materials, project type, or mounting changes, update or duplicate the project intake first.
