@@ -163,6 +163,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Primary tools");
     expect(markup).toContain("Project Visuals");
     expect(markup).toContain("Check Before Building");
+    expect(markup).toContain('print:break-before-page');
     expect(markup).toContain("Review wall mounting details.");
     expect(markup).toContain("Review safety-trigger notes.");
     expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
@@ -208,6 +209,9 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Modeled operations");
     expect(markup).not.toContain("15 min");
     expect(markup).toContain("Review Appendix");
+    expect(markup).toContain("Shop notes");
+    expect(markup).toContain("Blank space for handwritten notes on the printed plan. Nothing here is saved in Boardsmith.");
+    expect(markup).toContain("hidden print:block print:break-before-page");
     expect(markup).toContain("Additional checklist notes");
     expect(markup).toContain("Plan review summary");
     expect(markup).toContain("Review triggers");

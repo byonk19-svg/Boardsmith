@@ -72,7 +72,7 @@ export default async function ProjectPrintPreviewPage({
           />
         </PrintSection>
 
-        <PrintSection title="Check Before Building">
+        <PrintSection title="Check Before Building" printBreakBefore>
           <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
         </PrintSection>
 
@@ -80,17 +80,19 @@ export default async function ProjectPrintPreviewPage({
           <PrintMaterialsAndParts manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Cut Checklist">
+        <PrintSection title="Cut Checklist" printBreakBefore>
           <PrintCutChecklist manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Build Guide">
+        <PrintSection title="Build Guide" printBreakBefore>
           <PrintBuildGuide manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Review Appendix" appendix>
+        <PrintSection title="Review Appendix" appendix printBreakBefore>
           <PrintReviewDetails manifest={manifest} />
         </PrintSection>
+
+        <PrintShopNotes />
       </article>
     </main>
   );
@@ -251,12 +253,36 @@ function PrintReviewDetails({ manifest }: { manifest: PrintablePlanManifest }) {
   );
 }
 
-function PrintSection({ title, children, appendix = false }: { title: string; children: React.ReactNode; appendix?: boolean }) {
+function PrintSection({
+  title,
+  children,
+  appendix = false,
+  printBreakBefore = false,
+}: {
+  title: string;
+  children: React.ReactNode;
+  appendix?: boolean;
+  printBreakBefore?: boolean;
+}) {
   return (
-    <section className={`break-inside-avoid border-b border-sawdust pb-6 last:border-0 print:break-inside-avoid ${appendix ? "text-ink/85" : ""}`}>
+    <section
+      className={`break-inside-avoid border-b border-sawdust pb-6 last:border-0 print:break-inside-avoid ${
+        printBreakBefore ? "print:break-before-page" : ""
+      } ${appendix ? "text-ink/85" : ""}`}
+    >
       <h2 className={appendix ? "text-lg font-semibold tracking-tight text-ink/80" : "text-xl font-semibold tracking-tight text-ink"}>{title}</h2>
       {appendix ? <p className="mt-2 text-sm leading-6 text-ink/60">Reference notes for review after the build flow. Keep these available, but use the sections above to work through the plan.</p> : null}
       <div className={appendix ? "mt-3" : "mt-4"}>{children}</div>
+    </section>
+  );
+}
+
+function PrintShopNotes() {
+  return (
+    <section className="hidden print:block print:break-before-page">
+      <h2 className="text-lg font-semibold tracking-tight text-ink">Shop notes</h2>
+      <p className="mt-2 text-sm leading-6 text-ink/60">Blank space for handwritten notes on the printed plan. Nothing here is saved in Boardsmith.</p>
+      <div className="mt-4 h-40 rounded-md border border-dashed border-ink/35" aria-hidden="true" />
     </section>
   );
 }
