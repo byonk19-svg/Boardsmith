@@ -115,7 +115,9 @@ describe("project form routes", () => {
     expect(markup).toContain("Start a project plan");
     expect(markup).toContain("Save a clear project intake first.");
     expect(markup).toContain("Start from an example");
-    expect(markup).toContain("Examples fill the form with editable beginner-friendly details.");
+    expect(markup).toContain("optional editable starters");
+    expect(markup).toContain("Examples fill the form with beginner-friendly details.");
+    expect(markup).toContain("start with Project basics below");
     expect(markup).toContain("Freestanding plant display board");
     expect(markup).toContain("Simple cordless lamp riser platform");
     expect(markup).toContain("Small desktop organizer");
@@ -134,6 +136,8 @@ describe("project form routes", () => {
     expect(markup).toContain("Before saving");
     expect(markup).toContain("generated plans are saved only after validation");
     expect(markup.match(/Use example/g)?.length).toBe(5);
+    expect(markup.indexOf("<summary")).toBeLessThan(markup.indexOf("<form"));
+    expect(markup.indexOf('<h2 class="text-lg font-semibold text-ink">Project basics</h2>')).toBeGreaterThan(markup.indexOf("<form"));
     expect(markup).toContain('href="/projects/new?example=plant_display_board"');
     expect(markup).toContain('href="/projects/new?example=lamp_riser"');
     expect(markup).toContain('href="/projects/new?example=desktop_organizer"');

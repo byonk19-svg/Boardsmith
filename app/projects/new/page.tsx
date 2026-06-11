@@ -12,6 +12,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
   const formValues = draft ?? selectedExample?.draft;
   const starterLoaded = !draft && selectedExample;
   const unknownExample = typeof params.example === "string" && params.example.length > 0 && !selectedExample;
+  const starterChooserOpen = Boolean(starterLoaded) || unknownExample;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -44,21 +45,25 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
         </section>
       ) : null}
 
-      <section className="grid gap-4 rounded-lg border border-sawdust bg-white p-5 text-sm leading-6 text-ink/70 shadow-soft md:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-3">
-          <h2 className="text-base font-semibold text-ink">Start from an example</h2>
-          <p>Examples fill the form with editable beginner-friendly details. You can also skip them and write your own intake.</p>
-          <ul className="grid gap-2">
+      <details className="rounded-lg border border-sawdust bg-white p-4 text-sm leading-6 text-ink/70 shadow-soft" open={starterChooserOpen}>
+        <summary className="cursor-pointer text-base font-semibold text-ink">
+          Start from an example
+          <span className="ml-2 text-sm font-normal text-ink/60">optional editable starters</span>
+        </summary>
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-3">
+            <p>Examples fill the form with beginner-friendly details. You can also skip them and start with Project basics below.</p>
+            <ul className="grid gap-2 sm:grid-cols-2">
             {projectIntakeExamples.map((example) => (
               <li key={example.slug} className="rounded-md border border-sawdust p-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
+                <div className="flex h-full flex-col gap-2">
+                  <div className="min-w-0">
                     <p className="font-semibold text-ink">{example.label}</p>
-                    <p className="mt-1">{example.description}</p>
+                    <p className="mt-1 text-ink/65">{example.description}</p>
                   </div>
                   <Link
                     aria-label={`Use example: ${example.label}`}
-                    className="shrink-0 text-sm font-semibold text-moss hover:text-moss/80"
+                    className="mt-auto text-sm font-semibold text-moss hover:text-moss/80"
                     href={`/projects/new?example=${example.slug}`}
                   >
                     Use example
@@ -67,26 +72,27 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
               </li>
             ))}
           </ul>
-        </div>
-        <div className="space-y-4 rounded-md bg-shop p-4">
-          <div>
-            <h2 className="text-base font-semibold text-ink">Good input example</h2>
-            <p className="mt-2 text-ink/70">
-              Small indoor wall shelf, 24 x 8 x 6 inches, 3/4 inch pine board, drill and sander available, light decor only,
-              mount into studs if possible, painted finish.
-            </p>
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-ink">Include what you know</h3>
-            <ul className="mt-2 list-disc space-y-2 pl-5">
-              <li>finished dimensions or your best current estimate</li>
-              <li>material and thickness, even if it may change later</li>
-              <li>tools you can safely use</li>
-              <li>indoor/outdoor location, mounting, finish, and safety-sensitive uses</li>
-            </ul>
+          <div className="space-y-4 rounded-md bg-shop p-4">
+            <div>
+              <h2 className="text-base font-semibold text-ink">Good input example</h2>
+              <p className="mt-2 text-ink/70">
+                Small indoor wall shelf, 24 x 8 x 6 inches, 3/4 inch pine board, drill and sander available, light decor only,
+                mount into studs if possible, painted finish.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-ink">Include what you know</h3>
+              <ul className="mt-2 list-disc space-y-2 pl-5">
+                <li>finished dimensions or your best current estimate</li>
+                <li>material and thickness, even if it may change later</li>
+                <li>tools you can safely use</li>
+                <li>indoor/outdoor location, mounting, finish, and safety-sensitive uses</li>
+              </ul>
+            </div>
           </div>
         </div>
-      </section>
+      </details>
 
       <form action="/projects/create" method="post" className="space-y-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft">
         <section className="space-y-4">

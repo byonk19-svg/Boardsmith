@@ -37,6 +37,7 @@ Project intake
     Use example -> /projects/new?example=:slug
     Save project intake -> POST /projects/create -> /projects/[id]
     Invalid intake -> /projects/new?error=invalid_intake
+    Starter chooser -> optional collapsed details section on /projects/new
 
 Project detail
   /projects/[id]
@@ -172,19 +173,19 @@ Use starter -> /projects/new?example=:slug
 
 Route: `/projects/new`
 
-Screen job: collect a complete, reviewable woodworking project intake before any plan generation happens.
+Screen job: collect a complete, reviewable woodworking project intake before any plan generation happens, while keeping manual entry easy to start.
 
 Primary action: `Save project intake` posts to `/projects/create`, validates form data, saves the project, and redirects to `/projects/[id]`.
 
-Secondary actions: `Use example` links reload the intake with starter values. The user can ignore examples and fill the form manually.
+Secondary actions: `Use example` links reload the intake with starter values. The starter chooser is now a compact optional details section, so the user can ignore it and start with `Project basics` quickly.
 
 Empty states: not applicable; the form is always present.
 
 Loading states: `app/projects/new/loading.tsx` shows a "Loading project intake" state while the route prepares form details and starter examples.
 
-Error/blocked states: `?error=invalid_intake` displays an amber warning and restores a short-lived draft from a cookie when possible. Unknown starter slugs show a "Starter example was not found" warning and keep the manual form available.
+Error/blocked states: `?error=invalid_intake` displays an amber warning and restores a short-lived draft from a cookie when possible. Unknown starter slugs show a "Starter example was not found" warning, open the starter chooser, and keep the manual form available.
 
-Mobile considerations: the form is long. Fields stack, tool checkboxes become a single-column scan path on narrow screens, and the starter/examples section appears before the form, so first field entry can be below the first mobile viewport.
+Mobile considerations: the form is long. Fields stack, tool checkboxes become a single-column scan path on narrow screens, and the compact starter chooser keeps the first manual field closer to the first viewport.
 
 Action arrows:
 
@@ -192,6 +193,20 @@ Action arrows:
 Use example -> /projects/new?example=:slug
 Save project intake -> POST /projects/create -> /projects/[id]
 Invalid intake -> /projects/new?error=invalid_intake
+```
+
+Current reading order:
+
+```text
+Intro
+Invalid-intake / starter-loaded / unknown-starter notices
+Optional starter chooser (collapsed by default)
+Project basics
+Size and material
+Tools and safety context
+Use, constraints, and finish notes
+Before saving
+Save project intake
 ```
 
 ### Project Detail With No Generated Plan
@@ -409,8 +424,8 @@ Browser print -> browser/OS print dialog
 1. Project detail still has high information density.
    The state-aware next-step strip helps, but a generated detail page still asks the user to parse actions, jump links, intake, review triggers, template guidance, build model, plan review, future output notes, tweak flow, comparison, plan sheet, history, notes, and build log in one long page.
 
-2. New project examples compete with first form entry.
-   Starter examples are useful, but they sit before the full intake form. On mobile, a user who already knows what they want must scroll past guidance before entering the project.
+2. New project intake is still long.
+   UI-02B compacted the starter chooser so examples no longer dominate the top of the page, but the full manual intake remains a long form on mobile.
 
 3. Print behavior depends on browser knowledge.
    The supported output is browser print, but there is no in-app print command. The copy is honest, yet some users may still look for a print/download button or expect app-generated PDF.
@@ -426,8 +441,8 @@ Browser print -> browser/OS print dialog
 1. Continue dogfooding the generated project detail reading order.
    UI-02A added a compact "Review before building" summary that deep-links to cut list, open questions, print preview, and comparison. The next pass should only respond to repeated confusion found in real manual use.
 
-2. Compact the intake starter area.
-   Convert the example section into a shorter starter row or collapsible starter chooser, followed immediately by the manual form. Preserve current example routes and invalid-intake draft behavior.
+2. Dogfood the compact intake starter area.
+   UI-02B moved starters into an optional compact chooser above the form. The next pass should only respond to repeated confusion around starter discoverability or first-field entry.
 
 3. Make browser print more explicit as an action.
    Add a print-focused toolbar treatment on `/projects/[id]/print` with a clear browser-print action affordance using `window.print()` only if approved for a client component; otherwise, tighten copy around the existing browser print workflow. Do not add PDF/export behavior.
