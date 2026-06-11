@@ -56,7 +56,8 @@ Project detail
 Print preview
   /projects/[id]/print
     Back to project -> /projects/[id]
-    Browser print dialog -> user presses browser print command
+    Print build sheet -> browser/OS print dialog
+    Browser print command -> browser/OS print dialog
 ```
 
 ## End-to-End Flow
@@ -367,11 +368,11 @@ Browser print plan action -> /projects/[id]/print
 
 Route: `/projects/[id]/print`
 
-Screen job: show the latest generated plan as a print-focused build sheet for browser printing.
+Screen job: show the latest generated plan as a browser-print build sheet, with the supported output path explicit before the sheet content.
 
-Primary action: use the browser print dialog. The app does not render its own print/download button.
+Primary action: `Print build sheet` opens the browser print dialog through `window.print()`. It does not create PDFs, downloads, CAD, CNC, SVG, DXF, or export files.
 
-Secondary actions: `Back to project` returns to `/projects/[id]`.
+Secondary actions: `Back to project` returns to `/projects/[id]`. The user can also use the browser's native print command.
 
 Empty states: if there is no generated plan, the route shows "No generated plan to print yet" and links back to the project.
 
@@ -379,15 +380,15 @@ Loading states: no explicit route-level loading component.
 
 Error/blocked states: missing project returns `notFound()`. Missing generated plan shows the empty print state. Safety, assumptions, unresolved questions, and planning-aid reminders are included in the sheet.
 
-Mobile considerations: the preview is readable on screen but optimized for print. Wide cut-list tables use horizontal scrolling before print.
+Mobile considerations: the preview is readable on screen but optimized for print. The print toolbar stacks above the sheet and is hidden from printed output. Wide cut-list tables use horizontal scrolling before print.
 
 Wireframe:
 
 ```text
 +------------------------------------------------------+
 | Back to project                                      |
-| Browser print plan. Use browser print dialog.         |
-| No PDF or CAD download is generated.                  |
+| Browser-print build sheet                [Print]     |
+| Use browser print dialog. No export/download files.   |
 +------------------------------------------------------+
 | Browser print plan                                   |
 | Project title                                        |
@@ -416,7 +417,8 @@ Wireframe:
 +------------------------------------------------------+
 
 Back to project -> /projects/[id]
-Browser print -> browser/OS print dialog
+Print build sheet -> browser/OS print dialog
+Browser print command -> browser/OS print dialog
 ```
 
 ## Top 5 Current UI Friction Points
@@ -427,8 +429,8 @@ Browser print -> browser/OS print dialog
 2. New project intake is still long.
    UI-02B compacted the starter chooser so examples no longer dominate the top of the page, but the full manual intake remains a long form on mobile.
 
-3. Print behavior depends on browser knowledge.
-   The supported output is browser print, but there is no in-app print command. The copy is honest, yet some users may still look for a print/download button or expect app-generated PDF.
+3. Print behavior is clearer, but still browser-owned.
+   UI-02C adds a top print toolbar and `Print build sheet` action that opens the browser print dialog. The app still does not generate PDF, CAD, CNC, or export/download files.
 
 4. Project list filters can feel heavier than the private-MVP task.
    Search, archive, project type, status, plan state, record state, apply, and clear are powerful for dogfood data, but the control block is dense before the project cards, especially on mobile.
@@ -444,8 +446,8 @@ Browser print -> browser/OS print dialog
 2. Dogfood the compact intake starter area.
    UI-02B moved starters into an optional compact chooser above the form. The next pass should only respond to repeated confusion around starter discoverability or first-field entry.
 
-3. Make browser print more explicit as an action.
-   Add a print-focused toolbar treatment on `/projects/[id]/print` with a clear browser-print action affordance using `window.print()` only if approved for a client component; otherwise, tighten copy around the existing browser print workflow. Do not add PDF/export behavior.
+3. Dogfood the browser-print toolbar.
+   UI-02C makes the browser print action explicit. The next pass should only respond to repeated confusion in real print use, not add PDF/export behavior.
 
 ## Verification Notes
 

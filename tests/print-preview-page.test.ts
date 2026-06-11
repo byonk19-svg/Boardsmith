@@ -146,8 +146,12 @@ describe("ProjectPrintPreviewPage", () => {
     );
 
     expect(markup).toContain("Browser print plan");
-    expect(markup).toContain("Use your browser&#x27;s print dialog if you want a paper copy.");
-    expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
+    expect(markup).toContain("Browser-print build sheet");
+    expect(markup).toContain("Use the button to open your browser print dialog, or use your browser&#x27;s print command.");
+    expect(markup).toContain("Boardsmith does not generate PDF, CAD, CNC, or export/download files.");
+    expect(markup).toContain("Print build sheet");
+    expect(markup).toContain("Opens the browser print dialog only.");
+    expect(markup).toContain('class="no-print mb-6');
     expect(markup).toContain("Planning aid: verify dimensions, materials, hardware, and safety notes before building.");
     expect(markup).toContain("A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.");
     expect(markup).not.toContain("This extra sentence should stay out of the compressed print header.");

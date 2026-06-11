@@ -11,6 +11,7 @@ import { getTemplateHint } from "@/lib/templates/template-hints";
 import { BuildStepCards } from "../BuildStepCards";
 import { PlanActionChecklist } from "../PlanActionChecklist";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
+import { PrintDialogButton } from "./PrintDialogButton";
 
 export const dynamic = "force-dynamic";
 
@@ -39,13 +40,18 @@ export default async function ProjectPrintPreviewPage({
 
   return (
     <main className="mx-auto max-w-5xl bg-white p-6 text-ink shadow-soft print:max-w-none print:p-0 print:shadow-none">
-      <div className="no-print mb-6 flex flex-col gap-3 border-b border-sawdust pb-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+      <div className="no-print mb-6 flex flex-col gap-4 rounded-lg border border-sawdust bg-shop/40 p-4 shadow-soft sm:flex-row sm:items-start sm:justify-between">
+        <div className="max-w-2xl">
           <Link href={`/projects/${project.id}`} className="text-sm font-semibold text-moss hover:underline">
             Back to project
           </Link>
-          <p className="mt-2 text-sm text-ink/65">Browser print plan. Use your browser's print dialog if you want a paper copy.</p>
-          <p className="mt-1 text-sm text-ink/65">This MVP uses browser print only; no PDF or CAD download is generated.</p>
+          <p className="mt-3 text-base font-semibold text-ink">Browser-print build sheet</p>
+          <p className="mt-1 text-sm leading-6 text-ink/65">Use the button to open your browser print dialog, or use your browser's print command.</p>
+          <p className="mt-1 text-sm leading-6 text-ink/65">Boardsmith does not generate PDF, CAD, CNC, or export/download files.</p>
+        </div>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <PrintDialogButton />
+          <p className="text-xs leading-5 text-ink/55">Opens the browser print dialog only.</p>
         </div>
       </div>
 
