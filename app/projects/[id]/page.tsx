@@ -124,12 +124,18 @@ export default async function ProjectDetailPage({
       ) : null}
       {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} /> : null}
 
+      <RecommendedNextStep project={project} latestPlanReview={latestPlanReview} planVersionCount={planReviews.length} />
+
       <ProjectSectionsNav links={sectionLinks} />
 
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
         <ProjectIntakeCard project={project} />
         <div className="rounded-lg border border-sawdust bg-white p-5">
-          <h2 className="text-lg font-semibold text-ink">Safety review</h2>
+          <h2 className="text-lg font-semibold text-ink">Review triggers</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/65">
+            These are conservative review triggers, not confirmed hazards. They may appear when safety-sensitive terms are mentioned, even when the
+            project says that use is excluded.
+          </p>
           {project.safety_review_required ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {project.safety_flags.map((flag) => (
@@ -139,7 +145,7 @@ export default async function ProjectDetailPage({
               ))}
             </div>
           ) : (
-            <p className="mt-3 text-sm text-ink/65">No deterministic safety flags were triggered. User review is still required before building.</p>
+            <p className="mt-3 text-sm text-ink/65">No deterministic review triggers were added. User review is still required before building.</p>
           )}
           <p className="mt-4 text-sm leading-6 text-ink/65">
             Plans are aids, not professional approvals. Review dimensions, materials, tool safety, fasteners, and mounting details before cutting.
@@ -240,7 +246,7 @@ function createProjectSectionLinks({
 function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project: Project; hasLatestPlan: boolean; printPreviewHref: Route }) {
   if (isProjectArchived(project)) {
     return (
-      <aside className="no-print rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-soft sm:min-w-[18rem]">
+      <aside id="project-actions" className="no-print rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-soft sm:min-w-[18rem]">
         <p className="text-sm font-semibold text-amber-950">Read-only archived project</p>
         <p className="mt-1 text-xs leading-5 text-amber-900">
           This project is archived. Restore it before revising or generating another plan.
@@ -267,7 +273,7 @@ function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project:
   }
 
   return (
-    <aside className="no-print rounded-lg border border-sawdust bg-white p-4 shadow-soft sm:min-w-[18rem]">
+    <aside id="project-actions" className="no-print rounded-lg border border-sawdust bg-white p-4 shadow-soft sm:min-w-[18rem]">
       <p className="text-sm font-semibold text-ink">Project actions</p>
       <p className="mt-1 text-xs leading-5 text-ink/55">Plan versions stay in history. Review before cutting or building.</p>
       <div className="mt-4 flex flex-wrap gap-2 sm:justify-end">
@@ -301,6 +307,9 @@ function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project:
 function ProjectSectionsNav({ links }: { links: ProjectSectionLink[] }) {
   if (links.length === 0) return null;
 
+  const primaryLinks = links.filter((link) => isPrimarySectionLink(link));
+  const secondaryLinks = links.filter((link) => !isPrimarySectionLink(link));
+
   return (
     <nav aria-label="Project sections" className="no-print rounded-lg border border-sawdust bg-white p-4 shadow-soft">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -308,16 +317,41 @@ function ProjectSectionsNav({ links }: { links: ProjectSectionLink[] }) {
           <p className="text-sm font-semibold text-ink">Project sections</p>
           <p className="mt-1 text-xs leading-5 text-ink/55">Jump to the parts of this private planning record.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="hidden flex-wrap gap-2 sm:flex">
           {links.map((link) => (
             <a key={link.href} href={link.href} className="rounded-md border border-sawdust px-3 py-1.5 text-sm font-semibold text-ink hover:bg-shop">
               {link.label}
             </a>
           ))}
         </div>
+        <div className="space-y-2 sm:hidden">
+          <div className="flex flex-wrap gap-2">
+            {primaryLinks.map((link) => (
+              <a key={link.href} href={link.href} className="rounded-md border border-sawdust px-3 py-1.5 text-sm font-semibold text-ink hover:bg-shop">
+                {link.label}
+              </a>
+            ))}
+          </div>
+          {secondaryLinks.length > 0 ? (
+            <details className="rounded-md border border-sawdust bg-shop/40 p-2">
+              <summary className="cursor-pointer text-sm font-semibold text-ink">More sections</summary>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {secondaryLinks.map((link) => (
+                  <a key={link.href} href={link.href} className="rounded-md border border-sawdust bg-white px-3 py-1.5 text-sm font-semibold text-ink hover:bg-shop">
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </details>
+          ) : null}
+        </div>
       </div>
     </nav>
   );
+}
+
+function isPrimarySectionLink(link: ProjectSectionLink): boolean {
+  return link.href === "#project-intake" || link.href === "#plan-review" || link.href === "#printable-plan-sheet" || link.href === "#plan-history" || link.href === "#project-record";
 }
 
 function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
@@ -335,6 +369,123 @@ function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
       buildModelSource,
     }),
   };
+}
+
+type PlanReviewEntry = ReturnType<typeof buildPlanReview>;
+
+function RecommendedNextStep({
+  project,
+  latestPlanReview,
+  planVersionCount,
+}: {
+  project: Project;
+  latestPlanReview: PlanReviewEntry | null;
+  planVersionCount: number;
+}) {
+  const isArchived = isProjectArchived(project);
+  const unresolvedDimensions = latestPlanReview?.manifest.cutList ? unresolvedCutDimensionItems(latestPlanReview.manifest.cutList) : [];
+
+  if (unresolvedDimensions.length > 0) {
+    return (
+      <NextStepPanel
+        title="Resolve missing cut dimensions"
+        body="Resolve missing cut dimensions before cutting or printing this plan. Confirm every missing, unknown, placeholder, or unresolved measurement first."
+        links={[{ href: "#cut-list-to-verify", label: "Review cut list" }]}
+        tone="warning"
+      />
+    );
+  }
+
+  if (isArchived) {
+    return (
+      <NextStepPanel
+        title="Review only until restored"
+        body="This archived project is read-only. Restore remains the only edit-enabling action; existing plans, notes, history, and browser print stay available for review."
+        links={[
+          ...(latestPlanReview ? [{ href: "#printable-plan-sheet" as const, label: "View latest plan" }] : []),
+          ...(planVersionCount > 0 ? [{ href: "#plan-history" as const, label: "Plan history" }] : []),
+          { href: "#project-record", label: "Project record" },
+        ]}
+        tone="archived"
+      />
+    );
+  }
+
+  if (!latestPlanReview) {
+    return (
+      <NextStepPanel
+        title="Review intake, then generate a first plan"
+        body="Check the project intake and review triggers, then use Project actions to generate a first validated plan."
+        links={[
+          { href: "#project-intake", label: "Review intake" },
+          { href: "#project-actions", label: "Project actions" },
+        ]}
+      />
+    );
+  }
+
+  return (
+    <NextStepPanel
+      title={planVersionCount > 1 ? "Review the latest plan version" : "Review the generated plan"}
+      body={
+        planVersionCount > 1
+          ? "The latest version is shown. Older versions remain read-only in plan history for comparison."
+          : "Review safety notes, cut list, assumptions, and open questions before using Browser print plan."
+      }
+      links={[
+        { href: "#plan-review", label: "Plan review" },
+        { href: "#cut-list-to-verify", label: "Cut list" },
+        { href: "#printable-plan-sheet", label: "Browser print plan" },
+        ...(planVersionCount > 1 ? [{ href: "#plan-history" as const, label: "Plan history" }] : []),
+      ]}
+    />
+  );
+}
+
+function NextStepPanel({
+  title,
+  body,
+  links,
+  tone = "default",
+}: {
+  title: string;
+  body: string;
+  links: { href: `#${string}`; label: string }[];
+  tone?: "default" | "warning" | "archived";
+}) {
+  const panelClass =
+    tone === "warning"
+      ? "border-red-200 bg-red-50"
+      : tone === "archived"
+        ? "border-amber-200 bg-amber-50"
+        : "border-sawdust bg-white";
+  const titleClass = tone === "warning" ? "text-red-950" : tone === "archived" ? "text-amber-950" : "text-ink";
+  const bodyClass = tone === "warning" ? "text-red-900" : tone === "archived" ? "text-amber-900" : "text-ink/70";
+  const linkClass =
+    tone === "warning"
+      ? "border-red-200 bg-white text-red-950 hover:bg-red-100"
+      : tone === "archived"
+        ? "border-amber-300 bg-white text-amber-950 hover:bg-amber-100"
+        : "border-sawdust text-ink hover:bg-shop";
+
+  return (
+    <section className={`no-print rounded-lg border p-4 shadow-soft ${panelClass}`}>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="max-w-3xl">
+          <p className={`text-xs font-semibold uppercase tracking-wide ${bodyClass}`}>Recommended next step</p>
+          <h2 className={`mt-1 text-base font-semibold ${titleClass}`}>{title}</h2>
+          <p className={`mt-1 text-sm leading-6 ${bodyClass}`}>{body}</p>
+        </div>
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          {links.map((link) => (
+            <a key={link.href} href={link.href} className={`rounded-md border px-3 py-2 text-sm font-semibold ${linkClass}`}>
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function planVersionLabel(planReviews: ReturnType<typeof buildPlanReview>[], plan: GeneratedProjectPlanRecord): string {
@@ -1021,7 +1172,7 @@ function BuildModelView({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-ink/65">No deterministic BBM safety flags were added. Builder review is still required.</p>
+              <p className="text-sm text-ink/65">No deterministic build-model review triggers were added. Builder review is still required.</p>
             )}
             {buildModel.unresolvedQuestions.length > 0 ? <List items={buildModel.unresolvedQuestions} /> : null}
           </div>
@@ -1165,6 +1316,7 @@ function PlanView({
   if (!generatedPlan || !manifest.cutList) return null;
   const modeledPieces = manifest.cutList.items.filter((item) => item.sourceLabel === "Modeled piece");
   const generatedCuts = manifest.cutList.items.filter((item) => item.sourceLabel === "Generated cut");
+  const unresolvedDimensionItems = unresolvedCutDimensionItems(manifest.cutList);
 
   return (
     <article id="printable-plan-sheet" className="scroll-mt-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft print:border-0 print:p-0 print:shadow-none">
@@ -1191,6 +1343,8 @@ function PlanView({
           <PlanFact label="Generated" value={`${new Date(generatedPlan.createdAt).toLocaleDateString()} - ${generatedPlan.modelName}`} />
         </dl>
       </header>
+
+      {unresolvedDimensionItems.length > 0 ? <UnresolvedCutDimensionsWarning items={unresolvedDimensionItems} /> : null}
 
       <div className="divide-y divide-sawdust">
         <PlanSheetSection title="Overview / Summary">
@@ -1221,35 +1375,38 @@ function PlanView({
           <List items={modeledPieces.map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`)} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Cut list to verify">
+        <PlanSheetSection id="cut-list-to-verify" title="Cut list to verify">
           <div className="mb-5">
             <CutListReviewSummaryView summary={manifest.cutList} />
           </div>
           {generatedCuts.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-                <thead>
-                  <tr className="border-b border-sawdust text-xs uppercase tracking-wide text-ink/55">
-                    <th className="py-2 pr-3">Part</th>
-                    <th className="py-2 pr-3">Qty</th>
-                    <th className="py-2 pr-3">Dimensions</th>
-                    <th className="py-2 pr-3">Material</th>
-                    <th className="py-2">Review notes</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-sawdust">
-                  {generatedCuts.map((item) => (
-                    <tr key={item.id}>
-                      <td className="py-3 pr-3 font-semibold text-ink">{item.label}</td>
-                      <td className="py-3 pr-3 text-ink/70">{item.quantityLabel}</td>
-                      <td className="py-3 pr-3 text-ink/70">{item.dimensionsLabel}</td>
-                      <td className="py-3 pr-3 text-ink/70">{item.materialLabel}</td>
-                      <td className="py-3 text-ink/70">{item.messages.join(" ")}</td>
+            <>
+              <p className="mb-2 text-xs text-ink/55 sm:hidden">Scroll sideways to review all cut-list columns.</p>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-sawdust text-xs uppercase tracking-wide text-ink/55">
+                      <th className="py-2 pr-3">Part</th>
+                      <th className="py-2 pr-3">Qty</th>
+                      <th className="py-2 pr-3">Dimensions</th>
+                      <th className="py-2 pr-3">Material</th>
+                      <th className="py-2">Review notes</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-sawdust">
+                    {generatedCuts.map((item) => (
+                      <tr key={item.id}>
+                        <td className="py-3 pr-3 font-semibold text-ink">{item.label}</td>
+                        <td className="py-3 pr-3 text-ink/70">{item.quantityLabel}</td>
+                        <td className="py-3 pr-3 text-ink/70">{item.dimensionsLabel}</td>
+                        <td className="py-3 pr-3 text-ink/70">{item.materialLabel}</td>
+                        <td className="py-3 text-ink/70">{item.messages.join(" ")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           ) : (
             <p className="text-sm leading-6 text-ink/65">No generated cut rows were saved. Review the modeled pieces above before cutting.</p>
           )}
@@ -1274,12 +1431,19 @@ function PlanView({
           </div>
           <List items={[...manifest.sections.safetyNotes, ...manifest.disclaimers]} />
           {manifest.sections.safetyFlags.length > 0 ? (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {manifest.sections.safetyFlags.map((flag) => (
-                <span key={flag.id} className="rounded-md bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900 print:border print:border-sawdust print:bg-white print:text-ink">
-                  {flag.message}
-                </span>
-              ))}
+            <div className="mt-4">
+              <h4 className="text-sm font-semibold text-ink">Review triggers</h4>
+              <p className="mt-2 text-sm leading-6 text-ink/65">
+                These are conservative review triggers, not confirmed hazards. Safety-sensitive wording can trigger review even when the project
+                excludes that use.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {manifest.sections.safetyFlags.map((flag) => (
+                  <span key={flag.id} className="rounded-md bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900 print:border print:border-sawdust print:bg-white print:text-ink">
+                    {flag.message}
+                  </span>
+                ))}
+              </div>
             </div>
           ) : null}
         </PlanSheetSection>
@@ -1312,6 +1476,41 @@ function PlanView({
   );
 }
 
+type UnresolvedCutDimensionItem = Pick<CutListReviewSummary["items"][number], "id" | "label" | "dimensionsLabel" | "messages">;
+
+function unresolvedCutDimensionItems(summary: CutListReviewSummary): UnresolvedCutDimensionItem[] {
+  return summary.items.filter((item) => {
+    const reviewText = `${item.dimensionsLabel} ${item.messages.join(" ")}`.toLowerCase();
+    return item.status === "needs_measurement" || /\b(missing|unknown|unresolved|placeholder)\b/.test(reviewText);
+  });
+}
+
+function UnresolvedCutDimensionsWarning({ items }: { items: UnresolvedCutDimensionItem[] }) {
+  const shownItems = items.slice(0, 4);
+
+  return (
+    <section className="border-b border-sawdust py-5">
+      <div className="rounded-md border border-red-200 bg-red-50 p-4">
+        <p className="text-sm font-semibold text-red-950">Resolve missing dimensions before cutting</p>
+        <p className="mt-2 text-sm leading-6 text-red-900">
+          Do not cut this piece until dimensions are resolved. Review the cut list and confirm every missing, unknown, placeholder, or unresolved
+          measurement before using the plan in the shop.
+        </p>
+        <ul className="mt-3 space-y-2">
+          {shownItems.map((item) => (
+            <li key={item.id} className="text-sm leading-6 text-red-900">
+              <span className="font-semibold">{item.label}</span>: {item.dimensionsLabel}
+            </li>
+          ))}
+        </ul>
+        <a href="#cut-list-to-verify" className="mt-3 inline-flex text-sm font-semibold text-red-950 underline">
+          Jump to cut list review
+        </a>
+      </div>
+    </section>
+  );
+}
+
 function PlanFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md bg-shop p-3 print:border print:border-sawdust print:bg-white">
@@ -1321,9 +1520,9 @@ function PlanFact({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PlanSheetSection({ title, children }: { title: string; children: React.ReactNode }) {
+function PlanSheetSection({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
-    <section className="py-5 print:break-inside-avoid">
+    <section id={id} className="py-5 print:break-inside-avoid">
       <h3 className="text-base font-semibold text-ink">{title}</h3>
       <div className="mt-4">{children}</div>
     </section>

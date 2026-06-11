@@ -99,6 +99,24 @@ describe("summarizeCutListReview", () => {
     );
   });
 
+  it("flags placeholder or unresolved dimension wording even when numeric dimensions exist", () => {
+    const placeholderPlan: GeneratedPlan = {
+      ...shelfPlan,
+      cut_list: [
+        {
+          ...shelfPlan.cut_list[0],
+          part_name: "Decorative layer placeholder",
+          notes: "Final length is unresolved and must be confirmed before cutting.",
+        },
+      ],
+    };
+
+    const summary = summarizeCutListReview(placeholderPlan, simpleShelfBuildModelFixture);
+
+    expect(summary.items.map((item) => item.status)).toContain("needs_measurement");
+    expect(summary.warnings).toContain("A generated cut uses placeholder or unresolved dimension language.");
+  });
+
   it("warns when the generated cut list is empty but the plan has material and build-step context", () => {
     const summary = summarizeCutListReview({ ...shelfPlan, cut_list: [] }, simpleShelfBuildModelFixture);
 

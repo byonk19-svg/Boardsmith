@@ -131,9 +131,11 @@ describe("DashboardPage", () => {
     expect(markup).not.toContain("Archived dogfood shelf");
     expect(markup).toContain("Archived projects are hidden from this dashboard.");
     expect(markup).toContain("Open project");
-    expect(markup).toContain("View latest plan");
-    expect(markup).toContain("Generate plan");
+    expect(markup).toContain("Browser print plan");
+    expect(markup).not.toContain("View latest plan");
+    expect(markup).not.toContain("Generate plan");
     expect(markup).toContain('href="/projects/latest-dashboard-project"');
+    expect(markup).toContain('href="/projects/latest-dashboard-project/print"');
     expect(markup).toContain('href="/projects/draft-dashboard-project"');
     expect(markup).toContain("Freestanding plant display board");
     expect(markup).toContain("/projects/new?example=plant_display_board");

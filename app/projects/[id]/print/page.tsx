@@ -174,6 +174,7 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
         <PrintFact label="With dimensions" value={manifest.cutList.piecesWithDimensions.toString()} />
         <PrintFact label="Needs review" value={manifest.cutList.piecesNeedingReview.toString()} />
       </dl>
+      <p className="text-xs text-ink/55 sm:hidden print:hidden">Scroll sideways to review all cut-list columns.</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
@@ -227,7 +228,14 @@ function PrintReviewDetails({ manifest }: { manifest: PrintablePlanManifest }) {
     <div className="grid gap-4 lg:grid-cols-2">
       <PrintList title="Plan review summary" items={planReviewItems.slice(0, 6)} />
       <PrintList title="Safety notes" items={manifest.sections.safetyNotes} />
-      <PrintList title="Safety flags" items={manifest.sections.safetyFlags.map((flag) => flag.message)} emptyCopy="No deterministic safety flags were added. Builder review is still required." />
+      <PrintList
+        title="Review triggers"
+        items={[
+          "Conservative review triggers are not confirmed hazards. Safety-sensitive wording can trigger review even when the project excludes that use.",
+          ...manifest.sections.safetyFlags.map((flag) => flag.message),
+        ]}
+        emptyCopy="No deterministic review triggers were added. Builder review is still required."
+      />
       <PrintList title="Open questions" items={manifest.sections.unresolvedQuestions} emptyCopy="No unresolved questions listed. Review the full plan before building." />
       <PrintList title="Assumptions" items={manifest.sections.assumptions} />
       <PrintList title="Additional checklist notes" items={appendixChecklistItems(manifest)} compact emptyCopy="No additional checklist notes." />

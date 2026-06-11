@@ -112,24 +112,28 @@ describe("project form routes", () => {
   it("shows practical project examples and detail prompts on the intake form", async () => {
     const markup = renderToStaticMarkup(await NewProjectPage({}));
 
-    expect(markup).toContain("More detail produces better plans.");
-    expect(markup).toContain("Example project details");
+    expect(markup).toContain("Start a project plan");
+    expect(markup).toContain("Save a clear project intake first.");
+    expect(markup).toContain("Start from an example");
+    expect(markup).toContain("Examples fill the form with editable beginner-friendly details.");
     expect(markup).toContain("Freestanding plant display board");
     expect(markup).toContain("Simple cordless lamp riser platform");
     expect(markup).toContain("Small desktop organizer");
     expect(markup).toContain("Basic outdoor planter box shell");
     expect(markup).toContain("Small decorative catchall tray");
-    expect(markup).toContain("Include these details");
-    expect(markup).toContain("finished dimensions");
+    expect(markup).toContain("Good input example");
+    expect(markup).toContain("Small indoor wall shelf, 24 x 8 x 6 inches");
+    expect(markup).toContain("Include what you know");
+    expect(markup).toContain("finished dimensions or your best current estimate");
     expect(markup).toContain("material and thickness");
-    expect(markup).toContain("tools available");
-    expect(markup).toContain("indoor or outdoor use");
-    expect(markup).toContain("mounting method if applicable");
-    expect(markup).toContain("finish preference");
-    expect(markup).toContain("child, wall-mounted, seating, climbing, or load-bearing");
-    expect(markup).toContain("Boardsmith is a planning aid");
-    expect(markup).toContain("may block drafts that fail validation or review");
-    expect(markup.match(/Use this example/g)?.length).toBe(5);
+    expect(markup).toContain("tools you can safely use");
+    expect(markup).toContain("Project basics");
+    expect(markup).toContain("Size and material");
+    expect(markup).toContain("Tools and safety context");
+    expect(markup).toContain("Use, constraints, and finish notes");
+    expect(markup).toContain("Before saving");
+    expect(markup).toContain("generated plans are saved only after validation");
+    expect(markup.match(/Use example/g)?.length).toBe(5);
     expect(markup).toContain('href="/projects/new?example=plant_display_board"');
     expect(markup).toContain('href="/projects/new?example=lamp_riser"');
     expect(markup).toContain('href="/projects/new?example=desktop_organizer"');
@@ -167,8 +171,21 @@ describe("project form routes", () => {
       }),
     );
 
-    expect(markup).toContain("Project intake could not be saved.");
-    expect(markup).toContain("Check the required fields, dimensions, tools, and material details before trying again.");
+    expect(markup).toContain("Project intake needs a little more detail.");
+    expect(markup).toContain("Check the required fields, dimensions, material, and at least one safe tool before trying again.");
+  });
+
+  it("shows a calm unknown-starter state without blocking manual intake", async () => {
+    const markup = renderToStaticMarkup(
+      await NewProjectPage({
+        searchParams: Promise.resolve({ example: "missing_starter" }),
+      }),
+    );
+
+    expect(markup).toContain("Starter example was not found.");
+    expect(markup).toContain("Choose one of the examples below or fill in your own project details.");
+    expect(markup).toContain('action="/projects/create"');
+    expect(markup).toContain("Start from an example");
   });
 
   it("repopulates safe intake fields after an invalid intake redirect", async () => {

@@ -122,7 +122,9 @@ function ProjectShortcut({ summary }: { summary: ProjectSummary }) {
     <article className="rounded-md border border-sawdust p-3">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="min-w-0">
-          <h3 className="break-words font-semibold text-ink">{project.title}</h3>
+          <h3 className="truncate font-semibold text-ink" title={project.title}>
+            {project.title}
+          </h3>
           <p className="mt-1 text-sm text-ink/65">
             {projectTypeLabels[project.project_type]} | {project.width_inches} x {project.height_inches} x {project.depth_inches} in | Updated{" "}
             {formatProjectDate(project.updated_at)}
@@ -136,9 +138,11 @@ function ProjectShortcut({ summary }: { summary: ProjectSummary }) {
           <Link href={`/projects/${project.id}`} className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
             Open project
           </Link>
-          <Link href={`/projects/${project.id}`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-            {planCount > 0 ? "View latest plan" : "Generate plan"}
-          </Link>
+          {planCount > 0 ? (
+            <Link href={`/projects/${project.id}/print`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+              Browser print plan
+            </Link>
+          ) : null}
         </div>
       </div>
     </article>

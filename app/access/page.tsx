@@ -16,6 +16,7 @@ export default async function AccessPage({
         <h1 className="text-2xl font-semibold tracking-tight text-ink">Boardsmith private access</h1>
         <p className="mt-3 text-sm leading-6 text-ink/70">Enter the private MVP password to continue.</p>
         <p className="mt-2 text-sm leading-6 text-ink/60">This is a temporary private MVP gate, not multi-user authentication.</p>
+        <p className="mt-2 text-sm leading-6 text-ink/60">This private MVP workspace uses the current storage setup; do not enter sensitive customer or production data.</p>
 
         {query.error ? (
           <p className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">That password did not unlock Boardsmith. Try again.</p>

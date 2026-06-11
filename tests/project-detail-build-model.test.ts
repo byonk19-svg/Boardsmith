@@ -175,6 +175,7 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain('aria-label="Project sections"');
     expect(markup).toContain("Project actions");
+    expect(markup).toContain('id="project-actions"');
     expect(markup).toContain("Project sections");
     expect(markup).toContain("Generate another plan version");
     expect(markup).not.toContain(">Generate Plan</button>");
@@ -209,8 +210,9 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain('class="no-print text-sm font-medium text-moss hover:underline"');
-    expect(markup).toContain('<aside class="no-print');
+    expect(markup).toContain('id="project-actions" class="no-print');
     expect(markup).toContain('<nav aria-label="Project sections" class="no-print');
+    expect(markup).toContain("More sections");
   });
 
   it("keeps section navigation copy away from forbidden product claims", async () => {
@@ -303,6 +305,10 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("Browser print plan");
+    expect(markup).toContain("Recommended next step");
+    expect(markup).toContain("Review the generated plan");
+    expect(markup).toContain("Review safety notes, cut list, assumptions, and open questions before using Browser print plan.");
+    expect(markup).toContain('href="#cut-list-to-verify"');
     expect(markup).toContain("Latest generated plan");
     expect(markup).toContain("Plan at a glance");
     expect(markup).toContain("Overview / Summary");
@@ -337,6 +343,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Do not rely on Boardsmith for load ratings.");
     expect(markup).toContain("Modeled operations");
     expect(markup).toContain("Safety notes");
+    expect(markup).toContain("Review triggers");
+    expect(markup).toContain("These are conservative review triggers, not confirmed hazards.");
+    expect(markup).toContain("Safety-sensitive wording can trigger review even when the project excludes that use.");
     expect(markup).toContain("Assumptions");
     expect(markup).toContain("Open questions");
     expect(markup).toContain("Finishing notes");
@@ -362,6 +371,44 @@ describe("ProjectDetailPage project structure", () => {
     const tweakEnd = markup.indexOf("</section>", tweakStart);
     const tweakMarkup = markup.slice(tweakStart, tweakEnd);
     expect(tweakMarkup).not.toMatch(/background agent|professional approval|structural approval|certification|CAD-ready|CNC-ready|fabrication-ready/i);
+  });
+
+  it("shows a prominent warning before the plan when cut-list dimensions are missing or unresolved", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        plan_json: {
+          ...planRecord.plan_json,
+          cut_list: [
+            planRecord.plan_json.cut_list[0],
+            {
+              ...planRecord.plan_json.cut_list[0],
+              part_name: "Decorative layer placeholder",
+              notes: "Final width is unresolved and must be confirmed before cutting.",
+            },
+          ],
+        },
+      },
+    ]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Resolve missing dimensions before cutting");
+    expect(markup).toContain("Resolve missing cut dimensions before cutting or printing this plan.");
+    expect(markup).toContain("Do not cut this piece until dimensions are resolved.");
+    expect(markup).toContain("Decorative layer placeholder");
+    expect(markup).toContain('href="#cut-list-to-verify"');
+    expect(markup).toContain("Jump to cut list review");
+    expect(markup).toContain('id="cut-list-to-verify"');
+    expect(markup).toContain("Scroll sideways to review all cut-list columns.");
+    expect(markup).toContain("A generated cut uses placeholder or unresolved dimension language.");
   });
 
   it("renders a read-only comparison between the latest plan and an older history version", async () => {
@@ -403,6 +450,9 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("Plan comparison");
+    expect(markup).toContain("Review the latest plan version");
+    expect(markup).toContain("The latest version is shown. Older versions remain read-only in plan history for comparison.");
+    expect(markup).toContain('href="#plan-history"');
     expect(markup).toContain("Comparing latest plan with Version 1.");
     expect(markup).toContain("Changed");
     expect(markup).toContain("Project summary changed.");
@@ -514,6 +564,9 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("Archived project");
     expect(markup).toContain("Read-only archived project");
+    expect(markup).toContain("Review only until restored");
+    expect(markup).toContain("This archived project is read-only. Restore remains the only edit-enabling action;");
+    expect(markup).toContain('href="#project-record"');
     expect(markup).toContain("This project is archived. Restore it before revising or generating another plan.");
     expect(markup).toContain("This project is hidden from the default project list and is read-only until restored.");
     expect(markup).toContain("Existing details, generated plans, history, review notes, and browser print remain available.");
@@ -653,6 +706,10 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("No generated plan yet");
+    expect(markup).toContain("Recommended next step");
+    expect(markup).toContain("Review intake, then generate a first plan");
+    expect(markup).toContain("Check the project intake and review triggers, then use Project actions to generate a first validated plan.");
+    expect(markup).toContain('href="#project-actions"');
     expect(markup).toContain(">Generate Plan</button>");
     expect(markup).not.toContain("Generate another plan version");
     expect(markup).toContain("Generate a first plan from Project actions.");

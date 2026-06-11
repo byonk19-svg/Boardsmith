@@ -48,6 +48,10 @@ function formatDimension(value: number | null): string {
   return value && value > 0 ? `${value.toString()} in` : "missing";
 }
 
+function hasUnresolvedDimensionLanguage(value: string): boolean {
+  return /\b(missing|unknown|unresolved|placeholder)\b/i.test(value);
+}
+
 function formatDimensions(candidate: CutCandidate): string {
   return `${formatDimension(candidate.dimensions.length)} x ${formatDimension(candidate.dimensions.width)} x ${formatDimension(candidate.dimensions.thickness)}`;
 }
@@ -135,7 +139,14 @@ function duplicateKeys(candidates: CutCandidate[]): Set<string> {
 }
 
 function statusFor(candidate: CutCandidate, isPossibleDuplicate: boolean): CutListReviewStatus {
-  if (candidate.label.trim().length === 0 || missingDimensions(candidate).length > 0) return "needs_measurement";
+  if (
+    candidate.label.trim().length === 0 ||
+    missingDimensions(candidate).length > 0 ||
+    hasUnresolvedDimensionLanguage(candidate.label) ||
+    candidate.notes.some((note) => hasUnresolvedDimensionLanguage(note))
+  ) {
+    return "needs_measurement";
+  }
   if (!hasUsableQuantity(candidate.quantity) || hasSuspiciousQuantity(candidate.quantity)) return "check_quantity";
   if (isPossibleDuplicate) return "possible_duplicate";
   return "ready_to_review";
@@ -147,6 +158,9 @@ function messagesFor(candidate: CutCandidate, status: CutListReviewStatus, isPos
 
   if (candidate.label.trim().length === 0) messages.push("A modeled piece needs a usable name before cutting.");
   if (missing.length > 0) messages.push(`A ${candidate.sourceLabel.toLowerCase()} is missing ${missing.join(" and ")}.`);
+  if (hasUnresolvedDimensionLanguage(candidate.label) || candidate.notes.some((note) => hasUnresolvedDimensionLanguage(note))) {
+    messages.push(`A ${candidate.sourceLabel.toLowerCase()} uses placeholder or unresolved dimension language.`);
+  }
   if (!hasUsableQuantity(candidate.quantity) || hasSuspiciousQuantity(candidate.quantity)) {
     messages.push(`A ${candidate.sourceLabel.toLowerCase()} has a quantity that needs review.`);
   }

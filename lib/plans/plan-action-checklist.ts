@@ -196,8 +196,8 @@ export function createPlanActionChecklist({
   ) {
     items.push({
       id: "review_safety_flags",
-      label: "Review flagged safety notes.",
-      detail: "Read each flagged safety note and decide what needs manual review before use.",
+      label: "Review safety-trigger notes.",
+      detail: "Read each review trigger and decide what needs manual review before use.",
       category: "safety",
       priority: "required",
     });

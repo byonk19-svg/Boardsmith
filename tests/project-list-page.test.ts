@@ -167,8 +167,8 @@ describe("ProjectsPage", () => {
     expect(markup).toContain("Dogfood project 7");
     expect(markup).toContain("Dogfood project 0");
     expect(markup).toContain('href="/projects/crowded_project_7"');
-    expect(markup).toContain("Open project");
-    expect(markup).toContain("Generate plan");
+    expect(markup).toContain("Open to generate");
+    expect(markup).not.toContain("Generate plan");
   });
 
   it("renders projects in most-recently-updated order", async () => {
@@ -200,15 +200,17 @@ describe("ProjectsPage", () => {
     expect(markup).toContain("2 plan versions");
     expect(markup).toContain("Notes added");
     expect(markup).toContain("Build notes added");
-    expect(markup).toContain("View latest plan");
+    expect(markup).toContain("Browser print plan");
     expect(markup).toContain("Review project record");
     expect(markup).toContain("Updated Jun 2, 2026");
     expect(markup).toContain('href="/projects/project_with_history"');
+    expect(markup).toContain('href="/projects/project_with_history/print"');
 
     expect(markup).toContain("Planter box");
     expect(markup).toContain("Draft");
     expect(markup).toContain("No generated plan yet");
-    expect(markup).toContain("Generate plan");
+    expect(markup).toContain("Open to generate");
+    expect(markup).toContain("More filters");
     expect(markup).toContain("Plan state");
     expect(markup).toContain("Active projects");
     expect(markup).toContain("Archived projects");
@@ -367,6 +369,29 @@ describe("ProjectsPage", () => {
     expect(markup).not.toContain("/projects/project_with_history");
     expect(markup).not.toContain("/projects/draft_project");
     expect(markup).not.toContain("/projects/completed_sign");
+  });
+
+  it("maps project-list error query strings without exposing raw technical copy", async () => {
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const knownMarkup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({ error: "Project not found" }),
+      }),
+    );
+
+    expect(knownMarkup).toContain("That project could not be found.");
+    expect(knownMarkup).not.toContain("Project not found");
+
+    const unknownMarkup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({ error: "Database exploded: stack trace" }),
+      }),
+    );
+
+    expect(unknownMarkup).toContain("Something went wrong. Try again or return to the active project list.");
+    expect(unknownMarkup).not.toContain("Database exploded");
+    expect(unknownMarkup).not.toContain("stack trace");
   });
 
   it("renders archive actions for active projects without adding delete", async () => {

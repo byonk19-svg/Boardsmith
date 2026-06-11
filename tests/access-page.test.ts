@@ -14,6 +14,7 @@ describe("private access page", () => {
     expect(markup).toContain("Boardsmith private access");
     expect(markup).toContain("Enter the private MVP password to continue.");
     expect(markup).toContain("This is a temporary private MVP gate, not multi-user authentication.");
+    expect(markup).toContain("This private MVP workspace uses the current storage setup; do not enter sensitive customer or production data.");
     expect(markup).toContain('action="/access/verify"');
     expect(markup).toContain('name="password"');
     expect(markup).toContain('name="returnTo"');

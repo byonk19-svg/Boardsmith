@@ -164,7 +164,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Project Visuals");
     expect(markup).toContain("Check Before Building");
     expect(markup).toContain("Review wall mounting details.");
-    expect(markup).toContain("Review flagged safety notes.");
+    expect(markup).toContain("Review safety-trigger notes.");
     expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
     expect(markup.indexOf("Verify hardware and fasteners before assembly.")).toBeGreaterThan(markup.indexOf("Review Appendix"));
     expect(markup).not.toContain('name="plan_action_');
@@ -192,6 +192,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Plan material:");
     expect(markup).not.toContain("Material checks");
     expect(markup).toContain("Cut Checklist");
+    expect(markup).toContain("Scroll sideways to review all cut-list columns.");
     expect(markup).toContain("Cut?");
     expect(markup).toContain("Check");
     expect(markup).toContain("Build Guide");
@@ -209,6 +210,9 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Review Appendix");
     expect(markup).toContain("Additional checklist notes");
     expect(markup).toContain("Plan review summary");
+    expect(markup).toContain("Review triggers");
+    expect(markup).toContain("Conservative review triggers are not confirmed hazards.");
+    expect(markup).toContain("Safety-sensitive wording can trigger review even when the project excludes that use.");
     expect(markup).toContain("Planning-aid reminders");
     expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
     expect(markup).not.toContain("Export Readiness");

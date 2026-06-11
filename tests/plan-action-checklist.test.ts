@@ -109,14 +109,14 @@ describe("createPlanActionChecklist", () => {
     );
   });
 
-  it("keeps safety flag wording broad across child-adjacent, outdoor, and load-related scenarios", () => {
+  it("keeps safety trigger wording broad across child-adjacent, outdoor, and load-related scenarios", () => {
     const planterChecklist = checklistFor({ ...shelfPlan, project_type: "planter_box" }, planterBoxBuildModelFixture);
 
     expect(planterChecklist).toContainEqual(
       expect.objectContaining({
         id: "review_safety_flags",
-        label: "Review flagged safety notes.",
-        detail: "Read each flagged safety note and decide what needs manual review before use.",
+        label: "Review safety-trigger notes.",
+        detail: "Read each review trigger and decide what needs manual review before use.",
         category: "safety",
         priority: "required",
       }),
@@ -163,7 +163,7 @@ describe("createPlanActionChecklist", () => {
     expect(checklist).toContainEqual(
       expect.objectContaining({
         id: "review_safety_flags",
-        label: "Review flagged safety notes.",
+        label: "Review safety-trigger notes.",
         category: "safety",
         priority: "required",
       }),

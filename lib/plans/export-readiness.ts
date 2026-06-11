@@ -128,7 +128,7 @@ export function summarizeExportReadiness(
   if (buildModel.safety.reviewRequired && buildModel.safety.flags.length === 0) {
     blockingIssues.push({
       code: "safety_flags_missing",
-      message: "Safety review is required, but no deterministic safety flags are modeled.",
+      message: "Safety review is required, but no deterministic review triggers are modeled.",
     });
   }
 
