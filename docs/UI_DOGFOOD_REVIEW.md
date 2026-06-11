@@ -269,6 +269,12 @@ Implementation timing:
 3. UI-05: Project list high-volume scan polish.
    If project-list dogfood remains annoying, reduce repeated card height for dense local data. Candidate patterns: compact row mode, archive action tucked behind details, or record signals collapsed until needed. Preserve filters and routes.
 
+## UI-04A Follow-Up
+
+The no-plan project detail state now starts with a saved-intake summary after the recommended next step, keeps only `Intake` and `Record` in the no-plan section navigation, shows the no-generated-plan empty state before technical planning details, and moves derived template/structure context into a secondary disclosure.
+
+This resolves the smallest project-detail density issue identified in the dogfood pass. Generated-plan detail density remains the larger follow-up if real use still feels heavy.
+
 ## Recommendation
 
-The next implementation task should be project detail density/mobile polish, starting with the no-plan state if you want the smallest safe batch. Shared component cleanup should wait until another pass proves duplication is causing maintenance pain rather than just existing in markup.
+After UI-04A, the next implementation task should only continue into generated-detail density/mobile polish if dogfood still shows the long generated page is slowing review. Shared component cleanup should wait until another pass proves duplication is causing maintenance pain rather than just existing in markup.

@@ -237,15 +237,15 @@ Screen job: let the user review the saved intake and deterministic review contex
 
 Primary action: `Generate Plan` posts to `/projects/[id]/generate`.
 
-Secondary actions: back to projects, duplicate project, archive/restore, section jump links, notes, and build log. Print and tweak actions are omitted until a generated plan exists.
+Secondary actions: back to projects, duplicate project, archive/restore, compact section jump links, notes, build log, and an optional planning-details disclosure. Print and tweak actions are omitted until a generated plan exists.
 
-Empty states: the generated-plan area shows "No generated plan yet" with generation guidance. Build model sections can also show no obvious connections or operations yet.
+Empty states: the generated-plan area now appears before the technical planning details and shows "No generated plan yet" with generation guidance. Planning details summarize the derived template/structure state only if the user expands that secondary section.
 
 Loading states: `GeneratePlanForm` changes the button to "Generating plan..." and shows a note that generation can take a minute and may block unsafe or incomplete output instead of saving it.
 
 Error/blocked states: generation can redirect with `generation_error`, shown as a feedback panel with suggestions. Detail update errors use mapped amber feedback. Archived no-plan projects explain that restore is required before generating.
 
-Mobile considerations: project action buttons and jump links wrap. The generated no-plan state comes after several review sections, so the "what next?" strip is important for mobile orientation.
+Mobile considerations: project action buttons and jump links wrap. The no-plan summary and generated-plan empty state now appear before the derived planning internals, so mobile users can reach intake review and generation guidance sooner.
 
 Wireframe:
 
@@ -262,17 +262,18 @@ Wireframe:
 | Next step: Review intake, then generate a first plan  |
 | [Review intake] [Project actions]                     |
 +------------------------------------------------------+
-| Project sections: [Intake] [Structure] [Record]       |
+| No plan summary: intake ready / triggers / next action|
++------------------------------------------------------+
+| Project sections: [Intake] [Record]                   |
 +---------------------------+--------------------------+
 | Project intake            | Review triggers          |
 | dimensions/material/tools | flags or no flags        |
 +---------------------------+--------------------------+
-| Template Guidance                                    |
-+------------------------------------------------------+
-| Project Structure / materials / cut list / operations |
-+------------------------------------------------------+
 | No generated plan yet                                |
 | Generate a first plan from Project actions...         |
++------------------------------------------------------+
+| > Planning details before generation                  |
+|   template + derived structure summary                |
 +------------------------------------------------------+
 | Project record: [notes form] [build log form]         |
 +------------------------------------------------------+
@@ -280,6 +281,7 @@ Wireframe:
 Generate Plan -> POST /projects/[id]/generate
 Duplicate project -> POST /projects/[id]/duplicate
 Archive project -> POST /projects/[id]/archive
+Planning details -> expands on page only
 Save notes -> POST /projects/[id]/notes
 Save build log -> POST /projects/[id]/build-log
 ```

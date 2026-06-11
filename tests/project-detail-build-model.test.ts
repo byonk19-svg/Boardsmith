@@ -727,14 +727,19 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Recommended next step");
     expect(markup).toContain("Review intake, then generate a first plan");
     expect(markup).toContain("Check the project intake and review triggers, then use Project actions to generate a first validated plan.");
+    expect(markup).toContain("Saved intake is ready for review");
+    expect(markup).toContain("This project does not have a generated plan yet.");
+    expect(markup).toContain("Generate Plan remains primary");
     expect(markup).toContain('href="#project-actions"');
     expect(markup).toContain(">Generate Plan</button>");
     expect(markup).not.toContain("Generate another plan version");
     expect(markup).toContain("Generate a first plan from Project actions.");
     expect(markup).toContain("Boardsmith saves only validated plans; if review blocks generation, you will see what needs attention.");
+    expect(markup).toContain("Planning details before generation");
+    expect(markup).toContain("Template and derived structure are secondary until a plan exists.");
     expect(markup).toContain("Project sections");
     expect(markup).toContain('href="#project-intake"');
-    expect(markup).toContain('href="#project-structure"');
+    expect(markup).not.toContain('href="#project-structure"');
     expect(markup).toContain('href="#project-record"');
     expect(markup).not.toContain('href="#plan-review"');
     expect(markup).not.toContain('href="#tweak-this-plan"');
@@ -745,6 +750,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain("Tweak this plan");
     expect(markup).not.toContain('name="revision_instruction"');
     expect(markup).not.toContain("Browser print plan");
+
+    expect(markup.indexOf("Saved intake is ready for review")).toBeLessThan(markup.indexOf("Project intake"));
+    expect(markup.indexOf("No generated plan yet")).toBeLessThan(markup.indexOf("Planning details before generation"));
   });
 
   it("keeps notes and build log useful when no plan or saved record details exist", async () => {

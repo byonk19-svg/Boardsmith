@@ -134,7 +134,9 @@ export default async function ProjectDetailPage({
           printPreviewHref={printPreviewHref}
           isArchived={isProjectArchived(project)}
         />
-      ) : null}
+      ) : (
+        <NoPlanReviewSummary project={project} isArchived={isProjectArchived(project)} />
+      )}
 
       <ProjectSectionsNav links={sectionLinks} />
 
@@ -163,12 +165,10 @@ export default async function ProjectDetailPage({
         </div>
       </section>
 
-      <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
-
-      <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={displayedManifest.materials} cutListReview={displayedManifest.cutList} />
-
       {latestPlanReview ? (
         <>
+          <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
+          <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={displayedManifest.materials} cutListReview={displayedManifest.cutList} />
           {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
           {latestPlanReview.manifest.exportReadiness ? <ExportReadinessPanel summary={latestPlanReview.manifest.exportReadiness} /> : null}
           {!isProjectArchived(project) ? <TweakPlanSection project={project} hasLatestPlan={Boolean(latestPlanReview)} /> : null}
@@ -180,7 +180,15 @@ export default async function ProjectDetailPage({
           <PlanView manifest={latestPlanReview.manifest} />
         </>
       ) : (
-        <EmptyPlanState isArchived={isProjectArchived(project)} />
+        <>
+          <EmptyPlanState isArchived={isProjectArchived(project)} />
+          <NoPlanPlanningDetails
+            buildModel={buildModel}
+            projectTypeLabel={projectTypeLabels[project.project_type]}
+            assumptions={templateHint.assumptions}
+            cautions={templateHint.cautions}
+          />
+        </>
       )}
 
       {planReviews.length > 0 ? (
@@ -243,7 +251,7 @@ function createProjectSectionLinks({
 }): ProjectSectionLink[] {
   return [
     { label: "Project intake", href: "#project-intake" },
-    { label: "Project structure", href: "#project-structure" },
+    ...(hasLatestPlan ? [{ label: "Project structure", href: "#project-structure" } satisfies ProjectSectionLink] : []),
     ...(hasPlanReview ? [{ label: "Plan review", href: "#plan-review" } satisfies ProjectSectionLink] : []),
     ...(hasLatestPlan && !isArchived ? [{ label: "Tweak this plan", href: "#tweak-this-plan" } satisfies ProjectSectionLink] : []),
     ...(hasLatestPlan ? [{ label: "Plan comparison", href: "#plan-comparison" } satisfies ProjectSectionLink] : []),
@@ -460,6 +468,129 @@ function ReviewBeforeBuildingSummary({
         <p className="mt-3 text-xs leading-5 text-ink/55">This archived project remains review-only. Restore it before generating or revising.</p>
       ) : null}
     </section>
+  );
+}
+
+function NoPlanReviewSummary({ project, isArchived }: { project: Project; isArchived: boolean }) {
+  const triggerCount = project.safety_flags.length;
+
+  return (
+    <section className="no-print rounded-lg border border-sawdust bg-white p-5 shadow-soft">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-wide text-moss">No generated plan yet</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Saved intake is ready for review</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/70">
+            This project does not have a generated plan yet. Review the saved intake and safety triggers first; notes, build log, and planning
+            internals can stay secondary until a first plan exists.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          <a href="#project-intake" className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+            Review intake
+          </a>
+          <a href="#project-actions" className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+            {isArchived ? "Restore actions" : "Generate Plan"}
+          </a>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
+        <NoPlanSummaryFact
+          label="Intake"
+          value={`${project.width_inches.toString()} x ${project.height_inches.toString()} x ${project.depth_inches.toString()} in`}
+          detail={`${project.material_type}, ${project.material_thickness_inches.toString()} in thick`}
+        />
+        <NoPlanSummaryFact
+          label="Review triggers"
+          value={triggerCount > 0 ? `${triggerCount.toString()} ${pluralize("trigger", triggerCount)}` : "No triggers saved"}
+          detail={triggerCount > 0 ? "Check each trigger before generating." : "Builder review is still required."}
+        />
+        <NoPlanSummaryFact
+          label="Next action"
+          value={isArchived ? "Restore before generation" : "Generate Plan remains primary"}
+          detail={isArchived ? "Archived projects are read-only until restored." : "Generation creates the first validated plan version."}
+        />
+      </div>
+    </section>
+  );
+}
+
+function NoPlanSummaryFact({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div className="rounded-md bg-shop p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-ink">{value}</p>
+      <p className="mt-1 text-sm leading-6 text-ink/65">{detail}</p>
+    </div>
+  );
+}
+
+function NoPlanPlanningDetails({
+  buildModel,
+  projectTypeLabel,
+  assumptions,
+  cautions,
+}: {
+  buildModel: BoardsmithBuildModel;
+  projectTypeLabel: string;
+  assumptions: string[];
+  cautions: string[];
+}) {
+  const reviewItemCount = buildModel.safety.flags.length + buildModel.unresolvedQuestions.length;
+
+  return (
+    <details className="no-print rounded-lg border border-sawdust bg-white p-4 shadow-soft">
+      <summary className="cursor-pointer text-sm font-semibold text-ink">
+        Planning details before generation
+        <span className="ml-2 font-normal text-ink/55">Template and derived structure are secondary until a plan exists.</span>
+      </summary>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        <NoPlanSummaryFact
+          label="Template"
+          value={projectTypeLabel}
+          detail={`${assumptions.length.toString()} ${pluralize("assumption", assumptions.length)}, ${cautions.length.toString()} ${pluralize("caution", cautions.length)}`}
+        />
+        <NoPlanSummaryFact
+          label="Derived structure"
+          value={`${buildModel.pieces.length.toString()} ${pluralize("piece", buildModel.pieces.length)}`}
+          detail={`${buildModel.connections.length.toString()} ${pluralize("connection", buildModel.connections.length)}, ${buildModel.operations.length.toString()} ${pluralize("operation", buildModel.operations.length)}`}
+        />
+        <NoPlanSummaryFact
+          label="Review context"
+          value={reviewItemCount > 0 ? `${reviewItemCount.toString()} ${pluralize("item", reviewItemCount)}` : "No derived issues"}
+          detail={reviewItemCount > 0 ? "Review these before relying on generated output." : "Still review the generated plan before building."}
+        />
+      </div>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-ink/55">Template assumptions</h3>
+          <List items={assumptions} />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-ink/55">Template cautions</h3>
+          <List items={cautions} />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-ink/55">Derived review flags</h3>
+          {buildModel.safety.flags.length > 0 ? (
+            <List items={buildModel.safety.flags.map((flag) => flag.message)} />
+          ) : (
+            <p className="mt-2 text-sm leading-6 text-ink/65">No deterministic build-model review triggers were added. Builder review is still required.</p>
+          )}
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-ink/55">Open questions</h3>
+          {buildModel.unresolvedQuestions.length > 0 ? (
+            <List items={buildModel.unresolvedQuestions} />
+          ) : (
+            <p className="mt-2 text-sm leading-6 text-ink/65">No derived open questions yet. Generated plans still need review before building.</p>
+          )}
+        </div>
+      </div>
+    </details>
   );
 }
 
