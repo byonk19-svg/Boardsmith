@@ -127,6 +127,15 @@ export default async function ProjectDetailPage({
 
       <RecommendedNextStep project={project} latestPlanReview={latestPlanReview} planVersionCount={planReviews.length} />
 
+      {latestPlanReview ? (
+        <ReviewBeforeBuildingSummary
+          manifest={latestPlanReview.manifest}
+          planVersionCount={planReviews.length}
+          printPreviewHref={printPreviewHref}
+          isArchived={isProjectArchived(project)}
+        />
+      ) : null}
+
       <ProjectSectionsNav links={sectionLinks} />
 
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
@@ -373,6 +382,138 @@ function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
 }
 
 type PlanReviewEntry = ReturnType<typeof buildPlanReview>;
+
+type ReviewSummaryTone = "ok" | "warning" | "blocked" | "info";
+
+type ReviewSummaryItem = {
+  label: string;
+  value: string;
+  detail: string;
+  href: `#${string}`;
+  tone: ReviewSummaryTone;
+};
+
+function ReviewBeforeBuildingSummary({
+  manifest,
+  planVersionCount,
+  printPreviewHref,
+  isArchived,
+}: {
+  manifest: PrintablePlanManifest;
+  planVersionCount: number;
+  printPreviewHref: Route;
+  isArchived: boolean;
+}) {
+  const items = createReviewSummaryItems(manifest);
+  const generatedLabel = planVersionCount > 1 ? `Latest generated plan review, version ${planVersionCount.toString()}` : "Generated plan review checklist";
+  const planStatus = manifest.planReview ? reviewStatusLabel(manifest.planReview.status) : "Review needed";
+
+  return (
+    <section className="no-print rounded-lg border border-sawdust bg-white p-5 shadow-soft">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-wide text-moss">Review before building</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">{generatedLabel}</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/70">
+            Use this as a shop-readiness checklist after the recommended next step. Check materials, cut-list rows, safety notes, and open
+            questions before using Browser print plan.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          <span className={`w-fit rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${reviewBadgeClass(manifest.planReview?.status ?? "warnings")}`}>
+            Review: {planStatus}
+          </span>
+          {isArchived ? <span className="w-fit rounded-md bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-900">Read only</span> : null}
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {items.map((item) => (
+          <a key={item.label} href={item.href} className={`rounded-md border p-3 transition hover:shadow-soft ${reviewSummaryItemClass(item.tone)}`}>
+            <span className="text-xs font-semibold uppercase tracking-wide">{item.label}</span>
+            <span className="mt-2 block text-base font-semibold">{item.value}</span>
+            <span className="mt-1 block text-sm leading-6 opacity-80">{item.detail}</span>
+          </a>
+        ))}
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        <a href="#cut-list-to-verify" className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+          Review cut list
+        </a>
+        {manifest.sections.unresolvedQuestions.length > 0 ? (
+          <a href="#open-questions" className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+            Open questions
+          </a>
+        ) : null}
+        <Link href={printPreviewHref} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+          Browser print plan
+        </Link>
+        {planVersionCount > 1 ? (
+          <a href="#plan-comparison" className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+            Compare versions
+          </a>
+        ) : null}
+      </div>
+
+      {isArchived ? (
+        <p className="mt-3 text-xs leading-5 text-ink/55">This archived project remains review-only. Restore it before generating or revising.</p>
+      ) : null}
+    </section>
+  );
+}
+
+function createReviewSummaryItems(manifest: PrintablePlanManifest): ReviewSummaryItem[] {
+  const cutList = manifest.cutList;
+  const materialGroupCount = manifest.materials.primaryMaterials.length + manifest.materials.hardwareFasteners.length + manifest.materials.finishSupplies.length;
+  const materialReviewCount = Math.max(0, manifest.materials.reviewNotes.length - 1);
+  const safetyFlagCount = manifest.sections.safetyFlags.length;
+  const openQuestionCount = manifest.sections.unresolvedQuestions.length;
+
+  return [
+    {
+      label: "Cut list check",
+      value: cutList ? `${cutList.piecesNeedingReview.toString()} ${pluralize("row", cutList.piecesNeedingReview)} need review` : "No cut list yet",
+      detail: cutList ? `${cutList.totalPieces.toString()} total pieces are listed for measurement review.` : "Generate a valid plan before cutting.",
+      href: "#cut-list-to-verify",
+      tone: cutList && cutList.piecesNeedingReview > 0 ? "warning" : cutList ? "ok" : "blocked",
+    },
+    {
+      label: "Materials check",
+      value: `${materialGroupCount.toString()} groups to verify`,
+      detail: materialReviewCount > 0 ? `${materialReviewCount.toString()} material ${pluralize("note", materialReviewCount)} need a look before purchasing.` : "Verify stock, hardware, and finish before cutting.",
+      href: "#project-structure",
+      tone: materialReviewCount > 0 ? "warning" : "ok",
+    },
+    {
+      label: "Safety notes",
+      value: safetyFlagCount > 0 ? `${safetyFlagCount.toString()} review ${pluralize("trigger", safetyFlagCount)}` : "Builder review required",
+      detail: manifest.planReview
+        ? `${manifest.planReview.warningCount.toString()} ${pluralize("warning", manifest.planReview.warningCount)} and ${manifest.planReview.blockingIssueCount.toString()} blocking ${pluralize("issue", manifest.planReview.blockingIssueCount)} recorded.`
+        : "Read the plan notes before building.",
+      href: "#plan-review",
+      tone: manifest.planReview?.status === "blocked" ? "blocked" : safetyFlagCount > 0 || manifest.planReview?.status === "warnings" ? "warning" : "ok",
+    },
+    {
+      label: "Open questions",
+      value: openQuestionCount > 0 ? `${openQuestionCount.toString()} unresolved` : "None listed",
+      detail: openQuestionCount > 0 ? "Resolve these before relying on the build sheet." : "Still review assumptions before building.",
+      href: openQuestionCount > 0 ? "#open-questions" : "#printable-plan-sheet",
+      tone: openQuestionCount > 0 ? "warning" : "ok",
+    },
+  ];
+}
+
+function pluralize(label: string, count: number): string {
+  return count === 1 ? label : `${label}s`;
+}
+
+function reviewSummaryItemClass(tone: ReviewSummaryTone): string {
+  if (tone === "blocked") return "border-red-200 bg-red-50 text-red-950";
+  if (tone === "warning") return "border-amber-200 bg-amber-50 text-amber-950";
+  if (tone === "ok") return "border-green-200 bg-green-50 text-green-950";
+  return "border-sawdust bg-shop text-ink";
+}
 
 function RecommendedNextStep({
   project,
@@ -1462,7 +1603,7 @@ function PlanView({
           <List items={manifest.sections.assumptions} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Open questions">
+        <PlanSheetSection id="open-questions" title="Open questions">
           {manifest.sections.unresolvedQuestions.length > 0 ? (
             <List items={manifest.sections.unresolvedQuestions} />
           ) : (

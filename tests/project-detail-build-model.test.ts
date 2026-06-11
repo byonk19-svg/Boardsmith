@@ -144,6 +144,8 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     const projectIntakeIndex = markup.indexOf('id="project-intake"');
+    const reviewBeforeBuildingIndex = markup.indexOf("Review before building");
+    const sectionNavIndex = markup.indexOf('aria-label="Project sections"');
     const templateIndex = markup.indexOf("Template Guidance");
     const structureIndex = markup.indexOf('id="project-structure"');
     const reviewIndex = markup.indexOf('id="plan-review"');
@@ -151,7 +153,10 @@ describe("ProjectDetailPage project structure", () => {
     const historyIndex = markup.indexOf('id="plan-history"');
     const recordIndex = markup.indexOf('id="project-record"');
 
+    expect(reviewBeforeBuildingIndex).toBeGreaterThan(-1);
+    expect(sectionNavIndex).toBeGreaterThan(reviewBeforeBuildingIndex);
     expect(projectIntakeIndex).toBeGreaterThan(-1);
+    expect(projectIntakeIndex).toBeGreaterThan(sectionNavIndex);
     expect(templateIndex).toBeGreaterThan(projectIntakeIndex);
     expect(structureIndex).toBeGreaterThan(templateIndex);
     expect(reviewIndex).toBeGreaterThan(structureIndex);
@@ -308,7 +313,19 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Recommended next step");
     expect(markup).toContain("Review the generated plan");
     expect(markup).toContain("Review safety notes, cut list, assumptions, and open questions before using Browser print plan.");
+    expect(markup).toContain("Generated plan review checklist");
+    expect(markup).toContain("Use this as a shop-readiness checklist after the recommended next step.");
+    expect(markup).toContain("Cut list check");
+    expect(markup).toContain("0 rows need review");
+    expect(markup).toContain("Materials check");
+    expect(markup).toContain("4 groups to verify");
+    expect(markup).toContain("Safety notes");
+    expect(markup).toContain("2 review triggers");
+    expect(markup).toContain("Open questions");
+    expect(markup).toContain("1 unresolved");
+    expect(markup).toContain('href="#open-questions"');
     expect(markup).toContain('href="#cut-list-to-verify"');
+    expect(markup).toContain('href="/projects/project_saved_bbm/print"');
     expect(markup).toContain("Latest generated plan");
     expect(markup).toContain("Plan at a glance");
     expect(markup).toContain("Overview / Summary");
@@ -348,6 +365,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Safety-sensitive wording can trigger review even when the project excludes that use.");
     expect(markup).toContain("Assumptions");
     expect(markup).toContain("Open questions");
+    expect(markup).toContain('id="open-questions"');
     expect(markup).toContain("Finishing notes");
     expect(markup).toContain("Use your own judgment before cutting or assembling.");
     expect(markup).toContain("Verify dimensions, materials, hardware, tool setup, and site conditions before cutting or building.");
