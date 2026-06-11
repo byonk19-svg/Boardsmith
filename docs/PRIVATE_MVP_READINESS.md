@@ -521,6 +521,53 @@ Recommended next dogfood project types:
 - Small storage crate
 - Simple shop organizer
 
+## Generated Plan Dogfood And Print-Readability Checkpoint
+
+Date: June 11, 2026
+
+Checked commit: `59437e1 Polish generated plan review order`
+
+Purpose: dogfood the generated-plan reading order, browser-print plan, and review-before-building flow from a cautious private MVP woodworking perspective. This checkpoint used existing starter examples, rendered-page tests, print-preview tests, and source inspection. It did not create project records, invoke live generation, mutate hosted data, add features, change schema, change auth, or add export functionality.
+
+Scenarios reviewed:
+
+- Basic wall shelf: covered by existing generated shelf detail and print-preview fixtures. Review triggers, wall-mounting cautions, cut list, materials, open questions, browser print plan, and plan-history paths are visible.
+- Planter box: covered by starter intake and rendered print-preview diagram/build-guide coverage for planter box pieces, outdoor/drainage review, and manual weight review.
+- Simple shop organizer: covered by the desktop organizer starter, which keeps the project small, indoor, beginner-friendly, and non-load-rated.
+- Small decorative tray/cutting-board-adjacent flat project: covered by the decorative tray starter and wood-sign-style/simple flat-panel rendering paths. Food-contact and carrying/load-bearing use remain excluded in starter copy.
+- Simple riser/storage-adjacent project: covered by the cordless lamp riser starter and generated-plan rendering paths for a small freestanding flat-board project without electrical work.
+
+Print/readability findings:
+
+- Browser print plan wording is consistent and continues to state that no PDF or CAD download is generated.
+- Print preview keeps navigation outside the print output and centers the printed flow on Build Snapshot, Project Visuals, Check Before Building, Materials and Parts, Cut Checklist, Build Guide, and Review Appendix.
+- Review triggers remain visible and are framed as conservative triggers, not confirmed hazards.
+- Cut-list tables include a mobile horizontal-scroll hint and print-friendly checklist markers.
+- Materials, pieces, tools, assumptions, open questions, and planning-aid reminders are visible before or inside the review appendix.
+- Existing rendered tests cover unresolved dimensions on project detail; no new print-specific unresolved-dimension defect was found in this checkpoint.
+
+Project-detail readability findings:
+
+- `Recommended next step` remains state-aware and appears before the generated-plan review summary.
+- `Review before building` now acts as a compact checklist, not an edit flow.
+- No-plan projects do not show the generated-plan checklist.
+- Archived projects preserve read-only framing and omit edit-enabling actions except restore.
+- Browser print links and `#open-questions` / `#cut-list-to-verify` anchors are covered by rendered tests.
+
+Tiny fixes made:
+
+- No app code fix was needed during this dogfood checkpoint.
+
+Issues deferred:
+
+- A real manual print pass should still inspect physical/page-preview pagination and whether wide cut-list rows wrap acceptably in the browser print dialog.
+- Plan quality/generation quality should be the next improvement area if repeated dogfood shows weak assumptions, missing dimensions, or vague build steps in real generated output.
+
+Recommended next step:
+
+1. Run a real manual print/readability pass on a small wall shelf or planter box using the browser print dialog.
+2. If the UI reads well, shift the next improvement lane from UI polish to generated plan quality.
+
 ## Recommended Next Step
 
 Keep Boardsmith private and pause broad feature work. Use the current `private-mvp-1.0` baseline manually before selecting another major lane. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, auth expansion, or new project type work without an explicit task and, for PDF/export work, explicit renderer/dependency approval.
