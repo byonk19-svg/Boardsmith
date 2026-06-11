@@ -568,6 +568,53 @@ Recommended next step:
 1. Run a real manual print/readability pass on a small wall shelf or planter box using the browser print dialog.
 2. If the UI reads well, shift the next improvement lane from UI polish to generated plan quality.
 
+## Real Browser Print-Readability Checkpoint
+
+Date: June 11, 2026
+
+Checked commit: `c772dea Update private MVP readiness checkpoint`
+
+Purpose: validate browser print as the private MVP output path using actual browser rendering, then make only tiny print-readability fixes. This pass did not add export functionality, change plan generation, change data contracts, change auth, add packages, or mutate project records.
+
+Method:
+
+- Confirmed the working tree was clean and recent history included the generated-plan dogfood checkpoint.
+- Started from the documented local workflow. A separate dev server was already running, so the pass used `next build` plus `next start` on a temporary local port.
+- Attempted to force the ignored `.data/dogfood-58b.json` fixture, but `.env.local` kept Supabase persistence configured. The pass stayed read-only and used existing dogfood/smoke records visible through the local server. No POST actions, plan generation, archive/restore actions, or hosted-data mutations were performed.
+- Used Chrome headless browser rendering to create screen captures and browser-generated print PDFs under ignored `.next/print-review*` folders.
+- Used bundled PDF tooling to inspect page counts and confirm print-only content.
+
+Scenarios reviewed:
+
+- Bathroom wall shelf: `Dogfood Retry 2 20260601 - Bathroom Wall Shelf`.
+- Outdoor planter box: `Dogfood Retry 20260601 - Outdoor Planter Box`.
+- Cordless lamp riser: `Dogfood Retry 20260601 - Cordless Lamp Riser`.
+- Toddler book ledge: `Dogfood Retry 3 20260601 - Toddler Book Ledge`.
+- Non-critical pantry sign: `Dogfood 20260610 20260610185545 - Non-critical pantry sign`.
+
+Browser print findings:
+
+- Browser print PDFs hid app navigation and the back-to-project toolbar.
+- Project title, planning-aid warning, build snapshot, project visuals, review checklist, materials, cut checklist, build guide, review appendix, review triggers, open questions, and no-PDF/CAD copy remained visible.
+- Before the tiny CSS fix, longer visual sections could leave the next workflow heading on the tail end of a visual-diagram page. The content was readable, but the printed sequence felt less intentional.
+- The current print plan did not provide an obvious handwritten note area.
+
+Tiny fixes made:
+
+- Added print page-break hints before Check Before Building, Cut Checklist, Build Guide, and Review Appendix.
+- Added a print-only, non-persistent Shop notes area with blank space for handwritten notes.
+- Updated the existing print-preview rendering test to cover the new print-only note area and page-break class.
+
+Issues deferred:
+
+- The browser print output is usable for private MVP dogfood, but complex generated plans can still run 10-12 pages because project visuals and review details are intentionally explicit.
+- A true physical paper pass should still check printer margins, ink density, and whether the blank notes area is enough in shop use.
+- No shop-organizer or decorative-tray generated print route was available in the reachable read-only records; those project types should be reviewed when real generated examples exist.
+
+Recommended next step:
+
+Shift from UI print polish to generated-plan quality unless repeated manual printing exposes a concrete paper-layout problem.
+
 ## Recommended Next Step
 
 Keep Boardsmith private and pause broad feature work. Use the current `private-mvp-1.0` baseline manually before selecting another major lane. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, auth expansion, or new project type work without an explicit task and, for PDF/export work, explicit renderer/dependency approval.
