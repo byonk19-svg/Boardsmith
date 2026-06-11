@@ -777,4 +777,51 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("For child-adjacent projects, describe edge treatment, finish choice, supervision needs, mounting height, and inspection plans.");
     expect(markup).not.toContain("Generated plan failed deterministic quality checks");
   });
+
+  it("renders safe project-detail action errors without exposing raw query text", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const knownMarkup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({ error: "notes_failed" }),
+      }),
+    );
+
+    expect(knownMarkup).toContain("Project update was not saved.");
+    expect(knownMarkup).toContain("Project notes could not be saved. Try again from the project detail page.");
+    expect(knownMarkup).not.toContain("No plan was saved.");
+
+    const rawMarkup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({ error: "Database exploded: stack trace" }),
+      }),
+    );
+
+    expect(rawMarkup).toContain("Something went wrong while updating this project. Try again or review the project details before retrying.");
+    expect(rawMarkup).not.toContain("Database exploded");
+    expect(rawMarkup).not.toContain("stack trace");
+  });
+
+  it("keeps archived read-only framing visible when an action error is present", async () => {
+    getProjectMock.mockResolvedValue({ ...project, archived_at: "2026-06-06T10:00:00.000Z" });
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({ error: "restore_failed" }),
+      }),
+    );
+
+    expect(markup).toContain("Archived project");
+    expect(markup).toContain("Review only until restored");
+    expect(markup).toContain("That project could not be restored. Try again from the project detail page.");
+    expect(markup).toContain("Restore project");
+    expect(markup).not.toContain("Project could not be restored.");
+  });
 });

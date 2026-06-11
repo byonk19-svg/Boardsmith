@@ -21,7 +21,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
     return NextResponse.redirect(new URL(`/projects/${id}?restored=1`, request.url), 303);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Project could not be restored.";
-    return NextResponse.redirect(new URL(`/projects/${id}?error=${encodeURIComponent(message)}`, request.url), 303);
+    void error;
+    return NextResponse.redirect(new URL(`/projects/${id}?error=restore_failed`, request.url), 303);
   }
 }

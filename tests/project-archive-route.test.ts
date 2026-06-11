@@ -109,4 +109,23 @@ describe("project archive routes", () => {
     expect(archiveResponse.headers.get("location")).toBe("http://localhost/projects?error=Project%20not%20found");
     expect(restoreResponse.headers.get("location")).toBe("http://localhost/projects?error=Project%20not%20found");
   });
+
+  it("uses stable project-detail error keys when archive or restore fails", async () => {
+    archiveProjectMock.mockRejectedValueOnce(new Error("database archive stack detail"));
+    restoreProjectMock.mockRejectedValueOnce(new Error("database restore stack detail"));
+    const { POST: archivePost } = await import("@/app/projects/[id]/archive/route");
+    const { POST: restorePost } = await import("@/app/projects/[id]/restore/route");
+
+    const archiveResponse = await archivePost(new Request("http://localhost/projects/archive-project-id/archive", { method: "POST" }), {
+      params: Promise.resolve({ id: "archive-project-id" }),
+    });
+    const restoreResponse = await restorePost(new Request("http://localhost/projects/archive-project-id/restore", { method: "POST" }), {
+      params: Promise.resolve({ id: "archive-project-id" }),
+    });
+
+    expect(archiveResponse.headers.get("location")).toBe("http://localhost/projects/archive-project-id?error=archive_failed");
+    expect(restoreResponse.headers.get("location")).toBe("http://localhost/projects/archive-project-id?error=restore_failed");
+    expect(archiveResponse.headers.get("location")).not.toContain("database");
+    expect(restoreResponse.headers.get("location")).not.toContain("database");
+  });
 });

@@ -11,6 +11,7 @@ import { createPlanHistoryComparison, type PlanComparisonChange, type PlanHistor
 import { type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import { createPrintablePlanManifest, type PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
+import { getProjectDetailErrorMessage } from "@/lib/projects/project-detail-errors";
 import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
@@ -45,6 +46,7 @@ export default async function ProjectDetailPage({
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const project = await getProject(id);
   if (!project) notFound();
+  const detailErrorMessage = getProjectDetailErrorMessage(query.error);
 
   const plans = await listGeneratedPlans(project.id);
   const planReviews = plans.map((plan) => buildPlanReview(project, plan));
@@ -102,9 +104,8 @@ export default async function ProjectDetailPage({
       {isProjectArchived(project) ? <ArchivedProjectBanner project={project} /> : null}
       {isGenerationFailureReason(query.generation_error) ? (
         <GenerationFailurePanel reason={query.generation_error} safetyFlags={project.safety_flags} />
-      ) : query.error ? (
-        <GenerationFailurePanel reason="generation_failed" safetyFlags={project.safety_flags} />
       ) : null}
+      {detailErrorMessage ? <ProjectDetailErrorPanel message={detailErrorMessage} /> : null}
       {query.generated ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Generated and saved a new validated plan version.</p> : null}
       {query.duplicated ? (
         <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
@@ -833,6 +834,15 @@ function EmptyPlanState({ isArchived }: { isArchived: boolean }) {
           Generate a first plan from Project actions. Boardsmith saves only validated plans; if review blocks generation, you will see what needs attention.
         </p>
       )}
+    </section>
+  );
+}
+
+function ProjectDetailErrorPanel({ message }: { message: string }) {
+  return (
+    <section className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+      <p className="font-semibold">Project update was not saved.</p>
+      <p className="mt-1">{message}</p>
     </section>
   );
 }

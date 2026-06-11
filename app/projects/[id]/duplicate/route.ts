@@ -16,7 +16,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     revalidatePath(`/projects/${duplicatedProject.id}`);
     return NextResponse.redirect(new URL(`/projects/${duplicatedProject.id}?duplicated=1`, request.url), 303);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Project duplication failed.";
-    return NextResponse.redirect(new URL(`/projects/${id}?error=${encodeURIComponent(message)}`, request.url), 303);
+    void error;
+    return NextResponse.redirect(new URL(`/projects/${id}?error=duplicate_failed`, request.url), 303);
   }
 }

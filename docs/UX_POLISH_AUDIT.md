@@ -8,7 +8,7 @@ Scope inspected: private access entry, dashboard, project list, project creation
 
 Guardrails: practical private-MVP polish only. This audit does not recommend public launch work, paid integrations, app-generated PDF/export work, CAD/CNC, auth expansion, marketplace/shopping, or major rewrites.
 
-Implementation checkpoint: the private-MVP trust copy, archived read-only framing, missing-dimension warning, review-trigger wording, state-aware next-step strip, dashboard/list CTA cleanup, mobile section navigation, access caution, settings posture summary, safe project-list error mapping, and project-intake guidance have been addressed in follow-up polish passes. Remaining findings below are kept as the working backlog.
+Implementation checkpoint: the private-MVP trust copy, archived read-only framing, missing-dimension warning, review-trigger wording, state-aware next-step strip, dashboard/list CTA cleanup, mobile section navigation, access caution, settings posture summary, safe project-list and project-detail error mapping, and project-intake guidance have been addressed in follow-up polish passes. Remaining findings below are kept as the working backlog.
 
 ## 1. Quick Copy/Polish Wins
 

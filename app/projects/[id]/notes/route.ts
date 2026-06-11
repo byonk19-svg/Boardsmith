@@ -18,7 +18,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     revalidatePath(`/projects/${id}`);
     return NextResponse.redirect(new URL(`/projects/${id}?notes=updated`, request.url), 303);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Project notes could not be saved.";
-    return NextResponse.redirect(new URL(`/projects/${id}?error=${encodeURIComponent(message)}`, request.url), 303);
+    void error;
+    return NextResponse.redirect(new URL(`/projects/${id}?error=notes_failed`, request.url), 303);
   }
 }

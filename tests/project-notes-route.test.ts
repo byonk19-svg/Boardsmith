@@ -68,4 +68,19 @@ describe("project notes route", () => {
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("http://localhost/projects?error=Project%20not%20found");
   });
+
+  it("uses a stable project-detail error key when notes fail to save", async () => {
+    updateProjectNotesMock.mockRejectedValueOnce(new Error("database notes stack detail"));
+    const { POST } = await import("@/app/projects/[id]/notes/route");
+    const formData = new FormData();
+    formData.set("notes", "Confirm screw length.");
+
+    const response = await POST(new Request("http://localhost/projects/project-with-notes/notes", { method: "POST", body: formData }), {
+      params: Promise.resolve({ id: "project-with-notes" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/project-with-notes?error=notes_failed");
+    expect(response.headers.get("location")).not.toContain("database");
+  });
 });

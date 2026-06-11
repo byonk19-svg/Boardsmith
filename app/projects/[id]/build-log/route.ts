@@ -24,8 +24,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     revalidatePath(`/projects/${id}`);
     return NextResponse.redirect(new URL(`/projects/${id}?build_log=updated`, request.url), 303);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Project build log could not be saved.";
-    return NextResponse.redirect(new URL(`/projects/${id}?error=${encodeURIComponent(message)}`, request.url), 303);
+    void error;
+    return NextResponse.redirect(new URL(`/projects/${id}?error=build_log_failed`, request.url), 303);
   }
 }
 

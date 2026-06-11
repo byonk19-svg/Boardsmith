@@ -64,4 +64,17 @@ describe("duplicate project route", () => {
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("http://localhost/projects?error=Project%20not%20found");
   });
+
+  it("uses a stable project-detail error key when duplication fails", async () => {
+    duplicateProjectMock.mockRejectedValueOnce(new Error("database duplicate stack detail"));
+    const { POST } = await import("@/app/projects/[id]/duplicate/route");
+
+    const response = await POST(new Request("http://localhost/projects/source-project-id/duplicate", { method: "POST" }), {
+      params: Promise.resolve({ id: "source-project-id" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/source-project-id?error=duplicate_failed");
+    expect(response.headers.get("location")).not.toContain("database");
+  });
 });

@@ -81,4 +81,18 @@ describe("project build log route", () => {
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("http://localhost/projects?error=Project%20not%20found");
   });
+
+  it("uses a stable project-detail error key when build log save fails", async () => {
+    updateProjectBuildLogMock.mockRejectedValueOnce(new Error("database build log stack detail"));
+    const { POST } = await import("@/app/projects/[id]/build-log/route");
+    const formData = new FormData();
+
+    const response = await POST(new Request("http://localhost/projects/project-with-build-log/build-log", { method: "POST", body: formData }), {
+      params: Promise.resolve({ id: "project-with-build-log" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/project-with-build-log?error=build_log_failed");
+    expect(response.headers.get("location")).not.toContain("database");
+  });
 });
