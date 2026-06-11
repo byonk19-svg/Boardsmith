@@ -121,7 +121,7 @@ Invalid password -> /access?error=...
 
 Routes: `/` and `/projects`
 
-Screen job: help the private user resume recent work, understand project counts, start a new intake, or browse/filter the full project list.
+Screen job: help the private user resume recent work, understand what needs a generated plan, identify plans ready for review/print, start a new intake, or browse/filter the full project list.
 
 Primary action: dashboard `New Project` leads to `/projects/new`; project list `New Project` also leads to `/projects/new`. Project cards use state-aware primary labels such as `Open project`, `Open to generate`, or `Review archived project`.
 
@@ -133,7 +133,7 @@ Loading states: no explicit loading page for dashboard or project list. Both are
 
 Error/blocked states: `/projects` maps known error keys to calm copy, shows archive/restore success banners, and keeps archive filters visible. Storage failures are not separately represented in the visible page flow beyond route error behavior.
 
-Mobile considerations: dashboard cards stack cleanly. The project list filter area can become long on mobile because search, archive, details/advanced filters, and buttons appear before project cards. Detail actions inside cards wrap, which is functional but dense.
+Mobile considerations: dashboard cards stack cleanly. The project list now puts visible count/plan/archive metrics before filters, keeps search/workspace/apply in the main filter row, and leaves type/status/plan/record controls inside `More filters`. Detail actions inside cards still wrap, but the first scan emphasizes next step and plan state.
 
 Wireframe:
 
@@ -147,16 +147,22 @@ Wireframe:
 +------------------------------------------------------+
 | Total | With generated | Need plans | Latest update   |
 +------------------------------------------------------+
+| Workspace queue                                      |
+| Needs generated plan        Ready to review or print  |
+| [Open to generate]          [Open project] [Print]    |
++------------------------------------------------------+
 | Recent projects                         Browse all -> |
 | +--------------------------------------------------+ |
 | | Project title                                    | |
 | | type | W x H x D | updated                      | |
 | | [Draft] [No generated plan yet]                  | |
-| | [Open project]                                  | |
+| | Next: generate first plan                        | |
+| | [Open to generate]                              | |
 | +--------------------------------------------------+ |
 | | Project title                                    | |
 | | [Plan generated] [Latest plan saved]             | |
-| | [Open project] [Browser print plan]              | |
+| | Next: review before building or print            | |
+| | [Open project] [Print build sheet]               | |
 | +--------------------------------------------------+ |
 +------------------------------------------------------+
 | Try a starter                         New Project ->  |
@@ -166,8 +172,21 @@ Wireframe:
 New Project -> /projects/new
 View Projects / Browse all projects -> /projects
 Open project -> /projects/[id]
-Browser print plan -> /projects/[id]/print
+Print build sheet -> /projects/[id]/print
 Use starter -> /projects/new?example=:slug
+```
+
+Project list reading order:
+
+```text
+Header / New Project
+Feedback banners if present
+Summary metrics: showing, ready to review, need plans, archived
+Find a project: search, workspace, apply
+More filters: type, status, plan, record
+Filtered result count and active-filter summary
+Project cards with next-step label, plan status, record signals, and actions
+Empty result state if no cards match
 ```
 
 ### New Project / Intake
@@ -432,8 +451,8 @@ Browser print command -> browser/OS print dialog
 3. Print behavior is clearer, but still browser-owned.
    UI-02C adds a top print toolbar and `Print build sheet` action that opens the browser print dialog. The app still does not generate PDF, CAD, CNC, or export/download files.
 
-4. Project list filters can feel heavier than the private-MVP task.
-   Search, archive, project type, status, plan state, record state, apply, and clear are powerful for dogfood data, but the control block is dense before the project cards, especially on mobile.
+4. Project list filters are lighter, but still a secondary workflow.
+   UI-03 moves summary metrics above the filter form and keeps advanced filters collapsed unless active. Search/workspace remain visible, but the list still has enough controls that mobile dogfood should watch for repeated filter friction.
 
 5. Internal review concepts still leak into the user reading order.
    Terms such as build model, deterministic review, future output notes, plan review, cut-list review, material summary, and comparison are accurate, but the page does not yet fully separate "what should I do next in the shop?" from "what did the app verify?"

@@ -45,7 +45,11 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const archiveFilteredSummaries = sortedProjectSummaries.filter((summary) => matchesArchiveFilter(summary.project, filters.archive));
   const filteredProjectSummaries = archiveFilteredSummaries.filter((summary) => matchesProjectFilters(summary, filters));
   const filtersActive = areFiltersActive(filters);
+  const advancedFiltersActive = areAdvancedFiltersActive(filters);
   const emptyState = projectListEmptyState(filters);
+  const visibleWithPlans = archiveFilteredSummaries.filter((summary) => summary.planCount > 0).length;
+  const visibleNeedingPlans = archiveFilteredSummaries.length - visibleWithPlans;
+  const archivedProjectCount = sortedProjectSummaries.filter((summary) => isProjectArchived(summary.project)).length;
 
   return (
     <div className="space-y-6">
@@ -66,35 +70,61 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       {projects.length === 0 ? (
         <div className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
           <p className="font-medium text-ink">No projects yet.</p>
-          <p className="mt-2 text-sm text-ink/65">Create a project intake to start a private planning record.</p>
+          <p className="mt-2 text-sm text-ink/65">Create a project intake to start a private planning record. Generated plans and shop notes will appear here after you save work.</p>
           <Link href="/projects/new" className="mt-4 inline-flex rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
             Start first project
           </Link>
         </div>
       ) : (
         <>
+          <section className="grid gap-3 md:grid-cols-4">
+            <ProjectListMetric label="Showing" value={filteredProjectSummaries.length.toString()} note={`${archiveFilteredSummaries.length.toString()} ${archiveSummaryLabel(filters.archive)}`} />
+            <ProjectListMetric label="Ready to review" value={visibleWithPlans.toString()} note="generated plans saved" />
+            <ProjectListMetric label="Need plans" value={visibleNeedingPlans.toString()} note="drafts or failed generations" />
+            <ProjectListMetric label="Archived" value={archivedProjectCount.toString()} note="read-only unless restored" />
+          </section>
+
           <section className="rounded-lg border border-sawdust bg-white p-4 shadow-soft">
-            <form action="/projects" className="space-y-3">
-              <label className="grid gap-1.5 text-sm font-medium text-ink">
-                Search
-                <input
-                  name="q"
-                  type="search"
-                  defaultValue={filters.query}
-                  placeholder="Title, use, style notes..."
-                  className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss"
-                />
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium text-ink">
-                Archive
-                <select name="archive" defaultValue={filters.archive} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
-                  <option value="active">Active projects</option>
-                  <option value="archived">Archived projects</option>
-                  <option value="all">All projects</option>
-                </select>
-              </label>
-              <details className="rounded-md border border-sawdust bg-shop/40 p-3">
-                <summary className="cursor-pointer text-sm font-semibold text-ink">More filters</summary>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-ink">Find a project</h2>
+                <p className="mt-1 text-sm text-ink/65">Search first, then open advanced filters only when the list needs narrowing.</p>
+              </div>
+              {filtersActive ? (
+                <Link href="/projects" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+                  Clear filters
+                </Link>
+              ) : null}
+            </div>
+            <form action="/projects" className="mt-4 space-y-3">
+              <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_14rem_auto] lg:items-end">
+                <label className="grid gap-1.5 text-sm font-medium text-ink">
+                  Search
+                  <input
+                    name="q"
+                    type="search"
+                    defaultValue={filters.query}
+                    placeholder="Title, use, style notes..."
+                    className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss"
+                  />
+                </label>
+                <label className="grid gap-1.5 text-sm font-medium text-ink">
+                  Workspace
+                  <select name="archive" defaultValue={filters.archive} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
+                    <option value="active">Active projects</option>
+                    <option value="archived">Archived projects</option>
+                    <option value="all">All projects</option>
+                  </select>
+                </label>
+                <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+                  Apply
+                </button>
+              </div>
+              <details className="rounded-md border border-sawdust bg-shop/40 p-3" open={advancedFiltersActive}>
+                <summary className="cursor-pointer text-sm font-semibold text-ink">
+                  More filters
+                  <span className="ml-2 text-xs font-normal text-ink/55">type, status, plan, record</span>
+                </summary>
                 <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
                   <label className="grid gap-1.5 text-sm font-medium text-ink">
                     Project type
@@ -135,20 +165,11 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   </label>
                 </div>
               </details>
-              <div className="flex flex-wrap gap-2">
-                <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-                  Apply
-                </button>
-                {filtersActive ? (
-                  <Link href="/projects" className="rounded-md border border-sawdust px-4 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                    Clear filters
-                  </Link>
-                ) : null}
-              </div>
             </form>
             <p className="mt-3 text-sm text-ink/65">
               Showing {filteredProjectSummaries.length.toString()} of {archiveFilteredSummaries.length.toString()} {archiveSummaryLabel(filters.archive)}. Most recently updated first.
             </p>
+            {filtersActive ? <p className="mt-1 text-xs text-ink/55">{filterSummaryLabel(filters)}</p> : null}
           </section>
 
           {filteredProjectSummaries.length === 0 ? (
@@ -170,12 +191,12 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                 <article key={project.id} className="rounded-lg border border-sawdust bg-white p-4 transition hover:border-moss hover:shadow-soft">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-moss">{projectListNextStepLabel(project, planCount)}</p>
                       <p className="truncate text-lg font-semibold text-ink" title={project.title}>
                         {project.title}
                       </p>
                       <p className="mt-1 text-sm text-ink/65">
-                        {projectTypeLabels[project.project_type]} | {project.width_inches} x {project.height_inches} x {project.depth_inches} in | Updated{" "}
-                        {formatProjectDate(project.updated_at)}
+                        {projectTypeLabels[project.project_type]} | {dimensionLabel(project)} | Updated {formatProjectDate(project.updated_at)}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -187,7 +208,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2 text-sm">
-                    <ProjectSignal label="Plan" value={planCount > 0 ? "Latest plan saved" : "No generated plan yet"} />
+                    <ProjectSignal label="Plan" value={planCount > 0 ? "Latest plan saved" : "No generated plan yet"} tone={planCount > 0 ? "ready" : "needs"} />
                     <ProjectSignal label="History" value={planCount === 1 ? "1 plan version" : `${planCount.toString()} plan versions`} />
                     <ProjectSignal label="Notes" value={project.notes.trim().length > 0 ? "Notes added" : "No notes yet"} />
                     <ProjectSignal label="Record" value={buildLogLabel(project)} />
@@ -199,7 +220,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                     </Link>
                     {planCount > 0 ? (
                       <Link href={`/projects/${project.id}/print`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                        Browser print plan
+                        Print build sheet
                       </Link>
                     ) : null}
                     {hasProjectRecord(project) ? (
@@ -286,6 +307,10 @@ function areFiltersActive(filters: ProjectFilters): boolean {
   return filters.query.length > 0 || filters.type !== "all" || filters.status !== "all" || filters.plan !== "all" || filters.record !== "all" || filters.archive !== "active";
 }
 
+function areAdvancedFiltersActive(filters: ProjectFilters): boolean {
+  return filters.type !== "all" || filters.status !== "all" || filters.plan !== "all" || filters.record !== "all";
+}
+
 function stringParam(value: string | string[] | undefined): string {
   if (Array.isArray(value)) return value[0] ?? "";
   return value ?? "";
@@ -321,13 +346,32 @@ function projectSearchText(project: Project): string {
     .toLowerCase();
 }
 
-function ProjectSignal({ label, value }: { label: string; value: string }) {
+function ProjectListMetric({ label, value, note }: { label: string; value: string; note: string }) {
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-md bg-shop px-2.5 py-1.5">
-      <span className="text-xs font-semibold uppercase tracking-wide text-ink/55">{label}</span>
-      <span className="font-medium text-ink">{value}</span>
+    <div className="rounded-lg border border-sawdust bg-white p-4">
+      <p className="text-sm font-medium text-ink/60">{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-ink">{value}</p>
+      <p className="mt-1 text-xs leading-5 text-ink/55">{note}</p>
     </div>
   );
+}
+
+function ProjectSignal({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "neutral" | "ready" | "needs" }) {
+  const toneClass = tone === "ready" ? "bg-moss/10 text-moss" : tone === "needs" ? "bg-amber-100 text-amber-900" : "bg-shop text-ink";
+
+  return (
+    <div className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 ${toneClass}`}>
+      <span className="text-xs font-semibold uppercase tracking-wide opacity-70">{label}</span>
+      <span className="font-medium">{value}</span>
+    </div>
+  );
+}
+
+function projectListNextStepLabel(project: Project, planCount: number): string {
+  if (isProjectArchived(project)) return "Archived review";
+  if (planCount === 0) return "Needs generated plan";
+  if (project.build_completed) return "Built project record";
+  return "Ready to review";
 }
 
 function projectListPrimaryActionLabel(project: Project, planCount: number): string {
@@ -383,6 +427,25 @@ function buildLogLabel(project: Project): string {
   return "No build notes yet";
 }
 
+function filterSummaryLabel(filters: ProjectFilters): string {
+  const active: string[] = [];
+  if (filters.query.length > 0) active.push(`search "${filters.query}"`);
+  if (filters.archive !== "active") active.push(archiveSummaryLabel(filters.archive));
+  if (filters.type !== "all") active.push(projectTypeLabels[filters.type]);
+  if (filters.status !== "all") active.push(statusFilterLabel(filters.status));
+  if (filters.plan !== "all") active.push(filters.plan === "has_plan" ? "has generated plan" : "needs generated plan");
+  if (filters.record !== "all") active.push(filters.record === "has_record" ? "has project record" : "no project record");
+  return `Active filters: ${active.join(", ")}.`;
+}
+
+function statusFilterLabel(status: ProjectFilters["status"]): string {
+  if (status === "built") return "built";
+  if (status === "plan_generated") return "plan generated";
+  if (status === "generation_failed") return "needs review";
+  if (status === "draft") return "draft";
+  return "all statuses";
+}
+
 function hasProjectRecord(project: Project): boolean {
   return project.notes.trim().length > 0 || hasBuildLog(project);
 }
@@ -403,4 +466,8 @@ function formatProjectDate(value: string): string {
     day: "numeric",
     year: "numeric",
   }).format(new Date(value));
+}
+
+function dimensionLabel(project: Project): string {
+  return `${project.width_inches.toString()} x ${project.height_inches.toString()} x ${project.depth_inches.toString()} in`;
 }

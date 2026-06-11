@@ -25,6 +25,8 @@ export default async function DashboardPage() {
   const latestProjectSummary = projectSummaries.length > 0 ? projectSummaries[0] : undefined;
   const projectsWithPlans = projectSummaries.filter((summary) => summary.planCount > 0).length;
   const projectsNeedingPlans = projectSummaries.length - projectsWithPlans;
+  const nextProjectNeedingPlan = projectSummaries.find((summary) => summary.planCount === 0);
+  const nextProjectWithPlan = projectSummaries.find((summary) => summary.planCount > 0);
   const recentProjects = projectSummaries.slice(0, 4);
   const starterExamples = projectIntakeExamples.slice(0, 3);
 
@@ -72,23 +74,40 @@ export default async function DashboardPage() {
           </div>
         </section>
       ) : (
-        <section className="rounded-lg border border-sawdust bg-white p-4 shadow-soft">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-ink">Recent projects</h2>
-              <p className="mt-1 text-sm text-ink/65">Most recently updated first. Archived projects are hidden from this dashboard.</p>
-            </div>
-            <Link href="/projects" className="text-sm font-semibold text-moss hover:text-moss/80">
-              Browse all projects
-            </Link>
-          </div>
+        <>
+          <section className="grid gap-3 md:grid-cols-2">
+            <DashboardQueueCard
+              eyebrow="Needs a generated plan"
+              summary={nextProjectNeedingPlan}
+              emptyCopy="No active drafts are waiting for generation."
+              actionLabel="Open to generate"
+            />
+            <DashboardQueueCard
+              eyebrow="Ready to review or print"
+              summary={nextProjectWithPlan}
+              emptyCopy="No active generated plans are ready yet."
+              actionLabel="Open project"
+            />
+          </section>
 
-          <div className="mt-3 grid gap-2.5">
-            {recentProjects.map((summary) => (
-              <ProjectShortcut key={summary.project.id} summary={summary} />
-            ))}
-          </div>
-        </section>
+          <section className="rounded-lg border border-sawdust bg-white p-4 shadow-soft">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-ink">Recent projects</h2>
+                <p className="mt-1 text-sm text-ink/65">Most recently updated first. Archived projects are hidden from this dashboard.</p>
+              </div>
+              <Link href="/projects" className="text-sm font-semibold text-moss hover:text-moss/80">
+                Browse all projects
+              </Link>
+            </div>
+
+            <div className="mt-3 grid gap-2.5">
+              {recentProjects.map((summary) => (
+                <ProjectShortcut key={summary.project.id} summary={summary} />
+              ))}
+            </div>
+          </section>
+        </>
       )}
 
       <section className="rounded-lg border border-sawdust bg-white p-5 shadow-soft">
@@ -115,8 +134,50 @@ export default async function DashboardPage() {
   );
 }
 
+function DashboardQueueCard({
+  eyebrow,
+  summary,
+  emptyCopy,
+  actionLabel,
+}: {
+  eyebrow: string;
+  summary: ProjectSummary | undefined;
+  emptyCopy: string;
+  actionLabel: string;
+}) {
+  return (
+    <section className="rounded-lg border border-sawdust bg-white p-4 shadow-soft">
+      <p className="text-xs font-semibold uppercase tracking-wide text-moss">{eyebrow}</p>
+      {summary ? (
+        <div className="mt-3">
+          <h2 className="truncate text-lg font-semibold text-ink" title={summary.project.title}>
+            {summary.project.title}
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-ink/65">
+            {projectTypeLabels[summary.project.project_type]} | {dimensionLabel(summary.project)} | Updated {formatProjectDate(summary.project.updated_at)}
+          </p>
+          <p className="mt-2 text-sm font-medium text-ink">{summary.planCount > 0 ? "Generated plan saved. Review before building or printing." : "Draft intake saved. Generate a first plan from the project detail page."}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href={`/projects/${summary.project.id}`} className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+              {actionLabel}
+            </Link>
+            {summary.planCount > 0 ? (
+              <Link href={`/projects/${summary.project.id}/print`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+                Print build sheet
+              </Link>
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        <p className="mt-3 text-sm leading-6 text-ink/65">{emptyCopy}</p>
+      )}
+    </section>
+  );
+}
+
 function ProjectShortcut({ summary }: { summary: ProjectSummary }) {
   const { project, planCount } = summary;
+  const hasPlan = planCount > 0;
 
   return (
     <article className="rounded-md border border-sawdust p-3">
@@ -126,21 +187,21 @@ function ProjectShortcut({ summary }: { summary: ProjectSummary }) {
             {project.title}
           </h3>
           <p className="mt-1 text-sm text-ink/65">
-            {projectTypeLabels[project.project_type]} | {project.width_inches} x {project.height_inches} x {project.depth_inches} in | Updated{" "}
-            {formatProjectDate(project.updated_at)}
+            {projectTypeLabels[project.project_type]} | {dimensionLabel(project)} | Updated {formatProjectDate(project.updated_at)}
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink/60">
             <span className="rounded-md bg-shop px-2 py-1">{statusLabel(project)}</span>
-            <span className="rounded-md bg-shop px-2 py-1">{planCount > 0 ? "Latest plan saved" : "No generated plan yet"}</span>
+            <span className={`rounded-md px-2 py-1 ${hasPlan ? "bg-moss/10 text-moss" : "bg-amber-100 text-amber-900"}`}>{hasPlan ? "Latest plan saved" : "No generated plan yet"}</span>
           </div>
+          <p className="mt-2 text-sm font-medium text-ink">{hasPlan ? "Next: review before building or print a shop sheet." : "Next: generate a first plan from the detail page."}</p>
         </div>
         <div className="flex flex-wrap gap-2 lg:shrink-0">
           <Link href={`/projects/${project.id}`} className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-            Open project
+            {hasPlan ? "Open project" : "Open to generate"}
           </Link>
-          {planCount > 0 ? (
+          {hasPlan ? (
             <Link href={`/projects/${project.id}/print`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-              Browser print plan
+              Print build sheet
             </Link>
           ) : null}
         </div>
@@ -178,6 +239,10 @@ function statusLabel(project: Project): string {
   if (project.status === "plan_generated") return "Plan generated";
   if (project.status === "generation_failed") return "Needs review";
   return "Draft";
+}
+
+function dimensionLabel(project: Project): string {
+  return `${project.width_inches.toString()} x ${project.height_inches.toString()} x ${project.depth_inches.toString()} in`;
 }
 
 function isProjectArchived(project: Project): boolean {

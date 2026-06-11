@@ -164,6 +164,8 @@ describe("ProjectsPage", () => {
     );
 
     expect(markup).toContain("Showing 8 of 8 active projects");
+    expect(markup).toContain("Ready to review");
+    expect(markup).toContain("Need plans");
     expect(markup).toContain("Dogfood project 7");
     expect(markup).toContain("Dogfood project 0");
     expect(markup).toContain('href="/projects/crowded_project_7"');
@@ -200,7 +202,7 @@ describe("ProjectsPage", () => {
     expect(markup).toContain("2 plan versions");
     expect(markup).toContain("Notes added");
     expect(markup).toContain("Build notes added");
-    expect(markup).toContain("Browser print plan");
+    expect(markup).toContain("Print build sheet");
     expect(markup).toContain("Review project record");
     expect(markup).toContain("Updated Jun 2, 2026");
     expect(markup).toContain('href="/projects/project_with_history"');
@@ -211,6 +213,9 @@ describe("ProjectsPage", () => {
     expect(markup).toContain("No generated plan yet");
     expect(markup).toContain("Open to generate");
     expect(markup).toContain("More filters");
+    expect(markup).toContain("type, status, plan, record");
+    expect(markup).toContain("Find a project");
+    expect(markup).toContain("Search first, then open advanced filters only when the list needs narrowing.");
     expect(markup).toContain("Plan state");
     expect(markup).toContain("Active projects");
     expect(markup).toContain("Archived projects");
