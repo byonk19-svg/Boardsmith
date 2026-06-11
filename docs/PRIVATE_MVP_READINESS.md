@@ -466,6 +466,61 @@ npm audit --audit-level=moderate
 git diff --check
 ```
 
+## Private MVP Dogfood Readiness Checkpoint
+
+Date: June 11, 2026
+
+Checked baseline commit: `b4702b4 Harden project detail action errors`
+
+Purpose: confirm the recent private MVP polish chain is stable enough for another real dogfood pass. This was a repo-health checkpoint only; it did not intentionally add features, change schema, change auth, change generation behavior, or add export functionality.
+
+Working tree note: final verification was run against the current working tree, not a clean `b4702b4` checkout. The tree still contains uncommitted project-detail `Review before building` summary UI/test changes and an untracked `docs/UI_WIREFLOW.md`; these were not part of this checkpoint and should be resolved before a formal dogfood pass.
+
+Verification results:
+
+- `npm test` passed: 39 test files, 217 tests.
+- `npm run lint` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+- `git diff --check` passed.
+
+Recent checkpoint commits reviewed:
+
+- `b4702b4 Harden project detail action errors`
+- `16a4cce Polish project guidance and intake flow`
+- `225335c Polish archived project read-only state`
+- `07e90e4 Polish private MVP trust copy`
+- `7a5bebc Document private MVP 1.0 baseline`
+
+Walkthrough areas checked through rendered-page tests and source inspection:
+
+- Access gate copy includes private MVP storage caution, with no auth behavior change.
+- Dashboard cards use clear project actions and avoid duplicate same-destination latest-plan CTAs.
+- Project list keeps search and archive visible, groups advanced filters under `More filters`, and maps known/unknown `?error=` values to safe copy.
+- New project intake has compact starter examples, a good-input example, grouped fields, safe invalid-intake and unknown-starter copy, and a loading state.
+- No-plan project detail shows recommended next-step guidance and explains that only validated plans are saved.
+- Generated-plan detail points users toward review, cut list, assumptions/open questions, and `Browser print plan`.
+- Safety wording uses `Review triggers` and keeps unresolved cut-dimension warnings prominent.
+- Archived project detail remains read-only, with restore as the edit-enabling action and read-only plan/history/print/review access preserved.
+- Browser print plan copy stays browser-print-only and does not imply PDF, CAD, SVG, DXF, CNC, or fabrication-ready output.
+
+Issues found:
+
+- No verification blocker found during this checkpoint.
+- Working tree is not clean after `b4702b4`: uncommitted project-detail `Review before building` summary UI/test changes and untracked `docs/UI_WIREFLOW.md` remain. They were left untouched because they are outside this repo-health checkpoint.
+
+Tiny fixes made:
+
+- Added this checkpoint note only.
+
+Recommended next dogfood project types:
+
+- Simple cutting board
+- Basic wall shelf
+- Planter box
+- Small storage crate
+- Simple shop organizer
+
 ## Recommended Next Step
 
 Keep Boardsmith private and pause broad feature work. Use the current `private-mvp-1.0` baseline manually before selecting another major lane. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, auth expansion, or new project type work without an explicit task and, for PDF/export work, explicit renderer/dependency approval.
