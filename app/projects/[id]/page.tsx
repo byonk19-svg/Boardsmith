@@ -1182,37 +1182,43 @@ function PlanReviewPanel({ summary }: { summary: GeneratedPlanReviewSummary }) {
 function ExportReadinessPanel({ summary }: { summary: ExportReadinessSummary }) {
   return (
     <section className={`rounded-lg border p-5 ${exportPanelClass(summary.status)}`}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-ink">Future output notes</h2>
-          <p className="mt-2 text-sm leading-6 text-ink/70">
-            This records future output review notes only. This MVP uses browser print only; no PDF or CAD download is generated.
+      <details>
+        <summary className="cursor-pointer list-none">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-ink">Output readiness notes</h2>
+              <p className="mt-2 text-sm leading-6 text-ink/70">
+                Secondary notes for possible future output work. This MVP uses browser print only; no PDF or CAD download is generated.
+              </p>
+            </div>
+            <span className={`w-fit rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${exportBadgeClass(summary.status)}`}>
+              {exportStatusLabel(summary.status)}
+            </span>
+          </div>
+        </summary>
+
+        <div className="mt-4 border-t border-sawdust pt-4">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <ReviewMetric label="Blocking issues" value={summary.blockingIssueCount.toString()} />
+            <ReviewMetric label="Warnings" value={summary.warningCount.toString()} />
+            <ReviewMetric label="Possible later outputs" value={summary.exportCandidates.length > 0 ? summary.exportCandidates.join(", ") : "None"} />
+          </div>
+
+          {summary.blockingIssueCount > 0 ? (
+            <ReviewMessageGroup title="Not ready yet" messages={summary.blockingIssues.map((issue) => issue.message)} tone="blocked" />
+          ) : (
+            <p className="mt-4 rounded-md bg-white/70 p-3 text-sm font-medium text-ink">No blocking output-readiness issues found.</p>
+          )}
+
+          {summary.warningCount > 0 ? <ReviewMessageGroup title="Needs review" messages={summary.warnings.map((issue) => issue.message)} tone="warning" /> : null}
+
+          {summary.exportReadinessNotes.length > 0 ? <ReviewMessageGroup title="Output readiness notes" messages={summary.exportReadinessNotes} tone="info" /> : null}
+
+          <p className="mt-4 text-sm leading-6 text-ink/70">
+            Future output work still requires human review and safe woodworking judgment. This panel does not create export files or production-ready CAD, CNC, DXF, SVG, or PDF output.
           </p>
         </div>
-        <span className={`w-fit rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${exportBadgeClass(summary.status)}`}>
-          {exportStatusLabel(summary.status)}
-        </span>
-      </div>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <ReviewMetric label="Blocking issues" value={summary.blockingIssueCount.toString()} />
-        <ReviewMetric label="Warnings" value={summary.warningCount.toString()} />
-        <ReviewMetric label="Future candidates" value={summary.exportCandidates.length > 0 ? summary.exportCandidates.join(", ") : "None"} />
-      </div>
-
-      {summary.blockingIssueCount > 0 ? (
-        <ReviewMessageGroup title="Not ready yet" messages={summary.blockingIssues.map((issue) => issue.message)} tone="blocked" />
-      ) : (
-        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm font-medium text-ink">No blocking future-output review issues found.</p>
-      )}
-
-      {summary.warningCount > 0 ? <ReviewMessageGroup title="Needs review" messages={summary.warnings.map((issue) => issue.message)} tone="warning" /> : null}
-
-      {summary.exportReadinessNotes.length > 0 ? <ReviewMessageGroup title="Build-model readiness notes" messages={summary.exportReadinessNotes} tone="info" /> : null}
-
-      <p className="mt-4 text-sm leading-6 text-ink/70">
-        Future output work still requires human review and safe woodworking judgment. This panel does not create export files or production-ready CAD, CNC, DXF, SVG, or PDF output.
-      </p>
+      </details>
     </section>
   );
 }
@@ -1328,7 +1334,7 @@ function ReviewMessageGroup({ title, messages, tone }: { title: string; messages
 function exportStatusLabel(status: ExportReadinessStatus): string {
   if (status === "not_ready") return "Not ready yet";
   if (status === "needs_review") return "Needs review";
-  return "Looks ready for future output review";
+  return "Looks ready for output checks";
 }
 
 function exportPanelClass(status: ExportReadinessStatus): string {
@@ -1462,9 +1468,9 @@ function BuildModelView({
       </div>
 
       <div className="mt-5 rounded-md bg-shop p-4">
-        <p className="text-sm font-semibold text-ink">Future output notes</p>
+        <p className="text-sm font-semibold text-ink">Output readiness notes</p>
         <p className="mt-2 text-sm leading-6 text-ink/65">
-          This MVP uses browser print only; no PDF or CAD download is generated. Future output review: SVG{" "}
+          This MVP uses browser print only; no PDF or CAD download is generated. Later output check: SVG{" "}
           {readinessLabel(buildModel.exportReadiness.svgCandidate)}, PDF {readinessLabel(buildModel.exportReadiness.pdfCandidate)}, DXF{" "}
           {readinessLabel(buildModel.exportReadiness.dxfCandidate)}, CAD {readinessLabel(buildModel.exportReadiness.cadCandidate)}.
         </p>
@@ -1750,7 +1756,7 @@ function PlanView({
           <List items={manifest.sections.beginnerTips} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Future output notes">
+        <PlanSheetSection title="Output readiness notes">
           <List items={manifest.futureExportNotes} />
         </PlanSheetSection>
       </div>

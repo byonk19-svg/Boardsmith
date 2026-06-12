@@ -260,8 +260,8 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Wall mounting is likely.");
     expect(markup).toContain("Plan Review");
     expect(markup).toContain("Review: Blocked");
-    expect(markup).toContain("Future output notes");
-    expect(markup).toContain("This records future output review notes only.");
+    expect(markup).toContain("Output readiness notes");
+    expect(markup).toContain("Secondary notes for possible future output work.");
     expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
   });
 
@@ -373,7 +373,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain("CAD-ready");
     expect(markup).not.toContain("CNC-ready");
     expect(markup).not.toContain("construction approval");
-    expect(markup).toContain("Future output notes");
+    expect(markup).toContain("Output readiness notes");
     expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
     expect(markup).toContain("Tweak this plan");
     expect(markup).toContain("Describe one change to the latest plan.");
@@ -596,7 +596,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Print build sheet");
     expect(markup).toContain("Latest generated plan");
     expect(markup).toContain("Plan history");
-    expect(markup).toContain("Future output notes");
+    expect(markup).toContain("Output readiness notes");
     expect(markup).toContain("This archived project record is read-only until restored.");
     expect(markup).toContain("Restore this project before editing notes.");
     expect(markup).toContain("Restore this project before editing the build log.");

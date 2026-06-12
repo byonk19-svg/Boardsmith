@@ -336,7 +336,7 @@ Wireframe:
 +------------------------------------------------------+
 | Project Structure / build model / material review     |
 +------------------------------------------------------+
-| Plan Review | Future output notes                     |
+| Plan Review | > Output readiness notes                |
 +------------------------------------------------------+
 | Tweak this plan                                      |
 | [revision text area] [Create revised plan]            |
@@ -445,7 +445,7 @@ Browser print command -> browser/OS print dialog
 ## Top 5 Current UI Friction Points
 
 1. Project detail still has high information density.
-   The state-aware next-step strip helps, but a generated detail page still asks the user to parse actions, jump links, intake, review triggers, template guidance, build model, plan review, future output notes, tweak flow, comparison, plan sheet, history, notes, and build log in one long page.
+   The state-aware next-step strip helps, but a generated detail page still asks the user to parse actions, jump links, intake, review triggers, template guidance, build model, plan review, output readiness notes, tweak flow, comparison, plan sheet, history, notes, and build log in one long page.
 
 2. New project intake is still long.
    UI-02B compacted the starter chooser so examples no longer dominate the top of the page, but the full manual intake remains a long form on mobile.
@@ -457,7 +457,7 @@ Browser print command -> browser/OS print dialog
    UI-03 moves summary metrics above the filter form and keeps advanced filters collapsed unless active. Search/workspace remain visible, but the list still has enough controls that mobile dogfood should watch for repeated filter friction.
 
 5. Internal review concepts still leak into the user reading order.
-   Terms such as build model, deterministic review, future output notes, plan review, cut-list review, material summary, and comparison are accurate, but the page does not yet fully separate "what should I do next in the shop?" from "what did the app verify?"
+   Terms such as build model, deterministic review, output readiness notes, plan review, cut-list review, material summary, and comparison are accurate, but the page does not yet fully separate "what should I do next in the shop?" from "what did the app verify?"
 
 ## Recommended First 3 UI Implementation Tasks
 

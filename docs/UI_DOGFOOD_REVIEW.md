@@ -23,7 +23,7 @@ Recent polish reflected in this review:
 
 Boardsmith now reads more like a private woodworking workspace than a raw CRUD list. The dashboard gives a useful first answer to "what should I work on next?", the intake starts manual entry sooner, and the print route clearly says browser print is the supported output path.
 
-The remaining friction is concentrated in the project detail page. Even after the review-before-building summary, the page still mixes shop actions, deterministic review internals, future output readiness, plan revision, comparison, printable plan content, history, notes, and build log in one long route. That is honest and useful for dogfood, but it is still the place where a private user can feel the most UI weight.
+The remaining friction is concentrated in the project detail page. Even after the review-before-building summary, the page still mixes shop actions, deterministic review internals, output readiness notes, plan revision, comparison, printable plan content, history, notes, and build log in one long route. That is honest and useful for dogfood, but it is still the place where a private user can feel the most UI weight.
 
 ## Screen Notes
 
@@ -188,8 +188,8 @@ What feels clear:
 What feels too dense:
 
 - This remains the densest screen in the app.
-- The page still interleaves user-facing shop work with internal review terms: project structure, deterministic model, plan review, future output notes, export readiness, tweak, comparison, printable plan, history, notes, and build log.
-- Future output/export-readiness panels are accurate but visually compete with immediate shop-readiness work.
+- The page still interleaves user-facing shop work with internal review terms: project structure, deterministic model, plan review, output readiness notes, tweak, comparison, printable plan, history, notes, and build log.
+- UI-04C demotes output-readiness details into a secondary disclosure, but the generated detail page remains long.
 
 Mobile concerns:
 
@@ -199,7 +199,7 @@ Mobile concerns:
 Copy issues:
 
 - UI-04B normalized the main print action label to `Print build sheet` across project detail and the print route.
-- `Future output notes` and export-readiness wording may continue to imply future file outputs are closer than they are, despite the no-export warnings.
+- UI-04C renamed the future-output panel to `Output readiness notes` and keeps the browser-print/no-export warning in the summary.
 
 Next-action clarity:
 
@@ -255,8 +255,8 @@ Implementation timing:
 4. Print naming has been normalized.
    UI-04B uses `Print build sheet` as the main project-detail and print-route action label while keeping browser-print/no-export explanation copy.
 
-5. Future output language still pulls attention away from current MVP actions.
-   The app repeatedly says no export is generated, but `Future output notes`, SVG/PDF candidates, and export readiness still add cognitive weight during normal planning review.
+5. Output readiness language is secondary now, but still present.
+   UI-04C demotes `Output readiness notes` into a secondary disclosure and keeps the no-export guardrail. The generated page still contains internal review concepts that may need another dogfood pass.
 
 ## Recommended Next UI Tasks
 
