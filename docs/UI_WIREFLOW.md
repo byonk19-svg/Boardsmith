@@ -18,7 +18,7 @@ Workspace entry
     New Project -> /projects/new
     View Projects -> /projects
     Open project -> /projects/[id]
-    Browser print plan -> /projects/[id]/print
+    Print build sheet -> /projects/[id]/print
     Use starter -> /projects/new?example=:slug
 
 Project list
@@ -27,7 +27,7 @@ Project list
     Apply filters -> /projects?...
     Clear filters -> /projects
     Open project / Open to generate / Review archived project -> /projects/[id]
-    Browser print plan -> /projects/[id]/print
+    Print build sheet -> /projects/[id]/print
     Review project record -> /projects/[id]
     Archive project -> POST /projects/[id]/archive -> /projects?archived=1 or detail redirect
     Restore project -> POST /projects/[id]/restore -> /projects?restored=1 or detail redirect
@@ -43,7 +43,7 @@ Project detail
   /projects/[id]
     Back to projects -> /projects
     Generate Plan / Generate another plan version -> POST /projects/[id]/generate -> /projects/[id]?generated=1 or generation_error=...
-    Browser print plan -> /projects/[id]/print
+    Print build sheet -> /projects/[id]/print
     Duplicate project -> POST /projects/[id]/duplicate -> /projects/[new-id]?duplicated=1
     Archive project -> POST /projects/[id]/archive
     Restore project -> POST /projects/[id]/restore
@@ -80,7 +80,7 @@ Print preview
 
 [Project detail: generated plan]
         |-- Review before building summary -> cut list / open questions / print / compare
-        |-- Browser print plan -> [Print preview / build sheet]
+        |-- Print build sheet -> [Print preview / build sheet]
         |-- Tweak this plan -> revised generated version -> comparison state
         |-- Compare older plan -> comparison state
         |-- Archive project -> archived read-only detail
@@ -125,7 +125,7 @@ Screen job: help the private user resume recent work, understand what needs a ge
 
 Primary action: dashboard `New Project` leads to `/projects/new`; project list `New Project` also leads to `/projects/new`. Project cards use state-aware primary labels such as `Open project`, `Open to generate`, or `Review archived project`.
 
-Secondary actions: `View Projects`, `Browse all projects`, starter links, `Browser print plan`, filters, archive/restore, and review record links.
+Secondary actions: `View Projects`, `Browse all projects`, starter links, `Print build sheet`, filters, archive/restore, and review record links.
 
 Empty states: dashboard and list both show "No projects yet" with a first-project CTA. Filtered list states explain no active, archived, or all-project matches and offer clear filters plus `New Project`.
 
@@ -318,13 +318,13 @@ Wireframe:
 |                                      +------------+ |
 +------------------------------------------------------+
 | Next step: Review the generated plan                  |
-| [Plan review] [Cut list] [Browser print plan]         |
+| [Plan review] [Cut list] [Print build sheet]          |
 +------------------------------------------------------+
 | Review before building                                |
 | Generated plan ready              [Review: status]    |
 | [Cut list check] [Materials check] [Safety notes]     |
 | [Open questions]                                      |
-| [Review cut list] [Open questions] [Browser print]    |
+| [Review cut list] [Open questions] [Print build sheet]|
 | [Compare versions]                                    |
 +------------------------------------------------------+
 | Project sections: [Intake] [Structure] [Plan review]  |
@@ -343,7 +343,7 @@ Wireframe:
 +------------------------------------------------------+
 | Plan comparison                                      |
 +------------------------------------------------------+
-| Browser print plan / Latest generated plan            |
+| Print build sheet / Latest generated plan             |
 | Overview, checklist, diagrams, materials, cut list,   |
 | build steps, safety notes, assumptions, questions     |
 +------------------------------------------------------+
@@ -354,7 +354,7 @@ Wireframe:
 
 Review cut list -> #cut-list-to-verify
 Open questions -> #open-questions
-Browser print plan -> /projects/[id]/print
+Print build sheet -> /projects/[id]/print
 Create revised plan -> POST /projects/[id]/revise
 Compare -> /projects/[id]?compare_plan=:planId
 Generate another version -> POST /projects/[id]/generate
@@ -366,7 +366,7 @@ Route context: embedded in `/projects/[id]` as `#printable-plan-sheet`.
 
 Screen job: provide a readable browser plan sheet assembled from saved generated output and deterministic review data.
 
-Primary action: read and manually review the plan; from the page-level actions, open browser print plan.
+Primary action: read and manually review the plan; from the page-level actions, open the print build sheet.
 
 Secondary actions: jump to cut list from missing-dimension warnings; use section navigation; compare/tweak from adjacent sections.
 
@@ -382,7 +382,7 @@ Action arrows:
 
 ```text
 Cut-list warning -> #cut-list-to-verify
-Browser print plan action -> /projects/[id]/print
+Print build sheet action -> /projects/[id]/print
 ```
 
 ### Print Preview / Build Sheet
@@ -408,10 +408,10 @@ Wireframe:
 ```text
 +------------------------------------------------------+
 | Back to project                                      |
-| Browser-print build sheet                [Print]     |
+| Print build sheet                        [Print]     |
 | Use browser print dialog. No export/download files.   |
 +------------------------------------------------------+
-| Browser print plan                                   |
+| Print build sheet                                    |
 | Project title                                        |
 | Planning aid caution                                 |
 +------------------------------------------------------+

@@ -255,7 +255,7 @@ function createProjectSectionLinks({
     ...(hasPlanReview ? [{ label: "Plan review", href: "#plan-review" } satisfies ProjectSectionLink] : []),
     ...(hasLatestPlan && !isArchived ? [{ label: "Tweak this plan", href: "#tweak-this-plan" } satisfies ProjectSectionLink] : []),
     ...(hasLatestPlan ? [{ label: "Plan comparison", href: "#plan-comparison" } satisfies ProjectSectionLink] : []),
-    ...(hasPrintablePlan ? [{ label: "Browser print plan", href: "#printable-plan-sheet" } satisfies ProjectSectionLink] : []),
+    ...(hasPrintablePlan ? [{ label: "Print build sheet", href: "#printable-plan-sheet" } satisfies ProjectSectionLink] : []),
     ...(hasPlanHistory ? [{ label: "Plan history", href: "#plan-history" } satisfies ProjectSectionLink] : []),
     { label: "Project record", href: "#project-record" },
   ];
@@ -279,7 +279,7 @@ function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project:
           </form>
           {hasLatestPlan ? (
             <Link href={printPreviewHref} className="rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100">
-              Browser print plan
+              Print build sheet
             </Link>
           ) : null}
         </div>
@@ -302,7 +302,7 @@ function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project:
         />
         {hasLatestPlan ? (
           <Link href={printPreviewHref} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-            Browser print plan
+            Print build sheet
           </Link>
         ) : null}
       </div>
@@ -424,7 +424,7 @@ function ReviewBeforeBuildingSummary({
           <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">{generatedLabel}</h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
             Use this as a shop-readiness checklist after the recommended next step. Check materials, cut-list rows, safety notes, and open
-            questions before using Browser print plan.
+            questions before using the print build sheet.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
@@ -455,7 +455,7 @@ function ReviewBeforeBuildingSummary({
           </a>
         ) : null}
         <Link href={printPreviewHref} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-          Browser print plan
+          Print build sheet
         </Link>
         {planVersionCount > 1 ? (
           <a href="#plan-comparison" className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
@@ -703,12 +703,12 @@ function RecommendedNextStep({
       body={
         planVersionCount > 1
           ? "The latest version is shown. Older versions remain read-only in plan history for comparison."
-          : "Review safety notes, cut list, assumptions, and open questions before using Browser print plan."
+          : "Review safety notes, cut list, assumptions, and open questions before using the print build sheet."
       }
       links={[
         { href: "#plan-review", label: "Plan review" },
         { href: "#cut-list-to-verify", label: "Cut list" },
-        { href: "#printable-plan-sheet", label: "Browser print plan" },
+        { href: "#printable-plan-sheet", label: "Print build sheet" },
         ...(planVersionCount > 1 ? [{ href: "#plan-history" as const, label: "Plan history" }] : []),
       ]}
     />
@@ -1605,7 +1605,7 @@ function PlanView({
       <header className="border-b border-sawdust pb-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Browser print plan</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Print build sheet</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Latest generated plan</h2>
             <p className="mt-3 leading-7 text-ink/75">A readable planning sheet assembled from the saved generated plan and deterministic review data.</p>
             <p className="mt-3 text-sm font-medium text-caution">Review before building. Use your own judgment before cutting or assembling.</p>

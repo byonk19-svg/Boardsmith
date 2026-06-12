@@ -198,7 +198,7 @@ Mobile concerns:
 
 Copy issues:
 
-- `Browser print plan` still appears on project detail while the print route now says `Print build sheet`. This is not broken, but the naming is no longer fully consistent.
+- UI-04B normalized the main print action label to `Print build sheet` across project detail and the print route.
 - `Future output notes` and export-readiness wording may continue to imply future file outputs are closer than they are, despite the no-export warnings.
 
 Next-action clarity:
@@ -214,7 +214,7 @@ Implementation timing:
 
 What feels clear:
 
-- The top toolbar now clearly says `Browser-print build sheet`.
+- The top toolbar now clearly says `Print build sheet`.
 - `Print build sheet` is an obvious action and the copy says it opens the browser print dialog only.
 - The no-PDF/CAD/CNC/export/download message is visible before the sheet.
 - The print sheet sequence is practical: snapshot, visuals, checklist, materials, cut checklist, build guide, appendix.
@@ -252,8 +252,8 @@ Implementation timing:
 3. Project list cards are clearer but still tall at real dogfood volume.
    The metrics and filter grouping help, but 26 active projects means repeated archive controls and record signals create a long page.
 
-4. Naming is slightly inconsistent around print.
-   The print route now uses `Print build sheet`, while some project-detail links still say `Browser print plan`. Both are accurate, but the route-level action is clearer.
+4. Print naming has been normalized.
+   UI-04B uses `Print build sheet` as the main project-detail and print-route action label while keeping browser-print/no-export explanation copy.
 
 5. Future output language still pulls attention away from current MVP actions.
    The app repeatedly says no export is generated, but `Future output notes`, SVG/PDF candidates, and export readiness still add cognitive weight during normal planning review.

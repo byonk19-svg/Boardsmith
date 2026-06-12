@@ -45,7 +45,7 @@ export default async function ProjectPrintPreviewPage({
           <Link href={`/projects/${project.id}`} className="text-sm font-semibold text-moss hover:underline">
             Back to project
           </Link>
-          <p className="mt-3 text-base font-semibold text-ink">Browser-print build sheet</p>
+          <p className="mt-3 text-base font-semibold text-ink">Print build sheet</p>
           <p className="mt-1 text-sm leading-6 text-ink/65">Use the button to open your browser print dialog, or use your browser's print command.</p>
           <p className="mt-1 text-sm leading-6 text-ink/65">Boardsmith does not generate PDF, CAD, CNC, or export/download files.</p>
         </div>
@@ -57,7 +57,7 @@ export default async function ProjectPrintPreviewPage({
 
       <article className="space-y-7 print:space-y-5">
         <header className="border-b border-sawdust pb-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Browser print plan</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Print build sheet</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">{manifest.project.title}</h1>
           <p className="mt-3 text-sm font-semibold text-caution">Planning aid: verify dimensions, materials, hardware, and safety notes before building.</p>
           {manifest.sections.projectSummary ? <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/75">{compactPrintSummary(manifest.sections.projectSummary)}</p> : null}
@@ -111,7 +111,7 @@ function PrintPreviewEmptyState({ project }: { project: Project }) {
         Back to project
       </Link>
       <h1 className="mt-4 text-2xl font-semibold tracking-tight text-ink">No generated plan to print yet</h1>
-      <p className="mt-3 text-sm leading-6 text-ink/65">Generate and validate a plan before using the browser print plan.</p>
+      <p className="mt-3 text-sm leading-6 text-ink/65">Generate and validate a plan before using the print build sheet.</p>
     </main>
   );
 }

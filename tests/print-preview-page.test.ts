@@ -134,7 +134,7 @@ describe("ProjectPrintPreviewPage", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the latest generated plan as a browser print plan from the printable manifest", async () => {
+  it("renders the latest generated plan as a print build sheet from the printable manifest", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([planRecord]);
     const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
@@ -145,8 +145,7 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("Browser print plan");
-    expect(markup).toContain("Browser-print build sheet");
+    expect(markup).toContain("Print build sheet");
     expect(markup).toContain("Use the button to open your browser print dialog, or use your browser&#x27;s print command.");
     expect(markup).toContain("Boardsmith does not generate PDF, CAD, CNC, or export/download files.");
     expect(markup).toContain("Print build sheet");
@@ -298,7 +297,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Front lip");
   });
 
-  it("keeps browser print plan available for archived projects", async () => {
+  it("keeps the print build sheet available for archived projects", async () => {
     getProjectMock.mockResolvedValue({ ...project, archived_at: "2026-06-06T10:00:00.000Z" });
     listGeneratedPlansMock.mockResolvedValue([planRecord]);
     const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
@@ -309,7 +308,7 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("Browser print plan");
+    expect(markup).toContain("Print build sheet");
     expect(markup).toContain("Build Snapshot");
     expect(markup).toContain("Project Visuals");
     expect(markup).toContain("Cut Checklist");
@@ -536,7 +535,7 @@ describe("ProjectPrintPreviewPage", () => {
     );
 
     expect(markup).toContain("No generated plan to print yet");
-    expect(markup).toContain("Generate and validate a plan before using the browser print plan.");
+    expect(markup).toContain("Generate and validate a plan before using the print build sheet.");
     expect(markup).not.toContain("Download");
   });
 });

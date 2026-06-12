@@ -309,10 +309,10 @@ describe("ProjectDetailPage project structure", () => {
       }),
     );
 
-    expect(markup).toContain("Browser print plan");
+    expect(markup).toContain("Print build sheet");
     expect(markup).toContain("Recommended next step");
     expect(markup).toContain("Review the generated plan");
-    expect(markup).toContain("Review safety notes, cut list, assumptions, and open questions before using Browser print plan.");
+    expect(markup).toContain("Review safety notes, cut list, assumptions, and open questions before using the print build sheet.");
     expect(markup).toContain("Generated plan review checklist");
     expect(markup).toContain("Use this as a shop-readiness checklist after the recommended next step.");
     expect(markup).toContain("Cut list check");
@@ -549,7 +549,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("This log is not an inspection, certification, load rating, or professional approval.");
   });
 
-  it("links generated plans to the browser print plan page", async () => {
+  it("links generated plans to the print build sheet page", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([planRecord]);
     const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
@@ -562,7 +562,7 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
-    expect(markup).toContain("Browser print plan");
+    expect(markup).toContain("Print build sheet");
   });
 
   it("renders archived generated-plan projects as read-only until restored", async () => {
@@ -593,7 +593,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Restoring re-enables generation and revisions.");
     expect(markup).toContain('action="/projects/project_saved_bbm/restore"');
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
-    expect(markup).toContain("Browser print plan");
+    expect(markup).toContain("Print build sheet");
     expect(markup).toContain("Latest generated plan");
     expect(markup).toContain("Plan history");
     expect(markup).toContain("Future output notes");
@@ -643,7 +643,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('action="/projects/project_saved_bbm/restore"');
     expect(markup).not.toContain(">Generate Plan</button>");
     expect(markup).not.toContain("Generate another plan version");
-    expect(markup).not.toContain("Browser print plan");
+    expect(markup).not.toContain("Print build sheet");
     expect(markup).not.toContain("Tweak this plan");
     expect(markup).not.toContain('action="/projects/project_saved_bbm/generate"');
     expect(markup).not.toContain('action="/projects/project_saved_bbm/revise"');
@@ -690,7 +690,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('name="notes"');
     expect(markup).toContain("Try walnut stain and verify bracket screw length.");
     expect(markup).toContain("Notes stay with this project and are not used for AI generation or printable plans.");
-    expect(markup).not.toContain("Browser print plan</p><h2 class=\"mt-2 text-2xl font-semibold tracking-tight text-ink\">Generated Plan</h2><p>Try walnut stain");
+    expect(markup).not.toContain("Print build sheet</p><h2 class=\"mt-2 text-2xl font-semibold tracking-tight text-ink\">Generated Plan</h2><p>Try walnut stain");
   });
 
   it("falls back to a derived project structure for older generated plans without saved build models", async () => {
@@ -749,7 +749,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain("Blocking issues");
     expect(markup).not.toContain("Tweak this plan");
     expect(markup).not.toContain('name="revision_instruction"');
-    expect(markup).not.toContain("Browser print plan");
+    expect(markup).not.toContain("Print build sheet");
 
     expect(markup.indexOf("Saved intake is ready for review")).toBeLessThan(markup.indexOf("Project intake"));
     expect(markup.indexOf("No generated plan yet")).toBeLessThan(markup.indexOf("Planning details before generation"));
