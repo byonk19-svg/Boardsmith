@@ -28,7 +28,7 @@ export const projectTypeLabels: Record<ProjectType, string> = {
   door_hanger: "Door hanger",
   layered_cutout: "Layered cutout",
   wood_sign: "Wood sign",
-  simple_shelf: "Simple shelf",
+  simple_shelf: "Wall shelf",
   planter_box: "Planter box",
 };
 
@@ -95,15 +95,22 @@ export type ProjectBuildLogInput = z.infer<typeof projectBuildLogSchema>;
 
 export function parseProjectFormData(formData: FormData): ProjectIntake {
   const getNumber = (name: string) => Number(formData.get(name));
+  const projectTypeValue = formData.get("project_type");
+  const materialThicknessInches = getNumber("material_thickness_inches");
+  const heightValue = formData.get("height_inches");
+  const heightInches =
+    projectTypeValue === "simple_shelf" && typeof heightValue === "string" && heightValue.trim() === ""
+      ? materialThicknessInches
+      : getNumber("height_inches");
 
   return projectIntakeSchema.parse({
     title: formData.get("title"),
-    project_type: formData.get("project_type"),
+    project_type: projectTypeValue,
     skill_level: formData.get("skill_level"),
     width_inches: getNumber("width_inches"),
-    height_inches: getNumber("height_inches"),
+    height_inches: heightInches,
     depth_inches: getNumber("depth_inches"),
-    material_thickness_inches: getNumber("material_thickness_inches"),
+    material_thickness_inches: materialThicknessInches,
     material_type: formData.get("material_type"),
     tools_available: formData.getAll("tools_available"),
     style_notes: formData.get("style_notes") ?? "",

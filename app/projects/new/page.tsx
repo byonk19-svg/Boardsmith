@@ -2,11 +2,13 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { findProjectIntakeExample, projectIntakeExamples } from "@/lib/projects/intake-examples";
 import { decodeProjectIntakeDraft, projectIntakeDraftCookieName } from "@/lib/projects/intake-draft";
-import { projectTypeLabels, projectTypes, skillLevels, toolLabels, type ToolOption } from "@/lib/projects/types";
+import { projectTypeLabels, projectTypes, skillLevels, toolLabels, type ProjectType, type ToolOption } from "@/lib/projects/types";
+
+const intakeProjectTypes: ProjectType[] = ["simple_shelf", ...projectTypes.filter((type) => type !== "simple_shelf")];
 
 const intakeSections = [
   { id: "project-basics", label: "Basics", detail: "Name and template" },
-  { id: "size-material", label: "Size", detail: "Dimensions and material" },
+  { id: "size-material", label: "Measurements", detail: "Shelf size and boards" },
   { id: "tools-safety", label: "Tools", detail: "Safe equipment" },
   { id: "use-constraints", label: "Use", detail: "Location and cautions" },
 ] as const;
@@ -19,9 +21,10 @@ const toolGroups = [
 ] satisfies readonly { label: string; tools: readonly ToolOption[] }[];
 
 const measurementGuide = [
-  { label: "Width", cue: "side to side", example: "For a shelf, this is how long it runs along the wall." },
-  { label: "Height", cue: "top to bottom", example: "For a shelf board, this may be the board face or front lip height." },
-  { label: "Depth", cue: "front to back", example: "For a shelf, this is how far it sticks out from the wall." },
+  { label: "Shelf width", cue: "left to right", example: "For a shelf, this is how long it runs along the wall." },
+  { label: "Shelf depth", cue: "from wall to front edge", example: "For a shelf, this is how far it sticks out from the wall." },
+  { label: "Total project height", cue: "full top-to-bottom size", example: "Needed for multi-shelf units, signs, side panels, lips, or visible brackets." },
+  { label: "Board thickness", cue: "each board, not the whole project", example: "A common 1x board is usually 0.75 inches thick." },
 ] as const;
 
 export default async function NewProjectPage({ searchParams }: { searchParams?: Promise<{ error?: string; example?: string }> }) {
@@ -33,6 +36,9 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
   const starterLoaded = !draft && selectedExample;
   const unknownExample = typeof params.example === "string" && params.example.length > 0 && !selectedExample;
   const starterChooserOpen = Boolean(starterLoaded) || unknownExample;
+  const selectedProjectType = formValues?.project_type === "" || !formValues?.project_type ? "simple_shelf" : formValues.project_type;
+  const currentDepthValue = formValues ? formValues.depth_inches : "0";
+  const showShelfDepthWarning = selectedProjectType === "simple_shelf" && Number(currentDepthValue) === 0;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -133,10 +139,10 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
       </section>
 
       <form id="project-intake-form" action="/projects/create" method="post" className="space-y-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft">
-        <div className="sticky top-3 z-10 rounded-md border border-sawdust bg-white/95 p-3">
+        <div className="rounded-md border border-sawdust bg-white p-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="max-w-xl text-sm leading-6 text-ink/70">
-              Fill basics, size, tools, and use details. Save when the intake is accurate enough to review.
+              Fill basics, measurements, tools, and use details. Save when the intake is accurate enough to review.
             </p>
             <button type="submit" className="w-fit rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
               Save project intake
@@ -155,8 +161,8 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Project type" help="Pick the closest match. Boardsmith uses it to choose cautious starter assumptions.">
-              <select name="project_type" required className="input" defaultValue={formValues?.project_type === "" ? undefined : formValues?.project_type}>
-                {projectTypes.map((type) => (
+              <select name="project_type" required className="input" defaultValue={selectedProjectType}>
+                {intakeProjectTypes.map((type) => (
                   <option key={type} value={type}>
                     {projectTypeLabels[type]}
                   </option>
@@ -178,13 +184,14 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
 
         <section id="size-material" className="scroll-mt-24 space-y-4 border-t border-sawdust pt-5">
           <div>
-            <h2 className="text-lg font-semibold text-ink">Size and material</h2>
+            <h2 className="text-lg font-semibold text-ink">Measurements</h2>
             <p className="mt-1 text-sm leading-6 text-ink/65">
-              Use the finished outside size in inches. Measure the object the way you would look at it from the front, then add how far it sticks out.
+              For a wall shelf, start with width, depth from the wall, and board thickness. Add total height only for multi-shelf
+              units, side panels, lips, or visible brackets.
             </p>
           </div>
 
-          <div className="grid gap-3 rounded-md border border-sawdust bg-shop/50 p-4 text-sm leading-6 text-ink/70 sm:grid-cols-3">
+          <div className="grid gap-3 rounded-md border border-sawdust bg-shop/50 p-4 text-sm leading-6 text-ink/70 sm:grid-cols-2">
             {measurementGuide.map((item) => (
               <div key={item.label}>
                 <p className="font-semibold text-ink">
@@ -195,6 +202,16 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             ))}
           </div>
 
+          <div className="rounded-md border border-moss/25 bg-moss/10 p-4 text-sm leading-6 text-ink/75">
+            <p className="font-semibold text-ink">For shelves</p>
+            <p className="mt-1">
+              Single shelf: fill in width, depth, board thickness, and material. Total height is usually optional.
+            </p>
+            <p className="mt-2">
+              Multi-shelf unit: add the full total height and describe shelf count/spacing in the notes below.
+            </p>
+          </div>
+
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
             <p className="font-semibold">Not sure yet?</p>
             <p className="mt-1">
@@ -203,16 +220,13 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Width (side to side)" help="The finished left-to-right size when viewing the project from the front. Example: 24 for a 24 inch wall shelf.">
+            <Field label="Shelf width, inches" help="Left to right along the wall. Example: 24 in.">
               <input name="width_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="24" defaultValue={formValues?.width_inches} />
             </Field>
-            <Field label="Height (top to bottom)" help="The finished vertical size. For a simple shelf board, use the board face height or the full bracket/lip height if that matters.">
-              <input name="height_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="8" defaultValue={formValues?.height_inches} />
-            </Field>
-            <Field label="Depth (front to back)" help="How far the project sticks out from the wall or front face. Use 0 only for flat signs or flat wall art.">
+            <Field label="Shelf depth from wall, inches" help="How far the shelf sticks out. Example: 6-8 in.">
               <input name="depth_inches" required type="number" min="0" max="240" step="any" className="input" placeholder="6" defaultValue={formValues ? formValues.depth_inches : "0"} />
             </Field>
-            <Field label="Material thickness" help="Thickness of the board or sheet, not the total project height. A 1x pine board is usually 0.75 inches thick; plywood may be 0.25 or 0.5 inches.">
+            <Field label="Shelf board thickness, inches" help="Thickness of each board. A common 1x board is usually 0.75 in thick.">
               <input
                 name="material_thickness_inches"
                 required
@@ -227,16 +241,36 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             </Field>
           </div>
 
-          <Field label="Material type" help="Name the real or likely material. Avoid vendor links or shopping notes.">
-            <input
-              name="material_type"
-              required
-              minLength={2}
-              className="input"
-              placeholder="3/4 inch pine board or 1/2 inch plywood"
-              defaultValue={formValues?.material_type}
-            />
-          </Field>
+          {showShelfDepthWarning ? (
+            <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950">
+              A shelf usually needs a depth greater than 0. Did you mean how far it should stick out from the wall? Use 0 only for flat wall art or signs.
+            </p>
+          ) : null}
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Material type" help="Name the real or likely material. Avoid vendor links or shopping notes.">
+              <input
+                name="material_type"
+                required
+                minLength={2}
+                className="input"
+                placeholder="3/4 inch pine board or 1/2 inch plywood"
+                defaultValue={formValues?.material_type}
+              />
+            </Field>
+            <Field label="Total project height, inches, optional" help="Only needed if the shelf has a front lip, side panels, brackets with visible height, or if this is a multi-shelf unit.">
+              <input
+                name="height_inches"
+                type="number"
+                min="0.1"
+                max="240"
+                step="any"
+                className="input"
+                placeholder="Optional"
+                defaultValue={formValues?.height_inches}
+              />
+            </Field>
+          </div>
         </section>
 
         <section id="tools-safety" className="scroll-mt-24 space-y-4 border-t border-sawdust pt-5">
@@ -278,23 +312,23 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             <p className="mt-1 text-sm leading-6 text-ink/65">This is where safety review gets better. Mention mounting, outdoor use, child-adjacent use, seating, climbing, or any load concern.</p>
           </div>
 
-          <Field label="Intended use" help="Describe where it will live, what it will hold, and what use should be excluded.">
+          <Field label="Intended use" help="Describe where it will live, what it will hold, and what use should be excluded. For shelves, include how many shelves or openings you want.">
             <textarea
               name="intended_use"
               required
               rows={4}
               className="input"
-              placeholder="Indoor bathroom shelf for light towels; wall-mounted into studs if possible; not for climbing or heavy storage."
+              placeholder="Indoor bathroom shelf for light towels; two shelves about 12-14 inches apart; wall-mounted into studs if possible; not for climbing or heavy storage."
               defaultValue={formValues?.intended_use}
             />
           </Field>
 
-          <Field label="Finish, location, and constraints" help="Add finish preference, indoor/outdoor exposure, mounting method, edge treatment, and anything you are unsure about.">
+          <Field label="Finish, location, and constraints" help="Add finish preference, indoor/outdoor exposure, mounting method, shelf spacing, edge treatment, and anything you are unsure about.">
             <textarea
               name="style_notes"
               rows={4}
               className="input"
-              placeholder="Painted white finish, rounded front corners, hidden brackets if possible, confirm final bracket size before cutting."
+              placeholder="Painted white finish, rounded front corners, hidden brackets if possible, shelf spacing can change after review, confirm final bracket size before cutting."
               defaultValue={formValues?.style_notes}
             />
           </Field>

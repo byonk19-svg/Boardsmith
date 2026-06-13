@@ -130,7 +130,25 @@ describe("project form routes", () => {
     expect(markup).toContain("material and thickness");
     expect(markup).toContain("tools you can safely use");
     expect(markup).toContain("Project basics");
-    expect(markup).toContain("Size and material");
+    expect(markup).toContain("Measurements");
+    expect(markup).toContain("Shelf size and boards");
+    expect(markup).toContain("Wall shelf");
+    expect(markup).toContain('<option value="simple_shelf" selected="">Wall shelf</option>');
+    expect(markup).toContain("Shelf width = left to right");
+    expect(markup).toContain("Shelf depth = from wall to front edge");
+    expect(markup).toContain("Total project height = full top-to-bottom size");
+    expect(markup).toContain("Board thickness = each board, not the whole project");
+    expect(markup).toContain("For a wall shelf, start with width, depth from the wall, and board thickness.");
+    expect(markup).toContain("For shelves");
+    expect(markup).toContain("Single shelf");
+    expect(markup).toContain("Multi-shelf unit");
+    expect(markup).toContain("describe shelf count/spacing in the notes below");
+    expect(markup).toContain("Shelf width, inches");
+    expect(markup).toContain("Shelf depth from wall, inches");
+    expect(markup).toContain("Shelf board thickness, inches");
+    expect(markup).toContain("Total project height, inches, optional");
+    expect(markup).toContain("A shelf usually needs a depth greater than 0.");
+    expect(markup).toContain("include how many shelves or openings you want");
     expect(markup).toContain("Tools and safety context");
     expect(markup).toContain("Use, constraints, and finish notes");
     expect(markup).toContain("Before saving");
@@ -144,6 +162,18 @@ describe("project form routes", () => {
     expect(markup).toContain('href="/projects/new?example=planter_box_shell"');
     expect(markup).toContain('href="/projects/new?example=decorative_tray"');
     expect(markup).not.toContain("Starter details loaded");
+  });
+
+  it("does not show the shelf depth warning when a shelf starter already has depth", async () => {
+    const markup = renderToStaticMarkup(
+      await NewProjectPage({
+        searchParams: Promise.resolve({ example: "lamp_riser" }),
+      }),
+    );
+
+    expect(markup).toContain("Wall shelf");
+    expect(markup).toContain('value="8"');
+    expect(markup).not.toContain("A shelf usually needs a depth greater than 0.");
   });
 
   it("prefills editable starter details from a selected intake example", async () => {
@@ -321,6 +351,60 @@ describe("project form routes", () => {
         width_inches: 12,
         height_inches: 8,
         depth_inches: 4,
+        material_thickness_inches: 0.75,
+      }),
+    );
+  });
+
+  it("uses shelf board thickness as height when a wall shelf leaves total height blank", async () => {
+    vi.mocked(createProject).mockResolvedValueOnce({
+      id: "optional_height_wall_shelf",
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+      title: "Smoke shelf",
+      project_type: "simple_shelf",
+      skill_level: "beginner",
+      status: "draft",
+      width_inches: 24,
+      height_inches: 0.75,
+      depth_inches: 8,
+      material_thickness_inches: 0.75,
+      material_type: "pine board",
+      tools_available: ["tape_measure", "pencil", "drill"],
+      style_notes: "Simple finish.",
+      intended_use: "Small indoor shelf.",
+      safety_review_required: false,
+      safety_flags: [],
+      notes: "",
+      build_completed: false,
+      build_completed_at: "",
+      build_actual_material: "",
+      build_plan_changes: "",
+      build_lessons_learned: "",
+      ...activeProjectArchiveFields,
+    });
+    const { POST } = await import("@/app/projects/create/route");
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/create", {
+        method: "POST",
+        body: validProjectFormData({
+          width_inches: "24",
+          height_inches: "",
+          depth_inches: "8",
+          material_thickness_inches: "0.75",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toContain("/projects/optional_height_wall_shelf");
+    expect(createProject).toHaveBeenCalledWith(
+      expect.objectContaining({
+        project_type: "simple_shelf",
+        width_inches: 24,
+        height_inches: 0.75,
+        depth_inches: 8,
         material_thickness_inches: 0.75,
       }),
     );
