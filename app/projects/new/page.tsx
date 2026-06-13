@@ -18,6 +18,12 @@ const toolGroups = [
   { label: "Finishing", tools: ["sander", "paint_brush"] },
 ] satisfies readonly { label: string; tools: readonly ToolOption[] }[];
 
+const measurementGuide = [
+  { label: "Width", cue: "side to side", example: "For a shelf, this is how long it runs along the wall." },
+  { label: "Height", cue: "top to bottom", example: "For a shelf board, this may be the board face or front lip height." },
+  { label: "Depth", cue: "front to back", example: "For a shelf, this is how far it sticks out from the wall." },
+] as const;
+
 export default async function NewProjectPage({ searchParams }: { searchParams?: Promise<{ error?: string; example?: string }> }) {
   const params = searchParams ? await searchParams : {};
   const selectedExample = findProjectIntakeExample(params.example);
@@ -173,20 +179,40 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
         <section id="size-material" className="scroll-mt-24 space-y-4 border-t border-sawdust pt-5">
           <div>
             <h2 className="text-lg font-semibold text-ink">Size and material</h2>
-            <p className="mt-1 text-sm leading-6 text-ink/65">Use inches. If you are not sure yet, enter your best estimate and call that out in the notes below.</p>
+            <p className="mt-1 text-sm leading-6 text-ink/65">
+              Use the finished outside size in inches. Measure the object the way you would look at it from the front, then add how far it sticks out.
+            </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-4">
-            <Field label="Width" help="Left to right finished size.">
+          <div className="grid gap-3 rounded-md border border-sawdust bg-shop/50 p-4 text-sm leading-6 text-ink/70 sm:grid-cols-3">
+            {measurementGuide.map((item) => (
+              <div key={item.label}>
+                <p className="font-semibold text-ink">
+                  {item.label} = {item.cue}
+                </p>
+                <p className="mt-1">{item.example}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+            <p className="font-semibold">Not sure yet?</p>
+            <p className="mt-1">
+              Enter your best estimate and mention what is uncertain in the notes below. Boardsmith will treat the plan as something to review before cutting.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Width (side to side)" help="The finished left-to-right size when viewing the project from the front. Example: 24 for a 24 inch wall shelf.">
               <input name="width_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="24" defaultValue={formValues?.width_inches} />
             </Field>
-            <Field label="Height" help="Top to bottom finished size.">
+            <Field label="Height (top to bottom)" help="The finished vertical size. For a simple shelf board, use the board face height or the full bracket/lip height if that matters.">
               <input name="height_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="8" defaultValue={formValues?.height_inches} />
             </Field>
-            <Field label="Depth" help="Front to back size. Use 0 for flat signs.">
+            <Field label="Depth (front to back)" help="How far the project sticks out from the wall or front face. Use 0 only for flat signs or flat wall art.">
               <input name="depth_inches" required type="number" min="0" max="240" step="any" className="input" placeholder="6" defaultValue={formValues ? formValues.depth_inches : "0"} />
             </Field>
-            <Field label="Material thickness" help="Common boards are often 0.75 in; plywood may be 0.25 or 0.5 in.">
+            <Field label="Material thickness" help="Thickness of the board or sheet, not the total project height. A 1x pine board is usually 0.75 inches thick; plywood may be 0.25 or 0.5 inches.">
               <input
                 name="material_thickness_inches"
                 required
