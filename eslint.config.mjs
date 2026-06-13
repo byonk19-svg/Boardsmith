@@ -4,7 +4,18 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: [".next/**", "node_modules/**", "dist/**", "coverage/**", "eslint.config.mjs", "postcss.config.cjs", "scripts/*.mjs"],
+    ignores: [
+      ".agents/**",
+      ".codex-design-screens/**",
+      ".impeccable/**",
+      ".next/**",
+      "node_modules/**",
+      "dist/**",
+      "coverage/**",
+      "eslint.config.mjs",
+      "postcss.config.cjs",
+      "scripts/*.mjs",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
