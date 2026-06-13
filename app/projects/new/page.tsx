@@ -2,7 +2,21 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { findProjectIntakeExample, projectIntakeExamples } from "@/lib/projects/intake-examples";
 import { decodeProjectIntakeDraft, projectIntakeDraftCookieName } from "@/lib/projects/intake-draft";
-import { projectTypeLabels, projectTypes, skillLevels, toolLabels, toolOptions } from "@/lib/projects/types";
+import { projectTypeLabels, projectTypes, skillLevels, toolLabels, type ToolOption } from "@/lib/projects/types";
+
+const intakeSections = [
+  { id: "project-basics", label: "Basics", detail: "Name and template" },
+  { id: "size-material", label: "Size", detail: "Dimensions and material" },
+  { id: "tools-safety", label: "Tools", detail: "Safe equipment" },
+  { id: "use-constraints", label: "Use", detail: "Location and cautions" },
+] as const;
+
+const toolGroups = [
+  { label: "Layout", tools: ["tape_measure", "pencil"] },
+  { label: "Holding and fastening", tools: ["clamps", "drill"] },
+  { label: "Cutting", tools: ["jigsaw", "circular_saw", "miter_saw"] },
+  { label: "Finishing", tools: ["sander", "paint_brush"] },
+] satisfies readonly { label: string; tools: readonly ToolOption[] }[];
 
 export default async function NewProjectPage({ searchParams }: { searchParams?: Promise<{ error?: string; example?: string }> }) {
   const params = searchParams ? await searchParams : {};
@@ -94,8 +108,37 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
         </div>
       </details>
 
-      <form action="/projects/create" method="post" className="space-y-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft">
-        <section className="space-y-4">
+      <section className="rounded-lg border border-sawdust bg-white p-4 shadow-soft">
+        <div>
+          <h2 className="text-base font-semibold text-ink">Intake map</h2>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/65">
+            Work through the four sections, then save the intake. You can still edit details from the project page before generating.
+          </p>
+        </div>
+        <nav aria-label="Project intake sections" className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {intakeSections.map((section, index) => (
+            <a key={section.id} href={`#${section.id}`} className="rounded-md border border-sawdust bg-shop/40 p-3 text-sm hover:border-moss hover:bg-shop">
+              <span className="text-xs font-semibold uppercase tracking-wide text-moss">Step {(index + 1).toString()}</span>
+              <span className="mt-1 block font-semibold text-ink">{section.label}</span>
+              <span className="mt-0.5 block text-ink/65">{section.detail}</span>
+            </a>
+          ))}
+        </nav>
+      </section>
+
+      <form id="project-intake-form" action="/projects/create" method="post" className="space-y-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft">
+        <div className="sticky top-3 z-10 rounded-md border border-sawdust bg-white/95 p-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="max-w-xl text-sm leading-6 text-ink/70">
+              Fill basics, size, tools, and use details. Save when the intake is accurate enough to review.
+            </p>
+            <button type="submit" className="w-fit rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+              Save project intake
+            </button>
+          </div>
+        </div>
+
+        <section id="project-basics" className="scroll-mt-24 space-y-4">
           <div>
             <h2 className="text-lg font-semibold text-ink">Project basics</h2>
             <p className="mt-1 text-sm leading-6 text-ink/65">Name the project and choose the closest template. You can refine details after the intake is saved.</p>
@@ -127,7 +170,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           </div>
         </section>
 
-        <section className="space-y-4 border-t border-sawdust pt-5">
+        <section id="size-material" className="scroll-mt-24 space-y-4 border-t border-sawdust pt-5">
           <div>
             <h2 className="text-lg font-semibold text-ink">Size and material</h2>
             <p className="mt-1 text-sm leading-6 text-ink/65">Use inches. If you are not sure yet, enter your best estimate and call that out in the notes below.</p>
@@ -170,7 +213,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           </Field>
         </section>
 
-        <section className="space-y-4 border-t border-sawdust pt-5">
+        <section id="tools-safety" className="scroll-mt-24 space-y-4 border-t border-sawdust pt-5">
           <div>
             <h2 className="text-lg font-semibold text-ink">Tools and safety context</h2>
             <p className="mt-1 text-sm leading-6 text-ink/65">Select only tools you can safely use. Boardsmith keeps generated guidance inside this tool list.</p>
@@ -179,18 +222,31 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           <fieldset>
             <legend className="text-sm font-semibold text-ink">Tools available</legend>
             <p className="mt-1 text-sm text-ink/60">Not sure yet? Select the basic layout tools you have now, then regenerate later if your tool list changes.</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-3">
-              {toolOptions.map((tool) => (
-                <label key={tool} className="flex items-center gap-2 rounded-md border border-sawdust px-3 py-2 text-sm text-ink/75">
-                  <input name="tools_available" type="checkbox" value={tool} className="h-4 w-4 accent-moss" defaultChecked={formValues?.tools_available.includes(tool)} />
-                  {toolLabels[tool]}
-                </label>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {toolGroups.map((group) => (
+                <div key={group.label} className="rounded-md border border-sawdust p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">{group.label}</p>
+                  <div className="mt-2 grid gap-2">
+                    {group.tools.map((tool) => (
+                      <label key={tool} className="flex items-center gap-2 rounded-md bg-shop/60 px-3 py-2 text-sm text-ink/75">
+                        <input
+                          name="tools_available"
+                          type="checkbox"
+                          value={tool}
+                          className="h-4 w-4 accent-moss"
+                          defaultChecked={formValues?.tools_available.includes(tool)}
+                        />
+                        {toolLabels[tool]}
+                      </label>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </fieldset>
         </section>
 
-        <section className="space-y-4 border-t border-sawdust pt-5">
+        <section id="use-constraints" className="scroll-mt-24 space-y-4 border-t border-sawdust pt-5">
           <div>
             <h2 className="text-lg font-semibold text-ink">Use, constraints, and finish notes</h2>
             <p className="mt-1 text-sm leading-6 text-ink/65">This is where safety review gets better. Mention mounting, outdoor use, child-adjacent use, seating, climbing, or any load concern.</p>
