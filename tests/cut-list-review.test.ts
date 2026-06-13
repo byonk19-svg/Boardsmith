@@ -51,8 +51,9 @@ describe("summarizeCutListReview", () => {
   it("summarizes ready cuts with counts and measurement reminders", () => {
     const summary = summarizeCutListReview(shelfPlan, simpleShelfBuildModelFixture);
 
-    expect(summary.totalPieces).toBe(2);
-    expect(summary.piecesWithDimensions).toBe(2);
+    expect(summary.totalPieces).toBe(1);
+    expect(summary.cutListRows).toBe(1);
+    expect(summary.piecesWithDimensions).toBe(1);
     expect(summary.piecesNeedingReview).toBe(0);
     expect(summary.items.map((item) => item.status)).toEqual(["ready_to_review", "ready_to_review"]);
     expect(summary.reviewNotes).toEqual(
@@ -62,6 +63,24 @@ describe("summarizeCutListReview", () => {
         "This is a planning aid, not a production cut file.",
       ]),
     );
+  });
+
+  it("counts physical pieces with dimensions by cut-list quantity, not row count", () => {
+    const summary = summarizeCutListReview(
+      {
+        ...shelfPlan,
+        cut_list: [{ ...shelfPlan.cut_list[0], part_name: "Shelf boards", quantity: 5 }],
+      },
+      {
+        ...simpleShelfBuildModelFixture,
+        pieces: [{ ...simpleShelfBuildModelFixture.pieces[0], label: "Shelf boards", quantity: 5 }],
+      },
+    );
+
+    expect(summary.totalPieces).toBe(5);
+    expect(summary.cutListRows).toBe(1);
+    expect(summary.piecesWithDimensions).toBe(5);
+    expect(summary.piecesNeedingReview).toBe(0);
   });
 
   it("flags missing dimensions, quantity issues, and possible duplicate-looking entries", () => {

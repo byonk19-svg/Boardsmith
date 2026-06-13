@@ -1,5 +1,6 @@
 import type { BoardsmithBuildModel, BuildModelOperation } from "@/lib/build-model/build-model-schema";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
+import { formatToolLabel } from "@/lib/projects/types";
 
 export type BuildStepPhaseLabel =
   | "Measure / mark"
@@ -151,7 +152,7 @@ export function createBuildStepCards(
       title: step.title,
       instructions: step.instructions,
       phaseLabel: operation ? operationPhase(operation) : phaseFromText(step),
-      tools: uniqueStrings(step.tools_used.length > 0 ? step.tools_used : (operation?.toolNames ?? [])),
+      tools: uniqueStrings(step.tools_used.length > 0 ? step.tools_used : (operation?.toolNames ?? [])).map(formatToolLabel),
       estimatedTimeLabel: formatEstimatedTime(step.estimated_time_minutes ?? operation?.estimatedMinutes ?? null),
       safetyNote: conciseSafetyNote(step, operation),
       relatedOperationTitle: operation?.title ?? null,

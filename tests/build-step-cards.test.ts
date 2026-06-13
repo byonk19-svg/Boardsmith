@@ -38,12 +38,26 @@ describe("createBuildStepCards", () => {
       title: "Review mounting",
       instructions: "Review wall structure, anchors, and fasteners before drilling.",
       phaseLabel: "Inspect / review",
-      tools: ["drill"],
+      tools: ["Drill"],
       estimatedTimeLabel: "15 min",
       safetyNote: "Do not rely on Boardsmith for load ratings.",
       relatedOperationTitle: "Inspect mounting location",
       relatedPieceLabels: ["Shelf board"],
     });
+  });
+
+  it("formats raw project tool identifiers as human-readable labels", () => {
+    const cards = createBuildStepCards(
+      [
+        {
+          ...baseStep,
+          tools_used: ["tape_measure", "circular_saw", "paint_brush"],
+        },
+      ],
+      simpleShelfBuildModelFixture,
+    );
+
+    expect(cards[0]?.tools).toEqual(["Tape measure", "Circular saw", "Paint brush"]);
   });
 
   it("labels obvious build-model operation phases without relying on AI calls", () => {

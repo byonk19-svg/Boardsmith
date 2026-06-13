@@ -3,7 +3,17 @@ import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { generatedProjectPlanRecordSchema, type GeneratedPlan, type GeneratedProjectPlanRecord, renderPlanMarkdown } from "@/lib/plans/plan-schema";
-import { projectBuildLogSchema, projectNotesSchema, projectSchema, type Project, type ProjectBuildLogInput, type ProjectIntake } from "@/lib/projects/types";
+import {
+  projectBuildLogSchema,
+  projectNotesSchema,
+  projectSchema,
+  projectShelfLayoutUpdateSchema,
+  type Project,
+  type ProjectBuildLogInput,
+  type ProjectIntake,
+  type ProjectShelfLayoutUpdate,
+  type ShelfLayoutOption,
+} from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 
 type StoreShape = {
@@ -20,10 +30,21 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
-type ProjectRow = Omit<Project, "build_completed_at"> & { build_completed_at: string | null };
+type ProjectRow = Omit<Project, "build_completed_at" | "shelf_layout" | "shelf_count" | "shelf_spacing_inches"> & {
+  build_completed_at: string | null;
+  shelf_layout?: ShelfLayoutOption | null;
+  shelf_count?: number | null;
+  shelf_spacing_inches?: number | null;
+};
 type ProjectInsert = Omit<
   Project,
-  "notes" | "build_completed" | "build_completed_at" | "build_actual_material" | "build_plan_changes" | "build_lessons_learned" | "archived_at"
+  | "notes"
+  | "build_completed"
+  | "build_completed_at"
+  | "build_actual_material"
+  | "build_plan_changes"
+  | "build_lessons_learned"
+  | "archived_at"
 > & {
   notes?: string;
   build_completed?: boolean;
@@ -32,7 +53,14 @@ type ProjectInsert = Omit<
   build_plan_changes?: string;
   build_lessons_learned?: string;
 };
-type ProjectUpdate = Partial<Omit<Project, "build_completed_at"> & { build_completed_at: string | null }>;
+type ProjectUpdate = Partial<
+  Omit<Project, "build_completed_at" | "shelf_layout" | "shelf_count" | "shelf_spacing_inches"> & {
+    build_completed_at: string | null;
+    shelf_layout: ShelfLayoutOption | null;
+    shelf_count: number | null;
+    shelf_spacing_inches: number | null;
+  }
+>;
 
 type Database = {
   public: {
@@ -101,6 +129,9 @@ function normalizeProjectRow(row: unknown): Project {
     build_plan_changes: typeof record.build_plan_changes === "string" ? record.build_plan_changes : "",
     build_lessons_learned: typeof record.build_lessons_learned === "string" ? record.build_lessons_learned : "",
     archived_at: typeof record.archived_at === "string" ? record.archived_at : null,
+    shelf_layout: typeof record.shelf_layout === "string" ? record.shelf_layout : undefined,
+    shelf_count: typeof record.shelf_count === "number" ? record.shelf_count : undefined,
+    shelf_spacing_inches: typeof record.shelf_spacing_inches === "number" ? record.shelf_spacing_inches : undefined,
   });
 }
 
@@ -109,7 +140,16 @@ function normalizePlanRow(row: unknown): GeneratedProjectPlanRecord {
 }
 
 function projectInsertRow(project: Project): ProjectInsert {
-  const { notes, build_completed, build_completed_at, build_actual_material, build_plan_changes, build_lessons_learned, archived_at, ...insertableProject } = project;
+  const {
+    notes,
+    build_completed,
+    build_completed_at,
+    build_actual_material,
+    build_plan_changes,
+    build_lessons_learned,
+    archived_at,
+    ...insertableProject
+  } = project;
   void notes;
   void build_completed;
   void build_completed_at;
@@ -216,9 +256,60 @@ export async function duplicateProject(projectId: string): Promise<Project | nul
     depth_inches: sourceProject.depth_inches,
     material_thickness_inches: sourceProject.material_thickness_inches,
     material_type: sourceProject.material_type,
+    shelf_layout: sourceProject.shelf_layout,
+    shelf_count: sourceProject.shelf_count,
+    shelf_spacing_inches: sourceProject.shelf_spacing_inches,
     tools_available: sourceProject.tools_available,
     style_notes: sourceProject.style_notes,
     intended_use: sourceProject.intended_use,
+  });
+}
+
+export async function updateProjectShelfLayout(projectId: string, input: ProjectShelfLayoutUpdate): Promise<Project | null> {
+  const parsedInput = projectShelfLayoutUpdateSchema.parse(input);
+  const now = new Date().toISOString();
+
+  if (isSupabasePersistenceConfigured()) {
+    const existingProject = await getProject(projectId);
+    if (!existingProject) return null;
+    const nextProjectForFlags = {
+      ...existingProject,
+      shelf_layout: parsedInput.shelf_layout,
+      shelf_count: parsedInput.shelf_count,
+      shelf_spacing_inches: parsedInput.shelf_spacing_inches,
+      height_inches: parsedInput.height_inches ?? existingProject.height_inches,
+    };
+    const nextFlags = calculateSafetyReviewFlags(nextProjectForFlags);
+    const { data, error } = await getSupabase()
+      .from("projects")
+      .update({
+        shelf_layout: parsedInput.shelf_layout,
+        shelf_count: parsedInput.shelf_count ?? null,
+        shelf_spacing_inches: parsedInput.shelf_spacing_inches ?? null,
+        height_inches: parsedInput.height_inches ?? existingProject.height_inches,
+        safety_flags: nextFlags.map((flag) => flag.label),
+        safety_review_required: nextFlags.length > 0,
+        updated_at: now,
+      })
+      .eq("id", projectId)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return normalizeProjectRow(data);
+  }
+
+  return mutateLocalStore((store) => {
+    const project = store.projects.find((candidate) => candidate.id === projectId);
+    if (!project) return null;
+
+    project.shelf_layout = parsedInput.shelf_layout;
+    project.shelf_count = parsedInput.shelf_count;
+    project.shelf_spacing_inches = parsedInput.shelf_spacing_inches;
+    project.height_inches = parsedInput.height_inches ?? project.height_inches;
+    project.updated_at = now;
+    project.safety_flags = calculateSafetyReviewFlags(project).map((flag) => flag.label);
+    project.safety_review_required = project.safety_flags.length > 0;
+    return project;
   });
 }
 

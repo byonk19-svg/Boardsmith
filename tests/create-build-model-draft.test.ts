@@ -120,6 +120,144 @@ describe("createBuildModelDraft", () => {
     expect(draft.safety.disclaimers.join(" ")).toContain("cannot verify load capacity");
   });
 
+  it("keeps single wall shelf generation as one shelf board", () => {
+    const draft = draftFor(
+      project({
+        title: "Single bathroom wall shelf",
+        project_type: "simple_shelf",
+        width_inches: 24,
+        height_inches: 0.75,
+        depth_inches: 8,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        intended_use: "One shelf board wall mounted for light towels.",
+      }),
+    );
+
+    expect(draft.pieces).toEqual([
+      expect.objectContaining({
+        id: "shelf_board",
+        label: "Shelf board",
+        quantity: 1,
+      }),
+    ]);
+    expect(draft.unresolvedQuestions.join(" ")).not.toContain("How many shelves or openings");
+  });
+
+  it("flags multi-shelf wording without shelf count instead of treating it as a complete one-board shelf", () => {
+    const draft = draftFor(
+      project({
+        title: "Multiple shelf wall hanging",
+        project_type: "simple_shelf",
+        width_inches: 12,
+        height_inches: 60,
+        depth_inches: 6,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        intended_use: "Multiple shelf wall hanging for bathroom towels.",
+      }),
+    );
+
+    expect(draft.safety.flags).toContainEqual(expect.objectContaining({ id: "shelf_layout_missing", message: "Shelf count/layout missing" }));
+    expect(draft.confidence.level).toBe("low");
+    expect(draft.unresolvedQuestions).toContain("How many shelves or openings are intended? Add the shelf count before generating a final shelf plan.");
+    expect(draft.pieces[0]?.notes.join(" ")).toContain("do not treat this as a complete one-board shelf plan");
+  });
+
+  it("uses explicit shelf count from intake text for multi-shelf shelf boards", () => {
+    const draft = draftFor(
+      project({
+        title: "Two shelf wall hanging",
+        project_type: "simple_shelf",
+        width_inches: 24,
+        height_inches: 36,
+        depth_inches: 8,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        intended_use: "Two shelves about 12 inches apart for light towels.",
+      }),
+    );
+
+    expect(draft.pieces[0]).toEqual(expect.objectContaining({ label: "Shelf boards", quantity: 2 }));
+    expect(draft.unresolvedQuestions.join(" ")).not.toContain("How many shelves or openings");
+  });
+
+  it("uses structured shelf layout fields before text fallback", () => {
+    const draft = draftFor(
+      project({
+        title: "Bathroom wall storage",
+        project_type: "simple_shelf",
+        width_inches: 24,
+        height_inches: 48,
+        depth_inches: 8,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        shelf_layout: "multi_shelf_unit",
+        shelf_count: 3,
+        shelf_spacing_inches: 12,
+        intended_use: "Wall-mounted storage for light towels.",
+      }),
+    );
+
+    expect(draft.pieces[0]).toEqual(expect.objectContaining({ label: "Shelf boards", quantity: 3 }));
+    expect(draft.assumptions.join(" ")).toContain("approximate shelf spacing as 12 inches");
+    expect(draft.unresolvedQuestions.join(" ")).not.toContain("How many shelves or openings");
+  });
+
+  it("scales bracket placeholders for multiple separate wall shelves", () => {
+    const draft = draftFor(
+      project({
+        title: "Five separate bathroom wall shelves",
+        project_type: "simple_shelf",
+        width_inches: 12,
+        height_inches: 60,
+        depth_inches: 6,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        shelf_layout: "multiple_separate_shelves",
+        shelf_count: 5,
+        shelf_spacing_inches: 12,
+        intended_use: "Five separate wall shelves for light towels.",
+      }),
+    );
+
+    expect(draft.pieces[0]).toEqual(expect.objectContaining({ label: "Shelf boards", quantity: 5 }));
+    expect(draft.hardware.find((item) => item.id === "wall_brackets")).toEqual(
+      expect.objectContaining({
+        label: "Wall bracket placeholders",
+        quantity: 10,
+      }),
+    );
+    expect(draft.hardware.find((item) => item.id === "wall_brackets")?.notes.join(" ")).toContain("assumes 2 brackets per shelf");
+  });
+
+  it("keeps connected shelf unit support hardware as quantity-to-review", () => {
+    const draft = draftFor(
+      project({
+        title: "Connected bathroom shelf unit",
+        project_type: "simple_shelf",
+        width_inches: 12,
+        height_inches: 60,
+        depth_inches: 6,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        shelf_layout: "multi_shelf_unit",
+        shelf_count: 5,
+        shelf_spacing_inches: 12,
+        intended_use: "Connected wall shelf unit for light towels.",
+      }),
+    );
+
+    expect(draft.pieces[0]).toEqual(expect.objectContaining({ label: "Shelf boards", quantity: 5 }));
+    expect(draft.hardware.find((item) => item.id === "wall_brackets")).toEqual(
+      expect.objectContaining({
+        label: "Support method to review",
+        quantity: null,
+      }),
+    );
+    expect(draft.assumptions.join(" ")).toContain("support/frame details are not specified");
+  });
+
   it("adds bathroom humidity review details for wall-mounted bathroom shelves", () => {
     const draft = draftFor(
       project({

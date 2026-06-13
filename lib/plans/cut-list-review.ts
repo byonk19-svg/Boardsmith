@@ -16,6 +16,7 @@ export type CutListReviewItem = {
 
 export type CutListReviewSummary = {
   totalPieces: number;
+  cutListRows: number;
   piecesWithDimensions: number;
   piecesNeedingReview: number;
   items: CutListReviewItem[];
@@ -191,6 +192,7 @@ export function summarizeCutListReview(plan: GeneratedPlan, buildModel: Boardsmi
   const modelCandidates = buildModelCandidates(buildModel);
   const generatedCandidates = planCandidates(plan);
   const allCandidates = [...modelCandidates, ...generatedCandidates];
+  const physicalPieceCandidates = generatedCandidates.length > 0 ? generatedCandidates : modelCandidates;
   const duplicatePlanKeys = duplicateKeys(generatedCandidates);
 
   const items = allCandidates.map((candidate) => {
@@ -213,8 +215,12 @@ export function summarizeCutListReview(plan: GeneratedPlan, buildModel: Boardsmi
   const reviewOnlyIssues = plan.cut_list.length === 0 && (plan.materials.length > 0 || plan.assembly_steps.length > 0) ? 1 : 0;
 
   return {
-    totalPieces: allCandidates.reduce((total, candidate) => total + (hasUsableQuantity(candidate.quantity) ? candidate.quantity : 0), 0),
-    piecesWithDimensions: allCandidates.filter((candidate) => missingDimensions(candidate).length === 0).length,
+    totalPieces: physicalPieceCandidates.reduce((total, candidate) => total + (hasUsableQuantity(candidate.quantity) ? candidate.quantity : 0), 0),
+    cutListRows: physicalPieceCandidates.length,
+    piecesWithDimensions: physicalPieceCandidates.reduce(
+      (total, candidate) => total + (missingDimensions(candidate).length === 0 && hasUsableQuantity(candidate.quantity) ? candidate.quantity : 0),
+      0,
+    ),
     piecesNeedingReview: items.filter((item) => item.status !== "ready_to_review").length + reviewOnlyIssues,
     items,
     warnings,

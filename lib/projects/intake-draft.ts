@@ -1,4 +1,13 @@
-import { projectTypes, skillLevels, toolOptions, type ProjectType, type SkillLevel, type ToolOption } from "@/lib/projects/types";
+import {
+  projectTypes,
+  shelfLayoutOptions,
+  skillLevels,
+  toolOptions,
+  type ProjectType,
+  type ShelfLayoutOption,
+  type SkillLevel,
+  type ToolOption,
+} from "@/lib/projects/types";
 
 export const projectIntakeDraftCookieName = "boardsmith_project_intake_draft";
 
@@ -11,6 +20,9 @@ export type ProjectIntakeDraft = {
   depth_inches: string;
   material_thickness_inches: string;
   material_type: string;
+  shelf_layout: ShelfLayoutOption | "";
+  shelf_count: string;
+  shelf_spacing_inches: string;
   tools_available: ToolOption[];
   style_notes: string;
   intended_use: string;
@@ -25,6 +37,9 @@ const emptyDraft: ProjectIntakeDraft = {
   depth_inches: "",
   material_thickness_inches: "",
   material_type: "",
+  shelf_layout: "",
+  shelf_count: "",
+  shelf_spacing_inches: "",
   tools_available: [],
   style_notes: "",
   intended_use: "",
@@ -53,6 +68,9 @@ export function createProjectIntakeDraft(formData: FormData): ProjectIntakeDraft
     depth_inches: textValue(formData, "depth_inches", 20),
     material_thickness_inches: textValue(formData, "material_thickness_inches", 20),
     material_type: textValue(formData, "material_type", 120),
+    shelf_layout: optionValue(formData.get("shelf_layout"), shelfLayoutOptions),
+    shelf_count: textValue(formData, "shelf_count", 20),
+    shelf_spacing_inches: textValue(formData, "shelf_spacing_inches", 20),
     tools_available: Array.from(new Set(tools)),
     style_notes: textValue(formData, "style_notes", 1000),
     intended_use: textValue(formData, "intended_use", 1000),

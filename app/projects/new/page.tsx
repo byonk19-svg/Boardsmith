@@ -2,7 +2,16 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { findProjectIntakeExample, projectIntakeExamples } from "@/lib/projects/intake-examples";
 import { decodeProjectIntakeDraft, projectIntakeDraftCookieName } from "@/lib/projects/intake-draft";
-import { projectTypeLabels, projectTypes, skillLevels, toolLabels, type ProjectType, type ToolOption } from "@/lib/projects/types";
+import {
+  projectTypeLabels,
+  projectTypes,
+  shelfLayoutLabels,
+  shelfLayoutOptions,
+  skillLevels,
+  toolLabels,
+  type ProjectType,
+  type ToolOption,
+} from "@/lib/projects/types";
 
 const intakeProjectTypes: ProjectType[] = ["simple_shelf", ...projectTypes.filter((type) => type !== "simple_shelf")];
 
@@ -37,6 +46,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
   const unknownExample = typeof params.example === "string" && params.example.length > 0 && !selectedExample;
   const starterChooserOpen = Boolean(starterLoaded) || unknownExample;
   const selectedProjectType = formValues?.project_type === "" || !formValues?.project_type ? "simple_shelf" : formValues.project_type;
+  const selectedShelfLayout = formValues?.shelf_layout === "" || !formValues?.shelf_layout ? "single_shelf" : formValues.shelf_layout;
   const currentDepthValue = formValues ? formValues.depth_inches : "0";
   const showShelfDepthWarning = selectedProjectType === "simple_shelf" && Number(currentDepthValue) === 0;
 
@@ -208,7 +218,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
               Single shelf: fill in width, depth, board thickness, and material. Total height is usually optional.
             </p>
             <p className="mt-2">
-              Multi-shelf unit: add the full total height and describe shelf count/spacing in the notes below.
+              Multi-shelf unit: choose the layout, add the number of shelves, and include the full total height.
             </p>
           </div>
 
@@ -220,6 +230,21 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Shelf layout" help="For wall shelf projects, choose whether this is one shelf, separate shelves, or one connected unit.">
+              <select name="shelf_layout" className="input" defaultValue={selectedShelfLayout}>
+                {shelfLayoutOptions.map((layout) => (
+                  <option key={layout} value={layout}>
+                    {shelfLayoutLabels[layout]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Number of shelves" help="Use 1 for a single shelf. Required for multiple shelves or connected shelf units.">
+              <input name="shelf_count" type="number" min="1" max="20" step="1" className="input" placeholder="1" defaultValue={formValues?.shelf_count ?? "1"} />
+            </Field>
+            <Field label="Shelf spacing, inches, optional" help="Approximate open space between shelves. Leave blank if not sure yet.">
+              <input name="shelf_spacing_inches" type="number" min="0.1" max="120" step="any" className="input" placeholder="Optional" defaultValue={formValues?.shelf_spacing_inches} />
+            </Field>
             <Field label="Shelf width, inches" help="Left to right along the wall. Example: 24 in.">
               <input name="width_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="24" defaultValue={formValues?.width_inches} />
             </Field>
@@ -312,7 +337,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             <p className="mt-1 text-sm leading-6 text-ink/65">This is where safety review gets better. Mention mounting, outdoor use, child-adjacent use, seating, climbing, or any load concern.</p>
           </div>
 
-          <Field label="Intended use" help="Describe where it will live, what it will hold, and what use should be excluded. For shelves, include how many shelves or openings you want.">
+          <Field label="Intended use" help="Describe where it will live, what it will hold, and what use should be excluded.">
             <textarea
               name="intended_use"
               required

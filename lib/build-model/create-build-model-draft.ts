@@ -8,6 +8,7 @@ import {
   type BuildModelPiece,
   type BuildModelSafetyFlag,
 } from "@/lib/build-model/build-model-schema";
+import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { projectTypes, type Project, type ProjectType, type SkillLevel } from "@/lib/projects/types";
 import type { SafetyReviewFlag } from "@/lib/safety/safety-review";
 import { getTemplateHint, type TemplateHint } from "@/lib/templates/template-hints";
@@ -24,6 +25,9 @@ export type BuildModelDraftProject = Omit<
     | "depth_inches"
     | "material_thickness_inches"
     | "material_type"
+    | "shelf_layout"
+    | "shelf_count"
+    | "shelf_spacing_inches"
     | "tools_available"
     | "style_notes"
     | "intended_use"
@@ -112,9 +116,17 @@ function mapSafetyFlag(flag: SafetyReviewFlag): BuildModelSafetyFlag {
     outdoor_load_exposure: "outdoor_exposure",
     unclear_dimensions: "unclear_dimensions",
     missing_material_thickness: "missing_material_thickness",
+    shelf_layout_missing: "unclear_dimensions",
   };
 
-  const highReviewCodes = new Set(["wall_mounting", "child_or_baby_use", "seating_or_load_bearing", "ladder_or_platform", "heavy_shelving"]);
+  const highReviewCodes = new Set([
+    "wall_mounting",
+    "child_or_baby_use",
+    "seating_or_load_bearing",
+    "ladder_or_platform",
+    "heavy_shelving",
+    "shelf_layout_missing",
+  ]);
   const category = categoryByCode[flag.code] ?? "other";
 
   return {
@@ -615,15 +627,29 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
   }
 
   const bathroomOrHumidity = isBathroomOrHumidityProject(project);
+  const shelfLayout = analyzeShelfLayoutIntent(project);
+  const shelfQuantity = shelfLayout.shelfCount && shelfLayout.shelfCount > 1 ? shelfLayout.shelfCount : 1;
+  const shelfLabel = shelfQuantity > 1 ? "Shelf boards" : "Shelf board";
+  const shelfLayoutMissing = shelfLayout.missingShelfCount;
+  const shelfSpacing = project.shelf_spacing_inches;
+  const multipleSeparateWallShelves = project.shelf_layout === "multiple_separate_shelves" && shelfQuantity > 1;
+  const connectedShelfUnit = project.shelf_layout === "multi_shelf_unit" && shelfQuantity > 1;
   const hardwareItems = [
     ...(wallMounted
       ? [
           hardware({
             id: "wall_brackets",
-            label: "Wall bracket placeholders",
+            label: connectedShelfUnit ? "Support method to review" : "Wall bracket placeholders",
             hardwareType: "bracket",
-            quantity: 2,
-            notes: ["Bracket selection affects safe use but no load rating is provided."],
+            quantity: multipleSeparateWallShelves ? shelfQuantity * 2 : connectedShelfUnit ? null : 2,
+            notes: [
+              multipleSeparateWallShelves
+                ? `Cautious placeholder only: assumes 2 brackets per shelf, so ${shelfQuantity.toString()} shelves means ${(shelfQuantity * 2).toString()} brackets before final review.`
+                : connectedShelfUnit
+                  ? "Connected shelf units need verified side supports, frame, cleat, brackets, or another support method before hardware quantity can be trusted."
+                  : "Bracket selection affects safe use but no load rating is provided.",
+              "Final hardware quantity depends on bracket type, expected load, wall structure, and support design.",
+            ],
           }),
           hardware({
             id: "wall_anchors",
@@ -650,7 +676,8 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
     pieces: [
       makePiece({
         id: "shelf_board",
-        label: "Shelf board",
+        label: shelfLabel,
+        quantity: shelfQuantity,
         pieceType: "board",
         materialId,
         lengthInches: project.width_inches,
@@ -659,6 +686,8 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
         grainDirection: "length",
         notes: [
           "No load rating is implied.",
+          ...(shelfQuantity > 1 ? [`Quantity set from shelf layout intake as ${shelfQuantity.toString()} shelves.`] : []),
+          ...(shelfLayoutMissing ? ["Shelf count/layout is missing; do not treat this as a complete one-board shelf plan."] : []),
           ...(bathroomOrHumidity ? ["Bathroom humidity and finish choice require manual review."] : []),
         ],
       }),
@@ -674,8 +703,12 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
             hardwareIds: ["wall_brackets", "wall_anchors"],
             locationDescription: "Under shelf board at mounting points",
             strengthCritical: true,
-            safetyNotes: ["Boardsmith cannot verify wall structure, fastener choice, or load capacity."],
-            notes: ["Manual mounting review required before use."],
+            safetyNotes: ["Each shelf needs a verified support method before mounting or loading."],
+            notes: [
+              connectedShelfUnit
+                ? "Connected shelf unit support/frame details are not specified; do not rely on a fixed bracket count."
+                : "Manual mounting review required before use.",
+            ],
           },
         ]
       : [],
@@ -732,10 +765,23 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
     assumptions: wallMounted
       ? [
           ...templateHint.assumptions,
+          ...(shelfQuantity > 1 ? [`The intake describes ${shelfQuantity.toString()} shelves; spacing and support details still need review.`] : []),
+          ...(multipleSeparateWallShelves
+            ? [`Bracket placeholder uses 2 per shelf for planning only: ${(shelfQuantity * 2).toString()} brackets for ${shelfQuantity.toString()} shelves.`]
+            : []),
+          ...(connectedShelfUnit ? ["Connected shelf unit support/frame details are not specified, so support hardware quantity remains to review."] : []),
+          ...(shelfQuantity > 1 && shelfSpacing ? [`The intake gives approximate shelf spacing as ${shelfSpacing.toString()} inches.`] : []),
           ...(bathroomOrHumidity ? ["Bathroom humidity may require moisture-resistant finish and corrosion-resistant hardware review."] : []),
         ]
-      : ["Project is treated as freestanding or non-mounted because the intake does not ask for wall mounting."],
+      : [
+          "Project is treated as freestanding or non-mounted because the intake does not ask for wall mounting.",
+          ...(shelfQuantity > 1 ? [`The intake describes ${shelfQuantity.toString()} shelves; spacing and support details still need review.`] : []),
+          ...(shelfQuantity > 1 && shelfSpacing ? [`The intake gives approximate shelf spacing as ${shelfSpacing.toString()} inches.`] : []),
+        ],
     unresolvedQuestions: [
+      ...(shelfLayoutMissing
+        ? ["How many shelves or openings are intended? Add the shelf count before generating a final shelf plan."]
+        : []),
       ...(wallMounted ? ["What wall type, bracket type, and fasteners will be used?"] : []),
       ...(bathroomOrHumidity ? ["What finish and hardware are appropriate for bathroom humidity?"] : []),
       "What load, if any, is expected? Boardsmith will not certify load capacity.",
@@ -856,11 +902,14 @@ function confidenceFor(project: BuildModelDraftProject, safetyFlags: BuildModelS
   const hasHighReview = safetyFlags.some((flag) => flag.severity === "high_review");
   const hasMissingCoreData = !positiveOrNull(project.width_inches) || !positiveOrNull(project.height_inches) || !positiveOrNull(project.material_thickness_inches);
   const shelfMissingMountingContext = project.project_type === "simple_shelf" && (hasHighReview || !positiveOrNull(project.depth_inches));
+  const shelfLayoutMissing = analyzeShelfLayoutIntent(project).missingShelfCount;
 
-  if (hasHighReview || hasMissingCoreData || shelfMissingMountingContext || unresolvedQuestions.length >= 3) {
+  if (hasHighReview || hasMissingCoreData || shelfMissingMountingContext || shelfLayoutMissing || unresolvedQuestions.length >= 3) {
     return {
       level: "low",
-      reasons: ["Important dimensions, mounting details, or safety review items remain unresolved."],
+      reasons: shelfLayoutMissing
+        ? ["Shelf count/layout is missing, so Boardsmith cannot treat this as a complete shelf plan."]
+        : ["Important dimensions, mounting details, or safety review items remain unresolved."],
     };
   }
 

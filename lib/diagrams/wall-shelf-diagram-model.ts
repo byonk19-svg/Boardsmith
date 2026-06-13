@@ -1,0 +1,175 @@
+import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
+import type { CutListReviewSummary } from "@/lib/plans/cut-list-review";
+import type { Project, ShelfLayoutOption } from "@/lib/projects/types";
+
+export type WallShelfDiagramStatus = "ready" | "needs_shelf_count" | "needs_dimensions";
+export type WallShelfSupportStatus = "separate_shelf_placeholders" | "support_to_review" | "not_wall_mounted";
+
+export type WallShelfPartScheduleRow = {
+  label: string;
+  quantity: number;
+  dimensionsLabel: string;
+  materialLabel: string;
+};
+
+export type WallShelfDiagramModel = {
+  projectType: "simple_shelf";
+  status: WallShelfDiagramStatus;
+  fallbackMessage: string | null;
+  shelfLayout: ShelfLayoutOption | "unknown";
+  shelfCount: number | null;
+  shelfWidthInches: number | null;
+  shelfDepthInches: number | null;
+  boardThicknessInches: number | null;
+  totalProjectHeightInches: number | null;
+  shelfSpacingInches: number | null;
+  materialLabel: string;
+  supportStatus: WallShelfSupportStatus;
+  supportLabel: string;
+  reviewItems: string[];
+  partSchedule: WallShelfPartScheduleRow[];
+};
+
+function positiveNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function positiveInteger(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : null;
+}
+
+function formatDimensionValue(value: number | null): string {
+  return value ? `${value.toString()} in` : "to verify";
+}
+
+function partDimensionsLabel(model: WallShelfDiagramModel): string {
+  return `${formatDimensionValue(model.shelfWidthInches)} x ${formatDimensionValue(model.shelfDepthInches)} x ${formatDimensionValue(model.boardThicknessInches)}`;
+}
+
+function shelfPieceQuantity(buildModel: BoardsmithBuildModel): number | null {
+  const shelfPiece = buildModel.pieces.find((piece) => /\bshelf\b/i.test(`${piece.id} ${piece.label}`));
+  return positiveInteger(shelfPiece?.quantity);
+}
+
+function shelfCountFor(project: Project, buildModel: BoardsmithBuildModel): number | null {
+  const structuredCount = positiveInteger(project.shelf_count);
+  if (structuredCount) return structuredCount;
+  if (project.shelf_layout === "single_shelf") return 1;
+  if (project.shelf_layout === "multiple_separate_shelves" || project.shelf_layout === "multi_shelf_unit") return null;
+  return shelfPieceQuantity(buildModel);
+}
+
+function isBookLedgeBuildModel(buildModel: BoardsmithBuildModel): boolean {
+  const pieceIds = new Set(buildModel.pieces.map((piece) => piece.id));
+  return pieceIds.has("front_lip") && pieceIds.has("back_rail") && pieceIds.has("bottom_shelf_board");
+}
+
+function supportStatusFor(project: Project, buildModel: BoardsmithBuildModel): WallShelfSupportStatus {
+  const hasWallHardware = buildModel.hardware.some((item) => ["bracket", "anchor", "hanger"].includes(item.hardwareType));
+  if (!hasWallHardware) return "not_wall_mounted";
+  if (project.shelf_layout === "multiple_separate_shelves") return "separate_shelf_placeholders";
+  return "support_to_review";
+}
+
+function supportLabelFor(status: WallShelfSupportStatus): string {
+  if (status === "separate_shelf_placeholders") return "bracket placeholders - verify final hardware";
+  if (status === "not_wall_mounted") return "no wall support modeled";
+  return "support method to verify";
+}
+
+function reviewItemsFor(project: Project, buildModel: BoardsmithBuildModel, supportStatus: WallShelfSupportStatus): string[] {
+  const baseItems = [
+    ...(supportStatus === "not_wall_mounted" ? [] : ["Each shelf needs a verified support method."]),
+    "Confirm bracket, cleat, side-support, or frame type.",
+    "Confirm studs or anchors appropriate for wall type.",
+    "Confirm hardware and expected load suitability before mounting.",
+    "Confirm shelf spacing and placement before drilling.",
+  ];
+  const modelItems = [
+    ...buildModel.unresolvedQuestions,
+    ...buildModel.safety.flags.map((flag) => flag.message),
+    ...project.safety_flags,
+  ];
+
+  return [...new Set([...baseItems, ...modelItems])];
+}
+
+function partScheduleFor(model: WallShelfDiagramModel, cutList: CutListReviewSummary | null): WallShelfPartScheduleRow[] {
+  const generatedShelfRow = cutList?.items.find((item) => item.sourceLabel === "Generated cut" && /\bshelf\b/i.test(item.label));
+  if (generatedShelfRow) {
+    const parsedQuantity = Number.parseInt(generatedShelfRow.quantityLabel, 10);
+    const quantity = Number.isFinite(parsedQuantity) && parsedQuantity > 0 ? parsedQuantity : (model.shelfCount ?? 1);
+
+    return [
+      {
+        label: generatedShelfRow.label,
+        quantity,
+        dimensionsLabel: generatedShelfRow.dimensionsLabel,
+        materialLabel: generatedShelfRow.materialLabel,
+      },
+    ];
+  }
+
+  return [
+    {
+      label: model.shelfCount && model.shelfCount > 1 ? "Shelf boards" : "Shelf board",
+      quantity: model.shelfCount ?? 1,
+      dimensionsLabel: partDimensionsLabel(model),
+      materialLabel: model.materialLabel,
+    },
+  ];
+}
+
+function fallbackMessage(model: Pick<WallShelfDiagramModel, "shelfLayout" | "shelfCount" | "shelfWidthInches" | "shelfDepthInches" | "boardThicknessInches">): string | null {
+  if (model.shelfLayout !== "single_shelf" && !model.shelfCount) return "Add shelf count to render a shelf layout diagram.";
+  if (!model.shelfWidthInches || !model.shelfDepthInches || !model.boardThicknessInches) {
+    return "Add shelf width, depth, and board thickness to render shelf diagrams.";
+  }
+  return null;
+}
+
+function statusFor(message: string | null): WallShelfDiagramStatus {
+  if (!message) return "ready";
+  if (message.includes("shelf count")) return "needs_shelf_count";
+  return "needs_dimensions";
+}
+
+export function buildWallShelfDiagramModel(params: {
+  project: Project;
+  buildModel: BoardsmithBuildModel;
+  cutList: CutListReviewSummary | null;
+}): WallShelfDiagramModel | null {
+  const { project, buildModel, cutList } = params;
+  if (project.project_type !== "simple_shelf") return null;
+  if (isBookLedgeBuildModel(buildModel)) return null;
+
+  const supportStatus = supportStatusFor(project, buildModel);
+  const baseModel: WallShelfDiagramModel = {
+    projectType: "simple_shelf",
+    status: "ready",
+    fallbackMessage: null,
+    shelfLayout: project.shelf_layout ?? "unknown",
+    shelfCount: shelfCountFor(project, buildModel),
+    shelfWidthInches: positiveNumber(project.width_inches) ?? positiveNumber(buildModel.dimensions.widthInches),
+    shelfDepthInches: positiveNumber(project.depth_inches) ?? positiveNumber(buildModel.dimensions.depthInches),
+    boardThicknessInches: positiveNumber(project.material_thickness_inches) ?? positiveNumber(buildModel.dimensions.materialThicknessInches),
+    totalProjectHeightInches: positiveNumber(project.height_inches) ?? positiveNumber(buildModel.dimensions.heightInches),
+    shelfSpacingInches: positiveNumber(project.shelf_spacing_inches),
+    materialLabel: buildModel.materials[0]?.label ?? project.material_type,
+    supportStatus,
+    supportLabel: supportLabelFor(supportStatus),
+    reviewItems: reviewItemsFor(project, buildModel, supportStatus),
+    partSchedule: [],
+  };
+  const message = fallbackMessage(baseModel);
+  const model = {
+    ...baseModel,
+    status: statusFor(message),
+    fallbackMessage: message,
+  };
+
+  return {
+    ...model,
+    partSchedule: partScheduleFor(model, cutList),
+  };
+}

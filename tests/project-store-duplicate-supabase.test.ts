@@ -23,6 +23,9 @@ const sourceProject: Project = {
   depth_inches: 7,
   material_thickness_inches: 0.75,
   material_type: "pine board",
+  shelf_layout: "multiple_separate_shelves",
+  shelf_count: 2,
+  shelf_spacing_inches: 12,
   tools_available: ["tape_measure", "pencil", "drill"],
   style_notes: "Wall mounted",
   intended_use: "Light bathroom shelf",
@@ -71,6 +74,9 @@ describe("Supabase project duplication", () => {
         depth_inches: sourceProject.depth_inches,
         material_thickness_inches: sourceProject.material_thickness_inches,
         material_type: sourceProject.material_type,
+        shelf_layout: sourceProject.shelf_layout,
+        shelf_count: sourceProject.shelf_count,
+        shelf_spacing_inches: sourceProject.shelf_spacing_inches,
         tools_available: sourceProject.tools_available,
         style_notes: sourceProject.style_notes,
         intended_use: sourceProject.intended_use,
@@ -83,6 +89,60 @@ describe("Supabase project duplication", () => {
     expect(duplicate.id).not.toBe(sourceProject.id);
     expect(duplicate.status).toBe("draft");
     expect(duplicate.notes).toBe("");
+  });
+
+  it("updates structured shelf layout fields on the existing Supabase project row", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
+
+    const updatedProject = {
+      ...sourceProject,
+      updated_at: new Date(6).toISOString(),
+      shelf_layout: "multi_shelf_unit" as const,
+      shelf_count: 4,
+      shelf_spacing_inches: 14,
+      height_inches: 60,
+      safety_review_required: true,
+      safety_flags: ["Wall mounting review"],
+    };
+    const maybeSingle = vi.fn(() => Promise.resolve({ data: sourceProject, error: null }));
+    const single = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
+    const eq = vi
+      .fn()
+      .mockReturnValueOnce({ maybeSingle })
+      .mockReturnValueOnce({ select: () => ({ single }) });
+    const select = vi.fn(() => ({ eq }));
+    const update = vi.fn<(payload: Record<string, unknown>) => { eq: typeof eq }>(() => ({ eq }));
+    const from = vi.fn(() => ({ select, update }));
+
+    vi.doMock("@supabase/supabase-js", () => ({
+      createClient: vi.fn(() => ({ from })),
+    }));
+
+    const store = await import("@/lib/storage/project-store");
+    const saved = await store.updateProjectShelfLayout(sourceProject.id, {
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: 4,
+      shelf_spacing_inches: 14,
+      height_inches: 60,
+    });
+
+    expect(from).toHaveBeenCalledWith("projects");
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        shelf_layout: "multi_shelf_unit",
+        shelf_count: 4,
+        shelf_spacing_inches: 14,
+        height_inches: 60,
+        safety_review_required: true,
+      }),
+    );
+    const updatePayload = update.mock.calls[0]?.[0];
+    expect(updatePayload).not.toHaveProperty("style_notes");
+    expect(eq).toHaveBeenCalledWith("id", sourceProject.id);
+    expect(saved?.shelf_layout).toBe("multi_shelf_unit");
+    expect(saved?.shelf_count).toBe(4);
+    expect(saved?.shelf_spacing_inches).toBe(14);
   });
 
   it("updates project notes on the existing project row", async () => {

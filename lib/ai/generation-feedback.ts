@@ -1,4 +1,4 @@
-export const generationFailureReasons = ["review_blocked", "validation_failed", "missing_openai_key", "generation_failed"] as const;
+export const generationFailureReasons = ["shelf_layout_missing", "review_blocked", "validation_failed", "missing_openai_key", "generation_failed"] as const;
 
 export type GenerationFailureReason = (typeof generationFailureReasons)[number];
 
@@ -30,6 +30,18 @@ export function getGenerationFailureFeedback(reason: GenerationFailureReason, sa
       summary: "OPENAI_API_KEY is missing, so Boardsmith cannot generate a plan yet.",
       detail: "No plan was generated or saved.",
       suggestions: ["Add OPENAI_API_KEY to the local environment, then try generating again."],
+    };
+  }
+
+  if (reason === "shelf_layout_missing") {
+    return {
+      title: "Shelf layout needs one more detail.",
+      summary: "No plan was generated.",
+      detail: "The intake describes multiple shelves, but Boardsmith needs the shelf count or openings before it can create a trustworthy cut list.",
+      suggestions: [
+        "Choose the shelf layout and enter the number of shelves.",
+        "For a connected shelf unit, include the total height and approximate spacing if known.",
+      ],
     };
   }
 

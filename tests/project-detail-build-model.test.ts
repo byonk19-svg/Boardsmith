@@ -260,9 +260,46 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Wall mounting is likely.");
     expect(markup).toContain("Plan Review");
     expect(markup).toContain("Review: Blocked");
-    expect(markup).toContain("Output readiness notes");
+    expect(markup).toContain("Advanced output notes");
     expect(markup).toContain("Secondary notes for possible future output work.");
     expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
+  });
+
+  it("renders shelf intake dimensions with beginner-safe labels", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Multiple shelf wall hanging",
+      height_inches: 60,
+      depth_inches: 6,
+      shelf_layout: "multiple_separate_shelves",
+      shelf_count: 2,
+      shelf_spacing_inches: 12,
+      intended_use: "Two shelves about 12 inches apart for towels.",
+    });
+    listGeneratedPlansMock.mockResolvedValue([]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Shelf width");
+    expect(markup).toContain("36 in");
+    expect(markup).toContain("Total project height");
+    expect(markup).toContain("60 in");
+    expect(markup).toContain("Shelf depth from wall");
+    expect(markup).toContain("6 in");
+    expect(markup).toContain("Board thickness");
+    expect(markup).toContain("0.75 in");
+    expect(markup).toContain("Shelf layout");
+    expect(markup).toContain("Multiple separate wall shelves");
+    expect(markup).toContain("Number of shelves");
+    expect(markup).toContain("Shelf spacing");
+    expect(markup).toContain("12 in");
+    expect(markup).not.toContain("Dimensions</dt>");
   });
 
   it("renders a read-only material summary from the displayed build model", async () => {
@@ -279,8 +316,9 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("Material Summary");
     expect(markup).toContain("Cut List Review");
-    expect(markup).toContain("Total pieces");
-    expect(markup).toContain("With dimensions");
+    expect(markup).toContain("Total cut pieces");
+    expect(markup).toContain("Cut-list rows");
+    expect(markup).toContain("Pieces with dimensions");
     expect(markup).toContain("Needs review");
     expect(markup).toContain("Ready to review");
     expect(markup).toContain("Measure twice before cutting.");
@@ -330,17 +368,21 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Plan at a glance");
     expect(markup).toContain("Overview / Summary");
     expect(markup).toContain("Planning diagrams");
-    expect(markup).toContain("Planning diagram — not to scale");
-    expect(markup).toContain("Shelf board overview");
-    expect(markup).toContain("How pieces connect");
-    expect(markup).toContain("Shelf board → bracket with Wall brackets, Wall anchors or stud fasteners → Shelf board");
+    expect(markup).toContain("Planning diagram - not to scale");
+    expect(markup).toContain("Front elevation / shelf layout");
+    expect(markup).toContain("Side view");
+    expect(markup).toContain("Cut parts");
+    expect(markup).toContain("Mounting review");
+    expect(markup).toContain("support method to verify");
+    expect(markup).toContain("Each shelf needs a verified support method.");
     expect(markup).toContain("Needs manual review");
     expect(markup).toContain("Planning aid");
     expect(markup).toContain("Review before building");
     expect(markup).toContain("Check these before building");
     expect(markup).toContain("Review wall mounting details.");
     expect(markup).toContain("Review unresolved questions.");
-    expect(markup).toContain("Verify hardware and fasteners before assembly.");
+    expect(markup).toContain("Confirm bracket, cleat, side-support, or frame type.");
+    expect(markup).toContain("Confirm hardware and expected load suitability before mounting.");
     expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
     expect(markup).not.toContain('name="plan_action_');
     expect(markup).toContain("Materials to verify");
@@ -350,7 +392,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Step 1");
     expect(markup).toContain("Inspect / review");
     expect(markup).toContain("Tools");
-    expect(markup).toContain("drill");
+    expect(markup).toContain("Drill");
     expect(markup).toContain("Time");
     expect(markup).toContain("15 min");
     expect(markup).toContain("Pieces");
@@ -368,12 +410,11 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('id="open-questions"');
     expect(markup).toContain("Finishing notes");
     expect(markup).toContain("Use your own judgment before cutting or assembling.");
-    expect(markup).toContain("Verify dimensions, materials, hardware, tool setup, and site conditions before cutting or building.");
     expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
     expect(markup).not.toContain("CAD-ready");
     expect(markup).not.toContain("CNC-ready");
     expect(markup).not.toContain("construction approval");
-    expect(markup).toContain("Output readiness notes");
+    expect(markup).not.toContain("Output readiness notes");
     expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
     expect(markup).toContain("Tweak this plan");
     expect(markup).toContain("Describe one change to the latest plan.");
@@ -498,6 +539,22 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Comparison will be available after another generated plan version exists.");
   });
 
+  it("uses review-oriented copy after generating a plan version", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({ generated: "1" }),
+      }),
+    );
+
+    expect(markup).toContain("Generated and saved a new plan version for review.");
+    expect(markup).not.toContain("Generated and saved a new validated plan version.");
+  });
+
   it("shows a revised-plan success state with comparison against the prior plan version", async () => {
     const olderPlanRecord: GeneratedProjectPlanRecord = {
       ...planRecord,
@@ -520,7 +577,7 @@ describe("ProjectDetailPage project structure", () => {
       }),
     );
 
-    expect(markup).toContain("Revised and saved a new validated plan version. The comparison below shows the new latest plan against the previous version.");
+    expect(markup).toContain("Revised and saved a new plan version for review. The comparison below shows the new latest plan against the previous version.");
     expect(markup).toContain("Plan comparison");
     expect(markup).toContain("Comparing the revised latest plan with the previous version (Version 1).");
     expect(markup).toContain("Project summary changed.");
@@ -596,7 +653,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Print build sheet");
     expect(markup).toContain("Latest generated plan");
     expect(markup).toContain("Plan history");
-    expect(markup).toContain("Output readiness notes");
+    expect(markup).toContain("Advanced output notes");
     expect(markup).toContain("This archived project record is read-only until restored.");
     expect(markup).toContain("Restore this project before editing notes.");
     expect(markup).toContain("Restore this project before editing the build log.");
@@ -726,7 +783,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("No generated plan yet");
     expect(markup).toContain("Recommended next step");
     expect(markup).toContain("Review intake, then generate a first plan");
-    expect(markup).toContain("Check the project intake and review triggers, then use Project actions to generate a first validated plan.");
+    expect(markup).toContain("Check the project intake and review triggers, then use Project actions to generate a first plan version for review.");
     expect(markup).toContain("Saved intake is ready for review");
     expect(markup).toContain("This project does not have a generated plan yet.");
     expect(markup).toContain("Generate Plan remains primary");
@@ -734,7 +791,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain(">Generate Plan</button>");
     expect(markup).not.toContain("Generate another plan version");
     expect(markup).toContain("Generate a first plan from Project actions.");
-    expect(markup).toContain("Boardsmith saves only validated plans; if review blocks generation, you will see what needs attention.");
+    expect(markup).toContain("Boardsmith saves plans for review; if review blocks generation, you will see what needs attention.");
     expect(markup).toContain("Planning details before generation");
     expect(markup).toContain("Template and derived structure are secondary until a plan exists.");
     expect(markup).toContain("Project sections");
@@ -802,6 +859,39 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("For wall-mounted projects, verify studs or anchors, fasteners, wall structure, and expected load before trying again.");
     expect(markup).toContain("For child-adjacent projects, describe edge treatment, finish choice, supervision needs, mounting height, and inspection plans.");
     expect(markup).not.toContain("Generated plan failed deterministic quality checks");
+  });
+
+  it("shows a direct shelf-layout repair form when generation is blocked by missing shelf count", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Multiple shelf wall hanging",
+      height_inches: 60,
+      depth_inches: 6,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: undefined,
+      intended_use: "Bathroom wall storage for towels.",
+    });
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({ generation_error: "shelf_layout_missing" }),
+      }),
+    );
+
+    expect(markup).toContain("Shelf layout needs one more detail.");
+    expect(markup).toContain("Choose the shelf layout and enter the number of shelves.");
+    expect(markup).toContain("Fix shelf layout");
+    expect(markup).toContain('action="/projects/project_saved_bbm/shelf-layout"');
+    expect(markup).toContain('name="shelf_layout"');
+    expect(markup).toContain('name="shelf_count"');
+    expect(markup).toContain('name="height_inches"');
+    expect(markup).toContain('name="shelf_spacing_inches"');
+    expect(markup).toContain("Save shelf layout");
+    expect(markup).toContain("Required to generate");
+    expect(markup).not.toContain("intended-use notes");
   });
 
   it("renders safe project-detail action errors without exposing raw query text", async () => {

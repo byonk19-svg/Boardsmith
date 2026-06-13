@@ -100,7 +100,7 @@ describe("createPlanDiagrams", () => {
     expect(summary.diagrams.map((diagram) => diagram.title)).toEqual([
       "Shelf board overview",
       "Shelf board piece relationship",
-      "How pieces connect",
+      "Mounting to verify",
     ]);
     expect(summary.diagrams[0]?.disclaimer).toBe(planningDiagramDisclaimer);
     expect(summary.diagrams[0]?.pieces[0]).toMatchObject({
@@ -149,18 +149,31 @@ describe("createPlanDiagrams", () => {
     const withConnections = createPlanDiagrams(simpleShelfBuildModelFixture);
     const connectionDiagram = withConnections.diagrams.find((diagram) => diagram.type === "connection_summary");
 
-    expect(connectionDiagram?.title).toBe("How pieces connect");
-    expect(connectionDiagram?.label).toBe("Connection planning aid");
+    expect(connectionDiagram?.title).toBe("Mounting to verify");
+    expect(connectionDiagram?.label).toBe("Mounting planning aid");
     expect(connectionDiagram?.connections[0]).toMatchObject({
       fromLabel: "Shelf board",
       toLabel: "Shelf board",
       connectionLabel: "bracket",
       hardwareLabel: "Wall brackets, Wall anchors or stud fasteners",
-      relationshipLabel: "Shelf board → bracket with Wall brackets, Wall anchors or stud fasteners → Shelf board",
+      relationshipLabel: "Each shelf needs a verified support method.",
       location: "Under shelf board at wall mounting points",
       needsReview: true,
       reviewLabel: "Needs manual review",
       safetyNote: "Boardsmith cannot verify load capacity or wall mounting safety.",
+    });
+  });
+
+  it("uses a shelf-layout diagram title for multi-shelf shelf boards", () => {
+    const summary = createPlanDiagrams({
+      ...simpleShelfBuildModelFixture,
+      pieces: [{ ...simpleShelfBuildModelFixture.pieces[0], label: "Shelf boards", quantity: 5 }],
+    });
+
+    expect(summary.diagrams[0]?.title).toBe("Shelf layout overview");
+    expect(summary.diagrams[0]?.pieces[0]).toMatchObject({
+      label: "Shelf boards",
+      quantityLabel: "5x",
     });
   });
 

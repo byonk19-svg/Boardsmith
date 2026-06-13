@@ -60,4 +60,20 @@ describe("Supabase migrations", () => {
     expect(sql).not.toContain("anon");
     expect(sql).not.toContain("authenticated");
   });
+
+  it("adds structured shelf layout columns without changing private MVP grants", async () => {
+    const sql = await readFile("supabase/migrations/20260613170000_add_project_shelf_layout.sql", "utf8");
+
+    expect(sql).toContain("alter table public.projects");
+    expect(sql).toContain("add column if not exists shelf_layout text");
+    expect(sql).toContain("add column if not exists shelf_count integer");
+    expect(sql).toContain("add column if not exists shelf_spacing_inches numeric");
+    expect(sql).toContain("projects_shelf_layout_check");
+    expect(sql).toContain("'single_shelf', 'multiple_separate_shelves', 'multi_shelf_unit'");
+    expect(sql).toContain("projects_shelf_count_check");
+    expect(sql).toContain("projects_shelf_spacing_inches_check");
+    expect(sql).not.toContain("grant select");
+    expect(sql).not.toContain("anon");
+    expect(sql).not.toContain("authenticated");
+  });
 });

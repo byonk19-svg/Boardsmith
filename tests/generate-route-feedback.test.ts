@@ -4,6 +4,7 @@ import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test
 
 const generateStructuredProjectPlanMock = vi.fn<() => Promise<unknown>>();
 const saveGeneratedPlanMock = vi.fn<(...args: unknown[]) => Promise<unknown>>();
+const getProjectMock = vi.fn<() => Promise<Project | null>>();
 
 const project: Project = {
   id: "blocked_generation_project",
@@ -37,13 +38,39 @@ vi.mock("@/lib/ai/generate-project-plan", () => ({
 }));
 
 vi.mock("@/lib/storage/project-store", () => ({
-  getProject: vi.fn(() => Promise.resolve(project)),
+  getProject: () => getProjectMock(),
   saveGeneratedPlan: (...args: unknown[]) => saveGeneratedPlanMock(...args),
 }));
 
 describe("generate plan route feedback", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getProjectMock.mockResolvedValue(project);
+  });
+
+  it("blocks multi-shelf wording without a shelf count before generation", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Multiple shelf wall hanging",
+      height_inches: 60,
+      depth_inches: 6,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: undefined,
+      intended_use: "Bathroom wall storage for towels.",
+      style_notes: "",
+    });
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/blocked_generation_project?generation_error=shelf_layout_missing#project-intake",
+    );
+    expect(generateStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
   });
 
   it("redirects blocked deterministic review failures to a safe feedback state without saving", async () => {

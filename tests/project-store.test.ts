@@ -18,6 +18,9 @@ const intake: ProjectIntake = {
   depth_inches: 12,
   material_thickness_inches: 0.75,
   material_type: "pine board",
+  shelf_layout: "multiple_separate_shelves",
+  shelf_count: 2,
+  shelf_spacing_inches: 12,
   tools_available: ["tape_measure", "pencil", "drill", "sander"],
   style_notes: "Wall mounted shelf for books",
   intended_use: "Heavy books on a wall mounted shelf",
@@ -147,6 +150,9 @@ describe("project store lifecycle", () => {
     expect(duplicate.depth_inches).toBe(original.depth_inches);
     expect(duplicate.material_thickness_inches).toBe(original.material_thickness_inches);
     expect(duplicate.material_type).toBe(original.material_type);
+    expect(duplicate.shelf_layout).toBe(original.shelf_layout);
+    expect(duplicate.shelf_count).toBe(original.shelf_count);
+    expect(duplicate.shelf_spacing_inches).toBe(original.shelf_spacing_inches);
     expect(duplicate.tools_available).toEqual(original.tools_available);
     expect(duplicate.style_notes).toBe(original.style_notes);
     expect(duplicate.intended_use).toBe(original.intended_use);
@@ -173,6 +179,34 @@ describe("project store lifecycle", () => {
     expect(reloaded?.notes).toBe(updated?.notes);
     expect(plans).toHaveLength(1);
     expect(plans[0]?.is_latest).toBe(true);
+  });
+
+  it("updates shelf layout fields and refreshes deterministic shelf-layout flags", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const project = await store.createProject({
+      ...intake,
+      title: `Layout repair shelf ${crypto.randomUUID()}`,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: undefined,
+      shelf_spacing_inches: undefined,
+      intended_use: "Bathroom wall storage for towels.",
+    });
+
+    expect(project.safety_flags).toContain("Shelf count/layout missing");
+
+    const updated = await store.updateProjectShelfLayout(project.id, {
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: 3,
+      shelf_spacing_inches: 12,
+      height_inches: 60,
+    });
+    const reloaded = await store.getProject(project.id);
+
+    expect(updated?.shelf_layout).toBe("multi_shelf_unit");
+    expect(updated?.shelf_count).toBe(3);
+    expect(updated?.shelf_spacing_inches).toBe(12);
+    expect(updated?.height_inches).toBe(60);
+    expect(reloaded?.safety_flags).not.toContain("Shelf count/layout missing");
   });
 
   it("saves a plain-text build log without affecting generated plans", async () => {

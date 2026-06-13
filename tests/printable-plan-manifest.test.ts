@@ -110,14 +110,14 @@ describe("createPrintablePlanManifest", () => {
     expect(manifest.generatedPlan?.id).toBe("manifest_plan");
     expect(manifest.buildModel.source).toBe("saved");
     expect(manifest.materials.primaryMaterials[0]?.label).toBe("3/4 inch pine board");
-    expect(manifest.cutList?.totalPieces).toBe(2);
+    expect(manifest.cutList?.totalPieces).toBe(1);
     expect(manifest.planReview?.manualReviewRequired).toBe(true);
     expect(manifest.exportReadiness?.status).toBe("needs_review");
     expect(manifest.sections.buildSteps[0]?.title).toBe("Review mounting");
     expect(manifest.buildStepCards[0]).toMatchObject({
       title: "Review mounting",
       phaseLabel: "Inspect / review",
-      tools: ["drill"],
+      tools: ["Drill"],
       estimatedTimeLabel: "15 min",
       safetyNote: "Do not rely on Boardsmith for load ratings.",
       relatedOperationTitle: "Inspect mounting location",
@@ -154,7 +154,7 @@ describe("createPrintablePlanManifest", () => {
     expect(manifest.exportReadiness).toBeNull();
     expect(manifest.cutList).toBeNull();
     expect(manifest.buildModel.source).toBe("derived");
-    expect(manifest.futureExportNotes).toContain("Generate and validate a plan before using this manifest for future browser print or output review.");
+    expect(manifest.futureExportNotes).toContain("Generate and validate a plan before using the browser-print build sheet.");
   });
 
   it("marks older plans without stored build model JSON as derived", () => {
@@ -187,6 +187,33 @@ describe("createPrintablePlanManifest", () => {
     expect(manifest.materials.reviewNotes).toEqual(expect.arrayContaining(["No primary material is modeled yet. Review the intake details before relying on this plan."]));
     expect(manifest.cutList?.warnings).toContain("The generated cut list is empty even though the plan has materials or build steps.");
     expect(manifest.exportReadiness?.status).toBe("not_ready");
+  });
+
+  it("normalizes stale connected shelf unit support hardware as quantity-to-review", () => {
+    const staleMultiShelfModel: BoardsmithBuildModel = {
+      ...simpleShelfBuildModelFixture,
+      pieces: [{ ...simpleShelfBuildModelFixture.pieces[0], label: "Shelf boards", quantity: 5 }],
+      hardware: simpleShelfBuildModelFixture.hardware.map((item) => (item.id === "wall_brackets" ? { ...item, quantity: 2 } : item)),
+    };
+    const manifest = createPrintablePlanManifest({
+      project: {
+        ...project,
+        shelf_layout: "multi_shelf_unit",
+        shelf_count: 5,
+        shelf_spacing_inches: 12,
+      },
+      planRecord,
+      buildModel: staleMultiShelfModel,
+      buildModelSource: "saved",
+    });
+
+    expect(manifest.materials.hardwareFasteners).toContainEqual(
+      expect.objectContaining({
+        label: "Support method to review",
+        detail: "quantity to review - bracket - required",
+      }),
+    );
+    expect(manifest.planningDiagrams.diagrams[0]?.title).toBe("Shelf layout overview");
   });
 
   it("preserves export-readiness status when a plan is ready for future output review", () => {

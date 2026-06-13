@@ -12,7 +12,8 @@ import { type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from 
 import { createPrintablePlanManifest, type PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import { getProjectDetailErrorMessage } from "@/lib/projects/project-detail-errors";
-import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/types";
+import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
+import { formatToolLabel, projectTypeLabels, shelfLayoutLabels, shelfLayoutOptions, type Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
@@ -21,6 +22,7 @@ import { GeneratePlanForm } from "./GeneratePlanForm";
 import { PlanActionChecklist } from "./PlanActionChecklist";
 import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
 import { TweakPlanForm } from "./TweakPlanForm";
+import { WallShelfDiagrams } from "./WallShelfDiagrams";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,7 @@ export default async function ProjectDetailPage({
     duplicated?: string;
     notes?: string;
     build_log?: string;
+    shelf_layout?: string;
     compare_plan?: string;
     archived?: string;
     restored?: string;
@@ -103,10 +106,10 @@ export default async function ProjectDetailPage({
 
       {isProjectArchived(project) ? <ArchivedProjectBanner project={project} /> : null}
       {isGenerationFailureReason(query.generation_error) ? (
-        <GenerationFailurePanel reason={query.generation_error} safetyFlags={project.safety_flags} />
+        <GenerationFailurePanel reason={query.generation_error} safetyFlags={project.safety_flags} project={project} />
       ) : null}
       {detailErrorMessage ? <ProjectDetailErrorPanel message={detailErrorMessage} /> : null}
-      {query.generated ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Generated and saved a new validated plan version.</p> : null}
+      {query.generated ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Generated and saved a new plan version for review.</p> : null}
       {query.duplicated ? (
         <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
           Duplicated project intake. Generated plans and history were not copied.
@@ -116,11 +119,16 @@ export default async function ProjectDetailPage({
       {query.build_log === "updated" ? (
         <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Build log saved.</p>
       ) : null}
+      {query.shelf_layout === "updated" ? (
+        <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+          Shelf layout saved. Generate another plan version when the intake looks right.
+        </p>
+      ) : null}
       {query.archived ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project archived. Generated plans and records were preserved.</p> : null}
       {query.restored ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project restored to the active project list.</p> : null}
       {query.revised ? (
         <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-          Revised and saved a new validated plan version. The comparison below shows the new latest plan against the previous version.
+          Revised and saved a new plan version for review. The comparison below shows the new latest plan against the previous version.
         </p>
       ) : null}
       {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} /> : null}
@@ -509,7 +517,7 @@ function NoPlanReviewSummary({ project, isArchived }: { project: Project; isArch
         <NoPlanSummaryFact
           label="Next action"
           value={isArchived ? "Restore before generation" : "Generate Plan remains primary"}
-          detail={isArchived ? "Archived projects are read-only until restored." : "Generation creates the first validated plan version."}
+          detail={isArchived ? "Archived projects are read-only until restored." : "Generation creates the first plan version for review."}
         />
       </div>
     </section>
@@ -605,7 +613,7 @@ function createReviewSummaryItems(manifest: PrintablePlanManifest): ReviewSummar
     {
       label: "Cut list check",
       value: cutList ? `${cutList.piecesNeedingReview.toString()} ${pluralize("row", cutList.piecesNeedingReview)} need review` : "No cut list yet",
-      detail: cutList ? `${cutList.totalPieces.toString()} total pieces are listed for measurement review.` : "Generate a valid plan before cutting.",
+      detail: cutList ? `${cutList.totalPieces.toString()} physical cut ${pluralize("piece", cutList.totalPieces)} across ${cutList.cutListRows.toString()} cut-list ${pluralize("row", cutList.cutListRows)}.` : "Generate a plan before cutting.",
       href: "#cut-list-to-verify",
       tone: cutList && cutList.piecesNeedingReview > 0 ? "warning" : cutList ? "ok" : "blocked",
     },
@@ -688,7 +696,7 @@ function RecommendedNextStep({
     return (
       <NextStepPanel
         title="Review intake, then generate a first plan"
-        body="Check the project intake and review triggers, then use Project actions to generate a first validated plan."
+        body="Check the project intake and review triggers, then use Project actions to generate a first plan version for review."
         links={[
           { href: "#project-intake", label: "Review intake" },
           { href: "#project-actions", label: "Project actions" },
@@ -911,21 +919,50 @@ function TemplateGuidancePanel({ projectTypeLabel, assumptions, cautions }: { pr
 }
 
 function ProjectIntakeCard({ project }: { project: Project }) {
+  const dimensionRows = projectIntakeDimensionRows(project);
+
   return (
     <section id="project-intake" className="scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
       <h2 className="text-lg font-semibold text-ink">Project intake</h2>
       <dl className="mt-4 grid gap-3 text-sm">
-        <Row
-          label="Dimensions"
-          value={`${project.width_inches.toString()} x ${project.height_inches.toString()} x ${project.depth_inches.toString()} in`}
-        />
+        <Row label="Project type" value={projectTypeLabels[project.project_type]} />
+        {dimensionRows.map((row) => (
+          <Row key={row.label} label={row.label} value={row.value} />
+        ))}
         <Row label="Material" value={`${project.material_type}, ${project.material_thickness_inches.toString()} in thick`} />
-        <Row label="Tools" value={project.tools_available.map((tool) => toolLabels[tool]).join(", ")} />
+        <Row label="Tools" value={project.tools_available.map(formatToolLabel).join(", ")} />
         <Row label="Intended use" value={project.intended_use} />
         {project.style_notes ? <Row label="Style notes" value={project.style_notes} /> : null}
       </dl>
     </section>
   );
+}
+
+function projectIntakeDimensionRows(project: Project): { label: string; value: string }[] {
+  if (project.project_type !== "simple_shelf") {
+    return [
+      { label: "Overall width", value: `${project.width_inches.toString()} in` },
+      { label: "Overall height", value: `${project.height_inches.toString()} in` },
+      { label: "Overall depth", value: `${project.depth_inches.toString()} in` },
+      { label: "Material thickness", value: `${project.material_thickness_inches.toString()} in` },
+    ];
+  }
+
+  const shelfIntent = analyzeShelfLayoutIntent(project);
+  const totalHeightValue =
+    shelfIntent.isMultiShelfIntent || project.height_inches !== project.material_thickness_inches
+      ? `${project.height_inches.toString()} in`
+      : "Not specified for single shelf";
+
+  return [
+    { label: "Shelf width", value: `${project.width_inches.toString()} in` },
+    { label: "Total project height", value: totalHeightValue },
+    { label: "Shelf depth from wall", value: `${project.depth_inches.toString()} in` },
+    { label: "Board thickness", value: `${project.material_thickness_inches.toString()} in` },
+    { label: "Shelf layout", value: project.shelf_layout ? shelfLayoutLabels[project.shelf_layout] : shelfIntent.summary },
+    ...(project.shelf_count ? [{ label: "Number of shelves", value: project.shelf_count.toString() }] : []),
+    ...(project.shelf_spacing_inches ? [{ label: "Shelf spacing", value: `${project.shelf_spacing_inches.toString()} in` }] : []),
+  ];
 }
 
 function ProjectNotesCard({ project, isArchived }: { project: Project; isArchived: boolean }) {
@@ -1103,7 +1140,7 @@ function EmptyPlanState({ isArchived }: { isArchived: boolean }) {
         </p>
       ) : (
         <p className="mt-2 text-sm leading-6 text-ink/65">
-          Generate a first plan from Project actions. Boardsmith saves only validated plans; if review blocks generation, you will see what needs attention.
+          Generate a first plan from Project actions. Boardsmith saves plans for review; if review blocks generation, you will see what needs attention.
         </p>
       )}
     </section>
@@ -1119,7 +1156,7 @@ function ProjectDetailErrorPanel({ message }: { message: string }) {
   );
 }
 
-function GenerationFailurePanel({ reason, safetyFlags }: { reason: GenerationFailureReason; safetyFlags: string[] }) {
+function GenerationFailurePanel({ reason, safetyFlags, project }: { reason: GenerationFailureReason; safetyFlags: string[]; project: Project }) {
   const feedback = getGenerationFailureFeedback(reason, safetyFlags);
   const badgeLabel = reason === "missing_openai_key" ? "Not configured" : "Review blocked";
 
@@ -1139,7 +1176,85 @@ function GenerationFailurePanel({ reason, safetyFlags }: { reason: GenerationFai
         <h3 className="text-sm font-semibold text-ink">Try this before generating again</h3>
         <List items={feedback.suggestions} />
       </div>
+      {reason === "shelf_layout_missing" && project.project_type === "simple_shelf" && !isProjectArchived(project) ? (
+        <ShelfLayoutRepairForm project={project} />
+      ) : null}
     </section>
+  );
+}
+
+function ShelfLayoutRepairForm({ project }: { project: Project }) {
+  const defaultLayout = project.shelf_layout ?? "multi_shelf_unit";
+
+  return (
+    <form action={`/projects/${project.id}/shelf-layout`} method="post" className="mt-5 rounded-md border border-amber-200 bg-white p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-ink">Fix shelf layout</h3>
+          <p className="mt-1 text-sm leading-6 text-ink/65">
+            Save these intake details, then generate another plan version. Existing plan history stays available for review.
+          </p>
+        </div>
+        <span className="w-fit rounded-md bg-amber-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-amber-950">
+          Required to generate
+        </span>
+      </div>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <label className="block space-y-2">
+          <span className="text-sm font-semibold text-ink">Shelf layout</span>
+          <select name="shelf_layout" className="input" defaultValue={defaultLayout}>
+            {shelfLayoutOptions.map((layout) => (
+              <option key={layout} value={layout}>
+                {shelfLayoutLabels[layout]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block space-y-2">
+          <span className="text-sm font-semibold text-ink">Number of shelves</span>
+          <input
+            name="shelf_count"
+            required
+            type="number"
+            min="1"
+            max="20"
+            step="1"
+            className="input"
+            placeholder="Example: 2"
+            defaultValue={project.shelf_count?.toString() ?? ""}
+          />
+        </label>
+        <label className="block space-y-2">
+          <span className="text-sm font-semibold text-ink">Total project height, inches</span>
+          <input
+            name="height_inches"
+            type="number"
+            min="0.1"
+            max="240"
+            step="any"
+            className="input"
+            placeholder="Example: 60"
+            defaultValue={project.height_inches.toString()}
+          />
+        </label>
+        <label className="block space-y-2">
+          <span className="text-sm font-semibold text-ink">Shelf spacing, inches, optional</span>
+          <input
+            name="shelf_spacing_inches"
+            type="number"
+            min="0.1"
+            max="120"
+            step="any"
+            className="input"
+            placeholder="Example: 12"
+            defaultValue={project.shelf_spacing_inches?.toString() ?? ""}
+          />
+        </label>
+      </div>
+      <button type="submit" className="mt-4 rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+        Save shelf layout
+      </button>
+    </form>
   );
 }
 
@@ -1186,7 +1301,7 @@ function ExportReadinessPanel({ summary }: { summary: ExportReadinessSummary }) 
         <summary className="cursor-pointer list-none">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-ink">Output readiness notes</h2>
+              <h2 className="text-lg font-semibold text-ink">Advanced output notes</h2>
               <p className="mt-2 text-sm leading-6 text-ink/70">
                 Secondary notes for possible future output work. This MVP uses browser print only; no PDF or CAD download is generated.
               </p>
@@ -1212,7 +1327,7 @@ function ExportReadinessPanel({ summary }: { summary: ExportReadinessSummary }) 
 
           {summary.warningCount > 0 ? <ReviewMessageGroup title="Needs review" messages={summary.warnings.map((issue) => issue.message)} tone="warning" /> : null}
 
-          {summary.exportReadinessNotes.length > 0 ? <ReviewMessageGroup title="Output readiness notes" messages={summary.exportReadinessNotes} tone="info" /> : null}
+          {summary.exportReadinessNotes.length > 0 ? <ReviewMessageGroup title="Advanced output notes" messages={summary.exportReadinessNotes} tone="info" /> : null}
 
           <p className="mt-4 text-sm leading-6 text-ink/70">
             Future output work still requires human review and safe woodworking judgment. This panel does not create export files or production-ready CAD, CNC, DXF, SVG, or PDF output.
@@ -1417,8 +1532,10 @@ function BuildModelView({
           </StructureGroup>
         ) : null}
 
-        <StructureGroup title="Connections">
-          {buildModel.connections.length > 0 ? (
+        <StructureGroup title={buildModel.project.projectType === "simple_shelf" && buildModel.connections.length > 0 ? "Mounting to verify" : "Connections"}>
+          {buildModel.project.projectType === "simple_shelf" && buildModel.connections.length > 0 ? (
+            <WallShelfMountingChecklist />
+          ) : buildModel.connections.length > 0 ? (
             <ul className="space-y-3">
               {buildModel.connections.map((connection) => (
                 <li key={connection.id} className="text-sm leading-6 text-ink/70">
@@ -1467,16 +1584,29 @@ function BuildModelView({
         </StructureGroup>
       </div>
 
-      <div className="mt-5 rounded-md bg-shop p-4">
-        <p className="text-sm font-semibold text-ink">Output readiness notes</p>
+      <details className="mt-5 rounded-md bg-shop p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-ink">Advanced output notes</summary>
         <p className="mt-2 text-sm leading-6 text-ink/65">
           This MVP uses browser print only; no PDF or CAD download is generated. Later output check: SVG{" "}
           {readinessLabel(buildModel.exportReadiness.svgCandidate)}, PDF {readinessLabel(buildModel.exportReadiness.pdfCandidate)}, DXF{" "}
           {readinessLabel(buildModel.exportReadiness.dxfCandidate)}, CAD {readinessLabel(buildModel.exportReadiness.cadCandidate)}.
         </p>
         {buildModel.exportReadiness.notes.length > 0 ? <p className="mt-2 text-sm leading-6 text-ink/65">{buildModel.exportReadiness.notes.join(" ")}</p> : null}
-      </div>
+      </details>
     </section>
+  );
+}
+
+function WallShelfMountingChecklist() {
+  return (
+    <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
+      <p className="text-sm font-semibold text-amber-950">Each shelf needs a verified support method.</p>
+      <ul className="mt-2 space-y-2 text-sm leading-6 text-amber-900">
+        <li>Confirm bracket, cleat, side-support, or frame type.</li>
+        <li>Confirm wall studs or anchors appropriate for the wall type.</li>
+        <li>Confirm hardware and load suitability before mounting.</li>
+      </ul>
+    </div>
   );
 }
 
@@ -1559,9 +1689,10 @@ function CutListReviewSummaryView({
   return (
     <div className={compact ? "space-y-4" : "space-y-5"}>
       {showTitle ? <h4 className="text-sm font-semibold text-ink">Cut List Review</h4> : null}
-      <div className="grid gap-3 sm:grid-cols-3">
-        <ReviewMetric label="Total pieces" value={summary.totalPieces.toString()} />
-        <ReviewMetric label="With dimensions" value={summary.piecesWithDimensions.toString()} />
+      <div className="grid gap-3 sm:grid-cols-4">
+        <ReviewMetric label="Total cut pieces" value={summary.totalPieces.toString()} />
+        <ReviewMetric label="Cut-list rows" value={summary.cutListRows.toString()} />
+        <ReviewMetric label="Pieces with dimensions" value={summary.piecesWithDimensions.toString()} />
         <ReviewMetric label="Needs review" value={summary.piecesNeedingReview.toString()} />
       </div>
 
@@ -1654,7 +1785,11 @@ function PlanView({
         </PlanSheetSection>
 
         <PlanSheetSection title="Planning diagrams">
-          <PlanningDiagramsSection diagrams={manifest.planningDiagrams.diagrams} fallbackMessage={manifest.planningDiagrams.fallbackMessage} />
+          {manifest.wallShelfDiagram ? (
+            <WallShelfDiagrams model={manifest.wallShelfDiagram} compact />
+          ) : (
+            <PlanningDiagramsSection diagrams={manifest.planningDiagrams.diagrams} fallbackMessage={manifest.planningDiagrams.fallbackMessage} />
+          )}
         </PlanSheetSection>
 
         <PlanSheetSection title="Materials to verify">
@@ -1717,7 +1852,7 @@ function PlanView({
               Planning aid only. Boardsmith cannot verify load capacity, wall safety, material condition, or tool setup.
             </p>
           </div>
-          <List items={[...manifest.sections.safetyNotes, ...manifest.disclaimers]} />
+          <List items={manifest.sections.safetyNotes} />
           {manifest.sections.safetyFlags.length > 0 ? (
             <div className="mt-4">
               <h4 className="text-sm font-semibold text-ink">Review triggers</h4>
@@ -1756,9 +1891,6 @@ function PlanView({
           <List items={manifest.sections.beginnerTips} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Output readiness notes">
-          <List items={manifest.futureExportNotes} />
-        </PlanSheetSection>
       </div>
     </article>
   );

@@ -187,9 +187,15 @@ function ConnectionSummary({ diagram }: { diagram: PlanningDiagram }) {
     return <p className="mt-3 rounded-md bg-shop p-3 text-xs leading-5 text-ink/70">{diagram.emptyMessage}</p>;
   }
 
+  const isShelfMounting = diagram.kind === "simple_shelf";
+
   return (
     <div className="mt-2 space-y-2">
-      <p className="text-xs font-medium leading-5 text-ink/65">Connection planning aid. Verify hardware and fasteners before building.</p>
+      <p className="text-xs font-medium leading-5 text-ink/65">
+        {isShelfMounting
+          ? "Mounting to verify. Confirm support type, wall structure, hardware, and expected load before mounting."
+          : "Connection planning aid. Verify hardware and fasteners before building."}
+      </p>
       <ol className="grid gap-2 lg:grid-cols-3">
         {diagram.connections.map((connection, index) => (
           <li key={connection.id} className="rounded-md border border-sawdust p-2.5 text-xs leading-5 text-ink/70">
@@ -202,6 +208,13 @@ function ConnectionSummary({ diagram }: { diagram: PlanningDiagram }) {
               </span>
             </div>
             <p className="mt-1">Location: {connection.location}</p>
+            {isShelfMounting ? (
+              <ul className="mt-2 list-disc space-y-1 pl-4">
+                <li>Confirm bracket, cleat, side-support, or frame type.</li>
+                <li>Confirm studs or anchors appropriate for the wall type.</li>
+                <li>Confirm hardware and load suitability before mounting.</li>
+              </ul>
+            ) : null}
             {connection.safetyNote ? <p className="mt-1 font-medium text-caution">{connection.safetyNote}</p> : null}
           </li>
         ))}
@@ -232,6 +245,25 @@ function PlanningDiagramGraphic({ diagram, featured }: { diagram: PlanningDiagra
 
 function ShelfBoardSvg({ pieces }: { pieces: PlanningDiagram["pieces"] }) {
   const label = pieces[0]?.label ?? "Shelf board";
+  const quantity = Number.parseInt((pieces[0]?.quantityLabel ?? "1").replace(/[^0-9]/g, ""), 10);
+  const shelfCount = Number.isFinite(quantity) && quantity > 1 ? Math.min(quantity, 5) : 1;
+
+  if (shelfCount > 1) {
+    return (
+      <>
+        {Array.from({ length: shelfCount }).map((_, index) => {
+          const y = 38 + index * 22;
+          return <rect key={index} x="64" y={y} width="232" height="11" rx="3" fill="#d9b77f" stroke="#7a5b2e" />;
+        })}
+        <line x1="48" y1="34" x2="48" y2="132" stroke="#7a5b2e" strokeDasharray="4 4" />
+        <line x1="312" y1="34" x2="312" y2="132" stroke="#7a5b2e" strokeDasharray="4 4" />
+        <text x="180" y="150" textAnchor="middle" className="fill-ink text-[12px] font-semibold">
+          {pieces[0]?.quantityLabel ?? shelfCount.toString()} {label}
+        </text>
+      </>
+    );
+  }
+
   return (
     <>
       <rect x="58" y="72" width="244" height="34" rx="4" fill="#d9b77f" stroke="#7a5b2e" />

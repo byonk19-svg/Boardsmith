@@ -225,6 +225,13 @@ function mapConnections(model: BoardsmithBuildModel, pieceById: Map<string, Buil
       const connectionLabel = connection.connectionType.replaceAll("_", " ");
       const hardwareLabel = hardwareLabels.length > 0 ? hardwareLabels.join(", ") : "hardware or fastener to verify";
       const reviewLabel = connection.strengthCritical ? "Needs manual review" : "Verify before building";
+      const wallShelfMounting =
+        model.project.projectType === "simple_shelf" &&
+        connection.fromPieceId === connection.toPieceId &&
+        /\b(bracket|anchor|hanger)\b/.test(connectionLabel);
+      const relationshipLabel = wallShelfMounting
+        ? "Each shelf needs a verified support method."
+        : `${fromPiece.label} to ${toPiece.label} with ${connectionLabel} and ${hardwareLabel}`;
 
       return {
         id: connection.id,
@@ -232,7 +239,7 @@ function mapConnections(model: BoardsmithBuildModel, pieceById: Map<string, Buil
         toLabel: toPiece.label,
         connectionLabel,
         hardwareLabel,
-        relationshipLabel: `${fromPiece.label} → ${connectionLabel} with ${hardwareLabel} → ${toPiece.label}`,
+        relationshipLabel,
         location: connection.locationDescription,
         needsReview: connection.strengthCritical || connection.safetyNotes.length > 0,
         reviewLabel,
@@ -278,6 +285,10 @@ function diagramLabel(kind: PlanningDiagramKind): string {
   return "Shelf board planning diagram";
 }
 
+function isMultiShelfModel(model: BoardsmithBuildModel): boolean {
+  return model.project.projectType === "simple_shelf" && model.pieces.some((piece) => piece.quantity > 1 && /\bshelf\b/i.test(piece.label));
+}
+
 export function createPlanDiagrams(model: BoardsmithBuildModel): PlanningDiagramSummary {
   const richVisuals = {
     projectAnatomy: createProjectAnatomyVisual(model),
@@ -292,12 +303,13 @@ export function createPlanDiagrams(model: BoardsmithBuildModel): PlanningDiagram
   const pieceById = new Map(model.pieces.map((piece) => [piece.id, piece]));
   const pieces = mapPieces(model.pieces);
   const connections = mapConnections(model, pieceById);
+  const multiShelf = isMultiShelfModel(model);
   const diagrams: PlanningDiagram[] = [
     {
       id: `${kind}_overview`,
       type: "overview",
       kind,
-      title: overviewTitle(kind),
+      title: multiShelf ? "Shelf layout overview" : overviewTitle(kind),
       label: diagramLabel(kind),
       disclaimer: planningDiagramDisclaimer,
       pieces,
@@ -321,8 +333,8 @@ export function createPlanDiagrams(model: BoardsmithBuildModel): PlanningDiagram
     id: `${kind}_connection_summary`,
     type: "connection_summary",
     kind,
-    title: "How pieces connect",
-    label: "Connection planning aid",
+    title: kind === "simple_shelf" ? "Mounting to verify" : "How pieces connect",
+    label: kind === "simple_shelf" ? "Mounting planning aid" : "Connection planning aid",
     disclaimer: planningDiagramDisclaimer,
     pieces,
     connections,

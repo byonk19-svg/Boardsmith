@@ -80,6 +80,9 @@ describe("project form routes", () => {
       depth_inches: "4",
       material_thickness_inches: "0.75",
       material_type: "pine board",
+      shelf_layout: "single_shelf",
+      shelf_count: "1",
+      shelf_spacing_inches: "",
       style_notes: "Simple finish.",
       intended_use: "Small indoor shelf.",
       ...overrides,
@@ -141,14 +144,19 @@ describe("project form routes", () => {
     expect(markup).toContain("For a wall shelf, start with width, depth from the wall, and board thickness.");
     expect(markup).toContain("For shelves");
     expect(markup).toContain("Single shelf");
-    expect(markup).toContain("Multi-shelf unit");
-    expect(markup).toContain("describe shelf count/spacing in the notes below");
+    expect(markup).toContain("Multiple separate wall shelves");
+    expect(markup).toContain("Connected shelf unit with side supports/frame");
+    expect(markup).toContain("choose the layout, add the number of shelves");
+    expect(markup).toContain('name="shelf_layout"');
+    expect(markup).toContain('name="shelf_count"');
+    expect(markup).toContain('name="shelf_spacing_inches"');
+    expect(markup).toContain("Number of shelves");
+    expect(markup).toContain("Shelf spacing, inches, optional");
     expect(markup).toContain("Shelf width, inches");
     expect(markup).toContain("Shelf depth from wall, inches");
     expect(markup).toContain("Shelf board thickness, inches");
     expect(markup).toContain("Total project height, inches, optional");
     expect(markup).toContain("A shelf usually needs a depth greater than 0.");
-    expect(markup).toContain("include how many shelves or openings you want");
     expect(markup).toContain("Tools and safety context");
     expect(markup).toContain("Use, constraints, and finish notes");
     expect(markup).toContain("Before saving");
@@ -190,6 +198,8 @@ describe("project form routes", () => {
     expect(markup).toContain('value="8"');
     expect(markup).toContain('value="0.5"');
     expect(markup).toContain('value="1/2 inch plywood"');
+    expect(markup).toContain('<option value="single_shelf" selected="">Single shelf</option>');
+    expect(markup).toContain('name="shelf_count" value="1"');
     expect(markup).toContain("One flat shelf board only");
     expect(markup).toContain("Freestanding wooden riser for a small cordless lamp");
     expect(markup).toContain('checked="" value="tape_measure"');
@@ -232,6 +242,9 @@ describe("project form routes", () => {
       depth_inches: "4",
       material_thickness_inches: "0.75",
       material_type: "pine board",
+      shelf_layout: "multiple_separate_shelves",
+      shelf_count: "2",
+      shelf_spacing_inches: "12",
       tools_available: ["tape_measure", "pencil"],
       style_notes: "Painted white.",
       intended_use: "Indoor wall shelf.",
@@ -252,6 +265,9 @@ describe("project form routes", () => {
     expect(markup).toContain('value="4"');
     expect(markup).toContain('value="0.75"');
     expect(markup).toContain('value="pine board"');
+    expect(markup).toContain('<option value="multiple_separate_shelves" selected="">Multiple separate wall shelves</option>');
+    expect(markup).toContain('name="shelf_count" value="2"');
+    expect(markup).toContain('name="shelf_spacing_inches" value="12"');
     expect(markup).toContain("Painted white.");
     expect(markup).toContain("Indoor wall shelf.");
     expect(markup).toContain('checked="" value="tape_measure"');
@@ -303,6 +319,8 @@ describe("project form routes", () => {
     expect(decodedDraft.title).toBe("Hosted smoke shelf");
     expect(decodedDraft.width_inches).toBe("12");
     expect(decodedDraft.material_thickness_inches).toBe("0.75");
+    expect(decodedDraft.shelf_layout).toBe("single_shelf");
+    expect(decodedDraft.shelf_count).toBe("1");
     expect(decodedDraft.tools_available).toEqual(["tape_measure", "pencil", "drill"]);
     expect(draftCookie).not.toContain("Zod");
     expect(decodedDraft.tools_available).not.toContain("invalid_tool");
@@ -352,6 +370,65 @@ describe("project form routes", () => {
         height_inches: 8,
         depth_inches: 4,
         material_thickness_inches: 0.75,
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+      }),
+    );
+  });
+
+  it("submits structured multi-shelf layout fields", async () => {
+    vi.mocked(createProject).mockResolvedValueOnce({
+      id: "structured_shelf_layout_project",
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+      title: "Two shelf bathroom unit",
+      project_type: "simple_shelf",
+      skill_level: "beginner",
+      status: "draft",
+      width_inches: 24,
+      height_inches: 36,
+      depth_inches: 8,
+      material_thickness_inches: 0.75,
+      material_type: "pine board",
+      shelf_layout: "multiple_separate_shelves",
+      shelf_count: 2,
+      shelf_spacing_inches: 12,
+      tools_available: ["tape_measure", "pencil", "drill"],
+      style_notes: "Simple finish.",
+      intended_use: "Two shelves for towels.",
+      safety_review_required: false,
+      safety_flags: [],
+      notes: "",
+      build_completed: false,
+      build_completed_at: "",
+      build_actual_material: "",
+      build_plan_changes: "",
+      build_lessons_learned: "",
+      ...activeProjectArchiveFields,
+    });
+    const { POST } = await import("@/app/projects/create/route");
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/create", {
+        method: "POST",
+        body: validProjectFormData({
+          title: "Two shelf bathroom unit",
+          height_inches: "36",
+          depth_inches: "8",
+          shelf_layout: "multiple_separate_shelves",
+          shelf_count: "2",
+          shelf_spacing_inches: "12",
+          intended_use: "Two shelves for towels.",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(303);
+    expect(createProject).toHaveBeenCalledWith(
+      expect.objectContaining({
+        shelf_layout: "multiple_separate_shelves",
+        shelf_count: 2,
+        shelf_spacing_inches: 12,
       }),
     );
   });

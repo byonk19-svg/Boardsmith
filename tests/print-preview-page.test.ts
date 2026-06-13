@@ -157,7 +157,10 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Build Snapshot");
     expect(markup).toContain("Difficulty");
     expect(markup).toContain("Time estimate");
-    expect(markup).toContain("Overall dimensions");
+    expect(markup).toContain("Shelf width");
+    expect(markup).toContain("Shelf depth from wall");
+    expect(markup).toContain("Board thickness");
+    expect(markup).not.toContain("Overall dimensions");
     expect(markup).toContain("Main material");
     expect(markup).toContain("Major pieces");
     expect(markup).toContain("First check");
@@ -170,29 +173,33 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Review wall mounting details.");
     expect(markup).toContain("Review safety-trigger notes.");
     expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
-    expect(markup.indexOf("Verify hardware and fasteners before assembly.")).toBeGreaterThan(markup.indexOf("Review Appendix"));
+    expect(markup.indexOf("Boardsmith cannot verify wall safety or load capacity.")).toBeGreaterThan(markup.indexOf("Reference review notes"));
     expect(markup).not.toContain('name="plan_action_');
     expect(markup).not.toContain("Review child-adjacent or load-related safety flags.");
-    expect(markup).toContain("Planning diagram — not to scale");
-    expect(markup).toContain("Project anatomy");
-    expect(markup).toContain("print:h-52");
-    expect(markup).not.toContain("print:h-60");
-    expect(markup).toContain("Width 36 in");
-    expect(markup).toContain("Height 6 in");
-    expect(markup).toContain("Depth 10 in");
-    expect(markup).toContain("Material thickness 0.75 in");
+    expect(markup).toContain("Planning diagram - not to scale");
+    expect(markup).toContain("Front elevation / shelf layout");
+    expect(markup).toContain("Side view");
+    expect(markup).toContain("Cut parts");
+    expect(markup).toContain("Mounting review");
+    expect(markup).toContain("36 in wide");
+    expect(markup).toContain("10 in from wall");
+    expect(markup).toContain("0.75 in thick");
+    expect(markup).toContain("support method to verify");
     expect(markup).not.toContain("Shelf board overview");
     expect(markup).not.toContain("Shelf board piece relationship");
-    expect(markup).toContain("Three-view planning diagram");
-    expect(markup).toContain("Front view");
-    expect(markup).toContain("Top view");
-    expect(markup).toContain("Side view");
-    expect(markup).toContain("Visual piece inventory - planning aid only.");
-    expect(markup.split("Planning diagram — not to scale").length - 1).toBe(1);
+    expect(markup).not.toContain("Project anatomy");
+    expect(markup).not.toContain("Three-view planning diagram");
+    expect(markup.split("Planning diagram - not to scale").length - 1).toBe(1);
     expect(markup).toContain("Materials and Parts");
     expect(markup).toContain("Materials to gather");
-    expect(markup).toContain("Pieces to identify");
+    expect(markup).toContain("Pieces to cut");
+    expect(markup).not.toContain("Pieces to identify");
     expect(markup).toContain("1 - 36 in x 10 in x 0.75 in");
+    expect(markup).toContain("1 planned piece");
+    expect(markup).toContain("Support method needs review");
+    expect(markup).toContain("Wall fasteners depend on wall type");
+    expect(markup).not.toContain("QUANTITY TO REVIEW");
+    expect(markup).not.toContain("PLANNED PCS");
     expect(markup).not.toContain("Plan material:");
     expect(markup).not.toContain("Material checks");
     expect(markup).toContain("Cut Checklist");
@@ -207,21 +214,24 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("drill");
     expect(markup).toContain("Pieces");
     expect(markup).toContain("Shelf board");
+    expect(markup).not.toContain("Shelf boards");
     expect(markup).not.toContain("Do not rely on Boardsmith for load ratings.");
     expect(markup).not.toContain("Modeled step");
     expect(markup).not.toContain("Modeled operations");
     expect(markup).not.toContain("15 min");
-    expect(markup).toContain("Review Appendix");
+    expect(markup).toContain("Reference review notes");
     expect(markup).toContain("Shop notes");
     expect(markup).toContain("Blank space for handwritten notes on the printed plan. Nothing here is saved in Boardsmith.");
     expect(markup).toContain("hidden print:block print:break-before-page");
-    expect(markup).toContain("Additional checklist notes");
-    expect(markup).toContain("Plan review summary");
-    expect(markup).toContain("Review triggers");
-    expect(markup).toContain("Conservative review triggers are not confirmed hazards.");
-    expect(markup).toContain("Safety-sensitive wording can trigger review even when the project excludes that use.");
-    expect(markup).toContain("Planning-aid reminders");
-    expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
+    expect(markup).toContain("Wall/support review");
+    expect(markup).toContain("Open questions");
+    expect(markup).toContain("Finish/humidity notes");
+    expect(markup).toContain("Planning-aid reminder");
+    expect(markup).toContain("No PDF, CAD, CNC, load rating, or engineering sign-off is generated.");
+    expect(markup).not.toContain("Review Appendix");
+    expect(markup).not.toContain("Additional checklist notes");
+    expect(markup).not.toContain("Plan review summary");
+    expect(markup).not.toContain("Conservative review triggers are not confirmed hazards.");
     expect(markup).not.toContain("Export Readiness");
     expect(markup).not.toContain("Future export notes");
     expect(markup).not.toContain("Operations and Build Steps");
@@ -248,11 +258,76 @@ describe("ProjectPrintPreviewPage", () => {
       "Materials and Parts",
       "Cut Checklist",
       "Build Guide",
-      "Review Appendix",
+      "Reference review notes",
     ];
     const sectionIndexes = sectionOrder.map((label) => markup.indexOf(label));
     expect(sectionIndexes.every((index) => index >= 0)).toBe(true);
     expect(sectionIndexes).toEqual([...sectionIndexes].sort((a, b) => a - b));
+  });
+
+  it("dedupes modeled and generated shelf cut rows in the print cut checklist", async () => {
+    const fiveShelfProject: Project = {
+      ...project,
+      width_inches: 12,
+      height_inches: 60,
+      depth_inches: 6,
+      material_thickness_inches: 0.75,
+      material_type: "3/4 in pine board",
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: 5,
+      shelf_spacing_inches: 12,
+    };
+    getProjectMock.mockResolvedValue(fiveShelfProject);
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        plan_json: {
+          ...planRecord.plan_json,
+          estimated_time: "2-3 hours total",
+          cut_list: [
+            {
+              ...planRecord.plan_json.cut_list[0],
+              part_name: "Shelf boards",
+              quantity: 5,
+              length_inches: 12,
+              width_inches: 6,
+              thickness_inches: 0.75,
+              material: "3/4 in pine board",
+            },
+          ],
+        },
+        build_model_json: {
+          ...simpleShelfBuildModelFixture,
+          pieces: [{ ...simpleShelfBuildModelFixture.pieces[0], label: "Shelf boards", quantity: 5 }],
+        },
+      },
+    ]);
+    const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectPrintPreviewPage({
+        params: Promise.resolve({ id: project.id }),
+      }),
+    );
+
+    expect(markup).toContain("Shelf width");
+    expect(markup).toContain("12 in");
+    expect(markup).toContain("Total project height");
+    expect(markup).toContain("60 in");
+    expect(markup).toContain("Shelf depth from wall");
+    expect(markup).toContain("6 in");
+    expect(markup).toContain("Board thickness");
+    expect(markup).toContain("0.75 in");
+    expect(markup).toContain("Total cut pieces");
+    expect(markup).toContain("Unique cuts");
+    expect(markup).not.toContain("Cut-list rows");
+    expect(markup).toContain("Pieces with dimensions");
+    expect(markup).toContain("Shelf boards");
+    expect(markup).toContain("Shelf boards</p><span class=\"w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-ink/70\">Qty 5");
+    expect(markup).toContain("5</td><td class=\"py-2 pr-3 text-ink/70\">12 in x 6 in x 0.75 in</td><td class=\"py-2 pr-3 text-ink/70\">3/4 in pine board");
+    expect(markup.match(/<td class="py-2 pr-3 font-semibold text-ink">Shelf boards<\/td>/g)?.length).toBe(1);
+    expect(markup.match(/<td class="py-2 pr-3 font-semibold text-ink">Shelf board<\/td>/g)?.length ?? 0).toBe(0);
+    expect(markup).toContain("This project creates a simple multi-shelf wall unit for bathroom use: five 12 in wide x 6 in deep shelves made from 0.75 in thick pine boards.");
   });
 
   it("renders book ledge planning diagram labels when supported pieces exist", async () => {
@@ -287,11 +362,11 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("How pieces connect");
     expect(markup).toContain("Connection planning aid");
     expect(markup).toContain("Verify hardware and fasteners before building.");
-    expect(markup).toContain("Front lip → screw with Wood screws → Bottom shelf board");
-    expect(markup).toContain("Back rail → screw with Wood screws → Bottom shelf board");
+    expect(markup).toContain("Front lip to Bottom shelf board with screw and Wood screws");
+    expect(markup).toContain("Back rail to Bottom shelf board with screw and Wood screws");
     expect(markup).toContain("Needs manual review");
     expect(markup).toContain("Review unresolved questions.");
-    expect(markup).toContain("Review finish and drying details.");
+    expect(markup).toContain("Finish/humidity notes");
     expect(markup).toContain("Bottom shelf board");
     expect(markup).toContain("Back rail");
     expect(markup).toContain("Front lip");
@@ -349,11 +424,11 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Planter box overview");
     expect(markup).not.toContain("Planter box piece relationship");
     expect(markup).toContain("How pieces connect");
-    expect(markup).toContain("Front panel → screw with Outdoor-rated screws → Bottom panel");
-    expect(markup).toContain("Back panel → screw with Outdoor-rated screws → Bottom panel");
+    expect(markup).toContain("Front panel to Bottom panel with screw and Outdoor-rated screws");
+    expect(markup).toContain("Back panel to Bottom panel with screw and Outdoor-rated screws");
     expect(markup).toContain("Verify before building");
     expect(markup).toContain("Review unresolved questions.");
-    expect(markup).toContain("Review finish and drying details.");
+    expect(markup).toContain("Finish/humidity notes");
     expect(markup).toContain("Front panel");
     expect(markup).toContain("Back panel");
     expect(markup).toContain("Bottom panel");
@@ -378,9 +453,11 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("How pieces connect");
-    expect(markup).toContain("No modeled connections available yet. Review the build steps before assembling.");
-    expect(markup.split("Planning diagram — not to scale").length - 1).toBe(1);
+    expect(markup).toContain("Mounting review");
+    expect(markup).toContain("support method to verify");
+    expect(markup).toContain("Each shelf needs a verified support method.");
+    expect(markup).not.toContain("No modeled connections available yet. Review the build steps before assembling.");
+    expect(markup.split("Planning diagram - not to scale").length - 1).toBe(1);
   });
 
   it("renders the planning diagram fallback for unsupported project shapes", async () => {
@@ -457,7 +534,7 @@ describe("ProjectPrintPreviewPage", () => {
 
     expect(markup).toContain("Think through the plan");
     expect(markup).toContain("Build step");
-    expect(markup).toContain("pencil");
+    expect(markup).toContain("Pencil");
     expect(markup).not.toContain("Modeled step");
   });
 
@@ -516,7 +593,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Verify dimensions against the real space and material.");
     expect(markup).toContain("Review tool safety and material condition.");
     expect(markup).toContain("Dry fit before final assembly.");
-    expect(markup).toContain("Review before cutting or mounting.");
+    expect(markup).toContain("Use this as a planning aid; verify dimensions, materials, hardware, tool setup, and site conditions before building.");
     expect(markup).not.toContain("load-rated");
     expect(markup).not.toContain("structural approval");
     expect(markup).not.toContain("CAD-ready");

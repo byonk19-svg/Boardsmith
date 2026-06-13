@@ -1,3 +1,4 @@
+import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import type { ProjectIntake } from "@/lib/projects/types";
 
 export type SafetyReviewFlag = {
@@ -31,6 +32,9 @@ export function calculateSafetyReviewFlags(
     | "height_inches"
     | "depth_inches"
     | "material_thickness_inches"
+    | "shelf_layout"
+    | "shelf_count"
+    | "shelf_spacing_inches"
     | "style_notes"
     | "intended_use"
   >,
@@ -82,6 +86,14 @@ export function calculateSafetyReviewFlags(
       code: "heavy_shelving",
       label: "Heavy shelving review",
       reason: "Shelf loads depend on fasteners, wall framing, brackets, and material strength.",
+    });
+  }
+
+  if (analyzeShelfLayoutIntent(project).missingShelfCount) {
+    add({
+      code: "shelf_layout_missing",
+      label: "Shelf count/layout missing",
+      reason: "The intake describes multiple shelves, but does not say how many shelves or openings to plan.",
     });
   }
 

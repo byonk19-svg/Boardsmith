@@ -1,5 +1,6 @@
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { createBuildStepCards, type BuildStepCard } from "@/lib/plans/build-step-cards";
+import { buildWallShelfDiagramModel, type WallShelfDiagramModel } from "@/lib/diagrams/wall-shelf-diagram-model";
 import { summarizeCutListReview, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
 import { summarizeExportReadiness, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
 import { summarizeMaterialReview, type MaterialReviewSummary } from "@/lib/plans/material-summary";
@@ -7,7 +8,7 @@ import { createPlanActionChecklist, type PlanActionChecklistItem } from "@/lib/p
 import { createPlanDiagrams, type PlanningDiagramSummary } from "@/lib/plans/plan-diagrams";
 import { summarizeGeneratedPlanReview, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
-import { projectTypeLabels, toolLabels, type Project } from "@/lib/projects/types";
+import { formatToolLabel, projectTypeLabels, type Project } from "@/lib/projects/types";
 
 export type PrintablePlanBuildModelSource = "saved" | "derived";
 
@@ -29,6 +30,7 @@ export type PrintablePlanManifest = {
     status: Project["status"];
     intake: {
       dimensions: string;
+      dimensionFacts: { label: string; value: string }[];
       material: string;
       tools: string[];
       intendedUse: string;
@@ -59,6 +61,7 @@ export type PrintablePlanManifest = {
   materials: MaterialReviewSummary;
   cutList: CutListReviewSummary | null;
   planningDiagrams: PlanningDiagramSummary;
+  wallShelfDiagram: WallShelfDiagramModel | null;
   buildStepCards: BuildStepCard[];
   actionChecklist: PlanActionChecklistItem[];
   planReview: GeneratedPlanReviewSummary | null;
@@ -82,6 +85,24 @@ export type PrintablePlanManifest = {
 
 function formatProjectDimensions(project: Project): string {
   return `${project.width_inches.toString()} x ${project.height_inches.toString()} x ${project.depth_inches.toString()} in`;
+}
+
+function formatProjectDimensionFacts(project: Project): { label: string; value: string }[] {
+  if (project.project_type === "simple_shelf") {
+    return [
+      { label: "Shelf width", value: `${project.width_inches.toString()} in` },
+      { label: "Total project height", value: `${project.height_inches.toString()} in` },
+      { label: "Shelf depth from wall", value: `${project.depth_inches.toString()} in` },
+      { label: "Board thickness", value: `${project.material_thickness_inches.toString()} in` },
+    ];
+  }
+
+  return [
+    { label: "Width", value: `${project.width_inches.toString()} in` },
+    { label: "Height", value: `${project.height_inches.toString()} in` },
+    { label: "Depth", value: `${project.depth_inches.toString()} in` },
+    { label: "Material thickness", value: `${project.material_thickness_inches.toString()} in` },
+  ];
 }
 
 function formatProjectMaterial(project: Project): string {
@@ -114,7 +135,7 @@ function planSections(plan: GeneratedPlan | null, buildModel: BoardsmithBuildMod
     finishingSteps: plan?.finishing_steps ?? [],
     beginnerTips: plan?.beginner_tips ?? [],
     futureExportReadinessNotes: [...new Set([...(plan?.svg_readiness_notes ?? []), ...buildModel.exportReadiness.notes])],
-    tools: plan?.tools ?? [],
+    tools: (plan?.tools ?? []).map(formatToolLabel),
   };
 }
 
@@ -129,11 +150,11 @@ function baseDisclaimers(buildModel: BoardsmithBuildModel): string[] {
 
 function futureExportNotes(planRecord: GeneratedProjectPlanRecord | null, exportReadiness: ExportReadinessSummary | null): string[] {
   if (!planRecord || !exportReadiness) {
-    return ["Generate and validate a plan before using this manifest for future browser print or output review."];
+    return ["Generate and validate a plan before using the browser-print build sheet."];
   }
 
   const notes = [
-    "Future output review can use this internal data shape, but no files or downloads are created here.",
+    "Advanced output checks can be reviewed later; no files or downloads are created here.",
     ...exportReadiness.exportReadinessNotes,
     ...exportReadiness.topMessages,
   ];
@@ -145,19 +166,71 @@ function futureExportNotes(planRecord: GeneratedProjectPlanRecord | null, export
   return [...new Set(notes)];
 }
 
+function normalizeShelfSupportModel(project: Project, buildModel: BoardsmithBuildModel): BoardsmithBuildModel {
+  if (project.project_type !== "simple_shelf" || !project.shelf_layout || !project.shelf_count || project.shelf_count <= 1) {
+    return buildModel;
+  }
+
+  const shelfPieceQuantity = buildModel.pieces.find((piece) => piece.id === "shelf_board")?.quantity ?? project.shelf_count;
+  const shelfCount = Math.max(project.shelf_count, shelfPieceQuantity);
+
+  return {
+    ...buildModel,
+    hardware: buildModel.hardware.map((item) => {
+      if (item.id !== "wall_brackets") return item;
+
+      if (project.shelf_layout === "multiple_separate_shelves") {
+        return {
+          ...item,
+          label: "Wall bracket placeholders",
+          quantity: shelfCount * 2,
+          notes: [
+            `Cautious placeholder only: assumes 2 brackets per shelf, so ${shelfCount.toString()} shelves means ${(shelfCount * 2).toString()} brackets before final review.`,
+            "Final hardware quantity depends on bracket type, expected load, wall structure, and support design.",
+          ],
+        };
+      }
+
+      return {
+        ...item,
+        label: "Support method to review",
+        quantity: null,
+        notes: [
+          "Connected shelf units need verified side supports, frame, cleat, brackets, or another support method before hardware quantity can be trusted.",
+          "Final hardware quantity depends on bracket type, expected load, wall structure, and support design.",
+        ],
+      };
+    }),
+    connections: buildModel.connections.map((connection) =>
+      connection.id === "wall_brackets_to_shelf_board"
+        ? {
+            ...connection,
+            safetyNotes: ["Each shelf needs a verified support method before mounting or loading."],
+            notes:
+              project.shelf_layout === "multi_shelf_unit"
+                ? ["Connected shelf unit support/frame details are not specified; do not rely on a fixed bracket count."]
+                : connection.notes,
+          }
+        : connection,
+    ),
+  };
+}
+
 export function createPrintablePlanManifest({
   project,
   planRecord,
   buildModel,
   buildModelSource,
 }: PrintablePlanManifestInput): PrintablePlanManifest {
+  const reviewBuildModel = normalizeShelfSupportModel(project, buildModel);
   const plan = planRecord?.plan_json ?? null;
-  const planReview = plan ? summarizeGeneratedPlanReview(plan, buildModel, { buildModelSource }) : null;
-  const exportReadiness = plan ? summarizeExportReadiness(plan, buildModel, { buildModelSource }) : null;
-  const materials = summarizeMaterialReview(plan, buildModel);
-  const cutList = plan ? summarizeCutListReview(plan, buildModel) : null;
+  const planReview = plan ? summarizeGeneratedPlanReview(plan, reviewBuildModel, { buildModelSource }) : null;
+  const exportReadiness = plan ? summarizeExportReadiness(plan, reviewBuildModel, { buildModelSource }) : null;
+  const materials = summarizeMaterialReview(plan, reviewBuildModel);
+  const cutList = plan ? summarizeCutListReview(plan, reviewBuildModel) : null;
+  const wallShelfDiagram = buildWallShelfDiagramModel({ project, buildModel: reviewBuildModel, cutList });
   const actionChecklist = createPlanActionChecklist({
-    buildModel,
+    buildModel: reviewBuildModel,
     materialReview: materials,
     cutListReview: cutList,
     planReview,
@@ -174,8 +247,9 @@ export function createPrintablePlanManifest({
       status: project.status,
       intake: {
         dimensions: formatProjectDimensions(project),
+        dimensionFacts: formatProjectDimensionFacts(project),
         material: formatProjectMaterial(project),
-        tools: project.tools_available.map((tool) => toolLabels[tool]),
+        tools: project.tools_available.map(formatToolLabel),
         intendedUse: project.intended_use,
         styleNotes: project.style_notes || null,
         safetyReviewRequired: project.safety_review_required,
@@ -186,22 +260,23 @@ export function createPrintablePlanManifest({
     buildModel: {
       available: true,
       source: buildModelSource,
-      schemaVersion: buildModel.schemaVersion,
-      units: buildModel.units,
-      confidenceLevel: buildModel.confidence.level,
-      pieceCount: buildModel.pieces.length,
-      materialCount: buildModel.materials.length,
-      operationCount: buildModel.operations.length,
+      schemaVersion: reviewBuildModel.schemaVersion,
+      units: reviewBuildModel.units,
+      confidenceLevel: reviewBuildModel.confidence.level,
+      pieceCount: reviewBuildModel.pieces.length,
+      materialCount: reviewBuildModel.materials.length,
+      operationCount: reviewBuildModel.operations.length,
     },
     materials,
     cutList,
-    planningDiagrams: createPlanDiagrams(buildModel),
-    buildStepCards: plan ? createBuildStepCards(plan.assembly_steps, buildModel) : [],
+    planningDiagrams: createPlanDiagrams(reviewBuildModel),
+    wallShelfDiagram,
+    buildStepCards: plan ? createBuildStepCards(plan.assembly_steps, reviewBuildModel) : [],
     actionChecklist,
     planReview,
     exportReadiness,
-    sections: planSections(plan, buildModel),
-    disclaimers: [...new Set(baseDisclaimers(buildModel))],
+    sections: planSections(plan, reviewBuildModel),
+    disclaimers: [...new Set(baseDisclaimers(reviewBuildModel))],
     futureExportNotes: futureExportNotes(planRecord, exportReadiness),
   };
 }

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { classifyGenerationFailure } from "@/lib/ai/generation-feedback";
 import { generateStructuredProjectPlan } from "@/lib/ai/generate-project-plan";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
+import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, saveGeneratedPlan } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
@@ -15,6 +16,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   }
 
   try {
+    if (analyzeShelfLayoutIntent(project).missingShelfCount) {
+      return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=shelf_layout_missing#project-intake`, request.url), 303);
+    }
+
     const buildModel = createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
     const result = await generateStructuredProjectPlan(project, buildModel);
     await saveGeneratedPlan({
