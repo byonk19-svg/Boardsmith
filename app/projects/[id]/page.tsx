@@ -1800,11 +1800,6 @@ function PlanView({
             <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Print build sheet</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Latest generated plan</h2>
             <p className="mt-3 leading-7 text-ink/75">A readable planning sheet assembled from the saved generated plan and deterministic review data.</p>
-            {generatedPlan.summary ? (
-              <p className="mt-3 text-sm leading-7 text-ink/75">{generatedPlan.summary}</p>
-            ) : (
-              <p className="mt-3 text-sm leading-7 text-ink/65">No project summary was saved with this generated plan.</p>
-            )}
             <p className="mt-3 text-sm font-medium text-caution">Review before building. Use your own judgment before cutting or assembling.</p>
             <p className="mt-2 text-sm leading-6 text-ink/65">This MVP uses browser print only; no PDF or CAD download is generated.</p>
           </div>
@@ -1842,16 +1837,6 @@ function PlanView({
           ) : (
             <PlanningDiagramsSection diagrams={manifest.planningDiagrams.diagrams} fallbackMessage={manifest.planningDiagrams.fallbackMessage} />
           )}
-        </PlanSheetSection>
-
-        <PlanSheetSection title="Check Before Building">
-          <PlanActionChecklist items={manifest.actionChecklist} />
-        </PlanSheetSection>
-
-        <PlanSheetSection title="Materials and Parts">
-          <MaterialReviewSummaryView summary={manifest.materials} />
-          <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
-          <List items={modeledPieces.map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`)} />
         </PlanSheetSection>
 
         <PlanSheetSection id="cut-list-to-verify" title="Cut Checklist">
@@ -1894,6 +1879,12 @@ function PlanView({
           )}
         </PlanSheetSection>
 
+        <PlanSheetSection title="Materials and Parts">
+          <MaterialReviewSummaryView summary={manifest.materials} />
+          <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
+          <List items={modeledPieces.map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`)} />
+        </PlanSheetSection>
+
         <PlanSheetSection title="Build Guide">
           <div className="mb-4">
             <BuildStepStatusSummary viewModel={manifest.wallShelfBuildStepViewModel} />
@@ -1901,8 +1892,18 @@ function PlanView({
           <BuildStepCards cards={manifest.buildStepCards} />
         </PlanSheetSection>
 
+        <PlanSheetSection title="Check Before Building">
+          <PlanActionChecklist items={manifest.actionChecklist} />
+        </PlanSheetSection>
+
         <PlanSheetSection title="Reference Review Notes">
-          <h4 className="text-sm font-semibold text-ink">Structured build sequence</h4>
+          <h4 className="text-sm font-semibold text-ink">Generated plan summary</h4>
+          {generatedPlan.summary ? (
+            <p className="mt-2 text-sm leading-6 text-ink/70">{generatedPlan.summary}</p>
+          ) : (
+            <p className="mt-2 text-sm leading-6 text-ink/65">No project summary was saved with this generated plan.</p>
+          )}
+          <h4 className="mt-5 text-sm font-semibold text-ink">Structured build sequence</h4>
           <List items={manifest.sections.modeledOperations.map((operation) => `${operation.sequenceNumber.toString()}. ${operation.title}: ${operation.description}`)} />
           <h4 className="mt-5 text-sm font-semibold text-ink">Tools</h4>
           <List items={manifest.sections.tools} />

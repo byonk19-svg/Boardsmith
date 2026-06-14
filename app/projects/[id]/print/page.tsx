@@ -62,7 +62,6 @@ export default async function ProjectPrintPreviewPage({
           <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Print build sheet</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">{manifest.project.title}</h1>
           <p className="mt-3 text-sm font-semibold text-caution">Planning aid: verify dimensions, materials, hardware, and safety notes before building.</p>
-          {printOpeningSummary(manifest) ? <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/75">{printOpeningSummary(manifest)}</p> : null}
         </header>
 
         <PrintSection title="Build Snapshot">
@@ -88,20 +87,20 @@ export default async function ProjectPrintPreviewPage({
           )}
         </PrintSection>
 
-        <PrintSection title="Check Before Building" printBreakBefore>
-          <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
+        <PrintSection title="Cut Checklist" printBreakBefore>
+          <PrintCutChecklist manifest={manifest} />
         </PrintSection>
 
         <PrintSection title="Materials and Parts">
           <PrintMaterialsAndParts manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Cut Checklist" printBreakBefore>
-          <PrintCutChecklist manifest={manifest} />
-        </PrintSection>
-
         <PrintSection title="Build Guide" printBreakBefore>
           <PrintBuildGuide manifest={manifest} />
+        </PrintSection>
+
+        <PrintSection title="Check Before Building">
+          <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
         </PrintSection>
 
         <PrintSection title="Reference Review Notes" appendix printBreakBefore>
@@ -242,12 +241,16 @@ function PrintBuildGuide({ manifest }: { manifest: PrintablePlanManifest }) {
 
 function PrintReviewDetails({ manifest }: { manifest: PrintablePlanManifest }) {
   const groups = referenceReviewGroups(manifest);
+  const generatedSummary = printOpeningSummary(manifest);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      {groups.map((group) => (
-        <PrintList key={group.title} title={group.title} items={group.items} emptyCopy={group.emptyCopy} compact={group.compact} />
-      ))}
+    <div className="space-y-4">
+      <PrintList title="Generated plan summary" items={generatedSummary ? [generatedSummary] : []} emptyCopy="No generated summary listed." />
+      <div className="grid gap-4 lg:grid-cols-2">
+        {groups.map((group) => (
+          <PrintList key={group.title} title={group.title} items={group.items} emptyCopy={group.emptyCopy} compact={group.compact} />
+        ))}
+      </div>
     </div>
   );
 }

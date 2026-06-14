@@ -469,15 +469,17 @@ describe("ProjectDetailPage project structure", () => {
       "Build Snapshot",
       "Hero Visual",
       "Project Visuals / Diagrams",
-      "Check Before Building",
-      "Materials and Parts",
       "Cut Checklist",
+      "Materials and Parts",
       "Build Guide",
+      "Check Before Building",
       "Reference Review Notes",
     ];
     const corePacketIndexes = corePacketOrder.map((label) => markup.indexOf(label));
     expect(corePacketIndexes.every((index) => index >= 0)).toBe(true);
     expect(corePacketIndexes).toEqual([...corePacketIndexes].sort((a, b) => a - b));
+    expect(markup.indexOf(planRecord.plan_json.project_summary)).toBeGreaterThan(markup.indexOf("Reference Review Notes"));
+    expect(markup.indexOf(planRecord.plan_json.project_summary)).toBeGreaterThan(markup.indexOf("Build Guide"));
 
     expect(markup).toContain("Tweak this plan");
     expect(markup).toContain("Describe one change to the latest plan.");

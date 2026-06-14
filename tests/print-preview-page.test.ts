@@ -265,15 +265,17 @@ describe("ProjectPrintPreviewPage", () => {
       "Build Snapshot",
       "Hero Visual",
       "Project Visuals / Diagrams",
-      "Check Before Building",
-      "Materials and Parts",
       "Cut Checklist",
+      "Materials and Parts",
       "Build Guide",
+      "Check Before Building",
       "Reference Review Notes",
     ];
     const sectionIndexes = sectionOrder.map((label) => markup.indexOf(label));
     expect(sectionIndexes.every((index) => index >= 0)).toBe(true);
     expect(sectionIndexes).toEqual([...sectionIndexes].sort((a, b) => a - b));
+    expect(markup.indexOf("A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.")).toBeGreaterThan(markup.indexOf("Reference Review Notes"));
+    expect(markup.indexOf("A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.")).toBeGreaterThan(markup.indexOf("Build Guide"));
   });
 
   it("dedupes modeled and generated shelf cut rows in the print cut checklist", async () => {
