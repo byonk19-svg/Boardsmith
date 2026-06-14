@@ -8,6 +8,7 @@ import { createPlanActionChecklist, type PlanActionChecklistItem } from "@/lib/p
 import { createPlanDiagrams, type PlanningDiagramSummary } from "@/lib/plans/plan-diagrams";
 import { summarizeGeneratedPlanReview, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
+import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
 import { formatToolLabel, projectTypeLabels, type Project } from "@/lib/projects/types";
 
 export type PrintablePlanBuildModelSource = "saved" | "derived";
@@ -84,14 +85,20 @@ export type PrintablePlanManifest = {
 };
 
 function formatProjectDimensions(project: Project): string {
+  if (hasImpossibleShelfHeight(project)) {
+    return `${project.width_inches.toString()} x total height needs review x ${project.depth_inches.toString()} in`;
+  }
+
   return `${project.width_inches.toString()} x ${project.height_inches.toString()} x ${project.depth_inches.toString()} in`;
 }
 
 function formatProjectDimensionFacts(project: Project): { label: string; value: string }[] {
+  const totalHeightValue = hasImpossibleShelfHeight(project) ? "Total height needs review" : `${project.height_inches.toString()} in`;
+
   if (project.project_type === "simple_shelf") {
     return [
       { label: "Shelf width", value: `${project.width_inches.toString()} in` },
-      { label: "Total project height", value: `${project.height_inches.toString()} in` },
+      { label: "Total project height", value: totalHeightValue },
       { label: "Shelf depth from wall", value: `${project.depth_inches.toString()} in` },
       { label: "Board thickness", value: `${project.material_thickness_inches.toString()} in` },
     ];
@@ -99,7 +106,7 @@ function formatProjectDimensionFacts(project: Project): { label: string; value: 
 
   return [
     { label: "Width", value: `${project.width_inches.toString()} in` },
-    { label: "Height", value: `${project.height_inches.toString()} in` },
+    { label: "Height", value: totalHeightValue },
     { label: "Depth", value: `${project.depth_inches.toString()} in` },
     { label: "Material thickness", value: `${project.material_thickness_inches.toString()} in` },
   ];
@@ -109,14 +116,18 @@ function formatProjectMaterial(project: Project): string {
   return `${project.material_type}, ${project.material_thickness_inches.toString()} in thick`;
 }
 
-function generatedPlanSummary(planRecord: GeneratedProjectPlanRecord | null) {
+function generatedPlanSummary(planRecord: GeneratedProjectPlanRecord | null, buildModel: BoardsmithBuildModel) {
   if (!planRecord) return null;
+
+  const summary = hasConnectedShelfSupportPlaceholder(buildModel)
+    ? "This saved plan needs support/frame review before it can be treated as a complete connected shelf unit. Confirm total height, side supports/frame, mounting method, and cut dimensions before building."
+    : planRecord.plan_json.project_summary;
 
   return {
     id: planRecord.id,
     createdAt: planRecord.created_at,
     modelName: planRecord.model_name,
-    summary: planRecord.plan_json.project_summary,
+    summary,
     confidenceLevel: planRecord.confidence_level,
     estimatedDifficulty: planRecord.plan_json.estimated_difficulty,
     estimatedTime: planRecord.plan_json.estimated_time,
@@ -173,9 +184,45 @@ function normalizeShelfSupportModel(project: Project, buildModel: BoardsmithBuil
 
   const shelfPieceQuantity = buildModel.pieces.find((piece) => piece.id === "shelf_board")?.quantity ?? project.shelf_count;
   const shelfCount = Math.max(project.shelf_count, shelfPieceQuantity);
+  const issues = findShelfLayoutIssues(project);
+  const supportFrameLengthInches = hasImpossibleShelfHeight(project) ? null : project.height_inches;
+  const existingSafetyFlagIds = new Set(buildModel.safety.flags.map((flag) => flag.id));
+  const issueFlags = issues
+    .filter((issue) => !existingSafetyFlagIds.has(issue.code))
+    .map((issue) => ({
+      id: issue.code,
+      category: issue.code === "shelf_height_impossible" ? ("unclear_dimensions" as const) : ("wall_mounting" as const),
+      severity: "high_review" as const,
+      message: issue.label,
+      recommendedAction: issue.recommendedAction,
+    }));
+  const supportPlaceholder =
+    project.shelf_layout === "multi_shelf_unit" && !hasConnectedShelfSupportPlaceholder(buildModel)
+      ? [
+          {
+            id: "side_support_frame_placeholder",
+            label: "Side support/frame placeholders",
+            quantity: 2,
+            pieceType: "other" as const,
+            materialId: buildModel.materials[0]?.id ?? null,
+            dimensions: {
+              lengthInches: supportFrameLengthInches,
+              widthInches: project.depth_inches,
+              thicknessInches: project.material_thickness_inches,
+            },
+            grainDirection: "length" as const,
+            notes: [
+              "Connected shelf unit support/frame details are unresolved.",
+              ...(supportFrameLengthInches ? [] : ["Total height needs review before support/frame piece dimensions can be trusted."]),
+              "Confirm side supports, frame, cleats, or bracket design before cutting or assembly.",
+            ],
+          },
+        ]
+      : [];
 
   return {
     ...buildModel,
+    pieces: [...buildModel.pieces, ...supportPlaceholder],
     hardware: buildModel.hardware.map((item) => {
       if (item.id !== "wall_brackets") return item;
 
@@ -213,6 +260,41 @@ function normalizeShelfSupportModel(project: Project, buildModel: BoardsmithBuil
           }
         : connection,
     ),
+    operations: [
+      ...buildModel.operations,
+      ...(supportPlaceholder.length > 0 && !buildModel.operations.some((operation) => operation.id === "confirm_support_frame_design")
+        ? [
+            {
+              id: "confirm_support_frame_design",
+              sequenceNumber: buildModel.operations.length + 1,
+              operationType: "inspect" as const,
+              title: "Confirm support/frame design before assembly",
+              description:
+                "Choose verified side supports, frame, cleat, bracket, or other support method before assembling or mounting this connected shelf unit.",
+              pieceIds: ["shelf_board", "side_support_frame_placeholder"],
+              toolNames: [],
+              safetyNotes: ["Do not treat shelf boards alone as a complete connected shelf unit."],
+              estimatedMinutes: null,
+            },
+          ]
+        : []),
+    ],
+    safety: {
+      ...buildModel.safety,
+      reviewRequired: buildModel.safety.reviewRequired || issueFlags.length > 0,
+      flags: [...buildModel.safety.flags, ...issueFlags],
+    },
+    unresolvedQuestions: [
+      ...buildModel.unresolvedQuestions,
+      ...issues.map((issue) => issue.recommendedAction).filter((message) => !buildModel.unresolvedQuestions.includes(message)),
+    ],
+    confidence:
+      issueFlags.length > 0
+        ? {
+            level: "low" as const,
+            reasons: [...buildModel.confidence.reasons, "Shelf layout dimensions or support/frame details need review before this is a complete build packet."],
+          }
+        : buildModel.confidence,
   };
 }
 
@@ -256,7 +338,7 @@ export function createPrintablePlanManifest({
         safetyFlags: project.safety_flags,
       },
     },
-    generatedPlan: generatedPlanSummary(planRecord),
+    generatedPlan: generatedPlanSummary(planRecord, reviewBuildModel),
     buildModel: {
       available: true,
       source: buildModelSource,

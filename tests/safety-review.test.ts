@@ -93,4 +93,26 @@ describe("calculateSafetyReviewFlags", () => {
 
     expect(flags.map((flag) => flag.code)).toEqual(expect.arrayContaining(["unclear_dimensions", "missing_material_thickness"]));
   });
+
+  it("flags impossible multi-shelf dimensions and unresolved connected support details", () => {
+    const flags = calculateSafetyReviewFlags({
+      ...baseProject,
+      title: "Bathroom shelf with 5 shelves",
+      project_type: "simple_shelf",
+      width_inches: 23,
+      height_inches: 0.1,
+      depth_inches: 8,
+      material_thickness_inches: 0.75,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: 5,
+      intended_use: "Indoor bathroom shelf unit.",
+    });
+
+    expect(flags.map((flag) => flag.code)).toEqual(
+      expect.arrayContaining(["shelf_height_impossible", "connected_shelf_support_incomplete"]),
+    );
+    expect(flags.map((flag) => flag.label)).toEqual(
+      expect.arrayContaining(["Impossible or missing shelf layout dimensions", "Shelf support/frame review"]),
+    );
+  });
 });

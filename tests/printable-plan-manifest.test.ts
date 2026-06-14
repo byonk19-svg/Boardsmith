@@ -213,7 +213,70 @@ describe("createPrintablePlanManifest", () => {
         detail: "quantity to review - bracket - required",
       }),
     );
+    expect(manifest.cutList?.items).toContainEqual(
+      expect.objectContaining({
+        label: "Side support/frame placeholders",
+        status: "needs_measurement",
+      }),
+    );
+    expect(manifest.sections.safetyFlags).toContainEqual(
+      expect.objectContaining({
+        id: "connected_shelf_support_incomplete",
+        message: "Shelf support/frame review",
+      }),
+    );
+    expect(manifest.generatedPlan?.summary).toContain("needs support/frame review");
+    expect(manifest.generatedPlan?.summary).not.toMatch(/freestanding/i);
+    expect(manifest.buildStepCards[0]?.title).not.toMatch(/freestanding/i);
     expect(manifest.planningDiagrams.diagrams[0]?.title).toBe("Shelf layout overview");
+  });
+
+  it("uses safe intake labels for stale impossible multi-shelf dimensions", () => {
+    const manifest = createPrintablePlanManifest({
+      project: {
+        ...project,
+        title: "Bathroom shelf with 5 shelves",
+        width_inches: 23,
+        height_inches: 0.1,
+        depth_inches: 8,
+        material_thickness_inches: 0.75,
+        shelf_layout: "multi_shelf_unit",
+        shelf_count: 5,
+        intended_use: "Indoor bathroom shelf unit.",
+        style_notes: "",
+      },
+      planRecord,
+      buildModel: {
+        ...simpleShelfBuildModelFixture,
+        dimensions: {
+          ...simpleShelfBuildModelFixture.dimensions,
+          widthInches: 23,
+          heightInches: 0.1,
+          depthInches: 8,
+        },
+        pieces: [{ ...simpleShelfBuildModelFixture.pieces[0], label: "Shelf boards", quantity: 5 }],
+      },
+      buildModelSource: "saved",
+    });
+
+    expect(manifest.project.intake.dimensions).toBe("23 x total height needs review x 8 in");
+    expect(manifest.project.intake.dimensionFacts).toContainEqual({
+      label: "Total project height",
+      value: "Total height needs review",
+    });
+    expect(manifest.planningDiagrams.projectAnatomy.heightLabel).toBe("Total height needs review");
+    expect(manifest.cutList?.items).toContainEqual(
+      expect.objectContaining({
+        label: "Side support/frame placeholders",
+        dimensionsLabel: "missing x 8 in x 0.75 in",
+      }),
+    );
+    expect(manifest.sections.safetyFlags).toContainEqual(
+      expect.objectContaining({
+        id: "shelf_height_impossible",
+        message: "Impossible or missing shelf layout dimensions",
+      }),
+    );
   });
 
   it("preserves export-readiness status when a plan is ready for future output review", () => {

@@ -32,6 +32,16 @@ function unique(values: string[]): string[] {
   });
 }
 
+function uniqueItems<T extends MaterialReviewItem>(items: T[]): T[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = normalize(`${item.label} ${item.detail}`);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function hasAnyKeyword(value: string, keywords: string[]): boolean {
   const normalized = normalize(value);
   return keywords.some((keyword) => normalized.includes(keyword));
@@ -117,7 +127,7 @@ function finishSupplies(plan: GeneratedPlan | null, buildModel: BoardsmithBuildM
         notes: [item.notes],
       })) ?? [];
 
-  return [...buildModelFinishSupplies, ...planFinishSupplies];
+  return uniqueItems([...buildModelFinishSupplies, ...planFinishSupplies]);
 }
 
 function reviewNotes(plan: GeneratedPlan | null, buildModel: BoardsmithBuildModel): string[] {
@@ -148,8 +158,8 @@ function reviewNotes(plan: GeneratedPlan | null, buildModel: BoardsmithBuildMode
 
 export function summarizeMaterialReview(plan: GeneratedPlan | null, buildModel: BoardsmithBuildModel): MaterialReviewSummary {
   return {
-    primaryMaterials: primaryMaterials(plan, buildModel),
-    hardwareFasteners: hardwareFasteners(buildModel),
+    primaryMaterials: uniqueItems(primaryMaterials(plan, buildModel)),
+    hardwareFasteners: uniqueItems(hardwareFasteners(buildModel)),
     finishSupplies: finishSupplies(plan, buildModel),
     reviewNotes: reviewNotes(plan, buildModel),
   };

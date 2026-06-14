@@ -1,4 +1,4 @@
-export const generationFailureReasons = ["shelf_layout_missing", "review_blocked", "validation_failed", "missing_openai_key", "generation_failed"] as const;
+export const generationFailureReasons = ["shelf_layout_missing", "shelf_layout_invalid", "review_blocked", "validation_failed", "missing_openai_key", "generation_failed"] as const;
 
 export type GenerationFailureReason = (typeof generationFailureReasons)[number];
 
@@ -41,6 +41,18 @@ export function getGenerationFailureFeedback(reason: GenerationFailureReason, sa
       suggestions: [
         "Choose the shelf layout and enter the number of shelves.",
         "For a connected shelf unit, include the total height and approximate spacing if known.",
+      ],
+    };
+  }
+
+  if (reason === "shelf_layout_invalid") {
+    return {
+      title: "Shelf layout dimensions need review.",
+      summary: "No plan was generated.",
+      detail: "Total project height looks too small for the requested shelf count, so Boardsmith cannot create a trustworthy build packet.",
+      suggestions: [
+        "Total project height looks too small for 5 shelves. Enter the full top-to-bottom height of the shelf unit, such as 60 in.",
+        "For connected shelf units, include side support, frame, cleat, bracket, or other support details before treating the plan as complete.",
       ],
     };
   }

@@ -223,4 +223,36 @@ describe("createBuildStepCards", () => {
 
     expect(cards[0]?.estimatedTimeLabel).toBe("1 hr 15 min");
   });
+
+  it("replaces freestanding assembly wording when connected shelf support is unresolved", () => {
+    const connectedModel = createBuildModelDraft({
+      ...baseDraftProject,
+      title: "Bathroom shelf with 5 shelves",
+      height_inches: 60,
+      depth_inches: 8,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: 5,
+      intended_use: "Indoor bathroom shelf unit.",
+    });
+    const cards = createBuildStepCards(
+      [
+        {
+          ...baseStep,
+          step_number: 3,
+          title: "Assemble shelves as freestanding unit",
+          instructions: "Stack and assemble the shelves as a freestanding unit before mounting.",
+          tools_used: ["drill"],
+          safety_note: null,
+        },
+      ],
+      connectedModel,
+    );
+
+    expect(cards[0]).toMatchObject({
+      title: "Confirm support/frame design before assembly",
+      phaseLabel: "Inspect / review",
+      safetyNote: "Do not treat shelf boards alone as a complete connected shelf unit.",
+    });
+    expect(`${cards[0]?.title} ${cards[0]?.instructions}`).not.toMatch(/freestanding/i);
+  });
 });

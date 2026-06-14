@@ -25,6 +25,9 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
   const wallHardwareModeled = Boolean(
     buildModel?.hardware.some((item) => item.hardwareType === "anchor" || item.hardwareType === "bracket" || item.hardwareType === "hanger"),
   );
+  const connectedShelfSupportReviewRequired =
+    (buildModel?.pieces.some((piece) => piece.id === "side_support_frame_placeholder") ?? false) ||
+    (buildModel?.safety.flags.some((flag) => flag.id === "connected_shelf_support_incomplete") ?? false);
   const exactReviewLabels = [...new Set([...safetyFlags.map((flag) => flag.label), ...(buildModel?.safety.flags.map((flag) => flag.message) ?? [])])];
 
   return {
@@ -36,6 +39,7 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
       bathroom_or_humidity_review: bathroomOrHumidityReview,
       book_ledge_review: bookLedgeReview,
       wall_hardware_modeled: wallHardwareModeled,
+      connected_shelf_support_review_required: connectedShelfSupportReviewRequired,
       exact_review_labels_required: exactReviewLabels,
       use_template_hints_as_guidance_only: true,
       if_wall_mounting_review_is_false:
@@ -88,6 +92,7 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
       "For book ledges, reuse modeled ledge piece names such as bottom shelf board, back rail, and front lip when present; do not add unmodeled child-safety claims.",
       "For bathroom shelves, include humidity and finish assumptions as review notes rather than waterproof or load-capacity claims.",
       "For child-adjacent finish notes, write adult-reviewed non-toxic finish selection instead of child-safe finish, kid-safe finish, or safe for toddlers.",
+      "If the build model includes side_support_frame_placeholder or Shelf support/frame review, do not describe the shelf as freestanding or complete; require support/frame confirmation before assembly or mounting.",
       "If a detail is unknown, state it as an assumption or manual review question instead of inventing a certification, load rating, or production-ready output.",
       "For lamp risers or lighted-item stands, plan only the wooden support unless the intake asks for electrical work. Do not provide wiring instructions.",
     ],

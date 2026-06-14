@@ -9,6 +9,7 @@ import {
   type BuildModelSafetyFlag,
 } from "@/lib/build-model/build-model-schema";
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
+import { findShelfLayoutIssues, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
 import { projectTypes, type Project, type ProjectType, type SkillLevel } from "@/lib/projects/types";
 import type { SafetyReviewFlag } from "@/lib/safety/safety-review";
 import { getTemplateHint, type TemplateHint } from "@/lib/templates/template-hints";
@@ -117,6 +118,8 @@ function mapSafetyFlag(flag: SafetyReviewFlag): BuildModelSafetyFlag {
     unclear_dimensions: "unclear_dimensions",
     missing_material_thickness: "missing_material_thickness",
     shelf_layout_missing: "unclear_dimensions",
+    shelf_height_impossible: "unclear_dimensions",
+    connected_shelf_support_incomplete: "wall_mounting",
   };
 
   const highReviewCodes = new Set([
@@ -126,6 +129,8 @@ function mapSafetyFlag(flag: SafetyReviewFlag): BuildModelSafetyFlag {
     "ladder_or_platform",
     "heavy_shelving",
     "shelf_layout_missing",
+    "shelf_height_impossible",
+    "connected_shelf_support_incomplete",
   ]);
   const category = categoryByCode[flag.code] ?? "other";
 
@@ -634,6 +639,11 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
   const shelfSpacing = project.shelf_spacing_inches;
   const multipleSeparateWallShelves = project.shelf_layout === "multiple_separate_shelves" && shelfQuantity > 1;
   const connectedShelfUnit = project.shelf_layout === "multi_shelf_unit" && shelfQuantity > 1;
+  const shelfLayoutIssues = findShelfLayoutIssues(project);
+  const hasConnectedSupportIssue = shelfLayoutIssues.some((issue) => issue.code === "connected_shelf_support_incomplete");
+  const supportFrameLengthInches = hasImpossibleShelfHeight(project) ? null : project.height_inches;
+  const mountingStepNumber = connectedShelfUnit ? 4 : 3;
+  const finishStepNumber = wallMounted ? (connectedShelfUnit ? 5 : 4) : connectedShelfUnit ? 4 : 3;
   const hardwareItems = [
     ...(wallMounted
       ? [
@@ -691,6 +701,26 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
           ...(bathroomOrHumidity ? ["Bathroom humidity and finish choice require manual review."] : []),
         ],
       }),
+      ...(connectedShelfUnit
+        ? [
+            makePiece({
+              id: "side_support_frame_placeholder",
+              label: "Side support/frame placeholders",
+              quantity: 2,
+              pieceType: "other",
+              materialId,
+              lengthInches: supportFrameLengthInches,
+              widthInches: project.depth_inches,
+              thicknessInches: project.material_thickness_inches,
+              grainDirection: "length",
+              notes: [
+                "Connected shelf unit support/frame details are unresolved.",
+                ...(supportFrameLengthInches ? [] : ["Total height needs review before support/frame piece dimensions can be trusted."]),
+                "Confirm side supports, frame, cleats, or bracket design before cutting or assembly.",
+              ],
+            }),
+          ]
+        : []),
     ],
     hardware: hardwareItems,
     connections: wallMounted
@@ -733,11 +763,26 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
         toolNames: project.tools_available,
         safetyNotes: ["Wear appropriate PPE and control dust."],
       }),
+      ...(connectedShelfUnit
+        ? [
+            operation({
+              id: "confirm_support_frame_design",
+              sequenceNumber: 3,
+              operationType: "inspect",
+              title: "Confirm support/frame design before assembly",
+              description:
+                "Choose verified side supports, frame, cleat, bracket, or other support method before assembling or mounting this connected shelf unit.",
+              pieceIds: ["shelf_board", "side_support_frame_placeholder"],
+              toolNames: project.tools_available,
+              safetyNotes: ["Do not treat shelf boards alone as a complete connected shelf unit."],
+            }),
+          ]
+        : []),
       ...(wallMounted
         ? [
             operation({
               id: "inspect_mounting_location",
-              sequenceNumber: 3,
+              sequenceNumber: mountingStepNumber,
               operationType: "inspect",
               title: "Inspect mounting location",
               description: "Review wall structure, stud locations, anchor choice, fasteners, and expected use before drilling or mounting.",
@@ -751,7 +796,7 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
         ? [
             operation({
               id: "review_bathroom_finish",
-              sequenceNumber: wallMounted ? 4 : 3,
+              sequenceNumber: finishStepNumber,
               operationType: "inspect",
               title: "Review bathroom finish",
               description: "Choose finish and hardware appropriate for bathroom humidity before use.",
@@ -770,6 +815,7 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
             ? [`Bracket placeholder uses 2 per shelf for planning only: ${(shelfQuantity * 2).toString()} brackets for ${shelfQuantity.toString()} shelves.`]
             : []),
           ...(connectedShelfUnit ? ["Connected shelf unit support/frame details are not specified, so support hardware quantity remains to review."] : []),
+          ...(hasConnectedSupportIssue ? ["Connected shelf units need side supports, frame, cleat, brackets, or another verified support method before the build packet is complete."] : []),
           ...(shelfQuantity > 1 && shelfSpacing ? [`The intake gives approximate shelf spacing as ${shelfSpacing.toString()} inches.`] : []),
           ...(bathroomOrHumidity ? ["Bathroom humidity may require moisture-resistant finish and corrosion-resistant hardware review."] : []),
         ]
@@ -783,6 +829,7 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
         ? ["How many shelves or openings are intended? Add the shelf count before generating a final shelf plan."]
         : []),
       ...(wallMounted ? ["What wall type, bracket type, and fasteners will be used?"] : []),
+      ...(hasConnectedSupportIssue ? ["What side support, frame, cleat, bracket, or other support design connects the shelves?"] : []),
       ...(bathroomOrHumidity ? ["What finish and hardware are appropriate for bathroom humidity?"] : []),
       "What load, if any, is expected? Boardsmith will not certify load capacity.",
     ],

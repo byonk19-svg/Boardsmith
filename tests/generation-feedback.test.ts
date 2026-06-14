@@ -24,4 +24,14 @@ describe("getGenerationFailureFeedback", () => {
     expect(feedback.summary).toContain("OPENAI_API_KEY");
     expect(feedback.suggestions).toContain("Add OPENAI_API_KEY to the local environment, then try generating again.");
   });
+
+  it("gives direct repair guidance for impossible multi-shelf height", () => {
+    const feedback = getGenerationFailureFeedback("shelf_layout_invalid", []);
+
+    expect(feedback.title).toBe("Shelf layout dimensions need review.");
+    expect(feedback.summary).toBe("No plan was generated.");
+    expect(feedback.suggestions).toContain(
+      "Total project height looks too small for 5 shelves. Enter the full top-to-bottom height of the shelf unit, such as 60 in.",
+    );
+  });
 });

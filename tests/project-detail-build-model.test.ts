@@ -955,6 +955,38 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain("intended-use notes");
   });
 
+  it("shows a direct shelf-layout repair form when generation is blocked by impossible shelf height", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Bathroom shelf with 5 shelves",
+      width_inches: 23,
+      height_inches: 0.1,
+      depth_inches: 8,
+      material_thickness_inches: 0.75,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: 5,
+      intended_use: "Indoor bathroom shelf unit.",
+      style_notes: "",
+    });
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({ generation_error: "shelf_layout_invalid" }),
+      }),
+    );
+
+    expect(markup).toContain("Shelf layout dimensions need review.");
+    expect(markup).toContain(
+      "Total project height looks too small for 5 shelves. Enter the full top-to-bottom height of the shelf unit, such as 60 in.",
+    );
+    expect(markup).toContain("Fix shelf layout");
+    expect(markup).toContain('name="height_inches"');
+    expect(markup).toContain('value="0.1"');
+  });
+
   it("renders safe project-detail action errors without exposing raw query text", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([]);

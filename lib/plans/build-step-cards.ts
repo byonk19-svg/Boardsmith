@@ -1,5 +1,6 @@
 import type { BoardsmithBuildModel, BuildModelOperation } from "@/lib/build-model/build-model-schema";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
+import { hasConnectedShelfSupportPlaceholder } from "@/lib/projects/shelf-layout-validation";
 import { formatToolLabel } from "@/lib/projects/types";
 
 export type BuildStepPhaseLabel =
@@ -136,15 +137,44 @@ function conciseSafetyNote(step: GeneratedBuildStep, operation: BuildModelOperat
   return operationNote ?? null;
 }
 
+function shouldReplaceWithConnectedSupportReview(step: GeneratedBuildStep): boolean {
+  const text = normalize(`${step.title} ${step.instructions}`);
+  const stepPhase = phaseFromText(step);
+  const mentionsShelfUnit = /\b(shelf|shelves|unit|frame|support)\b/.test(text);
+
+  return /\bfreestanding\b/.test(text) || (stepPhase === "Assemble" && mentionsShelfUnit);
+}
+
+function connectedSupportReviewCard(step: GeneratedBuildStep, operation: BuildModelOperation | null, pieceLabels: string[]): BuildStepCard {
+  return {
+    id: `step_${step.step_number.toString()}`,
+    stepNumber: step.step_number,
+    title: "Confirm support/frame design before assembly",
+    instructions:
+      "Choose verified side supports, frame, cleat, bracket, or other support method before assembling or mounting this connected shelf unit. Do not treat shelf boards alone as a complete unit.",
+    phaseLabel: "Inspect / review",
+    tools: uniqueStrings(step.tools_used.length > 0 ? step.tools_used : (operation?.toolNames ?? [])).map(formatToolLabel),
+    estimatedTimeLabel: formatEstimatedTime(step.estimated_time_minutes ?? operation?.estimatedMinutes ?? null),
+    safetyNote: "Do not treat shelf boards alone as a complete connected shelf unit.",
+    relatedOperationTitle: operation?.title ?? "Confirm support/frame design before assembly",
+    relatedPieceLabels: pieceLabels,
+  };
+}
+
 export function createBuildStepCards(
   buildSteps: GeneratedPlan["assembly_steps"],
   buildModel: BoardsmithBuildModel,
 ): BuildStepCard[] {
   const pieceById = new Map(buildModel.pieces.map((piece) => [piece.id, piece.label]));
+  const needsConnectedSupportReview = hasConnectedShelfSupportPlaceholder(buildModel);
 
   return buildSteps.map((step) => {
     const operation = matchOperation(step, buildModel.operations);
     const pieceLabels = operation ? uniqueStrings(operation.pieceIds.map((pieceId) => pieceById.get(pieceId) ?? "")) : [];
+
+    if (needsConnectedSupportReview && shouldReplaceWithConnectedSupportReview(step)) {
+      return connectedSupportReviewCard(step, operation, pieceLabels);
+    }
 
     return {
       id: `step_${step.step_number.toString()}`,

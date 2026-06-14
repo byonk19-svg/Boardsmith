@@ -1230,7 +1230,7 @@ function GenerationFailurePanel({ reason, safetyFlags, project }: { reason: Gene
         <h3 className="text-sm font-semibold text-ink">Try this before generating again</h3>
         <List items={feedback.suggestions} />
       </div>
-      {reason === "shelf_layout_missing" && project.project_type === "simple_shelf" && !isProjectArchived(project) ? (
+      {(reason === "shelf_layout_missing" || reason === "shelf_layout_invalid") && project.project_type === "simple_shelf" && !isProjectArchived(project) ? (
         <ShelfLayoutRepairForm project={project} />
       ) : null}
     </section>
@@ -1799,8 +1799,8 @@ function PlanView({
             <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Print build sheet</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Latest generated plan</h2>
             <p className="mt-3 leading-7 text-ink/75">A readable planning sheet assembled from the saved generated plan and deterministic review data.</p>
-            {manifest.sections.projectSummary ? (
-              <p className="mt-3 text-sm leading-7 text-ink/75">{manifest.sections.projectSummary}</p>
+            {generatedPlan.summary ? (
+              <p className="mt-3 text-sm leading-7 text-ink/75">{generatedPlan.summary}</p>
             ) : (
               <p className="mt-3 text-sm leading-7 text-ink/65">No project summary was saved with this generated plan.</p>
             )}

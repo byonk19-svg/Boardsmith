@@ -1,9 +1,11 @@
 import type { BoardsmithBuildModel, BuildModelPiece } from "@/lib/build-model/build-model-schema";
+import { minimumStackedShelfBoardHeight } from "@/lib/projects/shelf-layout-validation";
 
 export const planningDiagramDisclaimer = "Planning diagram — not to scale.";
 export const planningDiagramFallback = "No diagram available yet. Review the cut list and build steps before building.";
 export const connectionDiagramFallback = "No modeled connections available yet. Review the build steps before assembling.";
 export const projectAnatomyFallback = "Project anatomy is not available yet. Review the cut list and build guide before building.";
+export const projectAnatomyInvalidHeightFallback = "Add valid total height to render full layout.";
 export const threeViewDiagramFallback = "Three-view diagram is not available yet. Review the cut list and build guide before building.";
 export const visualPieceInventoryDisclaimer = "Visual piece inventory - planning aid only.";
 
@@ -43,7 +45,7 @@ export type ProjectAnatomyVisual = {
   shelfCount: number | null;
   hasWallContext: boolean;
   supportLabel: string | null;
-  fallbackMessage: typeof projectAnatomyFallback | null;
+  fallbackMessage: typeof projectAnatomyFallback | typeof projectAnatomyInvalidHeightFallback | null;
 };
 
 export type ThreeViewPlanningDiagramView = {
@@ -160,6 +162,23 @@ function createProjectAnatomyVisual(model: BoardsmithBuildModel): ProjectAnatomy
   const shelfPiece = findPiece(model.pieces, /\bshelf\b.*\bboard\b|\bshelf\b/);
   const kind = model.project.projectType === "simple_shelf" && shelfPiece ? "simple_shelf" : (detectDiagramKind(model) ?? "generic");
   const shelfCount = kind === "simple_shelf" ? (shelfPiece?.quantity ?? null) : null;
+  const minimumShelfHeight =
+    kind === "simple_shelf" && shelfCount && shelfCount > 1
+      ? minimumStackedShelfBoardHeight({
+          project_type: model.project.projectType,
+          title: model.project.title,
+          width_inches: model.dimensions.widthInches,
+          height_inches: model.dimensions.heightInches,
+          depth_inches: model.dimensions.depthInches,
+          material_thickness_inches: model.dimensions.materialThicknessInches,
+          shelf_layout: "multi_shelf_unit",
+          shelf_count: shelfCount,
+          shelf_spacing_inches: undefined,
+          style_notes: "",
+          intended_use: model.project.intendedUse ?? "",
+        })
+      : null;
+  const impossibleHeight = Boolean(model.dimensions.heightInches && minimumShelfHeight && model.dimensions.heightInches < minimumShelfHeight);
   const hasWallContext =
     kind === "simple_shelf" &&
     (model.safety.flags.some((flag) => flag.category === "wall_mounting" || /wall|mount|anchor|stud/i.test(flag.message)) ||
@@ -169,7 +188,7 @@ function createProjectAnatomyVisual(model: BoardsmithBuildModel): ProjectAnatomy
     title: "Project anatomy",
     kind,
     widthLabel: dimensionLabel("Width", model.dimensions.widthInches),
-    heightLabel: dimensionLabel("Height", model.dimensions.heightInches),
+    heightLabel: impossibleHeight ? "Total height needs review" : dimensionLabel("Height", model.dimensions.heightInches),
     depthLabel: dimensionLabel("Depth", model.dimensions.depthInches),
     materialThicknessLabel: dimensionLabel("Material thickness", model.dimensions.materialThicknessInches),
     materialLabel: model.materials[0]?.label ?? "material to review",
@@ -177,7 +196,7 @@ function createProjectAnatomyVisual(model: BoardsmithBuildModel): ProjectAnatomy
     shelfCount,
     hasWallContext,
     supportLabel: hasWallContext ? "Wall/support details to verify" : null,
-    fallbackMessage: isAvailable ? null : projectAnatomyFallback,
+    fallbackMessage: impossibleHeight ? projectAnatomyInvalidHeightFallback : isAvailable ? null : projectAnatomyFallback,
   };
 }
 

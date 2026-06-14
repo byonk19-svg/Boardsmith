@@ -1,4 +1,5 @@
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
+import { findShelfLayoutIssues } from "@/lib/projects/shelf-layout-validation";
 import type { ProjectIntake } from "@/lib/projects/types";
 
 export type SafetyReviewFlag = {
@@ -94,6 +95,14 @@ export function calculateSafetyReviewFlags(
       code: "shelf_layout_missing",
       label: "Shelf count/layout missing",
       reason: "The intake describes multiple shelves, but does not say how many shelves or openings to plan.",
+    });
+  }
+
+  for (const issue of findShelfLayoutIssues(project)) {
+    add({
+      code: issue.code,
+      label: issue.label,
+      reason: issue.recommendedAction,
     });
   }
 

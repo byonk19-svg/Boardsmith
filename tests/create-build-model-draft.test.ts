@@ -38,6 +38,9 @@ function deterministicSafetyFlags(input: BuildModelDraftProject): SafetyReviewFl
     material_thickness_inches: input.material_thickness_inches ?? 0,
     style_notes: input.style_notes,
     intended_use: input.intended_use,
+    shelf_layout: input.shelf_layout,
+    shelf_count: input.shelf_count,
+    shelf_spacing_inches: input.shelf_spacing_inches,
   });
 }
 
@@ -249,10 +252,29 @@ describe("createBuildModelDraft", () => {
     );
 
     expect(draft.pieces[0]).toEqual(expect.objectContaining({ label: "Shelf boards", quantity: 5 }));
+    expect(draft.pieces).toContainEqual(
+      expect.objectContaining({
+        id: "side_support_frame_placeholder",
+        label: "Side support/frame placeholders",
+        quantity: 2,
+      }),
+    );
     expect(draft.hardware.find((item) => item.id === "wall_brackets")).toEqual(
       expect.objectContaining({
         label: "Support method to review",
         quantity: null,
+      }),
+    );
+    expect(draft.operations).toContainEqual(
+      expect.objectContaining({
+        id: "confirm_support_frame_design",
+        title: "Confirm support/frame design before assembly",
+      }),
+    );
+    expect(draft.safety.flags).toContainEqual(
+      expect.objectContaining({
+        id: "connected_shelf_support_incomplete",
+        message: "Shelf support/frame review",
       }),
     );
     expect(draft.assumptions.join(" ")).toContain("support/frame details are not specified");

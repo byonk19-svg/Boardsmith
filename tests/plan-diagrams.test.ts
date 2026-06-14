@@ -177,6 +177,25 @@ describe("createPlanDiagrams", () => {
     });
   });
 
+  it("falls back from impossible multi-shelf height instead of labeling it as valid", () => {
+    const model = createBuildModelDraft({
+      ...baseProject,
+      title: "Bathroom shelf with 5 shelves",
+      width_inches: 23,
+      height_inches: 0.1,
+      depth_inches: 8,
+      material_thickness_inches: 0.75,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: 5,
+      intended_use: "Indoor bathroom shelf unit.",
+    });
+    const summary = createPlanDiagrams(model);
+
+    expect(summary.projectAnatomy.heightLabel).toBe("Total height needs review");
+    expect(summary.projectAnatomy.fallbackMessage).toBe("Add valid total height to render full layout.");
+    expect(summary.projectAnatomy.heightLabel).not.toBe("Height 0.1 in");
+  });
+
   it("keeps a connection summary fallback when supported diagrams have no modeled connections", () => {
     const withoutConnections = createPlanDiagrams({
       ...simpleShelfBuildModelFixture,
