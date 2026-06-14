@@ -43,7 +43,18 @@ function model(overrides: Partial<BoardsmithBuildModel> = {}): BoardsmithBuildMo
       materialThicknessInches: 0.75,
       ...overrides.dimensions,
     },
-    pieces: overrides.pieces ?? [{ ...simpleShelfBuildModelFixture.pieces[0], label: "Shelf boards", quantity: 5 }],
+    pieces: overrides.pieces ?? [
+      {
+        ...simpleShelfBuildModelFixture.pieces[0],
+        label: "Shelf boards",
+        quantity: 5,
+        dimensions: {
+          lengthInches: 12,
+          widthInches: 6,
+          thicknessInches: 0.75,
+        },
+      },
+    ],
     materials: overrides.materials ?? [{ ...simpleShelfBuildModelFixture.materials[0], label: "3/4 in pine board" }],
   };
 }
@@ -52,7 +63,19 @@ describe("buildWallShelfDiagramModel", () => {
   it("builds a complete single shelf diagram model", () => {
     const diagram = buildWallShelfDiagramModel({
       project: { ...baseProject, shelf_layout: "single_shelf", shelf_count: 1, height_inches: 0.75, shelf_spacing_inches: undefined },
-      buildModel: model({ pieces: [{ ...simpleShelfBuildModelFixture.pieces[0], quantity: 1 }] }),
+      buildModel: model({
+        pieces: [
+          {
+            ...simpleShelfBuildModelFixture.pieces[0],
+            quantity: 1,
+            dimensions: {
+              lengthInches: 12,
+              widthInches: 6,
+              thicknessInches: 0.75,
+            },
+          },
+        ],
+      }),
       cutList: null,
     });
 

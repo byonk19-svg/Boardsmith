@@ -47,7 +47,18 @@ function buildModel(overrides: Partial<BoardsmithBuildModel> = {}): BoardsmithBu
       materialThicknessInches: 0.75,
       ...overrides.dimensions,
     },
-    pieces: overrides.pieces ?? [{ ...simpleShelfBuildModelFixture.pieces[0], label: "Shelf boards", quantity: 5 }],
+    pieces: overrides.pieces ?? [
+      {
+        ...simpleShelfBuildModelFixture.pieces[0],
+        label: "Shelf boards",
+        quantity: 5,
+        dimensions: {
+          lengthInches: 12,
+          widthInches: 6,
+          thicknessInches: 0.75,
+        },
+      },
+    ],
     materials: overrides.materials ?? [{ ...simpleShelfBuildModelFixture.materials[0], label: "3/4 in pine board" }],
   };
 }
@@ -84,7 +95,7 @@ describe("WallShelfDiagrams", () => {
         pieces: [{ ...simpleShelfBuildModelFixture.pieces[0], quantity: 1 }],
       }),
     );
-    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} />);
+    const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
 
     expect(markup).toContain("drawn from the Diagram View Model and cut list");
     expect(markup).toContain("single shelf layout");
@@ -97,7 +108,7 @@ describe("WallShelfDiagrams", () => {
 
   it("renders a 5-shelf front elevation, side view, part schedule, and review state from the view model", () => {
     const model = renderModel(baseProject, buildModel());
-    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} />);
+    const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
 
     expect(markup).toContain("Front elevation / shelf layout");
     expect(markup).toContain("connected shelf unit layout");
@@ -108,7 +119,7 @@ describe("WallShelfDiagrams", () => {
     expect(markup).toContain("Depth 6 in");
     expect(markup).toContain("Material thickness 0.75 in");
     expect(markup).toContain("Qty 5");
-    expect(markup).toContain("Shelf board cut part planning graphic");
+    expect(markup).toContain("Shelf boards cut part planning graphic");
     expect(markup).toContain("12 in x 6 in x 0.75 in");
     expect(markup).toContain("Cut count is based on the physical cut-list quantity shown in the generated plan.");
     expect(markup).toContain("Support/frame design needs review");
@@ -130,7 +141,7 @@ describe("WallShelfDiagrams", () => {
         },
       }),
     );
-    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} />);
+    const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
 
     expect(markup).toContain("Diagram needs more details.");
     expect(markup).toContain("Add valid total height to render full layout.");
@@ -141,7 +152,7 @@ describe("WallShelfDiagrams", () => {
 
   it("renders unresolved connected support/frame as review-needed instead of complete structure", () => {
     const model = renderModel(baseProject, buildModel());
-    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} />);
+    const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
 
     expect(markup).toContain("Support/frame review");
     expect(markup).toContain("support/frame to review");
@@ -160,18 +171,17 @@ describe("WallShelfDiagrams", () => {
         ],
       }),
     );
-    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} />);
+    const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
 
     expect(markup).toContain("modeled support/frame");
     expect(markup).toContain("Left side support");
     expect(markup).toContain("Right side support");
-    expect(markup).toContain("Support/frame pieces modeled for review");
     expect(markup).not.toContain("Support/frame design needs review");
   });
 
   it("keeps print-compatible renderer output safe", () => {
     const model = renderModel(baseProject, buildModel());
-    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} compact />);
+    const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model, compact: true }));
 
     expect(markup).toContain("Planning diagram - not to scale.");
     expect(markup).toContain("drawn from the Diagram View Model and cut list");

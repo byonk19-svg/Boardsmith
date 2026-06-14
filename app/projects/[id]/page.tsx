@@ -23,6 +23,7 @@ import { PlanActionChecklist } from "./PlanActionChecklist";
 import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
 import { ProjectHeroVisual } from "./ProjectHeroVisual";
 import { TweakPlanForm } from "./TweakPlanForm";
+import { WallShelfCutDiagram } from "./WallShelfCutDiagram";
 import { WallShelfDiagrams } from "./WallShelfDiagrams";
 
 export const dynamic = "force-dynamic";
@@ -1854,6 +1855,9 @@ function PlanView({
         </PlanSheetSection>
 
         <PlanSheetSection id="cut-list-to-verify" title="Cut Checklist">
+          <div className="mb-5">
+            <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} />
+          </div>
           <div className="mb-5">
             <CutListReviewSummaryView summary={manifest.cutList} />
           </div>

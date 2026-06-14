@@ -11,6 +11,7 @@ import { BuildStepCards } from "../BuildStepCards";
 import { PlanActionChecklist } from "../PlanActionChecklist";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
 import { ProjectHeroVisual } from "../ProjectHeroVisual";
+import { WallShelfCutDiagram } from "../WallShelfCutDiagram";
 import { WallShelfDiagrams } from "../WallShelfDiagrams";
 import { PrintDialogButton } from "./PrintDialogButton";
 
@@ -189,6 +190,7 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
 
   return (
     <div className="space-y-4">
+      <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} compact />
       <dl className="grid gap-3 text-sm sm:grid-cols-4 print:grid-cols-4">
         <PrintFact label="Total cut pieces" value={manifest.cutList.totalPieces.toString()} />
         <PrintFact label="Unique cuts" value={manifest.cutList.cutListRows.toString()} />

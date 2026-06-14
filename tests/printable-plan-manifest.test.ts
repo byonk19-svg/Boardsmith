@@ -111,6 +111,12 @@ describe("createPrintablePlanManifest", () => {
     expect(manifest.buildModel.source).toBe("saved");
     expect(manifest.materials.primaryMaterials[0]?.label).toBe("3/4 inch pine board");
     expect(manifest.cutList?.totalPieces).toBe(1);
+    expect(manifest.wallShelfCutDiagramViewModel.status).toBe("ready");
+    expect(manifest.wallShelfCutDiagramViewModel.pieceGroups[0]).toMatchObject({
+      label: "Shelf board",
+      quantity: 1,
+      dimensionsLabel: "36 in x 10 in x 0.75 in",
+    });
     expect(manifest.planReview?.manualReviewRequired).toBe(true);
     expect(manifest.exportReadiness?.status).toBe("needs_review");
     expect(manifest.sections.buildSteps[0]?.title).toBe("Review mounting");
@@ -226,6 +232,14 @@ describe("createPrintablePlanManifest", () => {
         status: "needs_measurement",
       }),
     );
+    expect(manifest.wallShelfCutDiagramViewModel.status).toBe("needs_review");
+    expect(manifest.wallShelfCutDiagramViewModel.pieceGroups).toContainEqual(
+      expect.objectContaining({
+        label: "Shelf boards",
+        quantity: 5,
+      }),
+    );
+    expect(manifest.wallShelfCutDiagramViewModel.warnings).toContain("Support/frame design needs review");
     expect(manifest.sections.safetyFlags).toContainEqual(
       expect.objectContaining({
         id: "connected_shelf_support_incomplete",
@@ -281,6 +295,9 @@ describe("createPrintablePlanManifest", () => {
         dimensionsLabel: "missing x 8 in x 0.75 in",
       }),
     );
+    expect(manifest.wallShelfCutDiagramViewModel.status).toBe("needs_review");
+    expect(manifest.wallShelfCutDiagramViewModel.renderLabels.summary).toBe("Cut layout needs review before cutting.");
+    expect(JSON.stringify(manifest.wallShelfCutDiagramViewModel)).not.toContain("Height 0.1 in");
     expect(manifest.sections.safetyFlags).toContainEqual(
       expect.objectContaining({
         id: "shelf_height_impossible",

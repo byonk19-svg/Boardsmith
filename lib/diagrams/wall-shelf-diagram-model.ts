@@ -96,21 +96,17 @@ function reviewItemsFor(project: Project, buildModel: BoardsmithBuildModel, supp
   return [...new Set([...baseItems, ...modelItems])];
 }
 
-function partScheduleFor(model: WallShelfDiagramModel, cutList: CutListReviewSummary | null): WallShelfPartScheduleRow[] {
-  const generatedShelfRow = cutList?.items.find((item) => item.sourceLabel === "Generated cut" && /\bshelf\b/i.test(item.label));
-  if (generatedShelfRow) {
-    const parsedQuantity = Number.parseInt(generatedShelfRow.quantityLabel, 10);
-    const quantity = Number.isFinite(parsedQuantity) && parsedQuantity > 0 ? parsedQuantity : (model.shelfCount ?? 1);
+function partScheduleFor(model: WallShelfDiagramModel): WallShelfPartScheduleRow[] {
+  const rows = model.viewModel.visibleBoards
+    .filter((piece) => piece.role === "shelf_board" || piece.role === "support_frame" || piece.role === "support_frame_placeholder")
+    .map((piece) => ({
+      label: piece.label,
+      quantity: piece.quantity,
+      dimensionsLabel: piece.dimensionsLabel,
+      materialLabel: piece.materialLabel,
+    }));
 
-    return [
-      {
-        label: generatedShelfRow.label,
-        quantity,
-        dimensionsLabel: generatedShelfRow.dimensionsLabel,
-        materialLabel: generatedShelfRow.materialLabel,
-      },
-    ];
-  }
+  if (rows.length > 0) return rows;
 
   return [
     {
@@ -142,7 +138,7 @@ export function buildWallShelfDiagramModel(params: {
   cutList: CutListReviewSummary | null;
   viewModel?: WallShelfDiagramViewModel;
 }): WallShelfDiagramModel | null {
-  const { project, buildModel, cutList } = params;
+  const { project, buildModel } = params;
   if (project.project_type !== "simple_shelf") return null;
   if (isBookLedgeBuildModel(buildModel)) return null;
 
@@ -175,6 +171,6 @@ export function buildWallShelfDiagramModel(params: {
 
   return {
     ...model,
-    partSchedule: partScheduleFor(model, cutList),
+    partSchedule: partScheduleFor(model),
   };
 }

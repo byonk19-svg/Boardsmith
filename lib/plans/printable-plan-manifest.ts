@@ -8,6 +8,7 @@ import { createPlanActionChecklist, type PlanActionChecklistItem } from "@/lib/p
 import { createPlanDiagrams, type PlanningDiagramSummary } from "@/lib/plans/plan-diagrams";
 import { summarizeGeneratedPlanReview, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
+import { createWallShelfCutDiagramViewModel, type WallShelfCutDiagramViewModel } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import { createWallShelfDiagramViewModel, type WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
 import { formatToolLabel, projectTypeLabels, type Project } from "@/lib/projects/types";
@@ -63,6 +64,7 @@ export type PrintablePlanManifest = {
   materials: MaterialReviewSummary;
   cutList: CutListReviewSummary | null;
   planningDiagrams: PlanningDiagramSummary;
+  wallShelfCutDiagramViewModel: WallShelfCutDiagramViewModel;
   wallShelfDiagramViewModel: WallShelfDiagramViewModel;
   wallShelfDiagram: WallShelfDiagramModel | null;
   buildStepCards: BuildStepCard[];
@@ -321,6 +323,7 @@ export function createPrintablePlanManifest({
   const exportReadiness = plan ? summarizeExportReadiness(plan, reviewBuildModel, { buildModelSource }) : null;
   const materials = summarizeMaterialReview(plan, reviewBuildModel);
   const cutList = plan ? summarizeCutListReview(plan, reviewBuildModel) : null;
+  const wallShelfCutDiagramViewModel = createWallShelfCutDiagramViewModel({ project, buildModel: reviewBuildModel });
   const wallShelfDiagramViewModel = createWallShelfDiagramViewModel({ project, buildModel: reviewBuildModel });
   const wallShelfDiagram = buildWallShelfDiagramModel({ project, buildModel: reviewBuildModel, cutList, viewModel: wallShelfDiagramViewModel });
   const actionChecklist = createPlanActionChecklist({
@@ -364,6 +367,7 @@ export function createPrintablePlanManifest({
     materials,
     cutList,
     planningDiagrams: createPlanDiagrams(reviewBuildModel, { wallShelfViewModel: wallShelfDiagramViewModel }),
+    wallShelfCutDiagramViewModel,
     wallShelfDiagramViewModel,
     wallShelfDiagram,
     buildStepCards: plan ? createBuildStepCards(plan.assembly_steps, reviewBuildModel) : [],

@@ -208,6 +208,9 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Plan material:");
     expect(markup).not.toContain("Material checks");
     expect(markup).toContain("Cut Checklist");
+    expect(markup).toContain("Cut layout diagram");
+    expect(markup).toContain("Cut layout from Build Model pieces.");
+    expect(markup).toContain("Shelf board cut layout planning graphic");
     expect(markup).toContain("Scroll sideways to review all cut-list columns.");
     expect(markup).toContain("Cut?");
     expect(markup).toContain("Check");
@@ -331,6 +334,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Cut-list rows");
     expect(markup).toContain("Pieces with dimensions");
     expect(markup).toContain("Shelf boards");
+    expect(markup).toContain("Shelf boards cut layout planning graphic");
     expect(markup).toContain("Shelf boards</p><span class=\"w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-ink/70\">Qty 5");
     expect(markup).toContain("5</td><td class=\"py-2 pr-3 text-ink/70\">12 in x 6 in x 0.75 in</td><td class=\"py-2 pr-3 text-ink/70\">3/4 in pine board");
     expect(markup.match(/<td class="py-2 pr-3 font-semibold text-ink">Shelf boards<\/td>/g)?.length).toBe(1);
@@ -380,6 +384,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("This saved plan needs support/frame review before it can be treated as a complete connected shelf unit.");
     expect(markup).toContain("Total height needs review");
     expect(markup).toContain("Support/frame review");
+    expect(markup).toContain("Cut layout needs review before cutting.");
     expect(markup).not.toMatch(/freestanding|non-mounted/i);
   });
 
