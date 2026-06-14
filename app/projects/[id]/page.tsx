@@ -23,6 +23,7 @@ import { PlanActionChecklist } from "./PlanActionChecklist";
 import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
 import { ProjectHeroVisual } from "./ProjectHeroVisual";
 import { TweakPlanForm } from "./TweakPlanForm";
+import { WallShelfBuyingPlan } from "./WallShelfBuyingPlan";
 import { WallShelfCutDiagram } from "./WallShelfCutDiagram";
 import { WallShelfDiagrams } from "./WallShelfDiagrams";
 
@@ -1877,6 +1878,10 @@ function PlanView({
           ) : (
             <p className="text-sm leading-6 text-ink/65">No generated cut rows were saved. Review the modeled pieces above before cutting.</p>
           )}
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Buying Plan">
+          <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} />
         </PlanSheetSection>
 
         <PlanSheetSection title="Materials and Parts">

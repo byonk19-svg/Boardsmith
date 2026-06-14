@@ -11,6 +11,7 @@ import { BuildStepCards, BuildStepStatusSummary } from "../BuildStepCards";
 import { PlanActionChecklist } from "../PlanActionChecklist";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
 import { ProjectHeroVisual } from "../ProjectHeroVisual";
+import { WallShelfBuyingPlan } from "../WallShelfBuyingPlan";
 import { WallShelfCutDiagram } from "../WallShelfCutDiagram";
 import { WallShelfDiagrams } from "../WallShelfDiagrams";
 import { PrintDialogButton } from "./PrintDialogButton";
@@ -89,6 +90,10 @@ export default async function ProjectPrintPreviewPage({
 
         <PrintSection title="Cut Checklist" printBreakBefore>
           <PrintCutChecklist manifest={manifest} />
+        </PrintSection>
+
+        <PrintSection title="Buying Plan">
+          <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} compact />
         </PrintSection>
 
         <PrintSection title="Materials and Parts">

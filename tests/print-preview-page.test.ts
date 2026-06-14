@@ -266,6 +266,7 @@ describe("ProjectPrintPreviewPage", () => {
       "Hero Visual",
       "Project Visuals / Diagrams",
       "Cut Checklist",
+      "Buying Plan",
       "Materials and Parts",
       "Build Guide",
       "Check Before Building",
@@ -274,6 +275,9 @@ describe("ProjectPrintPreviewPage", () => {
     const sectionIndexes = sectionOrder.map((label) => markup.indexOf(label));
     expect(sectionIndexes.every((index) => index >= 0)).toBe(true);
     expect(sectionIndexes).toEqual([...sectionIndexes].sort((a, b) => a - b));
+    expect(markup).toContain("Pieces to get from this material");
+    expect(markup).toContain("Stock length still needs selection");
+    expect(markup).toContain("Not optimized");
     expect(markup.indexOf("A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.")).toBeGreaterThan(markup.indexOf("Reference Review Notes"));
     expect(markup.indexOf("A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.")).toBeGreaterThan(markup.indexOf("Build Guide"));
   });

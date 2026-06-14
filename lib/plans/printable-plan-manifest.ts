@@ -11,6 +11,7 @@ import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan
 import { createWallShelfBuildStepViewModel, type WallShelfBuildStepViewModel } from "@/lib/plans/wall-shelf-build-step-view-model";
 import { createWallShelfCutDiagramViewModel, type WallShelfCutDiagramViewModel } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import { createWallShelfDiagramViewModel, type WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
+import { createWallShelfStockBoardViewModel, type WallShelfStockBoardViewModel } from "@/lib/plans/wall-shelf-stock-board-view-model";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
 import { formatToolLabel, projectTypeLabels, type Project } from "@/lib/projects/types";
 
@@ -68,6 +69,7 @@ export type PrintablePlanManifest = {
   wallShelfCutDiagramViewModel: WallShelfCutDiagramViewModel;
   wallShelfDiagramViewModel: WallShelfDiagramViewModel;
   wallShelfBuildStepViewModel: WallShelfBuildStepViewModel;
+  wallShelfStockBoardViewModel: WallShelfStockBoardViewModel;
   wallShelfDiagram: WallShelfDiagramModel | null;
   buildStepCards: BuildStepCard[];
   actionChecklist: PlanActionChecklistItem[];
@@ -327,6 +329,11 @@ export function createPrintablePlanManifest({
   const cutList = plan ? summarizeCutListReview(plan, reviewBuildModel) : null;
   const wallShelfCutDiagramViewModel = createWallShelfCutDiagramViewModel({ project, buildModel: reviewBuildModel });
   const wallShelfDiagramViewModel = createWallShelfDiagramViewModel({ project, buildModel: reviewBuildModel });
+  const wallShelfStockBoardViewModel = createWallShelfStockBoardViewModel({
+    project,
+    buildModel: reviewBuildModel,
+    cutViewModel: wallShelfCutDiagramViewModel,
+  });
   const wallShelfBuildStepViewModel = createWallShelfBuildStepViewModel({
     project,
     buildModel: reviewBuildModel,
@@ -378,6 +385,7 @@ export function createPrintablePlanManifest({
     wallShelfCutDiagramViewModel,
     wallShelfDiagramViewModel,
     wallShelfBuildStepViewModel,
+    wallShelfStockBoardViewModel,
     wallShelfDiagram,
     buildStepCards:
       wallShelfBuildStepViewModel.status === "unsupported" && plan

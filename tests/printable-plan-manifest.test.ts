@@ -235,6 +235,9 @@ describe("createPrintablePlanManifest", () => {
       }),
     );
     expect(manifest.wallShelfCutDiagramViewModel.status).toBe("needs_review");
+    expect(manifest.wallShelfStockBoardViewModel.status).toBe("needs_review");
+    expect(manifest.wallShelfStockBoardViewModel.badges).toContain("Support/frame review");
+    expect(manifest.wallShelfStockBoardViewModel.reviewReasons.join(" ")).toContain("Support/frame pieces may add material");
     expect(manifest.wallShelfCutDiagramViewModel.pieceGroups).toContainEqual(
       expect.objectContaining({
         label: "Shelf boards",
@@ -299,7 +302,10 @@ describe("createPrintablePlanManifest", () => {
     );
     expect(manifest.wallShelfCutDiagramViewModel.status).toBe("needs_review");
     expect(manifest.wallShelfCutDiagramViewModel.renderLabels.summary).toBe("Cut layout needs review before cutting.");
+    expect(manifest.wallShelfStockBoardViewModel.status).toBe("needs_review");
+    expect(manifest.wallShelfStockBoardViewModel.renderLabels.summary).toBe("Buying plan needs review before purchasing material.");
     expect(JSON.stringify(manifest.wallShelfCutDiagramViewModel)).not.toContain("Height 0.1 in");
+    expect(JSON.stringify(manifest.wallShelfStockBoardViewModel)).not.toContain("Height 0.1 in");
     expect(manifest.sections.safetyFlags).toContainEqual(
       expect.objectContaining({
         id: "shelf_height_impossible",

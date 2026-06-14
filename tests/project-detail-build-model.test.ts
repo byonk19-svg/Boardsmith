@@ -428,6 +428,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain('name="plan_action_');
     expect(markup).toContain("Materials and Parts");
     expect(markup).toContain("Cut Checklist");
+    expect(markup).toContain("Buying Plan");
+    expect(markup).toContain("Pieces to get from this material");
+    expect(markup).toContain("Stock length still needs selection");
     expect(markup).toContain("Verify all dimensions against your actual space, lumber, and hardware.");
     expect(markup).toContain("Build Guide");
     expect(markup).toContain("Step 1");
@@ -470,6 +473,7 @@ describe("ProjectDetailPage project structure", () => {
       "Hero Visual",
       "Project Visuals / Diagrams",
       "Cut Checklist",
+      "Buying Plan",
       "Materials and Parts",
       "Build Guide",
       "Check Before Building",
