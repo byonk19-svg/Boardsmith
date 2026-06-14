@@ -186,9 +186,9 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Side view");
     expect(markup).toContain("Cut parts");
     expect(markup).toContain("Mounting review");
-    expect(markup).toContain("36 in wide");
-    expect(markup).toContain("10 in from wall");
-    expect(markup).toContain("0.75 in thick");
+    expect(markup).toContain("Width 36 in");
+    expect(markup).toContain("Depth 10 in");
+    expect(markup).toContain("Material thickness 0.75 in");
     expect(markup).toContain("support method to verify");
     expect(markup).not.toContain("Shelf board overview");
     expect(markup).not.toContain("Shelf board piece relationship");

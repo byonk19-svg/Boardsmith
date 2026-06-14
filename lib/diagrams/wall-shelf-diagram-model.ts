@@ -15,6 +15,7 @@ export type WallShelfPartScheduleRow = {
 
 export type WallShelfDiagramModel = {
   projectType: "simple_shelf";
+  viewModel: WallShelfDiagramViewModel;
   status: WallShelfDiagramStatus;
   fallbackMessage: string | null;
   shelfLayout: ShelfLayoutOption | "unknown";
@@ -149,6 +150,7 @@ export function buildWallShelfDiagramModel(params: {
   const supportStatus = supportStatusFor(project, buildModel);
   const baseModel: WallShelfDiagramModel = {
     projectType: "simple_shelf",
+    viewModel,
     status: "ready",
     fallbackMessage: null,
     shelfLayout: project.shelf_layout ?? "unknown",

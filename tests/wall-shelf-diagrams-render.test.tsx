@@ -1,77 +1,180 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { WallShelfDiagrams } from "@/app/projects/[id]/WallShelfDiagrams";
-import type { WallShelfDiagramModel } from "@/lib/diagrams/wall-shelf-diagram-model";
+import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
+import type { BoardsmithBuildModel, BuildModelPiece } from "@/lib/build-model/build-model-schema";
+import { buildWallShelfDiagramModel, type WallShelfDiagramModel } from "@/lib/diagrams/wall-shelf-diagram-model";
+import { createWallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
+import type { Project } from "@/lib/projects/types";
 import { describe, expect, it } from "vitest";
+import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
-const fiveShelfModel: WallShelfDiagramModel = {
-  projectType: "simple_shelf",
-  status: "ready",
-  fallbackMessage: null,
-  shelfLayout: "multi_shelf_unit",
-  shelfCount: 5,
-  shelfWidthInches: 12,
-  shelfDepthInches: 6,
-  boardThicknessInches: 0.75,
-  totalProjectHeightInches: 60,
-  shelfSpacingInches: 12,
-  materialLabel: "3/4 in pine board",
-  supportStatus: "support_to_review",
-  supportLabel: "support method to verify",
-  reviewItems: [
-    "Each shelf needs a verified support method.",
-    "Confirm bracket, cleat, side-support, or frame type.",
-    "Confirm studs or anchors appropriate for wall type.",
-    "Confirm hardware and expected load suitability before mounting.",
-    "Confirm shelf spacing and placement before drilling.",
-  ],
-  partSchedule: [
-    {
-      label: "Shelf board",
-      quantity: 5,
-      dimensionsLabel: "12 in x 6 in x 0.75 in",
-      materialLabel: "3/4 in pine board",
-    },
-  ],
+const baseProject: Project = {
+  id: "wall_shelf_renderer_project",
+  created_at: new Date(0).toISOString(),
+  updated_at: new Date(0).toISOString(),
+  title: "Wall shelf",
+  project_type: "simple_shelf",
+  skill_level: "beginner",
+  status: "plan_generated",
+  width_inches: 12,
+  height_inches: 60,
+  depth_inches: 6,
+  material_thickness_inches: 0.75,
+  material_type: "3/4 in pine board",
+  shelf_layout: "multi_shelf_unit",
+  shelf_count: 5,
+  shelf_spacing_inches: 12,
+  tools_available: ["tape_measure", "pencil", "drill"],
+  style_notes: "Wall mounted",
+  intended_use: "Connected wall shelf unit for light towels.",
+  safety_review_required: true,
+  safety_flags: ["Wall mounting review"],
+  notes: "",
+  ...emptyProjectBuildLog,
+  ...activeProjectArchiveFields,
 };
 
-describe("WallShelfDiagrams", () => {
-  it("renders a 5-shelf front elevation, side view, part schedule, and mounting review", () => {
-    const markup = renderToStaticMarkup(<WallShelfDiagrams model={fiveShelfModel} />);
+function buildModel(overrides: Partial<BoardsmithBuildModel> = {}): BoardsmithBuildModel {
+  return {
+    ...simpleShelfBuildModelFixture,
+    ...overrides,
+    dimensions: {
+      ...simpleShelfBuildModelFixture.dimensions,
+      widthInches: 12,
+      heightInches: 60,
+      depthInches: 6,
+      materialThicknessInches: 0.75,
+      ...overrides.dimensions,
+    },
+    pieces: overrides.pieces ?? [{ ...simpleShelfBuildModelFixture.pieces[0], label: "Shelf boards", quantity: 5 }],
+    materials: overrides.materials ?? [{ ...simpleShelfBuildModelFixture.materials[0], label: "3/4 in pine board" }],
+  };
+}
 
-    expect(markup).toContain("drawn from the saved measurements and cut list");
+function renderModel(project: Project, model: BoardsmithBuildModel): WallShelfDiagramModel {
+  const viewModel = createWallShelfDiagramViewModel({ project, buildModel: model });
+  const diagram = buildWallShelfDiagramModel({ project, buildModel: model, cutList: null, viewModel });
+  if (!diagram) throw new Error("Expected wall shelf diagram model.");
+  return diagram;
+}
+
+function sideSupportPiece(id: string, label: string): BuildModelPiece {
+  return {
+    id,
+    label,
+    quantity: 1,
+    pieceType: "board",
+    materialId: simpleShelfBuildModelFixture.materials[0]?.id ?? null,
+    dimensions: {
+      lengthInches: 60,
+      widthInches: 6,
+      thicknessInches: 0.75,
+    },
+    grainDirection: "length",
+    notes: ["Modeled support/frame piece for review."],
+  };
+}
+
+describe("WallShelfDiagrams", () => {
+  it("renders a valid single wall shelf with safe width, depth, and thickness labels", () => {
+    const model = renderModel(
+      { ...baseProject, shelf_layout: "single_shelf", shelf_count: 1, height_inches: 0.75, shelf_spacing_inches: undefined },
+      buildModel({
+        pieces: [{ ...simpleShelfBuildModelFixture.pieces[0], quantity: 1 }],
+      }),
+    );
+    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} />);
+
+    expect(markup).toContain("drawn from the Diagram View Model and cut list");
+    expect(markup).toContain("single shelf layout");
+    expect(markup).toContain("1 shelf");
+    expect(markup).toContain("Width 12 in");
+    expect(markup).toContain("Depth 6 in");
+    expect(markup).toContain("Material thickness 0.75 in");
+    expect(markup).not.toContain("Height 0.1 in");
+  });
+
+  it("renders a 5-shelf front elevation, side view, part schedule, and review state from the view model", () => {
+    const model = renderModel(baseProject, buildModel());
+    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} />);
+
     expect(markup).toContain("Front elevation / shelf layout");
-    expect(markup).toContain("overall layout area");
-    expect(markup).toContain("5 shelf boards");
-    expect(markup).toContain("12 in wide");
-    expect(markup).toContain("60 in total height");
+    expect(markup).toContain("connected shelf unit layout");
+    expect(markup).toContain("5 shelves");
+    expect(markup).toContain("Width 12 in");
+    expect(markup).toContain("Height 60 in");
     expect(markup).toContain("12 in spacing");
-    expect(markup).toContain("6 in from wall");
-    expect(markup).toContain("0.75 in thick");
+    expect(markup).toContain("Depth 6 in");
+    expect(markup).toContain("Material thickness 0.75 in");
     expect(markup).toContain("Qty 5");
     expect(markup).toContain("Shelf board cut part planning graphic");
     expect(markup).toContain("12 in x 6 in x 0.75 in");
     expect(markup).toContain("Cut count is based on the physical cut-list quantity shown in the generated plan.");
-    expect(markup).toContain("support method to verify");
+    expect(markup).toContain("Support/frame design needs review");
+    expect(markup).toContain("support/frame review required");
     expect(markup).toContain("Each shelf needs a verified support method.");
-    expect(markup).not.toContain("side-support piece");
     expect(markup).not.toContain("connection planning aid");
   });
 
-  it("renders a safe fallback instead of guessed geometry", () => {
-    const markup = renderToStaticMarkup(
-      <WallShelfDiagrams
-        model={{
-          ...fiveShelfModel,
-          status: "needs_shelf_count",
-          fallbackMessage: "Add shelf count to render a shelf layout diagram.",
-          shelfCount: null,
-        }}
-      />,
+  it("does not render invalid 5-shelf height as a valid dimension", () => {
+    const model = renderModel(
+      { ...baseProject, title: "Bathroom shelf with 5 shelves", height_inches: 0.1 },
+      buildModel({
+        dimensions: {
+          ...simpleShelfBuildModelFixture.dimensions,
+          widthInches: 12,
+          heightInches: 0.1,
+          depthInches: 6,
+          materialThicknessInches: 0.75,
+        },
+      }),
     );
+    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} />);
 
     expect(markup).toContain("Diagram needs more details.");
-    expect(markup).toContain("Add shelf count to render a shelf layout diagram.");
+    expect(markup).toContain("Add valid total height to render full layout.");
+    expect(markup).toContain("Needs review");
+    expect(markup).not.toContain("Height 0.1 in");
     expect(markup).not.toContain("Front elevation / shelf layout");
+  });
+
+  it("renders unresolved connected support/frame as review-needed instead of complete structure", () => {
+    const model = renderModel(baseProject, buildModel());
+    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} />);
+
+    expect(markup).toContain("Support/frame review");
+    expect(markup).toContain("support/frame to review");
+    expect(markup).toContain("Support/frame design needs review");
+    expect(markup).not.toContain("modeled support/frame</text>");
+  });
+
+  it("renders modeled support/frame pieces when they exist in the view model", () => {
+    const model = renderModel(
+      { ...baseProject, style_notes: "Connected shelf unit with modeled side supports." },
+      buildModel({
+        pieces: [
+          { ...simpleShelfBuildModelFixture.pieces[0], label: "Shelf boards", quantity: 5 },
+          sideSupportPiece("left_side_support", "Left side support"),
+          sideSupportPiece("right_side_support", "Right side support"),
+        ],
+      }),
+    );
+    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} />);
+
+    expect(markup).toContain("modeled support/frame");
+    expect(markup).toContain("Left side support");
+    expect(markup).toContain("Right side support");
+    expect(markup).toContain("Support/frame pieces modeled for review");
+    expect(markup).not.toContain("Support/frame design needs review");
+  });
+
+  it("keeps print-compatible renderer output safe", () => {
+    const model = renderModel(baseProject, buildModel());
+    const markup = renderToStaticMarkup(<WallShelfDiagrams model={model} compact />);
+
+    expect(markup).toContain("Planning diagram - not to scale.");
+    expect(markup).toContain("drawn from the Diagram View Model and cut list");
+    expect(markup).not.toMatch(/CAD-ready|CNC-ready|load-rated|approved|fabrication-ready|construction approval/i);
   });
 });

@@ -69,7 +69,7 @@ export default async function ProjectPrintPreviewPage({
         </PrintSection>
 
         <PrintSection title="Hero Visual">
-          <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} compact />
+          <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} compact />
         </PrintSection>
 
         <PrintSection title="Project Visuals / Diagrams">

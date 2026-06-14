@@ -1832,7 +1832,7 @@ function PlanView({
 
       <div className="divide-y divide-sawdust">
         <PlanSheetSection title="Hero Visual">
-          <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} />
+          <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} />
         </PlanSheetSection>
 
         <PlanSheetSection title="Project Visuals / Diagrams">

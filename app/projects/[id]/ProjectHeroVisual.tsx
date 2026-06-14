@@ -1,6 +1,15 @@
 import type { ProjectAnatomyVisual } from "@/lib/plans/plan-diagrams";
+import type { WallShelfDiagramViewModel, WallShelfDiagramVisiblePiece } from "@/lib/plans/wall-shelf-diagram-view-model";
 
-export function ProjectHeroVisual({ visual, compact = false }: { visual: ProjectAnatomyVisual; compact?: boolean }) {
+export function ProjectHeroVisual({
+  visual,
+  compact = false,
+  wallShelfViewModel = null,
+}: {
+  visual: ProjectAnatomyVisual;
+  compact?: boolean;
+  wallShelfViewModel?: WallShelfDiagramViewModel | null;
+}) {
   const svgHeightClass = compact ? "h-56 print:h-48" : "h-72 print:h-56";
   const shouldRenderShelfProject = visual.kind === "simple_shelf";
 
@@ -22,12 +31,17 @@ export function ProjectHeroVisual({ visual, compact = false }: { visual: Project
         <>
           <svg className={`mt-3 w-full rounded-md border border-sawdust bg-white ${svgHeightClass}`} viewBox="0 0 680 340" role="img" aria-label="Build-model hero visual">
             <rect x="28" y="24" width="624" height="292" rx="10" fill="#fffaf0" stroke="#d7c7a1" />
-            {shouldRenderShelfProject ? <ShelfProjectVisual visual={visual} /> : <GenericProjectVisual visual={visual} />}
+            {shouldRenderShelfProject ? <ShelfProjectVisual visual={visual} viewModel={wallShelfViewModel} /> : <GenericProjectVisual visual={visual} />}
           </svg>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {visual.pieceLabels.map((label) => (
               <span key={label} className="rounded-md border border-sawdust bg-white px-2.5 py-1 text-xs font-semibold text-ink/70">
                 {label}
+              </span>
+            ))}
+            {wallShelfViewModel?.badges.map((badge) => (
+              <span key={badge} className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-950">
+                {badge}
               </span>
             ))}
           </div>
@@ -54,8 +68,8 @@ function GenericProjectVisual({ visual }: { visual: ProjectAnatomyVisual }) {
   );
 }
 
-function ShelfProjectVisual({ visual }: { visual: ProjectAnatomyVisual }) {
-  const rawShelfCount = visual.shelfCount ?? 1;
+function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisual; viewModel: WallShelfDiagramViewModel | null }) {
+  const rawShelfCount = viewModel?.shelfCount ?? visual.shelfCount ?? 1;
   const visibleShelfCount = Math.max(1, Math.min(rawShelfCount, 6));
   const shelves = Array.from({ length: visibleShelfCount }, (_, index) => index);
   const topShelfY = 86;
@@ -64,6 +78,14 @@ function ShelfProjectVisual({ visual }: { visual: ProjectAnatomyVisual }) {
   const shelfLabel = rawShelfCount === 1 ? "1 shelf" : `${rawShelfCount.toString()} shelves`;
   const heightLabelY = (topShelfY + bottomShelfY + 34) / 2;
   const heightTransform = `rotate(-90 58 ${heightLabelY.toString()})`;
+  const connectedLayout = viewModel?.layout === "connected_shelf_unit";
+  const supportPieces = viewModel?.visibleBoards.filter((piece) => piece.role === "support_frame" || piece.role === "support_frame_placeholder") ?? [];
+  const supportFrameNeedsReview = viewModel?.supportFrameReview.needsReview ?? false;
+  const showSupportFrame = connectedLayout && (supportPieces.length > 0 || supportFrameNeedsReview);
+  const widthLabel = viewModel?.dimensions.width.label ?? visual.widthLabel;
+  const heightLabel = viewModel?.dimensions.height.label ?? visual.heightLabel;
+  const depthLabel = viewModel?.dimensions.depth.label ?? visual.depthLabel;
+  const thicknessLabel = viewModel?.dimensions.boardThickness.label ?? visual.materialThicknessLabel;
 
   return (
     <>
@@ -77,34 +99,68 @@ function ShelfProjectVisual({ visual }: { visual: ProjectAnatomyVisual }) {
         const y = topShelfY + index * shelfGap;
         return <ShelfBoard key={index} y={y} showBracket={visual.hasWallContext} />;
       })}
+      {showSupportFrame ? (
+        <ShelfSupportFrame
+          pieces={supportPieces}
+          needsReview={supportFrameNeedsReview}
+          topY={topShelfY - 10}
+          bottomY={bottomShelfY + 44}
+        />
+      ) : null}
 
       <line x1="240" y1="64" x2="486" y2="64" stroke="#47624a" strokeWidth="2" />
       <line x1="240" y1="58" x2="240" y2="70" stroke="#47624a" strokeWidth="2" />
       <line x1="486" y1="58" x2="486" y2="70" stroke="#47624a" strokeWidth="2" />
       <text x="363" y="52" textAnchor="middle" className="fill-ink text-[15px] font-semibold">
-        {visual.widthLabel}
+        {widthLabel}
       </text>
 
       <line x1="90" y1={topShelfY} x2="90" y2={bottomShelfY + 34} stroke="#47624a" strokeWidth="2" />
       <line x1="84" y1={topShelfY} x2="96" y2={topShelfY} stroke="#47624a" strokeWidth="2" />
       <line x1="84" y1={bottomShelfY + 34} x2="96" y2={bottomShelfY + 34} stroke="#47624a" strokeWidth="2" />
       <text x="58" y={heightLabelY} textAnchor="middle" className="fill-ink text-[15px] font-semibold" transform={heightTransform}>
-        {visual.heightLabel}
+        {heightLabel}
       </text>
 
       <line x1="492" y1={topShelfY} x2="540" y2={topShelfY + 24} stroke="#47624a" strokeWidth="2" />
       <text x="552" y={topShelfY + 19} className="fill-ink text-[14px] font-semibold">
-        {visual.depthLabel}
+        {depthLabel}
       </text>
 
       <text x="368" y="300" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
-        {shelfLabel} - {visual.materialThicknessLabel}
+        {shelfLabel} - {thicknessLabel}
       </text>
       {visual.supportLabel ? (
         <text x="210" y="316" className="fill-ink text-[12px] font-semibold">
           {visual.supportLabel}
         </text>
       ) : null}
+    </>
+  );
+}
+
+function ShelfSupportFrame({
+  pieces,
+  needsReview,
+  topY,
+  bottomY,
+}: {
+  pieces: WallShelfDiagramVisiblePiece[];
+  needsReview: boolean;
+  topY: number;
+  bottomY: number;
+}) {
+  const fill = needsReview ? "#fff3c4" : "#c99a57";
+  const strokeDasharray = needsReview ? "6 4" : undefined;
+  const label = pieces.some((piece) => piece.role === "support_frame") ? "modeled support/frame" : "support/frame review";
+
+  return (
+    <>
+      <rect x="226" y={topY} width="12" height={bottomY - topY} rx="4" fill={fill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={strokeDasharray} />
+      <rect x="506" y={topY} width="12" height={bottomY - topY} rx="4" fill={fill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={strokeDasharray} />
+      <text x="372" y={bottomY + 16} textAnchor="middle" className="fill-ink text-[12px] font-semibold">
+        {label}
+      </text>
     </>
   );
 }
