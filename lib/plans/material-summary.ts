@@ -1,5 +1,6 @@
 import type { BoardsmithBuildModel, BuildModelHardware, BuildModelMaterial } from "@/lib/build-model/build-model-schema";
 import type { GeneratedPlan } from "@/lib/plans/plan-schema";
+import { hasConnectedShelfSupportPlaceholder } from "@/lib/projects/shelf-layout-validation";
 
 export type MaterialReviewItem = {
   id: string;
@@ -146,12 +147,15 @@ function reviewNotes(plan: GeneratedPlan | null, buildModel: BoardsmithBuildMode
     if (!item.quantity) notes.push(`Quantity to review for ${item.label}.`);
   }
 
-  notes.push(
+  const staleConnectedShelfPattern = hasConnectedShelfSupportPlaceholder(buildModel) ? /\bfreestanding\b|\bnon-mounted\b/i : null;
+  const reviewMessages = [
     ...buildModel.assumptions.filter((message) => hasAnyKeyword(message, materialReviewKeywords)),
     ...buildModel.unresolvedQuestions.filter((message) => hasAnyKeyword(message, materialReviewKeywords)),
     ...buildModel.confidence.reasons.filter((message) => hasAnyKeyword(message, materialReviewKeywords)),
     ...(plan?.assumptions.filter((message) => hasAnyKeyword(message, materialReviewKeywords)) ?? []),
-  );
+  ].filter((message) => !staleConnectedShelfPattern?.test(message));
+
+  notes.push(...reviewMessages);
 
   return unique(notes);
 }

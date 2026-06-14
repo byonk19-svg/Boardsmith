@@ -202,7 +202,14 @@ describe("createPrintablePlanManifest", () => {
         shelf_count: 5,
         shelf_spacing_inches: 12,
       },
-      planRecord,
+      planRecord: {
+        ...planRecord,
+        plan_json: {
+          ...planRecord.plan_json,
+          assumptions: ["The shelf is freestanding; no wall mounting or brackets are included or assumed."],
+          safety_notes: ["Boardsmith cannot verify wall structure, anchors, fasteners, or load capacity as the design is freestanding."],
+        },
+      },
       buildModel: staleMultiShelfModel,
       buildModelSource: "saved",
     });
@@ -228,6 +235,9 @@ describe("createPrintablePlanManifest", () => {
     expect(manifest.generatedPlan?.summary).toContain("needs support/frame review");
     expect(manifest.generatedPlan?.summary).not.toMatch(/freestanding/i);
     expect(manifest.buildStepCards[0]?.title).not.toMatch(/freestanding/i);
+    expect(manifest.materials.reviewNotes.join(" ")).not.toMatch(/freestanding|non-mounted/i);
+    expect(manifest.sections.safetyNotes.join(" ")).not.toMatch(/freestanding|non-mounted/i);
+    expect(manifest.sections.assumptions.join(" ")).not.toMatch(/freestanding|non-mounted/i);
     expect(manifest.planningDiagrams.diagrams[0]?.title).toBe("Shelf layout overview");
   });
 

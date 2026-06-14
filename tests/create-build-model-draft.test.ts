@@ -280,6 +280,26 @@ describe("createBuildModelDraft", () => {
     expect(draft.assumptions.join(" ")).toContain("support/frame details are not specified");
   });
 
+  it("does not call unresolved connected shelf units freestanding", () => {
+    const draft = draftFor(
+      project({
+        title: "Bathroom shelf with 5 shelves",
+        project_type: "simple_shelf",
+        width_inches: 23,
+        height_inches: 0.1,
+        depth_inches: 8,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        shelf_layout: "multi_shelf_unit",
+        shelf_count: 5,
+        intended_use: "Indoor bathroom shelf unit.",
+      }),
+    );
+
+    expect(draft.assumptions.join(" ")).toContain("support/frame details are not specified");
+    expect(draft.assumptions.join(" ")).not.toMatch(/freestanding|non-mounted/i);
+  });
+
   it("adds bathroom humidity review details for wall-mounted bathroom shelves", () => {
     const draft = draftFor(
       project({

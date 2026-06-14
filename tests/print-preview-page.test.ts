@@ -338,6 +338,51 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("This project creates a simple multi-shelf wall unit for bathroom use: five 12 in wide x 6 in deep shelves made from 0.75 in thick pine boards.");
   });
 
+  it("does not print stale freestanding copy for unresolved connected shelf units", async () => {
+    const staleConnectedProject: Project = {
+      ...project,
+      title: "Bathroom shelf with 5 shelves",
+      width_inches: 23,
+      height_inches: 0.1,
+      depth_inches: 8,
+      material_thickness_inches: 0.75,
+      material_type: "3/4 in pine board",
+      style_notes: "",
+      intended_use: "Indoor bathroom shelf unit.",
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: 5,
+    };
+    getProjectMock.mockResolvedValue(staleConnectedProject);
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        plan_json: {
+          ...planRecord.plan_json,
+          project_summary: "This beginner-friendly woodworking plan describes building a simple freestanding bathroom shelf unit with 5 shelves.",
+          assumptions: ["The shelf is freestanding; no wall mounting or brackets are included or assumed."],
+          safety_notes: ["Boardsmith cannot verify wall structure, anchors, fasteners, or load capacity as the design is freestanding."],
+        },
+        build_model_json: {
+          ...simpleShelfBuildModelFixture,
+          pieces: [{ ...simpleShelfBuildModelFixture.pieces[0], label: "Shelf boards", quantity: 5 }],
+          assumptions: ["Project is treated as freestanding or non-mounted because the intake does not ask for wall mounting."],
+        },
+      },
+    ]);
+    const { default: ProjectPrintPreviewPage } = await import("@/app/projects/[id]/print/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectPrintPreviewPage({
+        params: Promise.resolve({ id: project.id }),
+      }),
+    );
+
+    expect(markup).toContain("This saved plan needs support/frame review before it can be treated as a complete connected shelf unit.");
+    expect(markup).toContain("Total height needs review");
+    expect(markup).toContain("Support/frame review");
+    expect(markup).not.toMatch(/freestanding|non-mounted/i);
+  });
+
   it("renders book ledge planning diagram labels when supported pieces exist", async () => {
     const bookLedgeProject: Project = {
       ...project,

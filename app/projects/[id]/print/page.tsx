@@ -331,6 +331,10 @@ function printOpeningSummary(manifest: PrintablePlanManifest): string | null {
     return `This project creates a simple multi-shelf wall unit for bathroom use: ${count} ${wallShelf.shelfWidthInches.toString()} in wide x ${wallShelf.shelfDepthInches.toString()} in deep shelves made from ${wallShelf.boardThicknessInches.toString()} in thick ${material}.`;
   }
 
+  if (manifest.wallShelfDiagramViewModel.status === "needs_review" && manifest.generatedPlan?.summary) {
+    return compactPrintSummary(manifest.generatedPlan.summary);
+  }
+
   return manifest.sections.projectSummary ? compactPrintSummary(manifest.sections.projectSummary) : null;
 }
 

@@ -807,23 +807,18 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
           ]
         : []),
     ],
-    assumptions: wallMounted
-      ? [
-          ...templateHint.assumptions,
-          ...(shelfQuantity > 1 ? [`The intake describes ${shelfQuantity.toString()} shelves; spacing and support details still need review.`] : []),
-          ...(multipleSeparateWallShelves
-            ? [`Bracket placeholder uses 2 per shelf for planning only: ${(shelfQuantity * 2).toString()} brackets for ${shelfQuantity.toString()} shelves.`]
-            : []),
-          ...(connectedShelfUnit ? ["Connected shelf unit support/frame details are not specified, so support hardware quantity remains to review."] : []),
-          ...(hasConnectedSupportIssue ? ["Connected shelf units need side supports, frame, cleat, brackets, or another verified support method before the build packet is complete."] : []),
-          ...(shelfQuantity > 1 && shelfSpacing ? [`The intake gives approximate shelf spacing as ${shelfSpacing.toString()} inches.`] : []),
-          ...(bathroomOrHumidity ? ["Bathroom humidity may require moisture-resistant finish and corrosion-resistant hardware review."] : []),
-        ]
-      : [
-          "Project is treated as freestanding or non-mounted because the intake does not ask for wall mounting.",
-          ...(shelfQuantity > 1 ? [`The intake describes ${shelfQuantity.toString()} shelves; spacing and support details still need review.`] : []),
-          ...(shelfQuantity > 1 && shelfSpacing ? [`The intake gives approximate shelf spacing as ${shelfSpacing.toString()} inches.`] : []),
-        ],
+    assumptions: [
+      ...(wallMounted ? templateHint.assumptions : []),
+      ...(!wallMounted && !connectedShelfUnit ? ["Project is treated as freestanding or non-mounted because the intake does not ask for wall mounting."] : []),
+      ...(shelfQuantity > 1 ? [`The intake describes ${shelfQuantity.toString()} shelves; spacing and support details still need review.`] : []),
+      ...(wallMounted && multipleSeparateWallShelves
+        ? [`Bracket placeholder uses 2 per shelf for planning only: ${(shelfQuantity * 2).toString()} brackets for ${shelfQuantity.toString()} shelves.`]
+        : []),
+      ...(connectedShelfUnit ? ["Connected shelf unit support/frame details are not specified, so support hardware quantity remains to review."] : []),
+      ...(hasConnectedSupportIssue ? ["Connected shelf units need side supports, frame, cleat, brackets, or another verified support method before the build packet is complete."] : []),
+      ...(shelfQuantity > 1 && shelfSpacing ? [`The intake gives approximate shelf spacing as ${shelfSpacing.toString()} inches.`] : []),
+      ...(wallMounted && bathroomOrHumidity ? ["Bathroom humidity may require moisture-resistant finish and corrosion-resistant hardware review."] : []),
+    ],
     unresolvedQuestions: [
       ...(shelfLayoutMissing
         ? ["How many shelves or openings are intended? Add the shelf count before generating a final shelf plan."]

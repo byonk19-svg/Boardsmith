@@ -136,14 +136,23 @@ function generatedPlanSummary(planRecord: GeneratedProjectPlanRecord | null, bui
   };
 }
 
+function filterStaleConnectedShelfCopy(messages: string[], buildModel: BoardsmithBuildModel): string[] {
+  if (!hasConnectedShelfSupportPlaceholder(buildModel)) {
+    return messages;
+  }
+
+  const staleFreestandingPattern = /\bfreestanding\b|\bnon-mounted\b/i;
+  return messages.filter((message) => !staleFreestandingPattern.test(message));
+}
+
 function planSections(plan: GeneratedPlan | null, buildModel: BoardsmithBuildModel): PrintablePlanManifest["sections"] {
   return {
     projectSummary: plan?.project_summary ?? null,
     buildSteps: plan?.assembly_steps ?? [],
     modeledOperations: buildModel.operations,
-    safetyNotes: plan?.safety_notes ?? [],
+    safetyNotes: filterStaleConnectedShelfCopy(plan?.safety_notes ?? [], buildModel),
     safetyFlags: buildModel.safety.flags,
-    assumptions: [...new Set([...(plan?.assumptions ?? []), ...buildModel.assumptions])],
+    assumptions: filterStaleConnectedShelfCopy([...new Set([...(plan?.assumptions ?? []), ...buildModel.assumptions])], buildModel),
     unresolvedQuestions: buildModel.unresolvedQuestions,
     finishingSteps: plan?.finishing_steps ?? [],
     beginnerTips: plan?.beginner_tips ?? [],
