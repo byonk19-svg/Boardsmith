@@ -167,13 +167,18 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Plan date");
     expect(markup).not.toContain("Cut list</dt>");
     expect(markup).not.toContain("Primary tools");
-    expect(markup).toContain("Project Visuals");
+    expect(markup).toContain("Project Visuals / Diagrams");
+    expect(markup).toContain("Hero Visual");
+    expect(markup).toContain("Build-model hero visual - planning aid only.");
+    expect(markup).toContain("Main project visual from structured plan data.");
+    expect(markup.indexOf("Hero Visual")).toBeGreaterThan(markup.indexOf("Build Snapshot"));
+    expect(markup.indexOf("Hero Visual")).toBeLessThan(markup.indexOf("Project Visuals / Diagrams"));
     expect(markup).toContain("Check Before Building");
     expect(markup).toContain('print:break-before-page');
     expect(markup).toContain("Review wall mounting details.");
     expect(markup).toContain("Review safety-trigger notes.");
     expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
-    expect(markup.indexOf("Boardsmith cannot verify wall safety or load capacity.")).toBeGreaterThan(markup.indexOf("Reference review notes"));
+    expect(markup.indexOf("Boardsmith cannot verify wall safety or load capacity.")).toBeGreaterThan(markup.indexOf("Reference Review Notes"));
     expect(markup).not.toContain('name="plan_action_');
     expect(markup).not.toContain("Review child-adjacent or load-related safety flags.");
     expect(markup).toContain("Planning diagram - not to scale");
@@ -219,7 +224,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Modeled step");
     expect(markup).not.toContain("Modeled operations");
     expect(markup).not.toContain("15 min");
-    expect(markup).toContain("Reference review notes");
+    expect(markup).toContain("Reference Review Notes");
     expect(markup).toContain("Shop notes");
     expect(markup).toContain("Blank space for handwritten notes on the printed plan. Nothing here is saved in Boardsmith.");
     expect(markup).toContain("hidden print:block print:break-before-page");
@@ -243,6 +248,8 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("DXF-ready");
     expect(markup).not.toContain("SVG export");
     expect(markup).not.toContain("PDF generated");
+    expect(markup).not.toContain("AI-generated concept preview");
+    expect(markup).not.toContain("reference image measurement");
     expect(markup).not.toContain("Download");
     expect(markup).not.toContain("fabrication-ready");
     expect(markup).not.toContain("approved");
@@ -253,12 +260,13 @@ describe("ProjectPrintPreviewPage", () => {
 
     const sectionOrder = [
       "Build Snapshot",
-      "Project Visuals",
+      "Hero Visual",
+      "Project Visuals / Diagrams",
       "Check Before Building",
       "Materials and Parts",
       "Cut Checklist",
       "Build Guide",
-      "Reference review notes",
+      "Reference Review Notes",
     ];
     const sectionIndexes = sectionOrder.map((label) => markup.indexOf(label));
     expect(sectionIndexes.every((index) => index >= 0)).toBe(true);
@@ -385,7 +393,7 @@ describe("ProjectPrintPreviewPage", () => {
 
     expect(markup).toContain("Print build sheet");
     expect(markup).toContain("Build Snapshot");
-    expect(markup).toContain("Project Visuals");
+    expect(markup).toContain("Project Visuals / Diagrams");
     expect(markup).toContain("Cut Checklist");
     expect(markup).not.toMatch(/deleted|delete project/i);
   });
@@ -490,7 +498,9 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("Project Visuals");
+    expect(markup).toContain("Project Visuals / Diagrams");
+    expect(markup).toContain("Hero Visual");
+    expect(markup).toContain("Build-model hero visual - planning aid only.");
     expect(markup).toContain("No diagram available yet. Review the cut list and build steps before building.");
     expect(markup).toContain("Three-view diagram is not available yet. Review the cut list and build guide before building.");
     expect(markup).toContain("Visual piece inventory - planning aid only.");

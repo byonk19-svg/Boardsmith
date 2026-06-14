@@ -33,12 +33,16 @@ export type PlanningDiagramConnection = {
 
 export type ProjectAnatomyVisual = {
   title: "Project anatomy";
+  kind: PlanningDiagramKind | "generic";
   widthLabel: string;
   heightLabel: string;
   depthLabel: string;
   materialThicknessLabel: string;
   materialLabel: string;
   pieceLabels: string[];
+  shelfCount: number | null;
+  hasWallContext: boolean;
+  supportLabel: string | null;
   fallbackMessage: typeof projectAnatomyFallback | null;
 };
 
@@ -153,15 +157,26 @@ function hasCompleteDimensions(model: BoardsmithBuildModel): boolean {
 function createProjectAnatomyVisual(model: BoardsmithBuildModel): ProjectAnatomyVisual {
   const pieceLabels = model.pieces.map((piece) => piece.label).slice(0, 4);
   const isAvailable = hasCompleteDimensions(model) && model.pieces.length > 0;
+  const shelfPiece = findPiece(model.pieces, /\bshelf\b.*\bboard\b|\bshelf\b/);
+  const kind = model.project.projectType === "simple_shelf" && shelfPiece ? "simple_shelf" : (detectDiagramKind(model) ?? "generic");
+  const shelfCount = kind === "simple_shelf" ? (shelfPiece?.quantity ?? null) : null;
+  const hasWallContext =
+    kind === "simple_shelf" &&
+    (model.safety.flags.some((flag) => flag.category === "wall_mounting" || /wall|mount|anchor|stud/i.test(flag.message)) ||
+      model.connections.some((connection) => /\b(bracket|anchor|hanger)\b/i.test(`${connection.connectionType} ${connection.locationDescription}`)));
 
   return {
     title: "Project anatomy",
+    kind,
     widthLabel: dimensionLabel("Width", model.dimensions.widthInches),
     heightLabel: dimensionLabel("Height", model.dimensions.heightInches),
     depthLabel: dimensionLabel("Depth", model.dimensions.depthInches),
     materialThicknessLabel: dimensionLabel("Material thickness", model.dimensions.materialThicknessInches),
     materialLabel: model.materials[0]?.label ?? "material to review",
     pieceLabels,
+    shelfCount,
+    hasWallContext,
+    supportLabel: hasWallContext ? "Wall/support details to verify" : null,
     fallbackMessage: isAvailable ? null : projectAnatomyFallback,
   };
 }

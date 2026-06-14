@@ -131,7 +131,7 @@ describe("ProjectDetailPage project structure", () => {
     vi.clearAllMocks();
   });
 
-  it("orders project setup, generated plan review, plan history, and project record sections for MVP review", async () => {
+  it("orders generated build packet before advanced project review details", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([planRecord]);
     const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
@@ -143,27 +143,62 @@ describe("ProjectDetailPage project structure", () => {
       }),
     );
 
+    const planSheetIndex = markup.indexOf('id="printable-plan-sheet"');
+    const buildSnapshotIndex = markup.indexOf("Build Snapshot");
+    const heroVisualIndex = markup.indexOf("Hero Visual");
+    const advancedDetailsIndex = markup.indexOf('id="advanced-project-details"');
+    const reviewChecklistIndex = markup.indexOf("Generated plan review checklist");
     const projectIntakeIndex = markup.indexOf('id="project-intake"');
-    const reviewBeforeBuildingIndex = markup.indexOf("Review before building");
     const sectionNavIndex = markup.indexOf('aria-label="Project sections"');
     const templateIndex = markup.indexOf("Template Guidance");
     const structureIndex = markup.indexOf('id="project-structure"');
     const reviewIndex = markup.indexOf('id="plan-review"');
-    const planSheetIndex = markup.indexOf('id="printable-plan-sheet"');
     const historyIndex = markup.indexOf('id="plan-history"');
     const recordIndex = markup.indexOf('id="project-record"');
 
-    expect(reviewBeforeBuildingIndex).toBeGreaterThan(-1);
-    expect(sectionNavIndex).toBeGreaterThan(reviewBeforeBuildingIndex);
+    expect(planSheetIndex).toBeGreaterThan(-1);
+    expect(buildSnapshotIndex).toBeGreaterThan(planSheetIndex);
+    expect(heroVisualIndex).toBeGreaterThan(buildSnapshotIndex);
+    expect(advancedDetailsIndex).toBeGreaterThan(heroVisualIndex);
+    expect(reviewChecklistIndex).toBeGreaterThan(advancedDetailsIndex);
+    expect(sectionNavIndex).toBeGreaterThan(reviewChecklistIndex);
     expect(projectIntakeIndex).toBeGreaterThan(-1);
     expect(projectIntakeIndex).toBeGreaterThan(sectionNavIndex);
     expect(templateIndex).toBeGreaterThan(projectIntakeIndex);
     expect(structureIndex).toBeGreaterThan(templateIndex);
     expect(reviewIndex).toBeGreaterThan(structureIndex);
-    expect(planSheetIndex).toBeGreaterThan(reviewIndex);
-    expect(historyIndex).toBeGreaterThan(planSheetIndex);
+    expect(historyIndex).toBeGreaterThan(reviewIndex);
     expect(recordIndex).toBeGreaterThan(historyIndex);
     expect(markup).toContain("Private notes and real-build details stay with this project.");
+  });
+
+  it("renders a multi-shelf wall hero as repeated shelf boards instead of one generic block", async () => {
+    const { ProjectHeroVisual } = await import("@/app/projects/[id]/ProjectHeroVisual");
+
+    const markup = renderToStaticMarkup(
+      React.createElement(ProjectHeroVisual, {
+        visual: {
+          title: "Project anatomy",
+          kind: "simple_shelf",
+          widthLabel: "Width 12 in",
+          heightLabel: "Height 60 in",
+          depthLabel: "Depth 6 in",
+          materialThicknessLabel: "Material thickness 0.75 in",
+          materialLabel: "3/4 in pine board",
+          pieceLabels: ["Shelf boards"],
+          shelfCount: 5,
+          hasWallContext: true,
+          supportLabel: "Wall/support details to verify",
+          fallbackMessage: null,
+        },
+      }),
+    );
+
+    expect(markup).toContain("5 shelves - Material thickness 0.75 in");
+    expect(markup).toContain("Wall/support details to verify");
+    expect(markup).toContain("wall");
+    expect(markup.match(/<g>/g)?.length).toBe(5);
+    expect(markup).not.toContain("Major pieces");
   });
 
   it("renders no-print project section navigation with links to existing latest-plan sections", async () => {
@@ -365,9 +400,15 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('href="#cut-list-to-verify"');
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
     expect(markup).toContain("Latest generated plan");
-    expect(markup).toContain("Plan at a glance");
-    expect(markup).toContain("Overview / Summary");
-    expect(markup).toContain("Planning diagrams");
+    expect(markup).toContain("Build Snapshot");
+    expect(markup).not.toContain("Plan at a glance");
+    expect(markup).not.toContain("Overview / Summary");
+    expect(markup).toContain("Hero Visual");
+    expect(markup).toContain("Build-model hero visual - planning aid only.");
+    expect(markup).toContain("Main project visual from structured plan data.");
+    expect(markup.indexOf("Hero Visual")).toBeGreaterThan(markup.indexOf("Build Snapshot"));
+    expect(markup.indexOf("Hero Visual")).toBeLessThan(markup.indexOf("Project Visuals / Diagrams"));
+    expect(markup).toContain("Project Visuals / Diagrams");
     expect(markup).toContain("Planning diagram - not to scale");
     expect(markup).toContain("Front elevation / shelf layout");
     expect(markup).toContain("Side view");
@@ -378,17 +419,17 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Needs manual review");
     expect(markup).toContain("Planning aid");
     expect(markup).toContain("Review before building");
-    expect(markup).toContain("Check these before building");
+    expect(markup).toContain("Check Before Building");
     expect(markup).toContain("Review wall mounting details.");
     expect(markup).toContain("Review unresolved questions.");
     expect(markup).toContain("Confirm bracket, cleat, side-support, or frame type.");
     expect(markup).toContain("Confirm hardware and expected load suitability before mounting.");
     expect(markup).toContain("Check-list markers are for paper or shop review only; nothing is saved.");
     expect(markup).not.toContain('name="plan_action_');
-    expect(markup).toContain("Materials to verify");
-    expect(markup).toContain("Cut list to verify");
+    expect(markup).toContain("Materials and Parts");
+    expect(markup).toContain("Cut Checklist");
     expect(markup).toContain("Verify all dimensions against your actual space, lumber, and hardware.");
-    expect(markup).toContain("Build steps");
+    expect(markup).toContain("Build Guide");
     expect(markup).toContain("Step 1");
     expect(markup).toContain("Inspect / review");
     expect(markup).toContain("Tools");
@@ -400,7 +441,8 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Modeled step");
     expect(markup).toContain("Inspect mounting location");
     expect(markup).toContain("Do not rely on Boardsmith for load ratings.");
-    expect(markup).toContain("Modeled operations");
+    expect(markup).not.toContain("Modeled operations");
+    expect(markup).toContain("Structured build sequence");
     expect(markup).toContain("Safety notes");
     expect(markup).toContain("Review triggers");
     expect(markup).toContain("These are conservative review triggers, not confirmed hazards.");
@@ -409,13 +451,32 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Open questions");
     expect(markup).toContain('id="open-questions"');
     expect(markup).toContain("Finishing notes");
+    expect(markup).toContain("Beginner tips");
+    expect(markup).toContain("Reference Review Notes");
     expect(markup).toContain("Use your own judgment before cutting or assembling.");
     expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
     expect(markup).not.toContain("CAD-ready");
     expect(markup).not.toContain("CNC-ready");
+    expect(markup).not.toContain("AI-generated concept preview");
+    expect(markup).not.toContain("reference image measurement");
     expect(markup).not.toContain("construction approval");
     expect(markup).not.toContain("Output readiness notes");
     expect(markup).toContain("Exact bracket and fastener specifications are unknown.");
+
+    const corePacketOrder = [
+      "Build Snapshot",
+      "Hero Visual",
+      "Project Visuals / Diagrams",
+      "Check Before Building",
+      "Materials and Parts",
+      "Cut Checklist",
+      "Build Guide",
+      "Reference Review Notes",
+    ];
+    const corePacketIndexes = corePacketOrder.map((label) => markup.indexOf(label));
+    expect(corePacketIndexes.every((index) => index >= 0)).toBe(true);
+    expect(corePacketIndexes).toEqual([...corePacketIndexes].sort((a, b) => a - b));
+
     expect(markup).toContain("Tweak this plan");
     expect(markup).toContain("Describe one change to the latest plan.");
     expect(markup).toContain("Boardsmith saves a new plan version for review; this is a one-shot revision, not a chat thread.");

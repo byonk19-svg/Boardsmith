@@ -10,6 +10,7 @@ import { getTemplateHint } from "@/lib/templates/template-hints";
 import { BuildStepCards } from "../BuildStepCards";
 import { PlanActionChecklist } from "../PlanActionChecklist";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
+import { ProjectHeroVisual } from "../ProjectHeroVisual";
 import { WallShelfDiagrams } from "../WallShelfDiagrams";
 import { PrintDialogButton } from "./PrintDialogButton";
 
@@ -67,7 +68,11 @@ export default async function ProjectPrintPreviewPage({
           <PrintBuildSnapshot manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Project Visuals">
+        <PrintSection title="Hero Visual">
+          <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} compact />
+        </PrintSection>
+
+        <PrintSection title="Project Visuals / Diagrams">
           {manifest.wallShelfDiagram ? (
             <WallShelfDiagrams model={manifest.wallShelfDiagram} />
           ) : (
@@ -98,7 +103,7 @@ export default async function ProjectPrintPreviewPage({
           <PrintBuildGuide manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Reference review notes" appendix printBreakBefore>
+        <PrintSection title="Reference Review Notes" appendix printBreakBefore>
           <PrintReviewDetails manifest={manifest} />
         </PrintSection>
 

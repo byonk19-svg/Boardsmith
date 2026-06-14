@@ -21,6 +21,7 @@ import { BuildStepCards } from "./BuildStepCards";
 import { GeneratePlanForm } from "./GeneratePlanForm";
 import { PlanActionChecklist } from "./PlanActionChecklist";
 import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
+import { ProjectHeroVisual } from "./ProjectHeroVisual";
 import { TweakPlanForm } from "./TweakPlanForm";
 import { WallShelfDiagrams } from "./WallShelfDiagrams";
 
@@ -101,7 +102,11 @@ export default async function ProjectDetailPage({
             {isProjectArchived(project) ? " · archived" : ""}
           </p>
         </div>
-        <ProjectActions project={project} hasLatestPlan={Boolean(latestPlanReview)} printPreviewHref={printPreviewHref} />
+        {latestPlanReview ? (
+          <ProjectPlanQuickActions printPreviewHref={printPreviewHref} hasOpenQuestions={latestPlanReview.manifest.sections.unresolvedQuestions.length > 0} />
+        ) : (
+          <ProjectActions project={project} hasLatestPlan={false} printPreviewHref={printPreviewHref} />
+        )}
       </div>
 
       {isProjectArchived(project) ? <ArchivedProjectBanner project={project} /> : null}
@@ -133,62 +138,52 @@ export default async function ProjectDetailPage({
       ) : null}
       {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} /> : null}
 
-      <RecommendedNextStep project={project} latestPlanReview={latestPlanReview} planVersionCount={planReviews.length} />
-
-      {latestPlanReview ? (
-        <ReviewBeforeBuildingSummary
-          manifest={latestPlanReview.manifest}
-          planVersionCount={planReviews.length}
-          printPreviewHref={printPreviewHref}
-          isArchived={isProjectArchived(project)}
-        />
-      ) : (
-        <NoPlanReviewSummary project={project} isArchived={isProjectArchived(project)} />
-      )}
-
-      <ProjectSectionsNav links={sectionLinks} />
-
-      <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-        <ProjectIntakeCard project={project} />
-        <div className="rounded-lg border border-sawdust bg-white p-5">
-          <h2 className="text-lg font-semibold text-ink">Review triggers</h2>
-          <p className="mt-2 text-sm leading-6 text-ink/65">
-            These are conservative review triggers, not confirmed hazards. They may appear when safety-sensitive terms are mentioned, even when the
-            project says that use is excluded.
-          </p>
-          {project.safety_review_required ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {project.safety_flags.map((flag) => (
-                <span key={flag} className="rounded-md bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900">
-                  {flag}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-ink/65">No deterministic review triggers were added. User review is still required before building.</p>
-          )}
-          <p className="mt-4 text-sm leading-6 text-ink/65">
-            Plans are aids, not professional approvals. Review dimensions, materials, tool safety, fasteners, and mounting details before cutting.
-          </p>
-        </div>
-      </section>
-
       {latestPlanReview ? (
         <>
-          <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
-          <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={displayedManifest.materials} cutListReview={displayedManifest.cutList} />
-          {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
-          {latestPlanReview.manifest.exportReadiness ? <ExportReadinessPanel summary={latestPlanReview.manifest.exportReadiness} /> : null}
-          {!isProjectArchived(project) ? <TweakPlanSection project={project} hasLatestPlan={Boolean(latestPlanReview)} /> : null}
-          <PlanComparisonPanel
-            comparison={planComparison}
-            comparedVersionLabel={comparedPlanReview ? planVersionLabel(planReviews, comparedPlanReview.plan) : null}
-            isRevisionComparison={Boolean(query.revised && comparedPlanReview)}
-          />
           <PlanView manifest={latestPlanReview.manifest} />
+          <details id="advanced-project-details" className="no-print scroll-mt-6 rounded-lg border border-sawdust bg-white p-4 shadow-soft">
+            <summary className="cursor-pointer text-sm font-semibold text-ink">
+              Advanced project details
+              <span className="ml-2 font-normal text-ink/55">Review status, intake, generation controls, plan history, and private build notes.</span>
+            </summary>
+            <div className="mt-5 space-y-5">
+              <ProjectActions project={project} hasLatestPlan printPreviewHref={printPreviewHref} />
+              <RecommendedNextStep project={project} latestPlanReview={latestPlanReview} planVersionCount={planReviews.length} />
+              <ReviewBeforeBuildingSummary
+                manifest={latestPlanReview.manifest}
+                planVersionCount={planReviews.length}
+                printPreviewHref={printPreviewHref}
+                isArchived={isProjectArchived(project)}
+              />
+              <ProjectSectionsNav links={sectionLinks} />
+              <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+                <ProjectIntakeCard project={project} />
+                <ProjectReviewTriggers project={project} />
+              </section>
+              <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
+              <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={displayedManifest.materials} cutListReview={displayedManifest.cutList} />
+              {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
+              {latestPlanReview.manifest.exportReadiness ? <ExportReadinessPanel summary={latestPlanReview.manifest.exportReadiness} /> : null}
+              {!isProjectArchived(project) ? <TweakPlanSection project={project} hasLatestPlan={Boolean(latestPlanReview)} /> : null}
+              <PlanComparisonPanel
+                comparison={planComparison}
+                comparedVersionLabel={comparedPlanReview ? planVersionLabel(planReviews, comparedPlanReview.plan) : null}
+                isRevisionComparison={Boolean(query.revised && comparedPlanReview)}
+              />
+              <PlanHistorySection planReviews={planReviews} latestPlanReview={latestPlanReview} project={project} />
+              <ProjectRecordSection project={project} isArchived={isProjectArchived(project)} />
+            </div>
+          </details>
         </>
       ) : (
         <>
+          <RecommendedNextStep project={project} latestPlanReview={latestPlanReview} planVersionCount={planReviews.length} />
+          <NoPlanReviewSummary project={project} isArchived={isProjectArchived(project)} />
+          <ProjectSectionsNav links={sectionLinks} />
+          <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+            <ProjectIntakeCard project={project} />
+            <ProjectReviewTriggers project={project} />
+          </section>
           <EmptyPlanState isArchived={isProjectArchived(project)} />
           <NoPlanPlanningDetails
             buildModel={buildModel}
@@ -196,45 +191,9 @@ export default async function ProjectDetailPage({
             assumptions={templateHint.assumptions}
             cautions={templateHint.cautions}
           />
+          <ProjectRecordSection project={project} isArchived={isProjectArchived(project)} />
         </>
       )}
-
-      {planReviews.length > 0 ? (
-        <section id="plan-history" className="no-print scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
-          <h2 className="text-lg font-semibold text-ink">Plan history</h2>
-          <div className="mt-4 divide-y divide-sawdust">
-            {planReviews.map((entry, index) => (
-              <div key={entry.plan.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-ink">Version {planReviews.length - index}</p>
-                  <p className="text-xs text-ink/60">
-                    {new Date(entry.plan.created_at).toLocaleString()} - {entry.plan.model_name} - {entry.plan.confidence_level} confidence
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {!entry.plan.is_latest && latestPlanReview ? (
-                    <Link
-                      href={`/projects/${project.id}?compare_plan=${entry.plan.id}` as Route}
-                      className="w-fit rounded-md bg-shop px-2.5 py-1 text-xs font-semibold text-ink/70 hover:underline"
-                    >
-                      Compare
-                    </Link>
-                  ) : null}
-                  {entry.manifest.planReview ? (
-                    <span className={`w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${reviewBadgeClass(entry.manifest.planReview.status)}`}>
-                      Review: {reviewStatusLabel(entry.manifest.planReview.status)}
-                    </span>
-                  ) : null}
-                  {isRevisedPlan(entry.plan) ? <span className="w-fit rounded-md bg-shop px-2.5 py-1 text-xs font-semibold text-ink/70">Revised</span> : null}
-                  {entry.plan.is_latest ? <span className="w-fit rounded-md bg-moss px-2.5 py-1 text-xs font-semibold text-white">Latest</span> : null}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <ProjectRecordSection project={project} isArchived={isProjectArchived(project)} />
     </div>
   );
 }
@@ -330,6 +289,28 @@ function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project:
   );
 }
 
+function ProjectPlanQuickActions({ printPreviewHref, hasOpenQuestions }: { printPreviewHref: Route; hasOpenQuestions: boolean }) {
+  return (
+    <div className="no-print flex flex-wrap gap-2 sm:justify-end">
+      {hasOpenQuestions ? (
+        <a href="#open-questions" className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+          Review questions
+        </a>
+      ) : (
+        <a href="#cut-list-to-verify" className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+          Review cut list
+        </a>
+      )}
+      <Link href={printPreviewHref} className="rounded-md border border-sawdust bg-white px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+        Print build sheet
+      </Link>
+      <a href="#advanced-project-details" className="rounded-md border border-sawdust bg-white px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
+        Review intake
+      </a>
+    </div>
+  );
+}
+
 function ProjectSectionsNav({ links }: { links: ProjectSectionLink[] }) {
   if (links.length === 0) return null;
 
@@ -378,6 +359,32 @@ function ProjectSectionsNav({ links }: { links: ProjectSectionLink[] }) {
 
 function isPrimarySectionLink(link: ProjectSectionLink): boolean {
   return link.href === "#project-intake" || link.href === "#plan-review" || link.href === "#printable-plan-sheet" || link.href === "#plan-history" || link.href === "#project-record";
+}
+
+function ProjectReviewTriggers({ project }: { project: Project }) {
+  return (
+    <div className="rounded-lg border border-sawdust bg-white p-5">
+      <h2 className="text-lg font-semibold text-ink">Review triggers</h2>
+      <p className="mt-2 text-sm leading-6 text-ink/65">
+        These are conservative review triggers, not confirmed hazards. They may appear when safety-sensitive terms are mentioned, even when the
+        project says that use is excluded.
+      </p>
+      {project.safety_review_required ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {project.safety_flags.map((flag) => (
+            <span key={flag} className="rounded-md bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900">
+              {flag}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-ink/65">No deterministic review triggers were added. User review is still required before building.</p>
+      )}
+      <p className="mt-4 text-sm leading-6 text-ink/65">
+        Plans are aids, not professional approvals. Review dimensions, materials, tool safety, fasteners, and mounting details before cutting.
+      </p>
+    </div>
+  );
 }
 
 function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
@@ -1017,6 +1024,53 @@ function ProjectRecordSection({ project, isArchived }: { project: Project; isArc
       <div className="grid gap-4 lg:grid-cols-2">
         <ProjectNotesCard project={project} isArchived={isArchived} />
         <BuildLogCard project={project} isArchived={isArchived} />
+      </div>
+    </section>
+  );
+}
+
+function PlanHistorySection({
+  planReviews,
+  latestPlanReview,
+  project,
+}: {
+  planReviews: PlanReviewEntry[];
+  latestPlanReview: PlanReviewEntry | null;
+  project: Project;
+}) {
+  if (planReviews.length === 0) return null;
+
+  return (
+    <section id="plan-history" className="no-print scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
+      <h2 className="text-lg font-semibold text-ink">Plan history</h2>
+      <div className="mt-4 divide-y divide-sawdust">
+        {planReviews.map((entry, index) => (
+          <div key={entry.plan.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-ink">Version {planReviews.length - index}</p>
+              <p className="text-xs text-ink/60">
+                {new Date(entry.plan.created_at).toLocaleString()} - {entry.plan.model_name} - {entry.plan.confidence_level} confidence
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {!entry.plan.is_latest && latestPlanReview ? (
+                <Link
+                  href={`/projects/${project.id}?compare_plan=${entry.plan.id}` as Route}
+                  className="w-fit rounded-md bg-shop px-2.5 py-1 text-xs font-semibold text-ink/70 hover:underline"
+                >
+                  Compare
+                </Link>
+              ) : null}
+              {entry.manifest.planReview ? (
+                <span className={`w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${reviewBadgeClass(entry.manifest.planReview.status)}`}>
+                  Review: {reviewStatusLabel(entry.manifest.planReview.status)}
+                </span>
+              ) : null}
+              {isRevisedPlan(entry.plan) ? <span className="w-fit rounded-md bg-shop px-2.5 py-1 text-xs font-semibold text-ink/70">Revised</span> : null}
+              {entry.plan.is_latest ? <span className="w-fit rounded-md bg-moss px-2.5 py-1 text-xs font-semibold text-white">Latest</span> : null}
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -1745,6 +1799,11 @@ function PlanView({
             <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Print build sheet</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Latest generated plan</h2>
             <p className="mt-3 leading-7 text-ink/75">A readable planning sheet assembled from the saved generated plan and deterministic review data.</p>
+            {manifest.sections.projectSummary ? (
+              <p className="mt-3 text-sm leading-7 text-ink/75">{manifest.sections.projectSummary}</p>
+            ) : (
+              <p className="mt-3 text-sm leading-7 text-ink/65">No project summary was saved with this generated plan.</p>
+            )}
             <p className="mt-3 text-sm font-medium text-caution">Review before building. Use your own judgment before cutting or assembling.</p>
             <p className="mt-2 text-sm leading-6 text-ink/65">This MVP uses browser print only; no PDF or CAD download is generated.</p>
           </div>
@@ -1754,37 +1813,29 @@ function PlanView({
           </div>
         </div>
 
-        <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-ink/55">Plan at a glance</h3>
+        <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-ink/55">Build Snapshot</h3>
         <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-4">
           <PlanFact label="Time" value={generatedPlan.estimatedTime} />
           <PlanFact label="Difficulty" value={generatedPlan.estimatedDifficulty} />
           <PlanFact label="Confidence" value={`${generatedPlan.confidenceLevel} plan / ${manifest.buildModel.confidenceLevel} model`} />
           <PlanFact label="Generated" value={`${new Date(generatedPlan.createdAt).toLocaleDateString()} - ${generatedPlan.modelName}`} />
         </dl>
+        <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-4 print:border-sawdust print:bg-white">
+          <p className="text-sm font-semibold text-ink">Planning aid only</p>
+          <p className="mt-2 text-sm leading-6 text-ink/70">
+            Boardsmith cannot verify engineering, load capacity, wall safety, child safety, material condition, or tool setup.
+          </p>
+        </div>
       </header>
 
       {unresolvedDimensionItems.length > 0 ? <UnresolvedCutDimensionsWarning items={unresolvedDimensionItems} /> : null}
 
       <div className="divide-y divide-sawdust">
-        <PlanSheetSection title="Overview / Summary">
-          {manifest.sections.projectSummary ? (
-            <p className="text-sm leading-7 text-ink/75">{manifest.sections.projectSummary}</p>
-          ) : (
-            <p className="text-sm leading-7 text-ink/65">No project summary was saved with this generated plan.</p>
-          )}
-          <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-4 print:border-sawdust print:bg-white">
-            <p className="text-sm font-semibold text-ink">Planning aid only</p>
-            <p className="mt-2 text-sm leading-6 text-ink/70">
-              Boardsmith cannot verify engineering, load capacity, wall safety, child safety, material condition, or tool setup.
-            </p>
-          </div>
+        <PlanSheetSection title="Hero Visual">
+          <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Check these before building">
-          <PlanActionChecklist items={manifest.actionChecklist} />
-        </PlanSheetSection>
-
-        <PlanSheetSection title="Planning diagrams">
+        <PlanSheetSection title="Project Visuals / Diagrams">
           {manifest.wallShelfDiagram ? (
             <WallShelfDiagrams model={manifest.wallShelfDiagram} compact />
           ) : (
@@ -1792,13 +1843,17 @@ function PlanView({
           )}
         </PlanSheetSection>
 
-        <PlanSheetSection title="Materials to verify">
+        <PlanSheetSection title="Check Before Building">
+          <PlanActionChecklist items={manifest.actionChecklist} />
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Materials and Parts">
           <MaterialReviewSummaryView summary={manifest.materials} />
           <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
           <List items={modeledPieces.map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`)} />
         </PlanSheetSection>
 
-        <PlanSheetSection id="cut-list-to-verify" title="Cut list to verify">
+        <PlanSheetSection id="cut-list-to-verify" title="Cut Checklist">
           <div className="mb-5">
             <CutListReviewSummaryView summary={manifest.cutList} />
           </div>
@@ -1835,17 +1890,16 @@ function PlanView({
           )}
         </PlanSheetSection>
 
-        <PlanSheetSection title="Build steps">
+        <PlanSheetSection title="Build Guide">
           <BuildStepCards cards={manifest.buildStepCards} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Modeled operations">
+        <PlanSheetSection title="Reference Review Notes">
+          <h4 className="text-sm font-semibold text-ink">Structured build sequence</h4>
           <List items={manifest.sections.modeledOperations.map((operation) => `${operation.sequenceNumber.toString()}. ${operation.title}: ${operation.description}`)} />
           <h4 className="mt-5 text-sm font-semibold text-ink">Tools</h4>
           <List items={manifest.sections.tools} />
-        </PlanSheetSection>
-
-        <PlanSheetSection title="Safety notes">
+          <h4 className="mt-5 text-sm font-semibold text-ink">Safety notes</h4>
           <div className="rounded-md border border-amber-200 bg-amber-50 p-4 print:border-sawdust print:bg-white">
             <p className="text-sm font-semibold text-ink">Review before building</p>
             <p className="mt-2 text-sm leading-6 text-ink/70">
@@ -1869,28 +1923,19 @@ function PlanView({
               </div>
             </div>
           ) : null}
-        </PlanSheetSection>
-
-        <PlanSheetSection title="Assumptions">
+          <h4 className="mt-5 text-sm font-semibold text-ink">Assumptions</h4>
           <List items={manifest.sections.assumptions} />
-        </PlanSheetSection>
-
-        <PlanSheetSection id="open-questions" title="Open questions">
+          <h4 id="open-questions" className="mt-5 scroll-mt-6 text-sm font-semibold text-ink">Open questions</h4>
           {manifest.sections.unresolvedQuestions.length > 0 ? (
             <List items={manifest.sections.unresolvedQuestions} />
           ) : (
             <p className="text-sm leading-6 text-ink/65">No unresolved questions listed. Review the full plan before building.</p>
           )}
-        </PlanSheetSection>
-
-        <PlanSheetSection title="Finishing notes">
+          <h4 className="mt-5 text-sm font-semibold text-ink">Finishing notes</h4>
           <List items={manifest.sections.finishingSteps} />
-        </PlanSheetSection>
-
-        <PlanSheetSection title="Beginner tips">
+          <h4 className="mt-5 text-sm font-semibold text-ink">Beginner tips</h4>
           <List items={manifest.sections.beginnerTips} />
         </PlanSheetSection>
-
       </div>
     </article>
   );

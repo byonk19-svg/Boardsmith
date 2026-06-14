@@ -193,11 +193,9 @@ Current:
 
 Target:
 
-- Reference image input may guide style, proportions, structure ideas, and clarifying questions.
-- Image-derived measurements are never trusted as exact unless the user confirms them in structured fields.
-- Reference images should feed structured intake and review, not bypass validation.
-- AI-generated concept previews are future-only, aesthetic/inspiration only, and must be clearly labeled non-buildable.
-- Build diagrams are deterministic, structured-data-driven outputs. They must never be freeform AI images.
+- Reference image input may guide style, proportions, structure ideas, and clarifying questions. Image-derived measurements are never trusted as exact unless the user confirms them in structured fields. Reference images should feed structured intake and review, not bypass validation.
+- AI-generated concept previews are future-only, aesthetic/inspiration only, and must be clearly labeled non-buildable. They are not build diagrams, cut diagrams, assembly drawings, or print/PDF plan packet graphics.
+- Build diagrams are deterministic, structured-data-driven outputs. They come from the Build Model through a Diagram View Model and deterministic renderer, never from freeform AI images.
 
 Reference image input, AI-generated concept preview, and build diagrams are separate subsystems. Do not let inspiration imagery become the source of truth for dimensions, cut lists, hardware, supports, or safety review.
 
@@ -208,6 +206,7 @@ Current:
 - Browser print preview exists at `/projects/[id]/print`.
 - `createPrintablePlanManifest` gathers project, generated plan, build model, review summaries, diagrams, cut-list/material review, disclaimers, and future export notes.
 - No app-generated PDF, SVG download, DXF, CAD, CNC, file export, or download pipeline exists.
+- Current output language should say browser print, not app-generated PDF.
 
 Target:
 

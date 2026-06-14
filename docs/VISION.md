@@ -42,7 +42,7 @@ That feeling should come from structured content, useful visuals, visible review
 
 Boardsmith should produce plans closer to a careful woodworking plan packet than a chat response.
 
-The first "wow" of a Boardsmith plan should be the main project visual: the user should immediately recognize the project they meant to build. That visual must still be backed by structured build data. It does not replace dimensions, cut lists, diagrams, safety review, or step-by-step instructions.
+The first "wow" of a Boardsmith plan should be the main project visual: the user should immediately recognize the project they meant to build before reading the details. That visual must still be backed by structured build data. It does not replace dimensions, cut lists, diagrams, safety review, review notes, or step-by-step instructions.
 
 A finished plan should include:
 
@@ -69,9 +69,9 @@ Every finished Boardsmith plan should be organized around:
 - Build Guide.
 - Reference Review Notes.
 
-The digital project page and the print/PDF plan packet should use the same underlying plan content. The digital page may add controls for editing, tweaking, regeneration, history, comparison, notes, and advanced review details. The print/PDF plan packet should be the clean build artifact.
+The digital project page and the print/PDF plan packet should use the same underlying plan content. The digital page may add controls for editing, tweaking, regeneration, history, comparison, notes, and advanced review details. The print/PDF plan packet should be the clean user-facing build artifact.
 
-Current implementation already uses a browser print route and a printable plan manifest. Future print/PDF or image output should reuse the same structured content, not scrape the page or regenerate unvalidated prose.
+Current implementation uses browser print through a print route and printable plan manifest. It does not generate a PDF file today. Future print/PDF plan packet or image output should reuse the same structured content, not scrape the page or regenerate unvalidated prose.
 
 ## Visual Strategy
 
@@ -87,6 +87,8 @@ Long-term, each finished plan should support:
 - 2D diagrams for measurements and cuts.
 - Step visuals where the build model supports them.
 
+The long-term visual goal is a coherent sequence: hero visual, dimensioned views, exploded or assembly views, and step visuals as the build model becomes mature enough to drive them.
+
 Near-term:
 
 - Deterministic SVG, CSS, and 2.5D/fake-isometric visuals are acceptable.
@@ -100,7 +102,9 @@ AI image generation may eventually be used for aesthetic concept previews only. 
 
 Long-term, users may upload inspiration or reference images. Reference images can guide style, proportions, structure ideas, and clarifying questions.
 
-Reference images should improve planning, not bypass structured intake or validation. Image-derived measurements are never trusted as exact unless the user confirms them in structured fields. If an image suggests a dimension, support method, material, joinery choice, or safety-sensitive detail, Boardsmith should ask or flag instead of silently treating the image as build truth.
+Reference images should improve planning, not bypass structured intake or validation. They may influence style, proportions, structure ideas, and the clarifying questions Boardsmith asks, but they should not become build truth by themselves.
+
+Image-derived measurements are never trusted as exact unless the user confirms them in structured fields. If an image suggests a dimension, support method, material, joinery choice, or safety-sensitive detail, Boardsmith should ask or flag instead of silently treating the image as build truth.
 
 ## Product Flow Direction
 
