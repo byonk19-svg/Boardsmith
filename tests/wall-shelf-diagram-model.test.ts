@@ -86,7 +86,7 @@ describe("buildWallShelfDiagramModel", () => {
       totalProjectHeightInches: 60,
       shelfSpacingInches: 12,
       supportStatus: "support_to_review",
-      supportLabel: "support method to verify",
+      supportLabel: "Support/frame design needs review",
     });
     expect(diagram?.reviewItems).toContain("Each shelf needs a verified support method.");
   });

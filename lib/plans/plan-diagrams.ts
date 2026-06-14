@@ -1,5 +1,8 @@
 import type { BoardsmithBuildModel, BuildModelPiece } from "@/lib/build-model/build-model-schema";
-import { minimumStackedShelfBoardHeight } from "@/lib/projects/shelf-layout-validation";
+import {
+  createWallShelfDiagramViewModel,
+  type WallShelfDiagramViewModel,
+} from "@/lib/plans/wall-shelf-diagram-view-model";
 
 export const planningDiagramDisclaimer = "Planning diagram — not to scale.";
 export const planningDiagramFallback = "No diagram available yet. Review the cut list and build steps before building.";
@@ -45,7 +48,7 @@ export type ProjectAnatomyVisual = {
   shelfCount: number | null;
   hasWallContext: boolean;
   supportLabel: string | null;
-  fallbackMessage: typeof projectAnatomyFallback | typeof projectAnatomyInvalidHeightFallback | null;
+  fallbackMessage: string | null;
 };
 
 export type ThreeViewPlanningDiagramView = {
@@ -156,48 +159,54 @@ function hasCompleteDimensions(model: BoardsmithBuildModel): boolean {
   return Boolean(model.dimensions.widthInches && model.dimensions.heightInches && model.dimensions.depthInches);
 }
 
-function createProjectAnatomyVisual(model: BoardsmithBuildModel): ProjectAnatomyVisual {
+function createProjectAnatomyVisual(model: BoardsmithBuildModel, wallShelfViewModel?: WallShelfDiagramViewModel | null): ProjectAnatomyVisual {
+  if (wallShelfViewModel && wallShelfViewModel.status !== "unsupported") {
+    const pieceLabels = wallShelfViewModel.visibleBoards.map((piece) => piece.label).slice(0, 4);
+    const isAvailable = wallShelfViewModel.status === "ready" && wallShelfViewModel.visibleBoards.length > 0;
+    return {
+      title: "Project anatomy",
+      kind: "simple_shelf",
+      widthLabel: wallShelfViewModel.dimensions.width.label,
+      heightLabel: wallShelfViewModel.dimensions.height.label,
+      depthLabel: wallShelfViewModel.dimensions.depth.label,
+      materialThicknessLabel: wallShelfViewModel.dimensions.boardThickness.label,
+      materialLabel: wallShelfViewModel.visibleBoards.at(0)?.materialLabel ?? model.materials.at(0)?.label ?? "material to review",
+      pieceLabels,
+      shelfCount: wallShelfViewModel.shelfCount,
+      hasWallContext: hasWallContext(model),
+      supportLabel: wallShelfViewModel.supportFrameReview.needsReview ? wallShelfViewModel.supportFrameReview.label : hasWallContext(model) ? "Wall/support details to verify" : null,
+      fallbackMessage: wallShelfViewModel.visibleBoards.length === 0 ? projectAnatomyFallback : wallShelfViewModel.renderLabels.fallbackMessage ?? (isAvailable ? null : projectAnatomyFallback),
+    };
+  }
+
   const pieceLabels = model.pieces.map((piece) => piece.label).slice(0, 4);
   const isAvailable = hasCompleteDimensions(model) && model.pieces.length > 0;
   const shelfPiece = findPiece(model.pieces, /\bshelf\b.*\bboard\b|\bshelf\b/);
   const kind = model.project.projectType === "simple_shelf" && shelfPiece ? "simple_shelf" : (detectDiagramKind(model) ?? "generic");
   const shelfCount = kind === "simple_shelf" ? (shelfPiece?.quantity ?? null) : null;
-  const minimumShelfHeight =
-    kind === "simple_shelf" && shelfCount && shelfCount > 1
-      ? minimumStackedShelfBoardHeight({
-          project_type: model.project.projectType,
-          title: model.project.title,
-          width_inches: model.dimensions.widthInches,
-          height_inches: model.dimensions.heightInches,
-          depth_inches: model.dimensions.depthInches,
-          material_thickness_inches: model.dimensions.materialThicknessInches,
-          shelf_layout: "multi_shelf_unit",
-          shelf_count: shelfCount,
-          shelf_spacing_inches: undefined,
-          style_notes: "",
-          intended_use: model.project.intendedUse ?? "",
-        })
-      : null;
-  const impossibleHeight = Boolean(model.dimensions.heightInches && minimumShelfHeight && model.dimensions.heightInches < minimumShelfHeight);
-  const hasWallContext =
-    kind === "simple_shelf" &&
-    (model.safety.flags.some((flag) => flag.category === "wall_mounting" || /wall|mount|anchor|stud/i.test(flag.message)) ||
-      model.connections.some((connection) => /\b(bracket|anchor|hanger)\b/i.test(`${connection.connectionType} ${connection.locationDescription}`)));
+  const wallContext = kind === "simple_shelf" && hasWallContext(model);
 
   return {
     title: "Project anatomy",
     kind,
     widthLabel: dimensionLabel("Width", model.dimensions.widthInches),
-    heightLabel: impossibleHeight ? "Total height needs review" : dimensionLabel("Height", model.dimensions.heightInches),
+    heightLabel: dimensionLabel("Height", model.dimensions.heightInches),
     depthLabel: dimensionLabel("Depth", model.dimensions.depthInches),
     materialThicknessLabel: dimensionLabel("Material thickness", model.dimensions.materialThicknessInches),
     materialLabel: model.materials[0]?.label ?? "material to review",
     pieceLabels,
     shelfCount,
-    hasWallContext,
-    supportLabel: hasWallContext ? "Wall/support details to verify" : null,
-    fallbackMessage: impossibleHeight ? projectAnatomyInvalidHeightFallback : isAvailable ? null : projectAnatomyFallback,
+    hasWallContext: wallContext,
+    supportLabel: wallContext ? "Wall/support details to verify" : null,
+    fallbackMessage: isAvailable ? null : projectAnatomyFallback,
   };
+}
+
+function hasWallContext(model: BoardsmithBuildModel): boolean {
+  return (
+    model.safety.flags.some((flag) => flag.category === "wall_mounting" || /wall|mount|anchor|stud/i.test(flag.message)) ||
+    model.connections.some((connection) => /\b(bracket|anchor|hanger)\b/i.test(`${connection.connectionType} ${connection.locationDescription}`))
+  );
 }
 
 function createThreeViewPlanningDiagram(model: BoardsmithBuildModel): ThreeViewPlanningDiagram {
@@ -323,9 +332,11 @@ function isMultiShelfModel(model: BoardsmithBuildModel): boolean {
   return model.project.projectType === "simple_shelf" && model.pieces.some((piece) => piece.quantity > 1 && /\bshelf\b/i.test(piece.label));
 }
 
-export function createPlanDiagrams(model: BoardsmithBuildModel): PlanningDiagramSummary {
+export function createPlanDiagrams(model: BoardsmithBuildModel, options: { wallShelfViewModel?: WallShelfDiagramViewModel | null } = {}): PlanningDiagramSummary {
+  const wallShelfViewModel =
+    options.wallShelfViewModel ?? (model.project.projectType === "simple_shelf" ? createWallShelfDiagramViewModel({ buildModel: model }) : null);
   const richVisuals = {
-    projectAnatomy: createProjectAnatomyVisual(model),
+    projectAnatomy: createProjectAnatomyVisual(model, wallShelfViewModel),
     threeView: createThreeViewPlanningDiagram(model),
     visualPieceInventory: createVisualPieceInventory(model),
   };

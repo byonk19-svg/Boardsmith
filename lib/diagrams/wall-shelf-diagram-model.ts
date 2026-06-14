@@ -1,5 +1,6 @@
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import type { CutListReviewSummary } from "@/lib/plans/cut-list-review";
+import { createWallShelfDiagramViewModel, type WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
 import type { Project, ShelfLayoutOption } from "@/lib/projects/types";
 
 export type WallShelfDiagramStatus = "ready" | "needs_shelf_count" | "needs_dimensions";
@@ -138,30 +139,32 @@ export function buildWallShelfDiagramModel(params: {
   project: Project;
   buildModel: BoardsmithBuildModel;
   cutList: CutListReviewSummary | null;
+  viewModel?: WallShelfDiagramViewModel;
 }): WallShelfDiagramModel | null {
   const { project, buildModel, cutList } = params;
   if (project.project_type !== "simple_shelf") return null;
   if (isBookLedgeBuildModel(buildModel)) return null;
 
+  const viewModel = params.viewModel ?? createWallShelfDiagramViewModel({ project, buildModel });
   const supportStatus = supportStatusFor(project, buildModel);
   const baseModel: WallShelfDiagramModel = {
     projectType: "simple_shelf",
     status: "ready",
     fallbackMessage: null,
     shelfLayout: project.shelf_layout ?? "unknown",
-    shelfCount: shelfCountFor(project, buildModel),
-    shelfWidthInches: positiveNumber(project.width_inches) ?? positiveNumber(buildModel.dimensions.widthInches),
-    shelfDepthInches: positiveNumber(project.depth_inches) ?? positiveNumber(buildModel.dimensions.depthInches),
-    boardThicknessInches: positiveNumber(project.material_thickness_inches) ?? positiveNumber(buildModel.dimensions.materialThicknessInches),
-    totalProjectHeightInches: positiveNumber(project.height_inches) ?? positiveNumber(buildModel.dimensions.heightInches),
+    shelfCount: viewModel.shelfCount ?? shelfCountFor(project, buildModel),
+    shelfWidthInches: viewModel.dimensions.width.valueInches,
+    shelfDepthInches: viewModel.dimensions.depth.valueInches,
+    boardThicknessInches: viewModel.dimensions.boardThickness.valueInches,
+    totalProjectHeightInches: viewModel.dimensions.height.valueInches,
     shelfSpacingInches: positiveNumber(project.shelf_spacing_inches),
-    materialLabel: buildModel.materials[0]?.label ?? project.material_type,
+    materialLabel: viewModel.visibleBoards.at(0)?.materialLabel ?? buildModel.materials.at(0)?.label ?? project.material_type,
     supportStatus,
-    supportLabel: supportLabelFor(supportStatus),
-    reviewItems: reviewItemsFor(project, buildModel, supportStatus),
+    supportLabel: viewModel.supportFrameReview.needsReview ? viewModel.supportFrameReview.label : supportLabelFor(supportStatus),
+    reviewItems: [...new Set([...viewModel.warnings, ...reviewItemsFor(project, buildModel, supportStatus)])],
     partSchedule: [],
   };
-  const message = fallbackMessage(baseModel);
+  const message = viewModel.renderLabels.fallbackMessage ?? fallbackMessage(baseModel);
   const model = {
     ...baseModel,
     status: statusFor(message),
