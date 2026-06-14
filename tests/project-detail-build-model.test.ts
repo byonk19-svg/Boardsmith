@@ -440,7 +440,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Shelf board");
     expect(markup).toContain("Modeled step");
     expect(markup).toContain("Inspect mounting location");
-    expect(markup).toContain("Do not rely on Boardsmith for load ratings.");
+    expect(markup).toContain("Review dimensions and support method");
+    expect(markup).toContain("Build guide from Build Model pieces and operations.");
+    expect(markup).toContain("Boardsmith cannot verify load capacity, wall safety, anchors, studs, or site conditions.");
     expect(markup).not.toContain("Modeled operations");
     expect(markup).toContain("Structured build sequence");
     expect(markup).toContain("Safety notes");

@@ -560,7 +560,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("construction approval");
   });
 
-  it("renders ambiguous build steps as calm generic cards without invented pieces", async () => {
+  it("renders wall shelf build steps from deterministic structured data instead of ambiguous generated prose", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([
       {
@@ -592,9 +592,11 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
-    expect(markup).toContain("Think through the plan");
-    expect(markup).toContain("Build step");
-    expect(markup).toContain("Pencil");
+    expect(markup).toContain("Review dimensions and support method");
+    expect(markup).toContain("Cut shelf board pieces");
+    expect(markup).toContain("Confirm wall mounting/support method before installation");
+    expect(markup).not.toContain("Think through the plan");
+    expect(markup).not.toContain("Read the plan and pause if anything is unclear.");
     expect(markup).not.toContain("Modeled step");
   });
 

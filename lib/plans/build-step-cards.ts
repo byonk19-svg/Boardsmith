@@ -19,12 +19,17 @@ export type BuildStepCard = {
   stepNumber: number;
   title: string;
   instructions: string;
+  purpose?: string;
   phaseLabel: BuildStepPhaseLabel;
   tools: string[];
   estimatedTimeLabel: string | null;
   safetyNote: string | null;
   relatedOperationTitle: string | null;
   relatedPieceLabels: string[];
+  dimensionReferences?: string[];
+  warnings?: string[];
+  reviewBlockers?: string[];
+  printLabel?: string;
 };
 
 type GeneratedBuildStep = GeneratedPlan["assembly_steps"][number];

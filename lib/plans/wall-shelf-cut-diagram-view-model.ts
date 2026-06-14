@@ -107,7 +107,7 @@ function pieceRole(piece: BuildModelPiece): WallShelfCutPieceRole {
   const text = `${piece.id} ${piece.label} ${piece.pieceType}`.toLowerCase();
   if (piece.id === "side_support_frame_placeholder") return "support_frame_placeholder";
   if (/\bshelf\b/.test(text) && !/\bbottom\b/.test(text)) return "shelf_board";
-  if (/\b(side support|support frame|frame|upright|cleat|standard|rail)\b/.test(text)) return "support_frame";
+  if (/\b(side supports?|support frames?|frames?|uprights?|cleats?|standards?|rails?)\b/.test(text)) return "support_frame";
   return "other";
 }
 

@@ -7,7 +7,7 @@ import type { Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
-import { BuildStepCards } from "../BuildStepCards";
+import { BuildStepCards, BuildStepStatusSummary } from "../BuildStepCards";
 import { PlanActionChecklist } from "../PlanActionChecklist";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
 import { ProjectHeroVisual } from "../ProjectHeroVisual";
@@ -232,7 +232,12 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
 }
 
 function PrintBuildGuide({ manifest }: { manifest: PrintablePlanManifest }) {
-  return <BuildStepCards cards={manifest.buildStepCards} compact />;
+  return (
+    <div className="space-y-4">
+      <BuildStepStatusSummary viewModel={manifest.wallShelfBuildStepViewModel} compact />
+      <BuildStepCards cards={manifest.buildStepCards} compact />
+    </div>
+  );
 }
 
 function PrintReviewDetails({ manifest }: { manifest: PrintablePlanManifest }) {

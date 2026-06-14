@@ -8,6 +8,7 @@ import { createPlanActionChecklist, type PlanActionChecklistItem } from "@/lib/p
 import { createPlanDiagrams, type PlanningDiagramSummary } from "@/lib/plans/plan-diagrams";
 import { summarizeGeneratedPlanReview, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
+import { createWallShelfBuildStepViewModel, type WallShelfBuildStepViewModel } from "@/lib/plans/wall-shelf-build-step-view-model";
 import { createWallShelfCutDiagramViewModel, type WallShelfCutDiagramViewModel } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import { createWallShelfDiagramViewModel, type WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
@@ -66,6 +67,7 @@ export type PrintablePlanManifest = {
   planningDiagrams: PlanningDiagramSummary;
   wallShelfCutDiagramViewModel: WallShelfCutDiagramViewModel;
   wallShelfDiagramViewModel: WallShelfDiagramViewModel;
+  wallShelfBuildStepViewModel: WallShelfBuildStepViewModel;
   wallShelfDiagram: WallShelfDiagramModel | null;
   buildStepCards: BuildStepCard[];
   actionChecklist: PlanActionChecklistItem[];
@@ -325,6 +327,12 @@ export function createPrintablePlanManifest({
   const cutList = plan ? summarizeCutListReview(plan, reviewBuildModel) : null;
   const wallShelfCutDiagramViewModel = createWallShelfCutDiagramViewModel({ project, buildModel: reviewBuildModel });
   const wallShelfDiagramViewModel = createWallShelfDiagramViewModel({ project, buildModel: reviewBuildModel });
+  const wallShelfBuildStepViewModel = createWallShelfBuildStepViewModel({
+    project,
+    buildModel: reviewBuildModel,
+    diagramViewModel: wallShelfDiagramViewModel,
+    cutViewModel: wallShelfCutDiagramViewModel,
+  });
   const wallShelfDiagram = buildWallShelfDiagramModel({ project, buildModel: reviewBuildModel, cutList, viewModel: wallShelfDiagramViewModel });
   const actionChecklist = createPlanActionChecklist({
     buildModel: reviewBuildModel,
@@ -369,8 +377,12 @@ export function createPrintablePlanManifest({
     planningDiagrams: createPlanDiagrams(reviewBuildModel, { wallShelfViewModel: wallShelfDiagramViewModel }),
     wallShelfCutDiagramViewModel,
     wallShelfDiagramViewModel,
+    wallShelfBuildStepViewModel,
     wallShelfDiagram,
-    buildStepCards: plan ? createBuildStepCards(plan.assembly_steps, reviewBuildModel) : [],
+    buildStepCards:
+      wallShelfBuildStepViewModel.status === "unsupported" && plan
+        ? createBuildStepCards(plan.assembly_steps, reviewBuildModel)
+        : wallShelfBuildStepViewModel.stepCards,
     actionChecklist,
     planReview,
     exportReadiness,

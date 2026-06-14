@@ -17,7 +17,7 @@ import { formatToolLabel, projectTypeLabels, shelfLayoutLabels, shelfLayoutOptio
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
-import { BuildStepCards } from "./BuildStepCards";
+import { BuildStepCards, BuildStepStatusSummary } from "./BuildStepCards";
 import { GeneratePlanForm } from "./GeneratePlanForm";
 import { PlanActionChecklist } from "./PlanActionChecklist";
 import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
@@ -1895,6 +1895,9 @@ function PlanView({
         </PlanSheetSection>
 
         <PlanSheetSection title="Build Guide">
+          <div className="mb-4">
+            <BuildStepStatusSummary viewModel={manifest.wallShelfBuildStepViewModel} />
+          </div>
           <BuildStepCards cards={manifest.buildStepCards} />
         </PlanSheetSection>
 

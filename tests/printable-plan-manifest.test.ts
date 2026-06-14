@@ -121,14 +121,16 @@ describe("createPrintablePlanManifest", () => {
     expect(manifest.exportReadiness?.status).toBe("needs_review");
     expect(manifest.sections.buildSteps[0]?.title).toBe("Review mounting");
     expect(manifest.buildStepCards[0]).toMatchObject({
-      title: "Review mounting",
+      title: "Review dimensions and support method",
       phaseLabel: "Inspect / review",
-      tools: ["Drill"],
-      estimatedTimeLabel: "15 min",
-      safetyNote: "Do not rely on Boardsmith for load ratings.",
+      tools: ["Tape measure"],
+      estimatedTimeLabel: null,
+      safetyNote: "Boardsmith cannot verify load capacity, wall safety, anchors, studs, or site conditions.",
       relatedOperationTitle: "Inspect mounting location",
       relatedPieceLabels: ["Shelf board"],
     });
+    expect(manifest.wallShelfBuildStepViewModel.status).toBe("ready");
+    expect(manifest.wallShelfBuildStepViewModel.renderLabels.summary).toBe("Build guide from Build Model pieces and operations.");
     expect(manifest.actionChecklist).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
