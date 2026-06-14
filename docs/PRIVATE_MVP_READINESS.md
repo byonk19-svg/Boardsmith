@@ -639,6 +639,36 @@ Verification:
 - Validation passed: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check`.
 - No schema, package, lockfile, migration, hosted Supabase, auth, export, CAD/CNC, or app-generated PDF changes were introduced.
 
+## Wall-Shelf Packet Flow Checkpoint
+
+Date: June 14, 2026
+
+Checked commit: `22a5d32 Polish wall shelf plan packet flow`
+
+Purpose: record the wall-shelf plan-packet flow polish after the guardrail, diagram view model, deterministic renderer, cut diagram view model, cut renderer, build step view model, and deterministic step-card work. Boardsmith detail and print views now read more like a build packet while preserving the planning-aid and browser-print-only boundaries.
+
+Packet flow now centers on:
+
+- `Build Snapshot`
+- `Project Visuals`
+- `Cut Diagram`
+- `Materials and Parts`
+- `Build Guide`
+- `Check Before Building`
+- `Reference Notes`
+
+Checkpoint behavior now recorded:
+
+- Detail and print routes follow the same core packet order: Snapshot -> Visuals -> Cut -> Materials -> Build -> Check -> Reference.
+- Generated prose summary moved lower into reference notes so deterministic build-packet sections lead the experience.
+- The invalid five-shelf wall shelf with `0.1 in` total height remains review-needed before build steps and does not present a trusted complete packet.
+- Valid five-shelf wall shelf and single wall shelf regressions passed after the packet-flow polish.
+
+Verification:
+
+- Validation passed: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check`.
+- No schema, package, lockfile, migration, hosted Supabase, PDF, CAD, CNC, export, cut-optimization, or AI-image changes were introduced.
+
 ## Recommended Next Step
 
 Keep Boardsmith private and pause broad feature work. Use the current `private-mvp-1.0` baseline manually before selecting another major lane. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, auth expansion, or new project type work without an explicit task and, for PDF/export work, explicit renderer/dependency approval.

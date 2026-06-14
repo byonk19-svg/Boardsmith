@@ -934,11 +934,23 @@
 - [x] Confirm validation passed: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check`.
 - [x] Keep the checkpoint docs-only with no app behavior change, schema change, package change, lockfile change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, public sharing, marketplace, shopping, pricing, vendor, inventory, or new project type.
 
+## Task 82A - Wall-Shelf Packet Flow Checkpoint
+
+- [x] Document commit `22a5d32 Polish wall shelf plan packet flow` in the private readiness checkpoint notes.
+- [x] Record that wall-shelf detail and print routes now read more like a build packet.
+- [x] Record the shared packet flow: Snapshot -> Visuals -> Cut -> Materials -> Build -> Check -> Reference.
+- [x] Record that generated prose summary moved lower into reference notes.
+- [x] Confirm the invalid five-shelf wall shelf with `0.1 in` total height remains review-needed before build steps.
+- [x] Confirm valid five-shelf wall shelf and single wall shelf regressions passed.
+- [x] Confirm validation passed: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check`.
+- [x] Keep the checkpoint docs-only with no app behavior change, schema change, package change, lockfile change, migration, hosted Supabase change, PDF/CAD/CNC/export work, cut optimization, AI images, public sharing, marketplace, shopping, pricing, vendor, inventory, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Pause broad feature work and use the `private-mvp-1.0` baseline manually before selecting another major lane.
-2. [ ] Choose the next lane only from repeated manual dogfood friction.
-3. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, project detail, or `Tweak this plan` change.
+1. [ ] Start a separate Stock Board / Buying Plan View Model slice only when explicitly tasked; keep it conservative, non-optimizing, and derived from Build Model cut pieces.
+2. [ ] Pause broad feature work and use the current private baseline manually before selecting any additional major lane.
+3. [ ] Choose later lanes only from repeated manual dogfood friction.
+4. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, project detail, or `Tweak this plan` change.
 
 ## Remaining Hardening
 
