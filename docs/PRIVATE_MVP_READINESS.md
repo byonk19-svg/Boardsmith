@@ -615,6 +615,30 @@ Recommended next step:
 
 Shift from UI print polish to generated-plan quality unless repeated manual printing exposes a concrete paper-layout problem.
 
+## Multi-Shelf Wall-Shelf Guardrail Checkpoint
+
+Date: June 14, 2026
+
+Checked commit: `6c89bf0 Guard multi-shelf wall shelf plans`
+
+Purpose: close a trust gap found during wall-shelf visual QA. Boardsmith should not make an impossible or incomplete multi-shelf wall shelf look like a polished, complete build packet.
+
+Guardrail behavior now recorded:
+
+- Invalid five-shelf wall shelf generation is blocked when the saved intake says the total project height is `0.1 in`.
+- The blocked-generation feedback tells the user that the total project height looks too small and asks for the full top-to-bottom height, such as `60 in`.
+- Stale invalid saved plans render as review-needed instead of complete trusted packets.
+- Hero visuals and print/detail summaries avoid presenting impossible height as a valid `Height 0.1 in` dimension.
+- Connected shelf units now require support/frame review or modeled support/frame placeholder pieces before they can be treated as complete.
+- Build Guide wording avoids calling unresolved wall/connected shelf units freestanding unless the model truly supports that.
+- Valid five-shelf wall shelf and single wall shelf regressions still pass.
+
+Verification:
+
+- Manual local checks covered the invalid five-shelf connected wall shelf, a valid five-shelf wall shelf with realistic total height, and a single wall shelf on detail and print routes.
+- Validation passed: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check`.
+- No schema, package, lockfile, migration, hosted Supabase, auth, export, CAD/CNC, or app-generated PDF changes were introduced.
+
 ## Recommended Next Step
 
 Keep Boardsmith private and pause broad feature work. Use the current `private-mvp-1.0` baseline manually before selecting another major lane. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, auth expansion, or new project type work without an explicit task and, for PDF/export work, explicit renderer/dependency approval.

@@ -924,6 +924,16 @@
 - [x] Recommend pausing broad feature work and using the current baseline manually before selecting another major lane.
 - [x] Keep the pass docs/checkpoint/tag-only with no app product feature, schema change, migration, package change, hosted mutation, disabled hosted protection, personal credential logging, export/CAD/CNC work, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, Supabase cloud change, or new project type.
 
+## Task 81A - Multi-Shelf Wall-Shelf Guardrail Checkpoint
+
+- [x] Document commit `6c89bf0 Guard multi-shelf wall shelf plans` in the private readiness checkpoint notes.
+- [x] Record that invalid five-shelf wall shelf generation is blocked when total project height is `0.1 in`.
+- [x] Record that stale invalid saved plans render as review-needed instead of complete trusted packets.
+- [x] Record that connected shelf units require support/frame review or modeled support/frame pieces before they can be treated as complete.
+- [x] Confirm valid five-shelf wall shelf and single wall shelf regressions still pass.
+- [x] Confirm validation passed: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check`.
+- [x] Keep the checkpoint docs-only with no app behavior change, schema change, package change, lockfile change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, public sharing, marketplace, shopping, pricing, vendor, inventory, or new project type.
+
 ## Recommended Next Tasks
 
 1. [ ] Pause broad feature work and use the `private-mvp-1.0` baseline manually before selecting another major lane.
