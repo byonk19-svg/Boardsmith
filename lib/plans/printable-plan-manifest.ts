@@ -11,7 +11,7 @@ import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan
 import { createWallShelfBuildStepViewModel, type WallShelfBuildStepViewModel } from "@/lib/plans/wall-shelf-build-step-view-model";
 import { createWallShelfCutDiagramViewModel, type WallShelfCutDiagramViewModel } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import { createWallShelfDiagramViewModel, type WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
-import { createWallShelfPartScheduleViewModel, type WallShelfPartScheduleViewModel } from "@/lib/plans/wall-shelf-part-schedule-view-model";
+import { createWallShelfPartScheduleViewModel, wallShelfPartRole, type WallShelfPartScheduleViewModel } from "@/lib/plans/wall-shelf-part-schedule-view-model";
 import { createWallShelfPlanReadinessViewModel, type WallShelfPlanReadinessViewModel } from "@/lib/plans/wall-shelf-plan-readiness-view-model";
 import { createWallShelfStockBoardViewModel, type WallShelfStockBoardViewModel } from "@/lib/plans/wall-shelf-stock-board-view-model";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
@@ -218,7 +218,7 @@ function normalizeShelfSupportModel(project: Project, buildModel: BoardsmithBuil
       recommendedAction: issue.recommendedAction,
     }));
   const supportPlaceholder =
-    project.shelf_layout === "multi_shelf_unit" && !hasConnectedShelfSupportPlaceholder(buildModel)
+    project.shelf_layout === "multi_shelf_unit" && !hasConnectedShelfSupportPlaceholder(buildModel) && !hasModeledSupportFrame(buildModel)
       ? [
           {
             id: "side_support_frame_placeholder",
@@ -317,6 +317,10 @@ function normalizeShelfSupportModel(project: Project, buildModel: BoardsmithBuil
           }
         : buildModel.confidence,
   };
+}
+
+function hasModeledSupportFrame(buildModel: BoardsmithBuildModel): boolean {
+  return buildModel.pieces.some((piece) => wallShelfPartRole(piece) === "support_frame");
 }
 
 export function createPrintablePlanManifest({

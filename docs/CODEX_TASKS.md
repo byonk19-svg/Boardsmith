@@ -1069,10 +1069,19 @@
 - [x] Extend rendered-route coverage for archived read-only behavior and prior-plan readability.
 - [x] Keep the pass lifecycle-copy/test-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 90A - Wall-Shelf Part Label Consistency
+
+- [x] Implement [#6 Standardize wall-shelf part labels across packet surfaces](https://github.com/byonk19-svg/Boardsmith/issues/6).
+- [x] Confirm the existing Part Schedule remains the source for stable `Part A`, `Part B`, and print labels.
+- [x] Add cross-surface regression coverage for Part Schedule, Cut Diagram, Buying Plan, Build Guide, and rendered packet output.
+- [x] Cover connected shelf units with modeled side supports so shelf-board and support/frame labels remain non-conflicting.
+- [x] Preserve review-only placeholder behavior; unresolved support/frame placeholders still do not receive trusted part labels.
+- [x] Keep the pass test/docs-only because the production label pipeline already flowed from the Part Schedule source of truth.
+
 ## Recommended Next Tasks
 
-1. [ ] Start Visual Plan Packet implementation with [#6 wall-shelf part-label consistency](https://github.com/byonk19-svg/Boardsmith/issues/6).
-2. [ ] Keep Visual Plan Packet issue order: #6 -> #7/#8/#9 -> #10 -> #11.
+1. [ ] Continue Visual Plan Packet implementation with [#7 Add wall-shelf exploded assembly view](https://github.com/byonk19-svg/Boardsmith/issues/7), [#8 Add dimensioned wall-shelf front side top views](https://github.com/byonk19-svg/Boardsmith/issues/8), or [#9 Add wall-shelf stock board cut layout visual](https://github.com/byonk19-svg/Boardsmith/issues/9).
+2. [ ] Keep Visual Plan Packet issue order: #7/#8/#9 -> #10 -> #11.
 3. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
 4. [ ] Keep Visual Plan Packet issue order: #6 -> #7/#8/#9 -> #10 -> #11.
 5. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.

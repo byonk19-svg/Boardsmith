@@ -1,3 +1,8 @@
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { BuildStepCards } from "@/app/projects/[id]/BuildStepCards";
+import { WallShelfBuyingPlan } from "@/app/projects/[id]/WallShelfBuyingPlan";
+import { WallShelfCutDiagram } from "@/app/projects/[id]/WallShelfCutDiagram";
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import type { BoardsmithBuildModel, BuildModelPiece } from "@/lib/build-model/build-model-schema";
 import { createPrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
@@ -237,5 +242,38 @@ describe("createWallShelfPartScheduleViewModel", () => {
     expect(manifest.wallShelfPartScheduleViewModel.warnings.join(" ")).toContain("Support/frame design needs review");
     expect(JSON.stringify(manifest.wallShelfPartScheduleViewModel)).not.toContain("Height 0.1 in");
     expect(manifest.wallShelfPartScheduleViewModel.rows).not.toContainEqual(expect.objectContaining({ partLabel: "Part B" }));
+  });
+
+  it("keeps assigned part labels consistent across visual packet surfaces and rendered output", () => {
+    const manifest = createPrintablePlanManifest({
+      project: baseProject,
+      planRecord,
+      buildModel: buildModel({
+        pieces: [
+          shelfPiece({ label: "Shelf boards", quantity: 5 }),
+          supportPiece("left_side_support", "Side supports"),
+          supportPiece("right_side_support", "Side supports"),
+        ],
+      }),
+      buildModelSource: "saved",
+    });
+    const expectedPrintLabels = ["Part A - Shelf boards", "Part B - Side supports"];
+
+    expect(manifest.wallShelfPartScheduleViewModel.assignedParts.map((part) => part.printLabel)).toEqual(expectedPrintLabels);
+    expect(manifest.wallShelfCutDiagramViewModel.pieceGroups.map((piece) => piece.printLabel)).toEqual(expectedPrintLabels);
+    expect(manifest.wallShelfStockBoardViewModel.materialGroups.flatMap((group) => group.pieces.map((piece) => piece.printLabel))).toEqual(expectedPrintLabels);
+    expect(JSON.stringify(manifest.wallShelfBuildStepViewModel.stepCards)).toContain("Part A - Shelf boards");
+    expect(JSON.stringify(manifest.wallShelfBuildStepViewModel.stepCards)).toContain("Part B - Side supports");
+
+    const renderedPacket = [
+      renderToStaticMarkup(React.createElement(WallShelfCutDiagram, { viewModel: manifest.wallShelfCutDiagramViewModel, compact: true })),
+      renderToStaticMarkup(React.createElement(WallShelfBuyingPlan, { viewModel: manifest.wallShelfStockBoardViewModel, compact: true })),
+      renderToStaticMarkup(React.createElement(BuildStepCards, { cards: manifest.buildStepCards, compact: true })),
+    ].join(" ");
+
+    for (const label of expectedPrintLabels) {
+      expect(renderedPacket).toContain(label);
+    }
+    expect(renderedPacket).not.toContain("Side support/frame placeholders - review only");
   });
 });
