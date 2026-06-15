@@ -1118,14 +1118,23 @@
 - [x] Cover detail route, Browser Print Plan route, unresolved support/frame rendering, and modeled support/frame rendering in tests.
 - [x] Keep the pass SVG/view-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 90F - Polished Wall-Shelf Hero Visual And Packet Order
+
+- [x] Implement [#11 Polish deterministic wall-shelf hero visual and print packet order](https://github.com/byonk19-svg/Boardsmith/issues/11).
+- [x] Polish the deterministic wall-shelf hero visual so supported wall shelves read as a recognizable finished wall-shelf preview.
+- [x] Use standardized wall-shelf part labels in the hero/anatomy view model.
+- [x] Align detail and Browser Print Plan order to the Visual Plan Packet PRD: Build Snapshot, Hero Visual, Project Visuals / Diagrams, Cut Checklist, Buying Plan, Materials and Parts, Build Guide, Check Before Building, Reference Review Notes.
+- [x] Keep readiness actions in Check Before Building so blockers stay visible without interrupting the final visual packet hierarchy.
+- [x] Preserve planning-aid, safety, no-approval, no-load-capacity, no-CAD/CNC/export/download boundaries in rendered packet tests.
+- [x] Keep the pass SVG/view-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue Visual Plan Packet implementation with [#11 Add polished wall-shelf hero visual](https://github.com/byonk19-svg/Boardsmith/issues/11).
-2. [ ] Keep Visual Plan Packet issue order: #11.
-3. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-4. [ ] Choose later implementation lanes only from repeated manual dogfood friction.
-5. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
-6. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
+1. [ ] Dogfood the completed wall-shelf Visual Plan Packet manually before expanding visuals to another template.
+2. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
+3. [ ] Choose later implementation lanes only from repeated manual dogfood friction.
+4. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
+5. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
 
 ## Remaining Hardening
 

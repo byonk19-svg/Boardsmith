@@ -147,6 +147,7 @@ describe("ProjectDetailPage project structure", () => {
     const buildSnapshotIndex = markup.indexOf("Build Snapshot");
     const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
     const heroVisualIndex = markup.indexOf("Hero Visual");
+    const checkBeforeIndex = markup.indexOf("Check Before Building");
     const advancedDetailsIndex = markup.indexOf('id="advanced-project-details"');
     const reviewChecklistIndex = markup.indexOf("Generated plan review checklist");
     const projectIntakeIndex = markup.indexOf('id="project-intake"');
@@ -159,8 +160,9 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(planSheetIndex).toBeGreaterThan(-1);
     expect(buildSnapshotIndex).toBeGreaterThan(planSheetIndex);
-    expect(readinessIndex).toBeGreaterThan(buildSnapshotIndex);
-    expect(heroVisualIndex).toBeGreaterThan(readinessIndex);
+    expect(heroVisualIndex).toBeGreaterThan(buildSnapshotIndex);
+    expect(checkBeforeIndex).toBeGreaterThan(heroVisualIndex);
+    expect(readinessIndex).toBeGreaterThan(checkBeforeIndex);
     expect(advancedDetailsIndex).toBeGreaterThan(heroVisualIndex);
     expect(reviewChecklistIndex).toBeGreaterThan(advancedDetailsIndex);
     expect(sectionNavIndex).toBeGreaterThan(reviewChecklistIndex);
@@ -196,9 +198,12 @@ describe("ProjectDetailPage project structure", () => {
       }),
     );
 
+    expect(markup).toContain("Deterministic finished wall-shelf hero visual");
+    expect(markup).toContain("Finished wall-shelf preview");
+    expect(markup).toContain("finished wall-shelf preview");
     expect(markup).toContain("5 shelves - Material thickness 0.75 in");
     expect(markup).toContain("Wall/support details to verify");
-    expect(markup).toContain("wall");
+    expect(markup).toContain("wall plane");
     expect(markup.match(/<g>/g)?.length).toBe(5);
     expect(markup).not.toContain("Major pieces");
   });
@@ -407,6 +412,8 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain("Overview / Summary");
     expect(markup).toContain("Hero Visual");
     expect(markup).toContain("Build-model hero visual - planning aid only.");
+    expect(markup).toContain("Finished wall-shelf preview");
+    expect(markup).toContain("Deterministic finished wall-shelf hero visual");
     expect(markup).toContain("Main project visual from structured plan data.");
     expect(markup.indexOf("Hero Visual")).toBeGreaterThan(markup.indexOf("Build Snapshot"));
     expect(markup.indexOf("Hero Visual")).toBeLessThan(markup.indexOf("Project Visuals / Diagrams"));
@@ -1076,12 +1083,14 @@ describe("ProjectDetailPage project structure", () => {
     const heroIndex = markup.indexOf("Hero Visual");
     const cutIndex = markup.indexOf("Cut Checklist");
     const buildIndex = markup.indexOf("Build Guide");
+    const checkIndex = markup.indexOf("Check Before Building");
 
     expect(readinessIndex).toBeGreaterThan(-1);
     expect(heightActionIndex).toBeGreaterThan(readinessIndex);
-    expect(readinessIndex).toBeLessThan(heroIndex);
-    expect(readinessIndex).toBeLessThan(cutIndex);
-    expect(readinessIndex).toBeLessThan(buildIndex);
+    expect(heroIndex).toBeLessThan(cutIndex);
+    expect(cutIndex).toBeLessThan(buildIndex);
+    expect(buildIndex).toBeLessThan(checkIndex);
+    expect(readinessIndex).toBeGreaterThan(checkIndex);
     expect(markup).toContain("Enter the full top-to-bottom height of the shelf unit, such as 60 in.");
     expect(markup).toContain("Support/frame design needs review");
     expect(markup).not.toMatch(/freestanding|non-mounted/i);

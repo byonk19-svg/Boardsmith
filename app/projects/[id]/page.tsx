@@ -1987,12 +1987,6 @@ function PlanView({
         </div>
       </header>
 
-      {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
-        <section className="border-b border-sawdust py-5 print:break-inside-avoid">
-          <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} />
-        </section>
-      ) : null}
-
       {unresolvedDimensionItems.length > 0 ? <UnresolvedCutDimensionsWarning items={unresolvedDimensionItems} /> : null}
 
       <div className="divide-y divide-sawdust">
@@ -2066,6 +2060,11 @@ function PlanView({
         </PlanSheetSection>
 
         <PlanSheetSection title="Check Before Building">
+          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
+            <div className="mb-5">
+              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} />
+            </div>
+          ) : null}
           <PlanActionChecklist items={manifest.actionChecklist} />
         </PlanSheetSection>
 

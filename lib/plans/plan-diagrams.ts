@@ -161,7 +161,7 @@ function hasCompleteDimensions(model: BoardsmithBuildModel): boolean {
 
 function createProjectAnatomyVisual(model: BoardsmithBuildModel, wallShelfViewModel?: WallShelfDiagramViewModel | null): ProjectAnatomyVisual {
   if (wallShelfViewModel && wallShelfViewModel.status !== "unsupported") {
-    const pieceLabels = wallShelfViewModel.visibleBoards.map((piece) => piece.label).slice(0, 4);
+    const pieceLabels = wallShelfViewModel.visibleBoards.map((piece) => piece.printLabel).slice(0, 4);
     const isAvailable = wallShelfViewModel.status === "ready" && wallShelfViewModel.visibleBoards.length > 0;
     return {
       title: "Project anatomy",

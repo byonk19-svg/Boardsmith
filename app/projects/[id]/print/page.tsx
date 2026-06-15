@@ -70,12 +70,6 @@ export default async function ProjectPrintPreviewPage({
           <PrintBuildSnapshot manifest={manifest} />
         </PrintSection>
 
-        {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
-          <PrintSection title="Plan Readiness / Next Actions">
-            <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact showTitle={false} />
-          </PrintSection>
-        ) : null}
-
         <PrintSection title="Hero Visual">
           <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} compact />
         </PrintSection>
@@ -112,6 +106,11 @@ export default async function ProjectPrintPreviewPage({
         </PrintSection>
 
         <PrintSection title="Check Before Building">
+          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
+            <div className="mb-4">
+              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact />
+            </div>
+          ) : null}
           <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
         </PrintSection>
 

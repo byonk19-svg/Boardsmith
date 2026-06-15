@@ -38,7 +38,7 @@ describe("createPlanDiagrams", () => {
       materialLabel: "3/4 inch pine board",
       fallbackMessage: null,
     });
-    expect(summary.projectAnatomy.pieceLabels).toEqual(["Shelf board"]);
+    expect(summary.projectAnatomy.pieceLabels).toEqual(["Part A - Shelf board"]);
   });
 
   it("creates three-view planning data for supported dimensioned projects", () => {

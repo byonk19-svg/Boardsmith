@@ -168,13 +168,14 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Cut list</dt>");
     expect(markup).not.toContain("Primary tools");
     expect(markup).toContain("Project Visuals / Diagrams");
-    expect(markup).toContain("Plan Readiness / Next Actions");
     expect(markup).toContain("Hero Visual");
     expect(markup).toContain("Build-model hero visual - planning aid only.");
+    expect(markup).toContain("Finished wall-shelf preview");
+    expect(markup).toContain("Deterministic finished wall-shelf hero visual");
     expect(markup).toContain("Main project visual from structured plan data.");
-    expect(markup.indexOf("Plan Readiness / Next Actions")).toBeGreaterThan(markup.indexOf("Build Snapshot"));
-    expect(markup.indexOf("Hero Visual")).toBeGreaterThan(markup.indexOf("Plan Readiness / Next Actions"));
+    expect(markup.indexOf("Hero Visual")).toBeGreaterThan(markup.indexOf("Build Snapshot"));
     expect(markup.indexOf("Hero Visual")).toBeLessThan(markup.indexOf("Project Visuals / Diagrams"));
+    expect(markup.indexOf("Plan Readiness / Next Actions")).toBeGreaterThan(markup.indexOf("Check Before Building"));
     expect(markup).toContain("Check Before Building");
     expect(markup).toContain('print:break-before-page');
     expect(markup).toContain("Review wall mounting details.");
@@ -270,7 +271,6 @@ describe("ProjectPrintPreviewPage", () => {
 
     const sectionOrder = [
       "Build Snapshot",
-      "Plan Readiness / Next Actions",
       "Hero Visual",
       "Project Visuals / Diagrams",
       "Cut Checklist",
@@ -396,9 +396,9 @@ describe("ProjectPrintPreviewPage", () => {
     );
 
     const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
-    expect(readinessIndex).toBeGreaterThan(markup.indexOf("Build Snapshot"));
-    expect(readinessIndex).toBeLessThan(markup.indexOf("Hero Visual"));
-    expect(readinessIndex).toBeLessThan(markup.indexOf("Cut Checklist"));
+    expect(readinessIndex).toBeGreaterThan(markup.indexOf("Check Before Building"));
+    expect(readinessIndex).toBeGreaterThan(markup.indexOf("Build Guide"));
+    expect(readinessIndex).toBeLessThan(markup.indexOf("Reference Review Notes"));
     expect(markup).toContain("Resolve blockers before treating this as a build packet.");
     expect(markup).toContain("Total project height looks too small");
     expect(markup).toContain("Enter the full top-to-bottom height of the shelf unit, such as 60 in.");

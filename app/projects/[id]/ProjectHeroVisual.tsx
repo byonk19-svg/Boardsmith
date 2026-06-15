@@ -12,6 +12,7 @@ export function ProjectHeroVisual({
 }) {
   const svgHeightClass = compact ? "h-56 print:h-48" : "h-72 print:h-56";
   const shouldRenderShelfProject = visual.kind === "simple_shelf";
+  const heroAriaLabel = shouldRenderShelfProject ? "Deterministic finished wall-shelf hero visual" : "Build-model hero visual";
 
   return (
     <div className="break-inside-avoid rounded-md border border-sawdust bg-shop/30 p-3 print:break-inside-avoid print:bg-white">
@@ -19,6 +20,7 @@ export function ProjectHeroVisual({
         <div>
           <p className="text-sm font-semibold text-ink">Main project visual from structured plan data.</p>
           <p className="mt-1 text-xs leading-5 text-ink/60">Build-model hero visual - planning aid only.</p>
+          {shouldRenderShelfProject ? <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink/45">Finished wall-shelf preview</p> : null}
         </div>
         <span className="w-fit rounded-md border border-sawdust bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-ink/55">
           {visual.materialLabel}
@@ -29,7 +31,7 @@ export function ProjectHeroVisual({
         <p className="mt-3 rounded-md border border-sawdust bg-white p-3 text-sm leading-6 text-ink/70">{visual.fallbackMessage}</p>
       ) : (
         <>
-          <svg className={`mt-3 w-full rounded-md border border-sawdust bg-white ${svgHeightClass}`} viewBox="0 0 680 340" role="img" aria-label="Build-model hero visual">
+          <svg className={`mt-3 w-full rounded-md border border-sawdust bg-white ${svgHeightClass}`} viewBox="0 0 680 340" role="img" aria-label={heroAriaLabel}>
             <rect x="28" y="24" width="624" height="292" rx="10" fill="#fffaf0" stroke="#d7c7a1" />
             {shouldRenderShelfProject ? <ShelfProjectVisual visual={visual} viewModel={wallShelfViewModel} /> : <GenericProjectVisual visual={visual} />}
           </svg>
@@ -89,10 +91,16 @@ function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisua
 
   return (
     <>
-      <rect x="118" y="50" width="86" height="242" fill="#efe7d8" stroke="#d7c7a1" strokeWidth="2" />
-      <line x1="204" y1="50" x2="204" y2="292" stroke="#47624a" strokeWidth="4" />
-      <text x="161" y="42" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
-        wall
+      <rect x="52" y="52" width="570" height="218" rx="8" fill="#f7efe0" stroke="#d7c7a1" />
+      <line x1="52" y1="96" x2="622" y2="96" stroke="#eadbc2" strokeWidth="2" />
+      <line x1="52" y1="142" x2="622" y2="142" stroke="#eadbc2" strokeWidth="2" />
+      <line x1="52" y1="188" x2="622" y2="188" stroke="#eadbc2" strokeWidth="2" />
+      <line x1="52" y1="234" x2="622" y2="234" stroke="#eadbc2" strokeWidth="2" />
+      <rect x="106" y="62" width="100" height="230" fill="#efe7d8" stroke="#d7c7a1" strokeWidth="2" />
+      <line x1="204" y1="62" x2="204" y2="292" stroke="#47624a" strokeWidth="4" />
+      <ellipse cx="382" cy="286" rx="196" ry="18" fill="#000000" opacity="0.08" />
+      <text x="160" y="42" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
+        wall plane
       </text>
 
       {shelves.map((_, index) => {
@@ -130,8 +138,11 @@ function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisua
       <text x="368" y="300" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
         {shelfLabel} - {thicknessLabel}
       </text>
+      <text x="528" y="300" textAnchor="end" className="fill-ink text-[12px] font-semibold">
+        finished wall-shelf preview
+      </text>
       {visual.supportLabel ? (
-        <text x="210" y="316" className="fill-ink text-[12px] font-semibold">
+        <text x="210" y="318" className="fill-ink text-[12px] font-semibold">
           {visual.supportLabel}
         </text>
       ) : null}
