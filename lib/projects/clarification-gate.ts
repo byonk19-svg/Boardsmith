@@ -75,8 +75,10 @@ function isWallMounted(project: ClarificationGateInput): boolean {
   return /\b(wall|wall-mounted|mounted|mount|hang|anchor|stud|bracket|cleat)\b/.test(text);
 }
 
-function hasFinishOrExposureContext(project: ClarificationGateInput): boolean {
-  return /\b(indoor|outdoor|outside|rain|weather|humidity|bathroom|porch|deck|finish|paint|stain|seal|polyurethane)\b/.test(projectText(project));
+function hasFinishProtectionContext(project: ClarificationGateInput): boolean {
+  return /\b(finish|paint|stain|seal|sealed|sealer|polyurethane|spar\s+urethane|exterior\s+screws?|stainless|galvanized|cedar|treated|weatherproof|waterproof)\b/.test(
+    projectText(project),
+  );
 }
 
 function hasExpectedUseContext(project: ClarificationGateInput): boolean {
@@ -284,12 +286,12 @@ function safetyQuestions(project: ClarificationGateInput, reviewFlags: SafetyRev
     });
   }
 
-  if (flagCodes.has("outdoor_load_exposure") && !hasFinishOrExposureContext(project)) {
+  if (flagCodes.has("outdoor_load_exposure") && !hasFinishProtectionContext(project)) {
     addUniqueQuestion(questions, {
       id: "finish_exposure",
       category: "finish_exposure",
-      question: "Will this be indoor, outdoor, humid, wet, or otherwise exposed?",
-      reason: "Exposure changes finish, fasteners, drainage, wood movement, and rot-resistance review.",
+      question: "What finish, fastener, and exposure details should the plan account for?",
+      reason: "Outdoor, humid, wet, or porch use changes finish, fasteners, drainage, wood movement, and rot-resistance review.",
       requiredForFullPlan: true,
     });
   }

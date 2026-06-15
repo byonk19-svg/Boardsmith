@@ -1040,11 +1040,21 @@
 - [x] Keep the pass route-rendering-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 - [x] Verification passed: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, and `git diff --check`.
 
+## Task 89C - Wall-Shelf Missing Detail Question Model
+
+- [x] Implement [#4 Add missing-detail question model for wall shelves](https://github.com/byonk19-svg/Boardsmith/issues/4).
+- [x] Cover concrete questions and reasons for dimensions, material thickness/type, shelf layout/count, connected-unit support/frame, mounting method, expected load/use, tools, child/electrical review, and finish/exposure.
+- [x] Keep separate shelves and connected shelf units on different support/layout question paths.
+- [x] Keep question copy in the classifier so the Clarification Gate panel can render it without duplicating copy logic.
+- [x] Distinguish outdoor/exposure wording from actual finish, fastener, and weather-protection details.
+- [x] Add regression tests for expected load/use and finish/exposure wall-shelf questions.
+- [x] Keep the pass classifier/test-only with no route/UI change, schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue Clarification Gate implementation with [#4 Add missing-detail question model for wall shelves](https://github.com/byonk19-svg/Boardsmith/issues/4), then [#3 Gate full plan generation from readiness state](https://github.com/byonk19-svg/Boardsmith/issues/3).
+1. [ ] Continue Clarification Gate implementation with [#3 Gate full plan generation from readiness state](https://github.com/byonk19-svg/Boardsmith/issues/3), then [#5 Preserve archived and prior-plan behavior through Clarification Gate](https://github.com/byonk19-svg/Boardsmith/issues/5).
 2. [ ] Start Visual Plan Packet implementation with [#6 wall-shelf part-label consistency](https://github.com/byonk19-svg/Boardsmith/issues/6) when ready to work on visuals.
-3. [ ] Keep Clarification Gate issue order: #4 -> #3 -> #5.
+3. [ ] Keep Clarification Gate issue order: #3 -> #5.
 4. [ ] Keep Visual Plan Packet issue order: #6 -> #7/#8/#9 -> #10 -> #11.
 5. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
 6. [ ] Choose later implementation lanes only from repeated manual dogfood friction.

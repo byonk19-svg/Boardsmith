@@ -109,6 +109,41 @@ describe("createClarificationGateDecision", () => {
     );
   });
 
+  it("asks for expected load/use and finish exposure details for risky wall shelves", () => {
+    const decision = createClarificationGateDecision(
+      project({
+        title: "Outdoor wide porch shelf",
+        width_inches: 42,
+        depth_inches: 14,
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        style_notes: "Wall mounted with metal brackets screwed into studs.",
+        intended_use: "Porch shelf.",
+      }),
+    );
+
+    expect(decision.status).toBe("needs_details");
+    expect(decision.reviewFlags.map((flag) => flag.code)).toEqual(expect.arrayContaining(["heavy_shelving", "outdoor_load_exposure"]));
+    expect(decision.questions.map((question) => question.id)).toEqual(expect.arrayContaining(["expected_load_or_use", "finish_exposure"]));
+    expect(decision.questions.find((question) => question.id === "finish_exposure")?.category).toBe("finish_exposure");
+  });
+
+  it("does not ask for finish exposure details when protective finish and fasteners are specified", () => {
+    const decision = createClarificationGateDecision(
+      project({
+        title: "Outdoor wide porch shelf",
+        width_inches: 42,
+        depth_inches: 14,
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        style_notes: "Wall mounted with metal brackets screwed into studs, sealed with spar urethane, and installed with exterior screws.",
+        intended_use: "Porch shelf for light decor.",
+      }),
+    );
+
+    expect(decision.questions.map((question) => question.id)).not.toContain("finish_exposure");
+  });
+
   it("asks child-adjacent and electrical clarification questions without making approval claims", () => {
     const decision = createClarificationGateDecision(
       project({
