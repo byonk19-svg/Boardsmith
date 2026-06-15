@@ -1,12 +1,56 @@
 # Boardsmith Private MVP Readiness
 
-Date: June 8, 2026
+Date: June 15, 2026
 
 ## Current Status
 
-Boardsmith is a private MVP woodworking planning app. It is ready for continued private testing and narrow private hosted use behind the chosen access layers, but it is not ready for public sharing or production multi-user use.
+Boardsmith is a private MVP woodworking planning app. It is ready for a small private MVP demo/use test with intended users who can pass the active hosted access layers. It is not ready for public sharing, production multi-user use, fabrication approval, or export/CAD workflows.
 
-The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, user-supplied authorized hosted browser smoke passed after the project-intake validation fix, authorized hosted archive/restore smoke passed after the archive migration was applied, and authenticated hosted `Tweak this plan` active-flow smoke passed. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
+The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, hosted route smoke passes through the intended protected access path, authorized hosted archive/restore and `Tweak this plan` smoke have passed, and the post-push wall-shelf dogfood fix was verified on hosted. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
+
+## Final Private MVP Readiness Checkpoint
+
+Date: June 15, 2026
+
+Checked branch: `main` synced with `origin/main`.
+
+Checked commits:
+
+- `70ec2d1 Document hosted dogfood follow-up`
+- `63e6107 Harden wall shelf dogfood states`
+- `0e3e735 Harden generation lifecycle states`
+
+Go/no-go recommendation: **Go for a small private MVP demo/use test.**
+
+This is a private-use go, not a public launch. Boardsmith is coherent enough for the owner or a very small trusted private group to create supported projects, generate reviewable plans, understand blocked/failure states, revisit saved plan versions, and use browser print sheets. Keep expectations explicit: every output is a planning aid that requires human review before cutting, mounting, loading, finishing, or using.
+
+What is now verified:
+
+- Project creation works from the structured intake flow for supported beginner-friendly project types.
+- Hosted route smoke reaches `/` and `/projects` through the intended protected access path.
+- Hosted project generation can produce useful wall-shelf/simple project packets with Plan Review, Cut Checklist, Buying Plan, Materials and Parts, plan history, and browser print preview.
+- Deterministic invalid connected multi-shelf generation redirects to safe shelf-layout feedback without saving a plan.
+- Archived direct generation is blocked with restore-before-generating copy while existing archived plans and print sheets remain viewable.
+- Empty revision input leaves the saved latest plan unchanged.
+- Projects whose latest attempt failed while an older saved plan remains available now say the latest attempt failed instead of implying there is no usable saved plan.
+- Five separate wall shelves with individual board thickness now generate successfully on hosted and render Buying Plan instead of hitting `shelf_layout_invalid`.
+- Wall-shelf Buying Plan appears after Cut Checklist and before Materials and Parts on detail and print, groups modeled wood pieces by material, and keeps stock length as review/selection language instead of inventing a purchase.
+- Browser print remains the supported private MVP output path.
+
+Remaining known limitations:
+
+- Generated plan quality can still vary. Connected shelf units and child-adjacent ledges may be blocked by generated-plan review; this is acceptable safety posture until repeated examples justify a narrow prompt/model slice.
+- Buying Plan is still conservative. It does not choose exact stock boards, optimize cuts, price materials, choose vendors, or produce a complete shopping list.
+- Hardware and fastener guidance remains split across Buying Plan, Materials and Parts, and review notes because exact bracket/anchor choices depend on wall structure, expected load, and real site review.
+- The hosted access model still relies on private access layers, not production auth, per-user ownership, or RLS.
+- Browser print is usable but not a generated PDF/download/export system.
+- Boardsmith still does not provide engineering review, load ratings, wall-safety guarantees, child-safety certification, CAD/CNC output, public sharing, shopping, pricing, vendor, inventory, payments, or subscriptions.
+
+Recommended next 3 tasks:
+
+1. Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
+2. Collect repeated generation-quality friction from real supported projects before changing prompts.
+3. Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
 
 ## Private MVP Checkpoint
 
@@ -704,6 +748,8 @@ Verification:
 - Validation passed: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check`.
 - No schema, package, lockfile, migration, hosted Supabase, pricing, vendor, inventory, PDF, CAD, CNC, export, cut-optimization, or AI-image changes were introduced.
 
-## Recommended Next Step
+## Recommended Next 3 Tasks
 
-Keep Boardsmith private and pause broad feature work. Use the current `private-mvp-1.0` baseline manually before selecting another major lane. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, auth expansion, or new project type work without an explicit task and, for PDF/export work, explicit renderer/dependency approval.
+1. Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
+2. Collect repeated generation-quality friction from real supported projects before changing prompts.
+3. Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
