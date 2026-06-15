@@ -404,15 +404,24 @@ function ClarificationGatePanel({
           <p className="mt-2 text-sm leading-6 text-ink/70">{decision.summary}</p>
         </div>
         <span className={`w-fit rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${clarificationGateBadgeClass(decision.status)}`}>
-          {decision.canGenerateFullPlan ? "Full plan path available" : "Review before full plan"}
+          {isArchived ? "Restore before full plan" : decision.canGenerateFullPlan ? "Full plan path available" : "Review before full plan"}
         </span>
       </div>
 
       {decision.status === "ready_for_full_plan" ? (
         <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
-          {hasLatestPlan
+          {isArchived
+            ? "The saved intake has enough detail for a plan, but archived projects stay read-only. Restore this project before generating or revising."
+            : hasLatestPlan
             ? "The saved intake has enough detail for another plan version. Review the existing plan, then generate again only if the intake still matches the build you want."
             : "The saved intake has enough detail for a first plan. Review the measurements, material, mounting, and tool choices before using Generate Plan."}
+        </p>
+      ) : null}
+
+      {hasLatestPlan && !decision.canGenerateFullPlan ? (
+        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
+          This blocks future generation only. Existing saved plan versions remain readable for review, history, and browser print; do not treat them
+          as refreshed or newly approved.
         </p>
       ) : null}
 

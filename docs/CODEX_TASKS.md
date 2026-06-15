@@ -1060,11 +1060,20 @@
 - [x] Add route tests proving gated states do not call generation or save plan records.
 - [x] Keep the pass generation-route-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 89E - Clarification Gate Archived and Prior-Plan Lifecycle
+
+- [x] Implement [#5 Preserve archived and prior-plan behavior through Clarification Gate](https://github.com/byonk19-svg/Boardsmith/issues/5).
+- [x] Update readiness copy so archived projects say restore is required before full-plan generation, even when the intake is otherwise ready.
+- [x] Keep existing saved plan versions readable when readiness blocks future generation.
+- [x] Clarify that readiness blockers apply to future generation only and do not newly approve older saved plans.
+- [x] Extend rendered-route coverage for archived read-only behavior and prior-plan readability.
+- [x] Keep the pass lifecycle-copy/test-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue Clarification Gate implementation with [#5 Preserve archived and prior-plan behavior through Clarification Gate](https://github.com/byonk19-svg/Boardsmith/issues/5).
-2. [ ] Start Visual Plan Packet implementation with [#6 wall-shelf part-label consistency](https://github.com/byonk19-svg/Boardsmith/issues/6) when ready to work on visuals.
-3. [ ] Keep Clarification Gate issue order: #5.
+1. [ ] Start Visual Plan Packet implementation with [#6 wall-shelf part-label consistency](https://github.com/byonk19-svg/Boardsmith/issues/6).
+2. [ ] Keep Visual Plan Packet issue order: #6 -> #7/#8/#9 -> #10 -> #11.
+3. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
 4. [ ] Keep Visual Plan Packet issue order: #6 -> #7/#8/#9 -> #10 -> #11.
 5. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
 6. [ ] Choose later implementation lanes only from repeated manual dogfood friction.

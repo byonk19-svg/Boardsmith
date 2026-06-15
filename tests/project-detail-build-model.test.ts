@@ -710,6 +710,9 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("Archived project");
     expect(markup).toContain("Read-only archived project");
+    expect(markup).toContain("Plan readiness");
+    expect(markup).toContain("Restore before full plan");
+    expect(markup).toContain("This blocks future generation only. Existing saved plan versions remain readable for review, history, and browser print");
     expect(markup).toContain("Review only until restored");
     expect(markup).toContain("This archived project is read-only. Restore remains the only edit-enabling action;");
     expect(markup).toContain('href="#project-record"');
@@ -769,7 +772,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("This archived project record is read-only until restored.");
     expect(markup).toContain("Restore project");
     expect(markup).toContain('action="/projects/project_saved_bbm/restore"');
+    expect(markup).toContain("Restore before full plan");
     expect(markup).not.toContain(">Generate Plan</button>");
+    expect(markup).not.toContain("Full plan path available");
     expect(markup).not.toContain("Generate another plan version");
     expect(markup).not.toContain("Print build sheet");
     expect(markup).not.toContain("Tweak this plan");
@@ -950,6 +955,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("latest attempt failed");
     expect(markup).toContain("Latest generation attempt needs review.");
     expect(markup).toContain("The saved latest plan below is still available for review");
+    expect(markup).toContain("This blocks future generation only. Existing saved plan versions remain readable for review, history, and browser print");
     expect(markup).toContain("Latest generated plan");
     expect(markup).toContain("Print build sheet");
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
