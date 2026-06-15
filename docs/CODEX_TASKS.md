@@ -1019,15 +1019,26 @@
 - [x] Apply `ready-for-agent` to the published issues.
 - [x] Keep the pass tracker/docs-only with no app behavior change, route change, schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 89A - Clarification Gate Readiness Classifier
+
+- [x] Implement [#1 Clarification Gate readiness classifier](https://github.com/byonk19-svg/Boardsmith/issues/1).
+- [x] Add a deterministic classifier with five outcomes: ready for full plan, needs details, concept only, unsupported, and blocked for safety.
+- [x] Reuse existing project type, shelf-layout, shelf-layout issue, and safety-review seams.
+- [x] Add concrete missing-detail questions for dimensions, material, shelf layout/count, support/frame, mounting, expected use/load, child-adjacent/electrical safety, finish/exposure, and tools.
+- [x] Add tests covering all five outcomes, high-risk blockers, unsupported/adjacent ideas, separate-vs-connected shelf layouts, connected-unit support, child/electrical review, and ready wall-shelf generation.
+- [x] Keep the pass classifier/test-only with no route/UI change, schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+- [x] Verification passed: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, and `git diff --check`.
+
 ## Recommended Next Tasks
 
-1. [ ] Start implementation with [#1 Clarification Gate readiness classifier](https://github.com/byonk19-svg/Boardsmith/issues/1) or [#6 wall-shelf part-label consistency](https://github.com/byonk19-svg/Boardsmith/issues/6).
-2. [ ] Keep Clarification Gate issue order: #1 -> #2/#4 -> #3 -> #5.
-3. [ ] Keep Visual Plan Packet issue order: #6 -> #7/#8/#9 -> #10 -> #11.
-4. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-5. [ ] Choose later implementation lanes only from repeated manual dogfood friction.
-6. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
-7. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
+1. [ ] Continue Clarification Gate implementation with [#2 Render Clarification Gate panel on project detail](https://github.com/byonk19-svg/Boardsmith/issues/2) or [#4 Add missing-detail question model for wall shelves](https://github.com/byonk19-svg/Boardsmith/issues/4).
+2. [ ] Start Visual Plan Packet implementation with [#6 wall-shelf part-label consistency](https://github.com/byonk19-svg/Boardsmith/issues/6) when ready to work on visuals.
+3. [ ] Keep Clarification Gate issue order: #2/#4 -> #3 -> #5.
+4. [ ] Keep Visual Plan Packet issue order: #6 -> #7/#8/#9 -> #10 -> #11.
+5. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
+6. [ ] Choose later implementation lanes only from repeated manual dogfood friction.
+7. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
+8. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
 
 ## Remaining Hardening
 
