@@ -102,6 +102,9 @@ describe("WallShelfDiagrams", () => {
     expect(markup).toContain("Part A - Shelf board");
     expect(markup).toContain("single shelf assembly");
     expect(markup).toContain("single shelf layout");
+    expect(markup).toContain("Top view / shelf footprint");
+    expect(markup).toContain("Top view shelf footprint");
+    expect(markup).toContain("shelf footprint");
     expect(markup).toContain("1 shelf");
     expect(markup).toContain("Width 12 in");
     expect(markup).toContain("Depth 6 in");
@@ -117,6 +120,7 @@ describe("WallShelfDiagrams", () => {
     expect(markup).toContain("Part A - Shelf boards");
     expect(markup).toContain("connected shelf unit assembly");
     expect(markup).toContain("Front elevation / shelf layout");
+    expect(markup).toContain("Top view / shelf footprint");
     expect(markup).toContain("connected shelf unit layout");
     expect(markup).toContain("5 shelves");
     expect(markup).toContain("Width 12 in");
@@ -153,6 +157,7 @@ describe("WallShelfDiagrams", () => {
     expect(markup).toContain("Part A - Shelf boards");
     expect(markup).toContain("separate wall shelf assemblies");
     expect(markup).toContain("separate wall shelf layout");
+    expect(markup).toContain("Top view / shelf footprint");
     expect(markup).not.toContain("connected shelf unit assembly");
   });
 
@@ -176,6 +181,7 @@ describe("WallShelfDiagrams", () => {
     expect(markup).toContain("Needs review");
     expect(markup).not.toContain("Height 0.1 in");
     expect(markup).not.toContain("Front elevation / shelf layout");
+    expect(markup).not.toContain("Top view / shelf footprint");
   });
 
   it("renders unresolved connected support/frame as review-needed instead of complete structure", () => {

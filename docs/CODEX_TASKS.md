@@ -1088,10 +1088,20 @@
 - [x] Cover detail route, Browser Print Plan route, single-shelf, separate-shelf, connected unresolved, and connected modeled-support rendering in tests.
 - [x] Keep the pass SVG/view-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 90C - Dimensioned Wall-Shelf Front, Side, And Top Views
+
+- [x] Implement [#8 Add dimensioned wall-shelf front side top views](https://github.com/byonk19-svg/Boardsmith/issues/8).
+- [x] Add a deterministic top-view shelf footprint panel to the wall-shelf diagram packet.
+- [x] Keep front, side, and top measurements sourced from the trusted Diagram View Model dimensions.
+- [x] Preserve planning-aid and not-to-scale caveats for the diagram packet.
+- [x] Keep review-only dimensions from rendering as trusted measurements; invalid total height still blocks the build-ready diagram packet.
+- [x] Cover detail route, Browser Print Plan route, trusted top-view labels, separate shelf layout, and invalid-height suppression in tests.
+- [x] Keep the pass SVG/view-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue Visual Plan Packet implementation with [#8 Add dimensioned wall-shelf front side top views](https://github.com/byonk19-svg/Boardsmith/issues/8) or [#9 Add wall-shelf stock board cut layout visual](https://github.com/byonk19-svg/Boardsmith/issues/9).
-2. [ ] Keep Visual Plan Packet issue order: #8/#9 -> #10 -> #11.
+1. [ ] Continue Visual Plan Packet implementation with [#9 Add wall-shelf stock board cut layout visual](https://github.com/byonk19-svg/Boardsmith/issues/9).
+2. [ ] Keep Visual Plan Packet issue order: #9 -> #10 -> #11.
 3. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
 4. [ ] Choose later implementation lanes only from repeated manual dogfood friction.
 5. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.

@@ -44,6 +44,12 @@ export function WallShelfDiagrams({ model, compact = false }: { model: WallShelf
             Shows shelf count, width, total height, and support/frame state from the Diagram View Model.
           </DiagramNote>
         </DiagramPanel>
+        <DiagramPanel title="Top view / shelf footprint">
+          <TopView model={model} viewModel={viewModel} />
+          <DiagramNote>
+            Shows shelf width and depth from above. Measurements are planning aids and stay tied to trusted diagram dimensions.
+          </DiagramNote>
+        </DiagramPanel>
         <DiagramPanel title="Side view">
           <SideView model={model} viewModel={viewModel} />
           <DiagramNote>Shows how far the shelf projects from the wall and the board thickness.</DiagramNote>
@@ -67,7 +73,7 @@ function ExplodedAssemblyView({ model, viewModel }: { model: WallShelfDiagramMod
   const shelves = viewModel.visibleBoards.filter((piece) => piece.role === "shelf_board");
   const modeledSupports = viewModel.visibleBoards.filter((piece) => piece.role === "support_frame");
   const placeholderSupports = viewModel.visibleBoards.filter((piece) => piece.role === "support_frame_placeholder");
-  const shelfLabel = shelves.at(0)?.printLabel ?? model.partSchedule.find((row) => /shelf/i.test(row.label))?.printLabel ?? "Part A - Shelf board";
+  const shelfLabel = shelfPartLabel(model, viewModel);
   const supportLabels = modeledSupports.length > 0 ? modeledSupports.map((piece) => piece.printLabel) : placeholderSupports.map((piece) => `${piece.label} - review only`);
   const shelfCount = Math.max(1, Math.min(viewModel.shelfCount ?? shelves.at(0)?.quantity ?? 1, 5));
   const connected = viewModel.layout === "connected_shelf_unit";
@@ -123,6 +129,10 @@ function trianglePoints(x1: number, y1: number, x2: number, y2: number, x3: numb
   return `${x1.toString()},${y1.toString()} ${x2.toString()},${y2.toString()} ${x3.toString()},${y3.toString()}`;
 }
 
+function shelfPartLabel(model: WallShelfDiagramModel, viewModel: WallShelfDiagramViewModel): string {
+  return viewModel.visibleBoards.find((piece) => piece.role === "shelf_board")?.printLabel ?? model.partSchedule.find((row) => /shelf/i.test(row.label))?.printLabel ?? "Part A - Shelf board";
+}
+
 function FrontElevation({ model, viewModel }: { model: WallShelfDiagramModel; viewModel: WallShelfDiagramViewModel }) {
   const shelfCount = Math.max(1, viewModel.shelfCount ?? 1);
   const shownShelves = Math.min(shelfCount, 8);
@@ -152,6 +162,26 @@ function FrontElevation({ model, viewModel }: { model: WallShelfDiagramModel; vi
       {model.shelfCount && model.shelfCount > shownShelves ? <Callout x={248} y={194}>showing first {shownShelves.toString()}</Callout> : null}
       <Callout x={214} y={178}>{model.shelfSpacingInches ? `${model.shelfSpacingInches.toString()} in spacing` : "spacing to verify"}</Callout>
       {viewModel.supportFrameReview.needsReview ? <ReviewBadge x={206} y={148} label="Support/frame review" /> : null}
+    </DiagramSvg>
+  );
+}
+
+function TopView({ model, viewModel }: { model: WallShelfDiagramModel; viewModel: WallShelfDiagramViewModel }) {
+  const shelfLabel = shelfPartLabel(model, viewModel);
+  const supportReviewLabel = viewModel.supportFrameReview.needsReview ? "Support/frame review" : "Mounting review";
+
+  return (
+    <DiagramSvg title="Wall shelf top view" description="Top view shelf footprint with trusted width and depth dimensions, not to scale.">
+      <rect x="70" y="48" width="24" height="130" rx="5" fill="#eef3e8" stroke="#47624a" strokeWidth="2" />
+      <Callout x={50} y={38}>wall</Callout>
+      <BoardRect x={116} y={82} width={192} height={58} label="shelf footprint" />
+      <line x1="94" y1="82" x2="116" y2="82" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+      <line x1="94" y1="140" x2="116" y2="140" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+      <DimensionLine x1={116} y1={62} x2={308} y2={62} label={safeDimensionLabel(viewModel.dimensions.width, "Width to verify")} />
+      <DimensionLine x1={326} y1={82} x2={326} y2={140} label={safeDimensionLabel(viewModel.dimensions.depth, "Depth to verify")} />
+      <Callout x={116} y={160}>{shelfLabel}</Callout>
+      <Callout x={116} y={178}>{layoutLabel(viewModel)}</Callout>
+      <ReviewBadge x={214} y={164} label={supportReviewLabel} />
     </DiagramSvg>
   );
 }

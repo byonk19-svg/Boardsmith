@@ -414,6 +414,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Planning diagram - not to scale");
     expect(markup).toContain("Exploded assembly view");
     expect(markup).toContain("Front elevation / shelf layout");
+    expect(markup).toContain("Top view / shelf footprint");
     expect(markup).toContain("Side view");
     expect(markup).toContain("Cut parts");
     expect(markup).toContain("Mounting review");
