@@ -5,6 +5,7 @@ import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test
 const generateStructuredProjectPlanMock = vi.fn<() => Promise<unknown>>();
 const saveGeneratedPlanMock = vi.fn<(...args: unknown[]) => Promise<unknown>>();
 const getProjectMock = vi.fn<() => Promise<Project | null>>();
+const markProjectGenerationFailedMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 
 const project: Project = {
   id: "blocked_generation_project",
@@ -39,6 +40,7 @@ vi.mock("@/lib/ai/generate-project-plan", () => ({
 
 vi.mock("@/lib/storage/project-store", () => ({
   getProject: () => getProjectMock(),
+  markProjectGenerationFailed: (projectId: string) => markProjectGenerationFailedMock(projectId),
   saveGeneratedPlan: (...args: unknown[]) => saveGeneratedPlanMock(...args),
 }));
 
@@ -71,6 +73,7 @@ describe("generate plan route feedback", () => {
     );
     expect(generateStructuredProjectPlanMock).not.toHaveBeenCalled();
     expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
   });
 
   it("blocks impossible multi-shelf height before generation", async () => {
@@ -98,6 +101,25 @@ describe("generate plan route feedback", () => {
     );
     expect(generateStructuredProjectPlanMock).not.toHaveBeenCalled();
     expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
+  });
+
+  it("does not generate a new plan version for archived projects", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      archived_at: "2026-06-08T12:00:00.000Z",
+    });
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/blocked_generation_project?generation_error=archived");
+    expect(generateStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
   });
 
   it("redirects blocked deterministic review failures to a safe feedback state without saving", async () => {
@@ -113,5 +135,6 @@ describe("generate plan route feedback", () => {
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("http://localhost/projects/blocked_generation_project?generation_error=review_blocked");
     expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
   });
 });

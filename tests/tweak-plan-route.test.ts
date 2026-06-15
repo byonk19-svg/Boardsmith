@@ -14,6 +14,7 @@ const generateRevisedStructuredProjectPlanMock = vi.fn<
 const getProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 const listGeneratedPlansMock = vi.fn<(projectId: string) => Promise<GeneratedProjectPlanRecord[]>>();
 const saveGeneratedPlanMock = vi.fn<(...args: unknown[]) => Promise<unknown>>();
+const markProjectGenerationFailedMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 
 const project: Project = {
   id: "revision-project",
@@ -112,6 +113,7 @@ vi.mock("@/lib/ai/generate-project-plan", () => ({
 vi.mock("@/lib/storage/project-store", () => ({
   getProject: (projectId: string) => getProjectMock(projectId),
   listGeneratedPlans: (projectId: string) => listGeneratedPlansMock(projectId),
+  markProjectGenerationFailed: (projectId: string) => markProjectGenerationFailedMock(projectId),
   saveGeneratedPlan: (...args: unknown[]) => saveGeneratedPlanMock(...args),
 }));
 
@@ -180,6 +182,7 @@ describe("tweak plan route", () => {
 
     expect(response.headers.get("location")).toBe("http://localhost/projects/revision-project?generation_error=validation_failed");
     expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
   });
 
   it("does not revise archived projects or projects with no latest plan", async () => {
@@ -200,5 +203,6 @@ describe("tweak plan route", () => {
     expect(noPlanResponse.headers.get("location")).toBe("http://localhost/projects/revision-project?revision_error=no_plan");
     expect(generateRevisedStructuredProjectPlanMock).not.toHaveBeenCalled();
     expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
   });
 });

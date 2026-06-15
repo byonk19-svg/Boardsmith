@@ -11,6 +11,7 @@ import {
   type Project,
   type ProjectBuildLogInput,
   type ProjectIntake,
+  type ProjectStatus,
   type ProjectShelfLayoutUpdate,
   type ShelfLayoutOption,
 } from "@/lib/projects/types";
@@ -404,6 +405,29 @@ export async function restoreProject(projectId: string): Promise<Project | null>
     project.updated_at = now;
     return project;
   });
+}
+
+export async function updateProjectStatus(projectId: string, status: ProjectStatus): Promise<Project | null> {
+  const now = new Date().toISOString();
+
+  if (isSupabasePersistenceConfigured()) {
+    const { data, error } = await getSupabase().from("projects").update({ status, updated_at: now }).eq("id", projectId).select("*").single();
+    if (error) throw new Error(error.message);
+    return normalizeProjectRow(data);
+  }
+
+  return mutateLocalStore((store) => {
+    const project = store.projects.find((candidate) => candidate.id === projectId);
+    if (!project) return null;
+
+    project.status = status;
+    project.updated_at = now;
+    return project;
+  });
+}
+
+export async function markProjectGenerationFailed(projectId: string): Promise<Project | null> {
+  return updateProjectStatus(projectId, "generation_failed");
 }
 
 export async function listGeneratedPlans(projectId: string): Promise<GeneratedProjectPlanRecord[]> {

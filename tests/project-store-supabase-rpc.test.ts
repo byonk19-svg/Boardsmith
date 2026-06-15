@@ -149,4 +149,53 @@ describe("Supabase generated plan save RPC", () => {
       }),
     );
   });
+
+  it("marks Supabase projects as generation_failed without adding a migration", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
+
+    const updatedProject: Project = {
+      id: "project-id",
+      created_at: "2026-06-01T10:00:00.000Z",
+      updated_at: "2026-06-02T10:00:00.000Z",
+      title: "Failed generation shelf",
+      project_type: "simple_shelf",
+      skill_level: "beginner",
+      status: "generation_failed",
+      width_inches: 24,
+      height_inches: 8,
+      depth_inches: 7,
+      material_thickness_inches: 0.75,
+      material_type: "pine board",
+      tools_available: ["tape_measure", "pencil"],
+      style_notes: "Simple",
+      intended_use: "Light shelf",
+      safety_review_required: false,
+      safety_flags: [],
+      notes: "",
+      build_completed: false,
+      build_completed_at: "",
+      build_actual_material: "",
+      build_plan_changes: "",
+      build_lessons_learned: "",
+      ...activeProjectArchiveFields,
+    };
+    const single = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
+    const select = vi.fn(() => ({ single }));
+    const eq = vi.fn(() => ({ select }));
+    const update = vi.fn(() => ({ eq }));
+    const from = vi.fn(() => ({ update }));
+
+    vi.doMock("@supabase/supabase-js", () => ({
+      createClient: vi.fn(() => ({ from })),
+    }));
+
+    const store = await import("@/lib/storage/project-store");
+    const result = await store.markProjectGenerationFailed("project-id");
+
+    expect(result?.status).toBe("generation_failed");
+    expect(from).toHaveBeenCalledWith("projects");
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: "generation_failed" }));
+    expect(eq).toHaveBeenCalledWith("id", "project-id");
+  });
 });

@@ -112,10 +112,15 @@ describe("project store lifecycle", () => {
     expect(project.safety_flags).toEqual(expect.arrayContaining(["Wall mounting review", "Heavy shelving review"]));
 
     const buildModel = createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
+    const failed = await store.markProjectGenerationFailed(project.id);
+    expect(failed?.status).toBe("generation_failed");
+
     const firstPlan = await store.saveGeneratedPlan({ projectId: project.id, modelName: "test-model-a", plan, buildModel });
     const secondPlan = await store.saveGeneratedPlan({ projectId: project.id, modelName: "test-model-b", plan });
+    const reloadedProject = await store.getProject(project.id);
     const plans = await store.listGeneratedPlans(project.id);
 
+    expect(reloadedProject?.status).toBe("plan_generated");
     expect(plans).toHaveLength(2);
     expect(plans[0]?.id).toBe(secondPlan.id);
     expect(plans[0]?.is_latest).toBe(true);

@@ -5,7 +5,7 @@ import { generateRevisedStructuredProjectPlan } from "@/lib/ai/generate-project-
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import { maxRevisionInstructionLength, normalizeRevisionInstruction } from "@/lib/plans/revision-input";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
-import { getProject, listGeneratedPlans, saveGeneratedPlan } from "@/lib/storage/project-store";
+import { getProject, listGeneratedPlans, markProjectGenerationFailed, saveGeneratedPlan } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }): Promise<Response> {
@@ -53,6 +53,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     return NextResponse.redirect(new URL(`/projects/${project.id}?revised=1&compare_plan=${latestPlan.id}`, request.url), 303);
   } catch (error) {
     const reason = classifyGenerationFailure(error);
+    await markProjectGenerationFailed(project.id);
+    revalidatePath(`/projects/${project.id}`);
     return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=${reason}`, request.url), 303);
   }
 }

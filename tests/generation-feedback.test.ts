@@ -25,6 +25,15 @@ describe("getGenerationFailureFeedback", () => {
     expect(feedback.suggestions).toContain("Add OPENAI_API_KEY to the local environment, then try generating again.");
   });
 
+  it("explains that archived projects must be restored before generation", () => {
+    const feedback = getGenerationFailureFeedback("archived", []);
+
+    expect(feedback.title).toBe("Restore this project before generating.");
+    expect(feedback.summary).toBe("No plan was generated or saved.");
+    expect(feedback.detail).toContain("does not create new plan versions until the project is restored");
+    expect(feedback.suggestions).toContain("Restore the project, then generate a new plan version if the intake still looks right.");
+  });
+
   it("gives direct repair guidance for impossible multi-shelf height", () => {
     const feedback = getGenerationFailureFeedback("shelf_layout_invalid", []);
 

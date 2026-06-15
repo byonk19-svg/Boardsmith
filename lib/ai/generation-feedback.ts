@@ -1,4 +1,12 @@
-export const generationFailureReasons = ["shelf_layout_missing", "shelf_layout_invalid", "review_blocked", "validation_failed", "missing_openai_key", "generation_failed"] as const;
+export const generationFailureReasons = [
+  "archived",
+  "shelf_layout_missing",
+  "shelf_layout_invalid",
+  "review_blocked",
+  "validation_failed",
+  "missing_openai_key",
+  "generation_failed",
+] as const;
 
 export type GenerationFailureReason = (typeof generationFailureReasons)[number];
 
@@ -30,6 +38,15 @@ export function getGenerationFailureFeedback(reason: GenerationFailureReason, sa
       summary: "OPENAI_API_KEY is missing, so Boardsmith cannot generate a plan yet.",
       detail: "No plan was generated or saved.",
       suggestions: ["Add OPENAI_API_KEY to the local environment, then try generating again."],
+    };
+  }
+
+  if (reason === "archived") {
+    return {
+      title: "Restore this project before generating.",
+      summary: "No plan was generated or saved.",
+      detail: "Archived projects stay readable and printable, but Boardsmith does not create new plan versions until the project is restored.",
+      suggestions: ["Restore the project, then generate a new plan version if the intake still looks right."],
     };
   }
 
