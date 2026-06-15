@@ -669,6 +669,41 @@ Verification:
 - Validation passed: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check`.
 - No schema, package, lockfile, migration, hosted Supabase, PDF, CAD, CNC, export, cut-optimization, or AI-image changes were introduced.
 
+## Wall-Shelf Buying Plan Checkpoint
+
+Date: June 14, 2026
+
+Checked commit: `258e2f5 Add wall shelf buying plan view model`
+
+Purpose: record the first conservative Buying Plan layer for wall shelves. The feature keeps the data path deterministic: Build Model -> Cut View Model -> Buying Plan View Model -> deterministic renderer.
+
+Packet flow now centers on:
+
+- `Build Snapshot`
+- `Project Visuals`
+- `Cut Checklist`
+- `Buying Plan`
+- `Materials and Parts`
+- `Build Guide`
+- `Check Before Building`
+- `Reference Notes`
+
+Checkpoint behavior now recorded:
+
+- Detail and print routes follow the updated packet order: Snapshot -> Visuals -> Cut -> Buying Plan -> Materials -> Build -> Check -> Reference.
+- Buying Plan appears between `Cut Checklist` and `Materials and Parts` on detail and print pages.
+- Buying Plan groups Build Model cut pieces by material so shelf boards can be reviewed as a material-planning aid.
+- Stock length remains selection/review language; Boardsmith does not invent an exact stock-board purchase.
+- No price, vendor, inventory, CAD, CNC, app-generated PDF, export, cut-optimization, or AI-image behavior was introduced.
+- The invalid five-shelf wall shelf with `0.1 in` total height remains review-needed and does not present a trusted complete packet.
+- Single shelf and valid five-shelf wall shelf regressions passed.
+
+Verification:
+
+- Browser verification included a disposable local valid five-shelf wall shelf with `60 in` total height.
+- Validation passed: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check`.
+- No schema, package, lockfile, migration, hosted Supabase, pricing, vendor, inventory, PDF, CAD, CNC, export, cut-optimization, or AI-image changes were introduced.
+
 ## Recommended Next Step
 
 Keep Boardsmith private and pause broad feature work. Use the current `private-mvp-1.0` baseline manually before selecting another major lane. Do not start app-generated PDF, SVG, DXF, CAD, CNC, shopping, pricing, vendor, inventory, public sharing, folders/tags, delete, auth expansion, or new project type work without an explicit task and, for PDF/export work, explicit renderer/dependency approval.
