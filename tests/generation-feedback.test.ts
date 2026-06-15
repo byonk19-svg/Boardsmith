@@ -43,4 +43,13 @@ describe("getGenerationFailureFeedback", () => {
       "Total project height looks too small for 5 shelves. Enter the full top-to-bottom height of the shelf unit, such as 60 in.",
     );
   });
+
+  it("points Clarification Gate failures back to the readiness panel", () => {
+    const feedback = getGenerationFailureFeedback("clarification_gate", []);
+
+    expect(feedback.title).toBe("Plan readiness needs attention.");
+    expect(feedback.summary).toBe("No plan was generated or saved.");
+    expect(feedback.detail).toContain("Plan readiness items");
+    expect(feedback.suggestions).toContain("Review the Plan readiness panel and answer the missing project details it lists.");
+  });
 });

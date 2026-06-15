@@ -2,6 +2,7 @@ export const generationFailureReasons = [
   "archived",
   "shelf_layout_missing",
   "shelf_layout_invalid",
+  "clarification_gate",
   "review_blocked",
   "validation_failed",
   "missing_openai_key",
@@ -70,6 +71,18 @@ export function getGenerationFailureFeedback(reason: GenerationFailureReason, sa
       suggestions: [
         "Total project height looks too small for 5 shelves. Enter the full top-to-bottom height of the shelf unit, such as 60 in.",
         "For connected shelf units, include side support, frame, cleat, bracket, or other support details before treating the plan as complete.",
+      ],
+    };
+  }
+
+  if (reason === "clarification_gate") {
+    return {
+      title: "Plan readiness needs attention.",
+      summary: "No plan was generated or saved.",
+      detail: "Boardsmith needs the Plan readiness items resolved before creating a full build packet.",
+      suggestions: [
+        "Review the Plan readiness panel and answer the missing project details it lists.",
+        "If the project is blocked or unsupported, keep it as notes or simplify it to a supported, reviewable woodworking plan.",
       ],
     };
   }

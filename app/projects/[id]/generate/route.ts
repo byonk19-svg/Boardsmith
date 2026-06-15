@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { classifyGenerationFailure } from "@/lib/ai/generation-feedback";
 import { generateStructuredProjectPlan } from "@/lib/ai/generate-project-plan";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
+import { createClarificationGateDecision } from "@/lib/projects/clarification-gate";
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { findBlockingShelfLayoutIssue } from "@/lib/projects/shelf-layout-validation";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
@@ -21,6 +22,14 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   }
 
   try {
+    const clarificationGate = createClarificationGateDecision(project);
+
+    if (clarificationGate.status === "blocked_for_safety" || clarificationGate.status === "concept_only" || clarificationGate.status === "unsupported") {
+      await markProjectGenerationFailed(project.id);
+      revalidatePath(`/projects/${project.id}`);
+      return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=clarification_gate#plan-readiness`, request.url), 303);
+    }
+
     if (analyzeShelfLayoutIntent(project).missingShelfCount) {
       await markProjectGenerationFailed(project.id);
       revalidatePath(`/projects/${project.id}`);
@@ -30,6 +39,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       await markProjectGenerationFailed(project.id);
       revalidatePath(`/projects/${project.id}`);
       return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=shelf_layout_invalid#project-intake`, request.url), 303);
+    }
+    if (!clarificationGate.canGenerateFullPlan) {
+      await markProjectGenerationFailed(project.id);
+      revalidatePath(`/projects/${project.id}`);
+      return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=clarification_gate#plan-readiness`, request.url), 303);
     }
 
     const buildModel = createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));

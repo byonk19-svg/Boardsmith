@@ -16,15 +16,17 @@ const project: Project = {
   skill_level: "beginner",
   status: "draft",
   width_inches: 24,
-  height_inches: 4,
+  height_inches: 0.75,
   depth_inches: 4,
   material_thickness_inches: 0.75,
   material_type: "pine board",
+  shelf_layout: "single_shelf",
+  shelf_count: 1,
   tools_available: ["tape_measure", "pencil", "drill"],
-  style_notes: "Wall mounted",
-  intended_use: "Toddler book ledge",
+  style_notes: "Wall mounted with brackets screwed into studs.",
+  intended_use: "Decorative shelf for light display items.",
   safety_review_required: true,
-  safety_flags: ["Wall mounting review", "Child or baby use"],
+  safety_flags: ["Wall mounting review"],
   notes: "",
   ...emptyProjectBuildLog,
   ...activeProjectArchiveFields,
@@ -127,6 +129,102 @@ describe("generate plan route feedback", () => {
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("http://localhost/projects/blocked_generation_project?generation_error=generation_failed");
     expect(generateStructuredProjectPlanMock).toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
+  });
+
+  it("gates needs-details projects before generation without saving a plan", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Bathroom shelf needing details",
+      material_type: "unknown",
+      tools_available: [],
+      shelf_layout: "single_shelf",
+      shelf_count: 1,
+      intended_use: "Small bathroom shelf.",
+      style_notes: "Wall mounted with brackets screwed into studs.",
+    });
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/blocked_generation_project?generation_error=clarification_gate#plan-readiness",
+    );
+    expect(generateStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
+  });
+
+  it("gates blocked-for-safety projects before shelf repair or generation", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Baby crib rail",
+      shelf_layout: undefined,
+      shelf_count: undefined,
+      intended_use: "Sleep surface for baby nursery.",
+      style_notes: "",
+    });
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/blocked_generation_project?generation_error=clarification_gate#plan-readiness",
+    );
+    expect(generateStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
+  });
+
+  it("gates concept-only woodworking-adjacent projects before generation", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Built-in bookcase",
+      project_type: "bookcase",
+      intended_use: "Large built-in bookcase for living room storage.",
+      style_notes: "",
+    } as unknown as Project);
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/blocked_generation_project?generation_error=clarification_gate#plan-readiness",
+    );
+    expect(generateStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
+  });
+
+  it("gates unsupported unrelated projects before generation", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Replace a bicycle chain",
+      project_type: "bike_repair",
+      intended_use: "Fix a bicycle drivetrain.",
+      style_notes: "",
+    } as unknown as Project);
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/blocked_generation_project?generation_error=clarification_gate#plan-readiness",
+    );
+    expect(generateStructuredProjectPlanMock).not.toHaveBeenCalled();
     expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
     expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
   });
