@@ -145,6 +145,7 @@ describe("ProjectDetailPage project structure", () => {
 
     const planSheetIndex = markup.indexOf('id="printable-plan-sheet"');
     const buildSnapshotIndex = markup.indexOf("Build Snapshot");
+    const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
     const heroVisualIndex = markup.indexOf("Hero Visual");
     const advancedDetailsIndex = markup.indexOf('id="advanced-project-details"');
     const reviewChecklistIndex = markup.indexOf("Generated plan review checklist");
@@ -158,7 +159,8 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(planSheetIndex).toBeGreaterThan(-1);
     expect(buildSnapshotIndex).toBeGreaterThan(planSheetIndex);
-    expect(heroVisualIndex).toBeGreaterThan(buildSnapshotIndex);
+    expect(readinessIndex).toBeGreaterThan(buildSnapshotIndex);
+    expect(heroVisualIndex).toBeGreaterThan(readinessIndex);
     expect(advancedDetailsIndex).toBeGreaterThan(heroVisualIndex);
     expect(reviewChecklistIndex).toBeGreaterThan(advancedDetailsIndex);
     expect(sectionNavIndex).toBeGreaterThan(reviewChecklistIndex);
@@ -993,6 +995,59 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Fix shelf layout");
     expect(markup).toContain('name="height_inches"');
     expect(markup).toContain('value="0.1"');
+  });
+
+  it("places blocked wall-shelf readiness actions before visuals, cuts, and build steps", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Bathroom shelf with 5 shelves",
+      width_inches: 23,
+      height_inches: 0.1,
+      depth_inches: 8,
+      material_thickness_inches: 0.75,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: 5,
+      intended_use: "Indoor bathroom shelf unit.",
+      style_notes: "",
+    });
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        build_model_json: {
+          ...storedBuildModel,
+          dimensions: {
+            ...storedBuildModel.dimensions,
+            widthInches: 23,
+            heightInches: 0.1,
+            depthInches: 8,
+          },
+          pieces: [{ ...storedBuildModel.pieces[0], label: "Shelf boards", quantity: 5 }],
+        },
+      },
+    ]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
+    const heightActionIndex = markup.indexOf("Total project height looks too small");
+    const heroIndex = markup.indexOf("Hero Visual");
+    const cutIndex = markup.indexOf("Cut Checklist");
+    const buildIndex = markup.indexOf("Build Guide");
+
+    expect(readinessIndex).toBeGreaterThan(-1);
+    expect(heightActionIndex).toBeGreaterThan(readinessIndex);
+    expect(readinessIndex).toBeLessThan(heroIndex);
+    expect(readinessIndex).toBeLessThan(cutIndex);
+    expect(readinessIndex).toBeLessThan(buildIndex);
+    expect(markup).toContain("Enter the full top-to-bottom height of the shelf unit, such as 60 in.");
+    expect(markup).toContain("Support/frame design needs review");
+    expect(markup).not.toMatch(/freestanding|non-mounted/i);
   });
 
   it("renders safe project-detail action errors without exposing raw query text", async () => {

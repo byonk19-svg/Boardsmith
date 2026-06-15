@@ -14,6 +14,7 @@ import { ProjectHeroVisual } from "../ProjectHeroVisual";
 import { WallShelfBuyingPlan } from "../WallShelfBuyingPlan";
 import { WallShelfCutDiagram } from "../WallShelfCutDiagram";
 import { WallShelfDiagrams } from "../WallShelfDiagrams";
+import { WallShelfPlanReadiness } from "../WallShelfPlanReadiness";
 import { PrintDialogButton } from "./PrintDialogButton";
 
 export const dynamic = "force-dynamic";
@@ -68,6 +69,12 @@ export default async function ProjectPrintPreviewPage({
         <PrintSection title="Build Snapshot">
           <PrintBuildSnapshot manifest={manifest} />
         </PrintSection>
+
+        {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
+          <PrintSection title="Plan Readiness / Next Actions">
+            <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact showTitle={false} />
+          </PrintSection>
+        ) : null}
 
         <PrintSection title="Hero Visual">
           <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} compact />

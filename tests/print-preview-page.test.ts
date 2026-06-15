@@ -168,10 +168,12 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain("Cut list</dt>");
     expect(markup).not.toContain("Primary tools");
     expect(markup).toContain("Project Visuals / Diagrams");
+    expect(markup).toContain("Plan Readiness / Next Actions");
     expect(markup).toContain("Hero Visual");
     expect(markup).toContain("Build-model hero visual - planning aid only.");
     expect(markup).toContain("Main project visual from structured plan data.");
-    expect(markup.indexOf("Hero Visual")).toBeGreaterThan(markup.indexOf("Build Snapshot"));
+    expect(markup.indexOf("Plan Readiness / Next Actions")).toBeGreaterThan(markup.indexOf("Build Snapshot"));
+    expect(markup.indexOf("Hero Visual")).toBeGreaterThan(markup.indexOf("Plan Readiness / Next Actions"));
     expect(markup.indexOf("Hero Visual")).toBeLessThan(markup.indexOf("Project Visuals / Diagrams"));
     expect(markup).toContain("Check Before Building");
     expect(markup).toContain('print:break-before-page');
@@ -263,6 +265,7 @@ describe("ProjectPrintPreviewPage", () => {
 
     const sectionOrder = [
       "Build Snapshot",
+      "Plan Readiness / Next Actions",
       "Hero Visual",
       "Project Visuals / Diagrams",
       "Cut Checklist",
@@ -387,9 +390,17 @@ describe("ProjectPrintPreviewPage", () => {
       }),
     );
 
+    const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
+    expect(readinessIndex).toBeGreaterThan(markup.indexOf("Build Snapshot"));
+    expect(readinessIndex).toBeLessThan(markup.indexOf("Hero Visual"));
+    expect(readinessIndex).toBeLessThan(markup.indexOf("Cut Checklist"));
+    expect(markup).toContain("Resolve blockers before treating this as a build packet.");
+    expect(markup).toContain("Total project height looks too small");
+    expect(markup).toContain("Enter the full top-to-bottom height of the shelf unit, such as 60 in.");
     expect(markup).toContain("This saved plan needs support/frame review before it can be treated as a complete connected shelf unit.");
     expect(markup).toContain("Total height needs review");
     expect(markup).toContain("Support/frame review");
+    expect(markup).toContain("Choose whether this is separate wall shelves, bracket-supported shelves, or a connected unit with side supports.");
     expect(markup).toContain("Cut layout needs review before cutting.");
     expect(markup).not.toMatch(/freestanding|non-mounted/i);
   });

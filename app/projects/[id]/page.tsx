@@ -26,6 +26,7 @@ import { TweakPlanForm } from "./TweakPlanForm";
 import { WallShelfBuyingPlan } from "./WallShelfBuyingPlan";
 import { WallShelfCutDiagram } from "./WallShelfCutDiagram";
 import { WallShelfDiagrams } from "./WallShelfDiagrams";
+import { WallShelfPlanReadiness } from "./WallShelfPlanReadiness";
 
 export const dynamic = "force-dynamic";
 
@@ -1824,6 +1825,12 @@ function PlanView({
           </p>
         </div>
       </header>
+
+      {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
+        <section className="border-b border-sawdust py-5 print:break-inside-avoid">
+          <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} />
+        </section>
+      ) : null}
 
       {unresolvedDimensionItems.length > 0 ? <UnresolvedCutDimensionsWarning items={unresolvedDimensionItems} /> : null}
 
