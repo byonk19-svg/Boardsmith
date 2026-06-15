@@ -201,6 +201,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Deterministic finished wall-shelf hero visual");
     expect(markup).toContain("Finished wall-shelf preview");
     expect(markup).toContain("finished wall-shelf preview");
+    expect(markup).toContain('x="592" y="42" text-anchor="end"');
     expect(markup).toContain("5 shelves - Material thickness 0.75 in");
     expect(markup).toContain("Wall/support details to verify");
     expect(markup).toContain("wall plane");

@@ -102,6 +102,9 @@ function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisua
       <text x="160" y="42" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
         wall plane
       </text>
+      <text x="592" y="42" textAnchor="end" className="fill-ink text-[12px] font-semibold">
+        finished wall-shelf preview
+      </text>
 
       {shelves.map((_, index) => {
         const y = topShelfY + index * shelfGap;
@@ -137,9 +140,6 @@ function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisua
 
       <text x="368" y="300" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
         {shelfLabel} - {thicknessLabel}
-      </text>
-      <text x="528" y="300" textAnchor="end" className="fill-ink text-[12px] font-semibold">
-        finished wall-shelf preview
       </text>
       {visual.supportLabel ? (
         <text x="210" y="318" className="fill-ink text-[12px] font-semibold">

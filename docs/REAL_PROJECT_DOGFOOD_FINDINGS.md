@@ -142,3 +142,34 @@ Friction log:
 Result:
 
 The Buying Plan is useful enough for private MVP manual use, but it should remain conservative. The only code change justified by this dogfood pass was the narrow separate-shelf validation fix plus clearer lifecycle copy for projects whose latest attempt failed while an older saved plan remains available.
+
+## Wall-Shelf Visual Plan Packet Dogfood
+
+Date: June 15, 2026
+
+Scope: local static route-component dogfood plus browser visual inspection for the completed wall-shelf Visual Plan Packet. The pass used non-sensitive temporary fixtures and disposable local output only. No hosted data, hosted routes, Supabase cloud rows, OpenAI calls, migrations, packages, exports, screenshots, or permanent project records were created.
+
+Coverage:
+
+- Rendered realistic wall-shelf packet scenarios for a single bathroom shelf, five separate wall shelves, and a connected wall shelf unit.
+- Checked project detail and Browser Print Plan section order for Build Snapshot, Hero Visual, Project Visuals / Diagrams, Cut Checklist, Buying Plan, Materials and Parts, Build Guide, Check Before Building, and Reference Review Notes.
+- Checked deterministic visual surfaces for finished-project hero, exploded assembly view, top view, stock-board planning visual, and build-step mini diagrams.
+- Checked planning-aid, no-PDF/export, no-CAD/CNC, no-load-rating, wall-safety, and no-shopping/cart boundaries stayed present.
+- Browser-inspected the hero SVGs at mobile width for fallback states, out-of-bounds text, and label overlap.
+
+What worked:
+
+- The finished wall-shelf hero, assembly/diagram packet, cut planning, Buying Plan, material grouping, and Build Guide now read as one coherent wall-shelf packet.
+- Single-shelf, multiple-separate-shelf, and connected-unit hero visuals all render without falling back when the production project-aware wall-shelf view model is used.
+- The packet order remained aligned between detail and Browser Print Plan.
+- Safety and review boundaries stayed visible without turning the Buying Plan into shopping, pricing, vendor, cart, inventory, CAD, CNC, PDF, or export behavior.
+
+Finding fixed:
+
+- Mobile-width browser inspection found the hero SVG's bottom `shelf count / material thickness` label overlapping the `finished wall-shelf preview` label.
+- The fix moved the `finished wall-shelf preview` label to the top-right of the SVG and left the bottom line for shelf count and material thickness.
+- A route-rendered regression assertion now pins the new label position, and the post-fix browser check reported no out-of-bounds SVG text, no text overlap, and no fallback for the three wall-shelf hero scenarios.
+
+Result:
+
+The completed wall-shelf Visual Plan Packet is coherent enough for continued private dogfood. The next implementation lane should still come from repeated real use, not from speculative visual expansion. Do not expand visuals to another project type until wall-shelf use shows a repeated pain point or the next template is explicitly selected.

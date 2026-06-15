@@ -1128,11 +1128,21 @@
 - [x] Preserve planning-aid, safety, no-approval, no-load-capacity, no-CAD/CNC/export/download boundaries in rendered packet tests.
 - [x] Keep the pass SVG/view-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 90G - Wall-Shelf Visual Packet Dogfood
+
+- [x] Dogfood the completed wall-shelf Visual Plan Packet before expanding visuals to another template.
+- [x] Render realistic single-shelf, multiple-separate-shelf, and connected-unit packet scenarios through detail and Browser Print Plan route components.
+- [x] Confirm packet order remains Build Snapshot, Hero Visual, Project Visuals / Diagrams, Cut Checklist, Buying Plan, Materials and Parts, Build Guide, Check Before Building, Reference Review Notes.
+- [x] Browser-check the wall-shelf hero visual at mobile width for fallback states, out-of-bounds text, and label overlap.
+- [x] Fix the mobile hero-label overlap by moving the `finished wall-shelf preview` SVG label away from the bottom material-thickness line.
+- [x] Add regression coverage for the new hero label position.
+- [x] Keep the pass SVG/view-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Dogfood the completed wall-shelf Visual Plan Packet manually before expanding visuals to another template.
-2. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-3. [ ] Choose later implementation lanes only from repeated manual dogfood friction.
+1. [ ] Keep using the wall-shelf Visual Plan Packet and Buying Plan manually; only expand behavior if stock-length selection, hardware grouping, or visual review remains repeatedly annoying.
+2. [ ] Choose any next implementation lane only from repeated manual dogfood friction or an explicitly selected next template.
+3. [ ] If a next template is selected, start with a PRD/issue split like wall shelves instead of broad visual expansion.
 4. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
 5. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
 
