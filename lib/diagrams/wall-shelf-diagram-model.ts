@@ -7,6 +7,9 @@ export type WallShelfDiagramStatus = "ready" | "needs_shelf_count" | "needs_dime
 export type WallShelfSupportStatus = "separate_shelf_placeholders" | "support_to_review" | "not_wall_mounted";
 
 export type WallShelfPartScheduleRow = {
+  partLabel: string | null;
+  badgeLabel: string | null;
+  printLabel: string;
   label: string;
   quantity: number;
   dimensionsLabel: string;
@@ -100,6 +103,9 @@ function partScheduleFor(model: WallShelfDiagramModel): WallShelfPartScheduleRow
   const rows = model.viewModel.visibleBoards
     .filter((piece) => piece.role === "shelf_board" || piece.role === "support_frame" || piece.role === "support_frame_placeholder")
     .map((piece) => ({
+      partLabel: piece.partLabel,
+      badgeLabel: piece.badgeLabel,
+      printLabel: piece.printLabel,
       label: piece.label,
       quantity: piece.quantity,
       dimensionsLabel: piece.dimensionsLabel,
@@ -111,6 +117,9 @@ function partScheduleFor(model: WallShelfDiagramModel): WallShelfPartScheduleRow
   return [
     {
       label: model.shelfCount && model.shelfCount > 1 ? "Shelf boards" : "Shelf board",
+      partLabel: "Part A",
+      badgeLabel: "A",
+      printLabel: `Part A - ${model.shelfCount && model.shelfCount > 1 ? "Shelf boards" : "Shelf board"}`,
       quantity: model.shelfCount ?? 1,
       dimensionsLabel: partDimensionsLabel(model),
       materialLabel: model.materialLabel,

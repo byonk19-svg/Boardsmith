@@ -11,6 +11,7 @@ import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan
 import { createWallShelfBuildStepViewModel, type WallShelfBuildStepViewModel } from "@/lib/plans/wall-shelf-build-step-view-model";
 import { createWallShelfCutDiagramViewModel, type WallShelfCutDiagramViewModel } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import { createWallShelfDiagramViewModel, type WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
+import { createWallShelfPartScheduleViewModel, type WallShelfPartScheduleViewModel } from "@/lib/plans/wall-shelf-part-schedule-view-model";
 import { createWallShelfPlanReadinessViewModel, type WallShelfPlanReadinessViewModel } from "@/lib/plans/wall-shelf-plan-readiness-view-model";
 import { createWallShelfStockBoardViewModel, type WallShelfStockBoardViewModel } from "@/lib/plans/wall-shelf-stock-board-view-model";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
@@ -69,6 +70,7 @@ export type PrintablePlanManifest = {
   planningDiagrams: PlanningDiagramSummary;
   wallShelfCutDiagramViewModel: WallShelfCutDiagramViewModel;
   wallShelfDiagramViewModel: WallShelfDiagramViewModel;
+  wallShelfPartScheduleViewModel: WallShelfPartScheduleViewModel;
   wallShelfPlanReadinessViewModel: WallShelfPlanReadinessViewModel;
   wallShelfBuildStepViewModel: WallShelfBuildStepViewModel;
   wallShelfStockBoardViewModel: WallShelfStockBoardViewModel;
@@ -329,6 +331,7 @@ export function createPrintablePlanManifest({
   const exportReadiness = plan ? summarizeExportReadiness(plan, reviewBuildModel, { buildModelSource }) : null;
   const materials = summarizeMaterialReview(plan, reviewBuildModel);
   const cutList = plan ? summarizeCutListReview(plan, reviewBuildModel) : null;
+  const wallShelfPartScheduleViewModel = createWallShelfPartScheduleViewModel({ buildModel: reviewBuildModel });
   const wallShelfCutDiagramViewModel = createWallShelfCutDiagramViewModel({ project, buildModel: reviewBuildModel });
   const wallShelfDiagramViewModel = createWallShelfDiagramViewModel({ project, buildModel: reviewBuildModel });
   const wallShelfStockBoardViewModel = createWallShelfStockBoardViewModel({
@@ -394,6 +397,7 @@ export function createPrintablePlanManifest({
     planningDiagrams: createPlanDiagrams(reviewBuildModel, { wallShelfViewModel: wallShelfDiagramViewModel }),
     wallShelfCutDiagramViewModel,
     wallShelfDiagramViewModel,
+    wallShelfPartScheduleViewModel,
     wallShelfPlanReadinessViewModel,
     wallShelfBuildStepViewModel,
     wallShelfStockBoardViewModel,

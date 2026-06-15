@@ -1790,7 +1790,6 @@ function PlanView({
 }) {
   const generatedPlan = manifest.generatedPlan;
   if (!generatedPlan || !manifest.cutList) return null;
-  const modeledPieces = manifest.cutList.items.filter((item) => item.sourceLabel === "Modeled piece");
   const generatedCuts = manifest.cutList.items.filter((item) => item.sourceLabel === "Generated cut");
   const unresolvedDimensionItems = unresolvedCutDimensionItems(manifest.cutList);
 
@@ -1871,7 +1870,7 @@ function PlanView({
                   <tbody className="divide-y divide-sawdust">
                     {generatedCuts.map((item) => (
                       <tr key={item.id}>
-                        <td className="py-3 pr-3 font-semibold text-ink">{item.label}</td>
+                        <td className="py-3 pr-3 font-semibold text-ink">{partLabelForCutItem(item, manifest)}</td>
                         <td className="py-3 pr-3 text-ink/70">{item.quantityLabel}</td>
                         <td className="py-3 pr-3 text-ink/70">{item.dimensionsLabel}</td>
                         <td className="py-3 pr-3 text-ink/70">{item.materialLabel}</td>
@@ -1894,7 +1893,7 @@ function PlanView({
         <PlanSheetSection title="Materials and Parts">
           <MaterialReviewSummaryView summary={manifest.materials} />
           <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
-          <List items={modeledPieces.map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`)} />
+          <List items={partScheduleListItems(manifest)} />
         </PlanSheetSection>
 
         <PlanSheetSection title="Build Guide">
@@ -1962,6 +1961,41 @@ function PlanView({
 }
 
 type UnresolvedCutDimensionItem = Pick<CutListReviewSummary["items"][number], "id" | "label" | "dimensionsLabel" | "messages">;
+
+function normalizePartText(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function partQuantity(rowQuantityLabel: string): number | null {
+  const value = Number.parseInt(rowQuantityLabel.replace(/[^0-9]+/g, ""), 10);
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function partLabelForCutItem(item: CutListReviewSummary["items"][number], manifest: PrintablePlanManifest): string {
+  const quantity = partQuantity(item.quantityLabel);
+  const match = manifest.wallShelfPartScheduleViewModel.assignedParts.find((row) => {
+    const rowNames = [row.displayName, row.printLabel].map(normalizePartText);
+    return (
+      rowNames.includes(normalizePartText(item.label)) ||
+      (normalizePartText(row.displayName).replace(/\bs$/, "") === normalizePartText(item.label).replace(/\bs$/, "") &&
+        row.dimensionsLabel === item.dimensionsLabel &&
+        normalizePartText(row.materialLabel) === normalizePartText(item.materialLabel) &&
+        (!quantity || row.quantity === quantity))
+    );
+  });
+
+  return match?.printLabel ?? item.label;
+}
+
+function partScheduleListItems(manifest: PrintablePlanManifest): string[] {
+  if (manifest.wallShelfPartScheduleViewModel.rows.length === 0) {
+    return manifest.cutList?.items
+      .filter((item) => item.sourceLabel === "Modeled piece")
+      .map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`) ?? [];
+  }
+
+  return manifest.wallShelfPartScheduleViewModel.rows.map((row) => `${row.printLabel}: ${row.quantityLabel}, ${row.dimensionsLabel}`);
+}
 
 function unresolvedCutDimensionItems(summary: CutListReviewSummary): UnresolvedCutDimensionItem[] {
   return summary.items.filter((item) => {

@@ -346,7 +346,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Shelf boards cut layout planning graphic");
     expect(markup).toContain("Shelf boards</p><span class=\"w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-ink/70\">Qty 5");
     expect(markup).toContain("5</td><td class=\"py-2 pr-3 text-ink/70\">12 in x 6 in x 0.75 in</td><td class=\"py-2 pr-3 text-ink/70\">3/4 in pine board");
-    expect(markup.match(/<td class="py-2 pr-3 font-semibold text-ink">Shelf boards<\/td>/g)?.length).toBe(1);
+    expect(markup.match(/<td class="py-2 pr-3 font-semibold text-ink">Part A - Shelf boards<\/td>/g)?.length).toBe(1);
     expect(markup.match(/<td class="py-2 pr-3 font-semibold text-ink">Shelf board<\/td>/g)?.length ?? 0).toBe(0);
     expect(markup).toContain("This project creates a simple multi-shelf wall unit for bathroom use: five 12 in wide x 6 in deep shelves made from 0.75 in thick pine boards.");
   });

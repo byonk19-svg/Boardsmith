@@ -160,7 +160,16 @@ function PrintBuildSnapshot({ manifest }: { manifest: PrintablePlanManifest }) {
 }
 
 function PrintMaterialsAndParts({ manifest }: { manifest: PrintablePlanManifest }) {
-  const pieceItems = manifest.cutList?.items.filter((item) => item.sourceLabel === "Modeled piece") ?? [];
+  const pieceItems =
+    manifest.wallShelfPartScheduleViewModel.rows.length > 0
+      ? manifest.wallShelfPartScheduleViewModel.rows
+      : (manifest.cutList?.items.filter((item) => item.sourceLabel === "Modeled piece").map((item) => ({
+          id: item.id,
+          printLabel: item.label,
+          quantityLabel: item.quantityLabel,
+          dimensionsLabel: item.dimensionsLabel,
+          materialLabel: item.materialLabel,
+        })) ?? []);
   const materialItems = [...manifest.materials.primaryMaterials, ...manifest.materials.hardwareFasteners, ...manifest.materials.finishSupplies];
 
   return (
@@ -227,7 +236,7 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
                 <td className="py-2 pr-3 text-ink/70">
                   <span aria-hidden="true" className="inline-block h-4 w-4 border border-ink/40" />
                 </td>
-                <td className="py-2 pr-3 font-semibold text-ink">{printPartLabel(item.label, item.quantityLabel)}</td>
+                <td className="py-2 pr-3 font-semibold text-ink">{printPartLabelForCutItem(item, manifest)}</td>
                 <td className="py-2 pr-3 text-ink/70">{item.quantityLabel}</td>
                 <td className="py-2 pr-3 text-ink/70">{item.dimensionsLabel}</td>
                 <td className="py-2 pr-3 text-ink/70">{item.materialLabel}</td>
@@ -322,11 +331,11 @@ function MaterialRow({ item }: { item: PrintablePlanManifest["materials"]["prima
   );
 }
 
-function PieceRow({ item }: { item: NonNullable<PrintablePlanManifest["cutList"]>["items"][number] }) {
+function PieceRow({ item }: { item: { id: string; printLabel: string; quantityLabel: string; dimensionsLabel: string; materialLabel: string } }) {
   return (
     <div className="break-inside-avoid rounded-md border border-sawdust p-2.5 print:break-inside-avoid">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-        <p className="text-sm font-semibold text-ink">{printPartLabel(item.label, item.quantityLabel)}</p>
+        <p className="text-sm font-semibold text-ink">{item.printLabel}</p>
         <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">{item.quantityLabel}</p>
       </div>
       <p className="mt-1 text-xs leading-5 text-ink/65">
@@ -373,14 +382,10 @@ function numberWord(value: number): string {
   return words[value] ?? value.toString();
 }
 
-function printPartLabel(label: string, quantityLabel: string): string {
-  const quantity = Number.parseInt(quantityLabel, 10);
-  if (!Number.isFinite(quantity) || quantity <= 1) return label;
-  if (/^shelf board$/i.test(label.trim())) return "Shelf boards";
-  return label;
-}
-
 function majorPieceLabels(manifest: PrintablePlanManifest): string[] {
+  const partLabels = manifest.wallShelfPartScheduleViewModel.assignedParts.map((row) => row.printLabel);
+  if (partLabels.length > 0) return partLabels.slice(0, 3);
+
   const modeledPieces = manifest.cutList?.items.filter((item) => item.sourceLabel === "Modeled piece") ?? [];
   return [...new Set(modeledPieces.map((item) => item.label))].slice(0, 3);
 }
@@ -408,6 +413,32 @@ function PrintList({ title, items, emptyCopy = "No items listed.", compact = fal
       )}
     </div>
   );
+}
+
+function normalizePartText(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function partQuantity(rowQuantityLabel: string): number | null {
+  const value = Number.parseInt(rowQuantityLabel.replace(/[^0-9]+/g, ""), 10);
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function printPartLabelForCutItem(item: NonNullable<PrintablePlanManifest["cutList"]>["items"][number], manifest: PrintablePlanManifest): string {
+  const quantity = partQuantity(item.quantityLabel);
+  const match = manifest.wallShelfPartScheduleViewModel.assignedParts.find((row) => {
+    const rowName = normalizePartText(row.displayName).replace(/\bs$/, "");
+    const itemName = normalizePartText(item.label).replace(/\bs$/, "");
+    return (
+      normalizePartText(row.displayName) === normalizePartText(item.label) ||
+      (rowName === itemName &&
+        row.dimensionsLabel === item.dimensionsLabel &&
+        normalizePartText(row.materialLabel) === normalizePartText(item.materialLabel) &&
+        (!quantity || row.quantity === quantity))
+    );
+  });
+
+  return match?.printLabel ?? item.label;
 }
 
 function printCutRows(cutList: NonNullable<PrintablePlanManifest["cutList"]>): NonNullable<PrintablePlanManifest["cutList"]>["items"] {

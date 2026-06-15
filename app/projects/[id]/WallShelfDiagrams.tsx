@@ -126,7 +126,14 @@ function PartSchedule({ model }: { model: WallShelfDiagramModel }) {
             </text>
           </svg>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <p className="text-sm font-semibold text-ink">{label}</p>
+            <p className="text-sm font-semibold text-ink">
+              {row.partLabel ? (
+                <>
+                  <span className="mr-1.5 rounded-sm border border-sawdust bg-white px-1.5 py-0.5 text-xs text-ink/60">{row.partLabel}</span>{" "}
+                </>
+              ) : null}
+              {label}
+            </p>
             <span className="w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-ink/70">Qty {row.quantity.toString()}</span>
           </div>
           <p className="mt-2 text-sm leading-6 text-ink/70">
@@ -208,5 +215,5 @@ function SupportFrameElevation({
 
 function supportPieceLabel(piece: WallShelfDiagramVisiblePiece): string {
   if (piece.role === "support_frame_placeholder") return `${piece.label} - review only`;
-  return piece.label;
+  return piece.printLabel;
 }

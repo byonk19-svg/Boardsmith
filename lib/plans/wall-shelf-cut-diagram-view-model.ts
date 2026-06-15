@@ -1,9 +1,15 @@
-import type { BoardsmithBuildModel, BuildModelPiece } from "@/lib/build-model/build-model-schema";
+import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
+import {
+  createWallShelfPartScheduleViewModel,
+  type WallShelfPartRole,
+  type WallShelfPartScheduleRow,
+  type WallShelfPartScheduleViewModel,
+} from "@/lib/plans/wall-shelf-part-schedule-view-model";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder } from "@/lib/projects/shelf-layout-validation";
 import type { Project } from "@/lib/projects/types";
 
 export type WallShelfCutDiagramStatus = "ready" | "needs_review" | "unsupported";
-export type WallShelfCutPieceRole = "shelf_board" | "support_frame" | "support_frame_placeholder" | "other";
+export type WallShelfCutPieceRole = WallShelfPartRole;
 export type WallShelfCutDimensionStatus = "known" | "missing";
 
 export type WallShelfCutDimension = {
@@ -15,6 +21,9 @@ export type WallShelfCutDimension = {
 export type WallShelfCutPieceGroup = {
   id: string;
   pieceIds: string[];
+  partLabel: string | null;
+  badgeLabel: string | null;
+  printLabel: string;
   label: string;
   role: WallShelfCutPieceRole;
   quantity: number;
@@ -45,6 +54,7 @@ export type WallShelfCutDiagramViewModel = {
   missingDimensions: string[];
   warnings: string[];
   badges: string[];
+  partSchedule: WallShelfPartScheduleViewModel;
   renderLabels: {
     title: "Cut layout diagram";
     summary: string;
@@ -68,147 +78,27 @@ type WallShelfCutProjectInput = Pick<
   | "intended_use"
 >;
 
-type GroupAccumulator = {
-  key: string;
-  label: string;
-  role: WallShelfCutPieceRole;
-  quantity: number;
-  materialLabel: string;
-  dimensions: WallShelfCutPieceGroup["dimensions"];
-  pieceIds: string[];
-  reviewReasons: string[];
-};
-
-function positiveNumber(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
-}
-
 function normalize(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-function formatInches(value: number | null): string {
-  return value ? `${value.toString()} in` : "missing";
-}
-
-function dimension(value: number | null): WallShelfCutDimension {
+function cutGroupFromPart(row: WallShelfPartScheduleRow): WallShelfCutPieceGroup {
   return {
-    valueInches: value,
-    label: formatInches(value),
-    status: value ? "known" : "missing",
+    id: row.id.replace(/^part_group_/, "cut_group_"),
+    pieceIds: row.pieceIds,
+    partLabel: row.partLabel,
+    badgeLabel: row.badgeLabel,
+    printLabel: row.printLabel,
+    label: row.displayName,
+    role: row.role,
+    quantity: row.quantity,
+    quantityLabel: row.quantityLabel,
+    materialLabel: row.materialLabel,
+    dimensions: row.dimensions,
+    dimensionsLabel: row.dimensionsLabel,
+    needsReview: row.needsReview,
+    reviewReasons: row.reviewReasons,
   };
-}
-
-function dimensionLabel(dimensions: WallShelfCutPieceGroup["dimensions"]): string {
-  return `${dimensions.length.label} x ${dimensions.width.label} x ${dimensions.thickness.label}`;
-}
-
-function pieceRole(piece: BuildModelPiece): WallShelfCutPieceRole {
-  const text = `${piece.id} ${piece.label} ${piece.pieceType}`.toLowerCase();
-  if (piece.id === "side_support_frame_placeholder") return "support_frame_placeholder";
-  if (/\bshelf\b/.test(text) && !/\bbottom\b/.test(text)) return "shelf_board";
-  if (/\b(side supports?|support frames?|frames?|uprights?|cleats?|standards?|rails?)\b/.test(text)) return "support_frame";
-  return "other";
-}
-
-function materialLabelFor(piece: BuildModelPiece, buildModel: BoardsmithBuildModel): string {
-  return buildModel.materials.find((material) => material.id === piece.materialId)?.label ?? piece.materialId ?? "material to review";
-}
-
-function safePieceLabel(label: string, quantity: number): string {
-  const trimmed = label.trim() || "Unnamed piece";
-  if (quantity > 1 && /^shelf board$/i.test(trimmed)) return "Shelf boards";
-  return trimmed;
-}
-
-function groupingLabel(label: string): string {
-  const trimmed = label.trim() || "Unnamed piece";
-  if (/^shelf boards$/i.test(trimmed)) return "Shelf board";
-  return trimmed;
-}
-
-function missingDimensionReasons(piece: BuildModelPiece): string[] {
-  return [
-    piece.dimensions.lengthInches ? null : "length missing",
-    piece.dimensions.widthInches ? null : "width missing",
-    piece.dimensions.thicknessInches ? null : "thickness missing",
-  ].filter((item): item is string => Boolean(item));
-}
-
-function reviewReasonsFor(piece: BuildModelPiece, role: WallShelfCutPieceRole): string[] {
-  return [
-    ...missingDimensionReasons(piece),
-    ...(role === "support_frame_placeholder" ? ["Support/frame design needs review"] : []),
-    ...piece.notes.filter((note) => /review|verify|unresolved|placeholder|missing|needs/i.test(note)),
-  ];
-}
-
-function groupKey(params: {
-  label: string;
-  role: WallShelfCutPieceRole;
-  materialLabel: string;
-  dimensions: WallShelfCutPieceGroup["dimensions"];
-}): string {
-  return [
-    normalize(params.label),
-    params.role,
-    normalize(params.materialLabel),
-    params.dimensions.length.valueInches?.toString() ?? "missing",
-    params.dimensions.width.valueInches?.toString() ?? "missing",
-    params.dimensions.thickness.valueInches?.toString() ?? "missing",
-  ].join("|");
-}
-
-function groupPieces(buildModel: BoardsmithBuildModel): WallShelfCutPieceGroup[] {
-  const groups = new Map<string, GroupAccumulator>();
-
-  for (const piece of buildModel.pieces) {
-    const role = pieceRole(piece);
-    const materialLabel = materialLabelFor(piece, buildModel);
-    const dimensions = {
-      length: dimension(positiveNumber(piece.dimensions.lengthInches)),
-      width: dimension(positiveNumber(piece.dimensions.widthInches)),
-      thickness: dimension(positiveNumber(piece.dimensions.thicknessInches)),
-    };
-    const label = groupingLabel(piece.label);
-    const key = groupKey({ label, role, materialLabel, dimensions });
-    const existing = groups.get(key);
-
-    if (existing) {
-      existing.quantity += piece.quantity;
-      existing.pieceIds.push(piece.id);
-      existing.reviewReasons = [...new Set([...existing.reviewReasons, ...reviewReasonsFor(piece, role)])];
-      continue;
-    }
-
-    groups.set(key, {
-      key,
-      label,
-      role,
-      quantity: piece.quantity,
-      materialLabel,
-      dimensions,
-      pieceIds: [piece.id],
-      reviewReasons: reviewReasonsFor(piece, role),
-    });
-  }
-
-  return [...groups.values()].map((group, index) => {
-    const reasons = [...new Set(group.reviewReasons)];
-    return {
-      id: `cut_group_${index.toString()}_${normalize(group.label).replaceAll(" ", "_") || "piece"}`,
-      pieceIds: group.pieceIds,
-      label: safePieceLabel(group.label, group.quantity),
-      role: group.role,
-      quantity: group.quantity,
-      quantityLabel: `Qty ${group.quantity.toString()}`,
-      materialLabel: group.materialLabel,
-      dimensions: group.dimensions,
-      dimensionsLabel: dimensionLabel(group.dimensions),
-      needsReview: reasons.length > 0,
-      reviewReasons: reasons,
-    };
-  });
 }
 
 function materialGroupsFor(pieceGroups: WallShelfCutPieceGroup[]): WallShelfCutDiagramViewModel["materialGroups"] {
@@ -245,7 +135,8 @@ export function createWallShelfCutDiagramViewModel(params: {
 }): WallShelfCutDiagramViewModel {
   const { project, buildModel } = params;
   const unsupported = project.project_type !== "simple_shelf" || buildModel.project.projectType !== "simple_shelf";
-  const pieceGroups = unsupported ? [] : groupPieces(buildModel);
+  const partSchedule = createWallShelfPartScheduleViewModel({ buildModel });
+  const pieceGroups = unsupported ? [] : partSchedule.rows.map(cutGroupFromPart);
   const layoutIssues = unsupported ? [] : findShelfLayoutIssues(project);
   const missingDimensions = pieceGroups.flatMap((piece) =>
     piece.reviewReasons
@@ -278,6 +169,7 @@ export function createWallShelfCutDiagramViewModel(params: {
       ...(supportFrameNeedsReview ? ["Support/frame review"] : []),
       ...(pieceGroups.length > 0 ? ["Build Model cuts"] : []),
     ],
+    partSchedule,
     renderLabels: {
       title: "Cut layout diagram",
       summary: summaryFor(pieceGroups, reviewCutPieces),

@@ -47,10 +47,14 @@ function toolsFor(project: WallShelfBuildStepProjectInput, operation: BuildModel
   return uniqueStrings(toolNames).map(formatToolLabel);
 }
 
-function operationPieces(buildModel: BoardsmithBuildModel, operation: BuildModelOperation | null): string[] {
+function operationPartLabels(cutViewModel: WallShelfCutDiagramViewModel, operation: BuildModelOperation | null): string[] {
   if (!operation) return [];
-  const pieceById = new Map(buildModel.pieces.map((piece) => [piece.id, piece.label]));
-  return uniqueStrings(operation.pieceIds.map((pieceId) => pieceById.get(pieceId) ?? ""));
+  return uniqueStrings(
+    operation.pieceIds.map((pieceId) => {
+      const group = cutViewModel.pieceGroups.find((piece) => piece.pieceIds.includes(pieceId));
+      return group?.printLabel ?? "";
+    }),
+  );
 }
 
 function estimateFor(operation: BuildModelOperation | null): string | null {
@@ -64,7 +68,7 @@ function estimateFor(operation: BuildModelOperation | null): string | null {
 }
 
 function dimensionReferenceFor(piece: WallShelfCutPieceGroup): string {
-  return `${piece.label}: ${piece.quantityLabel}, ${piece.dimensionsLabel}`;
+  return `${piece.printLabel}: ${piece.quantityLabel}, ${piece.dimensionsLabel}`;
 }
 
 function shelfGroups(cutViewModel: WallShelfCutDiagramViewModel): WallShelfCutPieceGroup[] {
@@ -163,8 +167,8 @@ function buildCards(params: {
   const supportPlaceholders = supportPlaceholderGroups(cutViewModel);
   const shelfReferences = shelves.map(dimensionReferenceFor);
   const supportReferences = [...supports, ...supportPlaceholders].map(dimensionReferenceFor);
-  const shelfLabels = shelves.map((piece) => piece.label);
-  const allPieceLabels = uniqueStrings([...shelfLabels, ...supports.map((piece) => piece.label), ...supportPlaceholders.map((piece) => piece.label)]);
+  const shelfLabels = shelves.map((piece) => piece.printLabel);
+  const allPieceLabels = uniqueStrings([...shelfLabels, ...supports.map((piece) => piece.printLabel), ...supportPlaceholders.map((piece) => piece.printLabel)]);
   const hasBlockingReview = reviewBlockers.length > 0;
   const shelfCutReviewReasons = uniqueStrings(shelves.flatMap((piece) => piece.reviewReasons).filter((reason) => /dimension|missing|height|length|width|thickness/i.test(reason)));
   const shelfCutNeedsReview = shelfCutReviewReasons.length > 0;
@@ -205,7 +209,7 @@ function buildCards(params: {
       tools: toolsFor(project, cutOperation),
       estimatedTimeLabel: estimateFor(cutOperation),
       relatedOperationTitle: cutOperation?.title ?? null,
-      relatedPieceLabels: operationPieces(buildModel, cutOperation).length > 0 ? operationPieces(buildModel, cutOperation) : shelfLabels,
+      relatedPieceLabels: operationPartLabels(cutViewModel, cutOperation).length > 0 ? operationPartLabels(cutViewModel, cutOperation) : shelfLabels,
       dimensionReferences: shelfReferences,
       reviewBlockers: shelfCutReviewReasons,
       warnings: cutViewModel.warnings.filter((message) => /cut|dimension|missing|height|finish|humidity/i.test(message)),
@@ -230,7 +234,7 @@ function buildCards(params: {
         tools: toolsFor(project, supportOperation),
         estimatedTimeLabel: estimateFor(supportOperation),
         relatedOperationTitle: supportOperation?.title ?? null,
-        relatedPieceLabels: uniqueStrings([...supports.map((piece) => piece.label), ...supportPlaceholders.map((piece) => piece.label)]),
+        relatedPieceLabels: uniqueStrings([...supports.map((piece) => piece.printLabel), ...supportPlaceholders.map((piece) => piece.printLabel)]),
         dimensionReferences: supportReferences,
         reviewBlockers: supportModeled ? [] : ["Confirm support/frame design before assembly.", ...supportPlaceholders.flatMap((piece) => piece.reviewReasons)],
         warnings: diagramViewModel.supportFrameReview.reasons,
@@ -270,7 +274,7 @@ function buildCards(params: {
       tools: toolsFor(project, sandOperation),
       estimatedTimeLabel: estimateFor(sandOperation),
       relatedOperationTitle: sandOperation?.title ?? null,
-      relatedPieceLabels: operationPieces(buildModel, sandOperation).length > 0 ? operationPieces(buildModel, sandOperation) : allPieceLabels,
+      relatedPieceLabels: operationPartLabels(cutViewModel, sandOperation).length > 0 ? operationPartLabels(cutViewModel, sandOperation) : allPieceLabels,
       safetyNote: "Wear appropriate PPE and control dust.",
       printLabel: "Sand/prep pieces",
     }),
@@ -308,7 +312,7 @@ function buildCards(params: {
       tools: toolsFor(project, mountingOperation),
       estimatedTimeLabel: estimateFor(mountingOperation),
       relatedOperationTitle: mountingOperation?.title ?? null,
-      relatedPieceLabels: operationPieces(buildModel, mountingOperation).length > 0 ? operationPieces(buildModel, mountingOperation) : allPieceLabels,
+      relatedPieceLabels: operationPartLabels(cutViewModel, mountingOperation).length > 0 ? operationPartLabels(cutViewModel, mountingOperation) : allPieceLabels,
       warnings: buildModel.unresolvedQuestions.filter((question) => /wall|bracket|fastener|load|support|frame/i.test(question)),
       safetyNote: "Manual mounting review is required; Boardsmith cannot verify wall safety or load capacity.",
       printLabel: "Confirm mounting/support",

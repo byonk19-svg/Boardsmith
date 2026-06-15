@@ -52,9 +52,11 @@ export function WallShelfCutDiagram({ viewModel, compact = false }: { viewModel:
 }
 
 function CutPieceCard({ piece, compact }: { piece: WallShelfCutPieceGroup; compact: boolean }) {
+  const ariaLabel = `${piece.label} cut layout planning graphic${piece.partLabel ? `, ${piece.partLabel}` : ""}`;
+
   return (
     <div className={`rounded-md border ${piece.needsReview ? "border-amber-200 bg-amber-50" : "border-sawdust bg-shop/30"} p-3`}>
-      <svg className="mb-3 h-20 w-full rounded-md border border-sawdust bg-white" viewBox="0 0 420 96" role="img" aria-label={`${piece.label} cut layout planning graphic`}>
+      <svg className="mb-3 h-20 w-full rounded-md border border-sawdust bg-white" viewBox="0 0 420 96" role="img" aria-label={ariaLabel}>
         <rect x="18" y="16" width="282" height="34" rx="5" fill={piece.needsReview ? "#fff3c4" : "#d9b77f"} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={piece.needsReview ? "5 4" : undefined} />
         <line x1="18" y1="64" x2="300" y2="64" stroke="#47624a" strokeWidth="2" />
         <line x1="18" y1="58" x2="18" y2="70" stroke="#47624a" strokeWidth="2" />
@@ -69,7 +71,14 @@ function CutPieceCard({ piece, compact }: { piece: WallShelfCutPieceGroup; compa
       </svg>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-ink">{piece.label}</p>
+          <p className="text-sm font-semibold text-ink">
+            {piece.partLabel ? (
+              <>
+                <span className="mr-1.5 rounded-sm border border-sawdust bg-white px-1.5 py-0.5 text-xs text-ink/60">{piece.partLabel}</span>{" "}
+              </>
+            ) : null}
+            {piece.label}
+          </p>
           <p className="mt-1 text-xs leading-5 text-ink/60">{piece.materialLabel}</p>
         </div>
         <span className="w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-ink/70">{piece.quantityLabel}</span>

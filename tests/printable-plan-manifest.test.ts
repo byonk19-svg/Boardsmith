@@ -127,7 +127,7 @@ describe("createPrintablePlanManifest", () => {
       estimatedTimeLabel: null,
       safetyNote: "Boardsmith cannot verify load capacity, wall safety, anchors, studs, or site conditions.",
       relatedOperationTitle: "Inspect mounting location",
-      relatedPieceLabels: ["Shelf board"],
+      relatedPieceLabels: ["Part A - Shelf board"],
     });
     expect(manifest.wallShelfBuildStepViewModel.status).toBe("ready");
     expect(manifest.wallShelfBuildStepViewModel.renderLabels.summary).toBe("Build guide from Build Model pieces and operations.");

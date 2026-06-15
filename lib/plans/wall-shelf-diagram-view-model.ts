@@ -1,4 +1,5 @@
 import type { BoardsmithBuildModel, BuildModelPiece } from "@/lib/build-model/build-model-schema";
+import { createWallShelfPartScheduleViewModel } from "@/lib/plans/wall-shelf-part-schedule-view-model";
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder } from "@/lib/projects/shelf-layout-validation";
 import type { Project } from "@/lib/projects/types";
@@ -17,6 +18,9 @@ export type WallShelfDiagramDimension = {
 
 export type WallShelfDiagramVisiblePiece = {
   id: string;
+  partLabel: string | null;
+  badgeLabel: string | null;
+  printLabel: string;
   label: string;
   quantity: number;
   role: WallShelfDiagramPieceRole;
@@ -179,8 +183,11 @@ function pieceDimensionsLabel(piece: BuildModelPiece): string {
 }
 
 function visibleBoardsFor(buildModel: BoardsmithBuildModel, materialFallback: string): WallShelfDiagramVisiblePiece[] {
+  const partSchedule = createWallShelfPartScheduleViewModel({ buildModel });
+
   return buildModel.pieces.map((piece) => {
     const role = pieceRole(piece);
+    const part = partSchedule.rows.find((row) => row.pieceIds.includes(piece.id)) ?? null;
     const missingDimensions = [
       piece.dimensions.lengthInches ? null : "length to verify",
       piece.dimensions.widthInches ? null : "width to verify",
@@ -190,6 +197,9 @@ function visibleBoardsFor(buildModel: BoardsmithBuildModel, materialFallback: st
 
     return {
       id: piece.id,
+      partLabel: part?.partLabel ?? null,
+      badgeLabel: part?.badgeLabel ?? null,
+      printLabel: part?.printLabel ?? piece.label,
       label: piece.label,
       quantity: piece.quantity,
       role,

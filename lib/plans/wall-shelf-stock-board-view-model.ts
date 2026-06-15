@@ -9,6 +9,9 @@ export type WallShelfStockBoardDimensionStatus = "known" | "missing";
 
 export type WallShelfStockBoardPiece = {
   id: string;
+  partLabel: string | null;
+  badgeLabel: string | null;
+  printLabel: string;
   label: string;
   quantity: number;
   quantityLabel: string;
@@ -105,6 +108,9 @@ function formatThickness(material: BuildModelMaterial | null): WallShelfStockBoa
 function pieceFromCutGroup(piece: WallShelfCutPieceGroup): WallShelfStockBoardPiece {
   return {
     id: piece.id,
+    partLabel: piece.partLabel,
+    badgeLabel: piece.badgeLabel,
+    printLabel: piece.printLabel,
     label: piece.label,
     quantity: piece.quantity,
     quantityLabel: piece.quantityLabel,
@@ -139,7 +145,7 @@ function materialReviewReasons(material: BuildModelMaterial | null, thickness: W
 }
 
 function groupBuyingNotes(group: MaterialGroupAccumulator): string[] {
-  const pieceSummary = group.pieces.map((piece) => `${piece.quantityLabel} ${piece.label}: ${piece.dimensionsLabel}`);
+  const pieceSummary = group.pieces.map((piece) => `${piece.printLabel} - ${piece.quantityLabel}: ${piece.dimensionsLabel}`);
 
   return uniqueStrings([
     `Pieces to get from this material: ${pieceSummary.join("; ")}.`,

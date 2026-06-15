@@ -168,7 +168,7 @@ describe("createWallShelfBuildStepViewModel", () => {
       "Confirm wall mounting/support method before installation",
       "Finish and final safety check",
     ]);
-    expect(steps.stepCards[1]?.dimensionReferences).toContain("Shelf board: Qty 1, 12 in x 6 in x 0.75 in");
+    expect(steps.stepCards[1]?.dimensionReferences).toContain("Part A - Shelf board: Qty 1, 12 in x 6 in x 0.75 in");
     expect(steps.stepCards.map((step) => `${step.title} ${step.instructions}`).join(" ")).not.toMatch(/freestanding|non-mounted|support\/frame details before assembly/i);
   });
 

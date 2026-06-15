@@ -110,6 +110,31 @@ Project intake
 
 The target direction is to strengthen the structured intake and build model before expanding project categories, visuals, or output formats.
 
+## Deterministic Plan Packet Pipeline
+
+The target plan-packet pipeline is:
+
+```text
+Build Model
+-> Part Schedule / Part Identity
+-> Diagram View Models
+-> Cut Layout View Models
+-> Buying Plan View Models
+-> Build Step View Models
+-> Deterministic Renderers
+-> Plan Packet
+```
+
+Rules:
+
+- Build Model remains the source of truth.
+- AI prose remains explanatory only.
+- Part identity is assigned deterministically from structured Build Model pieces and existing deterministic cut data.
+- Diagrams, cut layouts, buying plan, materials and parts, build steps, detail pages, and print sheets should reuse the same part identifiers.
+- Renderers must not invent parts, dimensions, joinery, fasteners, supports, load claims, or safety-critical instructions.
+- Review-only placeholders may explain missing support/frame details, but they should not receive stable part labels that make them look build-ready.
+- Project-specific diagram templates should follow the typed view-model pattern proven by wall shelves.
+
 ## Current Vs Target Subsystems
 
 ### Intake
@@ -169,6 +194,7 @@ Target:
 
 ```text
 Build Model
+-> Part Schedule / Part Identity
 -> Diagram View Model
 -> Deterministic Renderer
 ```
@@ -181,6 +207,7 @@ Rules:
 - Do not invent geometry.
 - Do not imply side supports, frames, brackets, anchors, or load ratings unless the model actually includes them.
 - Diagrams are planning aids, not CAD or engineering validation.
+- Part labels shown in diagrams must come from the deterministic part schedule, not local renderer state or generated prose.
 
 Near-term rendering can use deterministic SVG, CSS, and fake-isometric/2.5D visuals. Long-term rendering may add model-driven 3D or isometric views only after the build model is mature enough.
 

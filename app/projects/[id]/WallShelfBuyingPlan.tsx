@@ -82,7 +82,11 @@ function BuyingMaterialGroup({ group, compact }: { group: WallShelfStockBoardMat
         <ul className="mt-2 space-y-2">
           {group.pieces.map((piece) => (
             <li key={piece.id} className="text-sm leading-6 text-ink/70">
-              <span className="font-semibold text-ink">{piece.quantityLabel} {piece.label}</span>: {piece.dimensionsLabel}
+              <span className="font-semibold text-ink">
+                {piece.partLabel ? `${piece.partLabel} - ` : ""}
+                {piece.label} - {piece.quantityLabel}
+              </span>
+              : {piece.dimensionsLabel}
             </li>
           ))}
         </ul>

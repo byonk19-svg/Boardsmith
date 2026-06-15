@@ -56,6 +56,22 @@ A finished plan should include:
 
 The product voice should be warm, practical, beginner-friendly, and precise. It can be polished, but it should stay low-noise and builder-focused.
 
+## Finished Plan Packet Requirements
+
+The visual plan packet is central to Boardsmith. Text instructions alone are not enough for a finished plan.
+
+Every supported project template should build toward a packet that includes:
+
+- Consistent part labels across the cut list, diagrams, buying plan, materials and parts, build steps, detail page, and print sheet.
+- Dimensioned drawings with labels on the diagrams, not only dimensions in surrounding text.
+- Cut layout or lumber layout views that show modeled pieces on stock-board planning graphics when the build model supports that.
+- Per-step diagrams tied to deterministic build steps when the modeled operations are specific enough.
+- Simple exploded or assembly views that show how modeled parts relate.
+- Joinery and fastener callouts for beginner-critical connections when those details affect build safety or clarity.
+- Project-type-specific diagram templates beyond wall shelves, using the same structured-data approach once each template is mature enough.
+
+Incomplete or unsafe plans should guide the user to clarify, review, or stop. They should not pretend to be complete by filling missing dimensions, supports, joinery, fasteners, or safety-sensitive assumptions with decorative copy.
+
 ## Core Plan Structure
 
 Every finished Boardsmith plan should be organized around:
