@@ -221,4 +221,9 @@ Verified:
 - Empty revision input redirected to revision feedback and left the saved latest plan unchanged.
 - Successful wall-shelf generations rendered latest plan, Plan Review, Cut Checklist, Buying Plan, Materials and Parts, and browser print preview.
 
-Dogfood findings are recorded in [REAL_PROJECT_DOGFOOD_FINDINGS.md](REAL_PROJECT_DOGFOOD_FINDINGS.md). A local follow-up narrows separate-shelf impossible-height validation before relying on this exact five-separate-shelves scenario after the next hosted deployment.
+Dogfood findings are recorded in [REAL_PROJECT_DOGFOOD_FINDINGS.md](REAL_PROJECT_DOGFOOD_FINDINGS.md).
+
+Post-push follow-up:
+
+- Commit `63e6107` was pushed to `main`.
+- A targeted hosted separate-wall-shelves validation check passed after the push: the individual-board-thickness scenario redirected to `generated=1`, rendered Buying Plan, and no longer hit `shelf_layout_invalid`.

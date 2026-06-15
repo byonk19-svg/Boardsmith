@@ -969,14 +969,15 @@
 - [x] Use Buying Plan manually on single bathroom shelf, five separate wall shelves, and kitchen spice ledge scenarios.
 - [x] Record repeated Buying Plan friction in `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` without expanding shopping, pricing, vendor, inventory, or exact stock purchase behavior.
 - [x] Fix the separate-wall-shelves validation mismatch so individual board thickness is not treated as impossible connected-unit height.
+- [x] Rerun a targeted post-push hosted check and confirm the separate-wall-shelves scenario generates with Buying Plan instead of `shelf_layout_invalid`.
 - [x] Clarify `generation_failed` UI copy when a latest attempt failed but an older saved latest plan remains available.
 - [x] Keep the pass limited to lifecycle copy, shelf-layout validation, docs, and tests with no schema change, migration, package change, prompt/model change, hosted Supabase schema change, PDF/SVG/DXF/CAD/CNC/export work, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, or new project type.
 
 ## Recommended Next Tasks
 
-1. [ ] Rerun hosted smoke after the Task 84A changes are deployed so the separate-wall-shelves validation fix is proven on hosted.
-2. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-3. [ ] Choose later lanes only from repeated manual dogfood friction.
+1. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
+2. [ ] Choose later lanes only from repeated manual dogfood friction.
+3. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
 4. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
 
 ## Remaining Hardening

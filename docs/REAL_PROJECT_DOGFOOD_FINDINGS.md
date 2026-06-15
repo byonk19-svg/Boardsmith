@@ -136,9 +136,9 @@ Friction log:
 
 - Stock length still needs selection in every successful Buying Plan. That is intentionally conservative, but it is also the most repeated manual gap.
 - Hardware and fasteners remain split between Buying Plan, Materials and Parts, and review notes. This is safer than pretending to know exact bracket/anchor purchases, but it may make the packet feel less like a complete buying checklist.
-- Separate wall shelves exposed a validation mismatch: the current hosted app treated individual board thickness as impossible total stacked height. The local follow-up narrows the impossible-height blocker to connected shelf units.
+- Separate wall shelves exposed a validation mismatch: the pre-fix hosted app treated individual board thickness as impossible total stacked height. The follow-up narrows the impossible-height blocker to connected shelf units, and the post-push hosted check generated the same separate-shelves shape successfully.
 - Connected shelf units and child-adjacent ledges can still be blocked by generated-plan review. That is acceptable for now; do not change prompts until more examples show the same specific failure mode.
 
 Result:
 
-The Buying Plan is useful enough for private MVP manual use, but it should remain conservative. The only code change justified by this dogfood pass is the narrow separate-shelf validation fix plus clearer lifecycle copy for projects whose latest attempt failed while an older saved plan remains available.
+The Buying Plan is useful enough for private MVP manual use, but it should remain conservative. The only code change justified by this dogfood pass was the narrow separate-shelf validation fix plus clearer lifecycle copy for projects whose latest attempt failed while an older saved plan remains available.
