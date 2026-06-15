@@ -11,6 +11,11 @@ import { createPlanHistoryComparison, type PlanComparisonChange, type PlanHistor
 import { type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import { createPrintablePlanManifest, type PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
+import {
+  createClarificationGateDecision,
+  type ClarificationGateDecision,
+  type ClarificationQuestionCategory,
+} from "@/lib/projects/clarification-gate";
 import { getProjectDetailErrorMessage } from "@/lib/projects/project-detail-errors";
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { formatToolLabel, projectTypeLabels, shelfLayoutLabels, shelfLayoutOptions, type Project } from "@/lib/projects/types";
@@ -54,21 +59,24 @@ export default async function ProjectDetailPage({
   const project = await getProject(id);
   if (!project) notFound();
   const detailErrorMessage = getProjectDetailErrorMessage(query.error);
+  const clarificationGate = createClarificationGateDecision(project);
 
   const plans = await listGeneratedPlans(project.id);
-  const planReviews = plans.map((plan) => buildPlanReview(project, plan));
+  const planReviews = clarificationGate.supportedProjectType ? plans.map((plan) => buildPlanReview(project, plan)) : [];
   const latestPlanReview = planReviews.length > 0 ? (planReviews.find((entry) => entry.plan.is_latest) ?? planReviews[0]) : null;
-  const templateHint = getTemplateHint(project.project_type);
-  const buildModel = latestPlanReview?.buildModel ?? createBuildModelDraft(project, templateHint, calculateSafetyReviewFlags(project));
+  const templateHint = clarificationGate.supportedProjectType ? getTemplateHint(project.project_type) : null;
+  const buildModel = latestPlanReview?.buildModel ?? (templateHint ? createBuildModelDraft(project, templateHint, calculateSafetyReviewFlags(project)) : null);
   const buildModelSource = latestPlanReview?.buildModelSource ?? "derived";
   const displayedManifest =
     latestPlanReview?.manifest ??
-    createPrintablePlanManifest({
-      project,
-      planRecord: null,
-      buildModel,
-      buildModelSource,
-    });
+    (buildModel
+      ? createPrintablePlanManifest({
+          project,
+          planRecord: null,
+          buildModel,
+          buildModelSource,
+        })
+      : null);
   const olderPlanReviews = latestPlanReview ? planReviews.filter((entry) => entry.plan.id !== latestPlanReview.plan.id) : [];
   const comparedPlanReview =
     olderPlanReviews.length > 0 ? (olderPlanReviews.find((entry) => entry.plan.id === query.compare_plan) ?? olderPlanReviews[0]) : null;
@@ -101,7 +109,7 @@ export default async function ProjectDetailPage({
           </Link>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">{project.title}</h1>
           <p className="mt-2 text-sm text-ink/65">
-            {projectTypeLabels[project.project_type]} · {project.skill_level} · {projectDetailStatusLabel(project, Boolean(latestPlanReview))}
+            {projectTypeLabel(project.project_type)} · {project.skill_level} · {projectDetailStatusLabel(project, Boolean(latestPlanReview))}
             {isProjectArchived(project) ? " · archived" : ""}
           </p>
         </div>
@@ -141,6 +149,7 @@ export default async function ProjectDetailPage({
         </p>
       ) : null}
       {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} /> : null}
+      <ClarificationGatePanel decision={clarificationGate} hasLatestPlan={Boolean(latestPlanReview)} isArchived={isProjectArchived(project)} />
 
       {latestPlanReview ? (
         <>
@@ -164,8 +173,12 @@ export default async function ProjectDetailPage({
                 <ProjectIntakeCard project={project} />
                 <ProjectReviewTriggers project={project} />
               </section>
-              <TemplateGuidancePanel projectTypeLabel={projectTypeLabels[project.project_type]} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
-              <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={displayedManifest.materials} cutListReview={displayedManifest.cutList} />
+              {templateHint && buildModel && displayedManifest ? (
+                <>
+                  <TemplateGuidancePanel projectTypeLabel={projectTypeLabel(project.project_type)} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
+                  <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={displayedManifest.materials} cutListReview={displayedManifest.cutList} />
+                </>
+              ) : null}
               {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
               {latestPlanReview.manifest.exportReadiness ? <ExportReadinessPanel summary={latestPlanReview.manifest.exportReadiness} /> : null}
               {!isProjectArchived(project) ? <TweakPlanSection project={project} hasLatestPlan={Boolean(latestPlanReview)} /> : null}
@@ -189,12 +202,14 @@ export default async function ProjectDetailPage({
             <ProjectReviewTriggers project={project} />
           </section>
           <EmptyPlanState isArchived={isProjectArchived(project)} />
-          <NoPlanPlanningDetails
-            buildModel={buildModel}
-            projectTypeLabel={projectTypeLabels[project.project_type]}
-            assumptions={templateHint.assumptions}
-            cautions={templateHint.cautions}
-          />
+          {templateHint && buildModel ? (
+            <NoPlanPlanningDetails
+              buildModel={buildModel}
+              projectTypeLabel={projectTypeLabel(project.project_type)}
+              assumptions={templateHint.assumptions}
+              cautions={templateHint.cautions}
+            />
+          ) : null}
           <ProjectRecordSection project={project} isArchived={isProjectArchived(project)} />
         </>
       )}
@@ -363,6 +378,126 @@ function ProjectSectionsNav({ links }: { links: ProjectSectionLink[] }) {
 
 function isPrimarySectionLink(link: ProjectSectionLink): boolean {
   return link.href === "#project-intake" || link.href === "#plan-review" || link.href === "#printable-plan-sheet" || link.href === "#plan-history" || link.href === "#project-record";
+}
+
+function projectTypeLabel(projectType: string): string {
+  return projectType in projectTypeLabels ? projectTypeLabels[projectType as keyof typeof projectTypeLabels] : formatToolLabel(projectType);
+}
+
+function ClarificationGatePanel({
+  decision,
+  hasLatestPlan,
+  isArchived,
+}: {
+  decision: ClarificationGateDecision;
+  hasLatestPlan: boolean;
+  isArchived: boolean;
+}) {
+  const groupedQuestions = groupClarificationQuestions(decision);
+
+  return (
+    <section id="plan-readiness" className={`no-print scroll-mt-6 rounded-lg border p-5 shadow-soft ${clarificationGatePanelClass(decision.status)}`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Plan readiness</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">{decision.statusLabel}</h2>
+          <p className="mt-2 text-sm leading-6 text-ink/70">{decision.summary}</p>
+        </div>
+        <span className={`w-fit rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${clarificationGateBadgeClass(decision.status)}`}>
+          {decision.canGenerateFullPlan ? "Full plan path available" : "Review before full plan"}
+        </span>
+      </div>
+
+      {decision.status === "ready_for_full_plan" ? (
+        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
+          {hasLatestPlan
+            ? "The saved intake has enough detail for another plan version. Review the existing plan, then generate again only if the intake still matches the build you want."
+            : "The saved intake has enough detail for a first plan. Review the measurements, material, mounting, and tool choices before using Generate Plan."}
+        </p>
+      ) : null}
+
+      {groupedQuestions.length > 0 ? (
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          {groupedQuestions.map((group) => (
+            <div key={group.category} className="rounded-md border border-sawdust bg-white/80 p-4">
+              <h3 className="text-sm font-semibold text-ink">{clarificationQuestionCategoryLabel(group.category)}</h3>
+              <ul className="mt-3 space-y-3">
+                {group.questions.map((question) => (
+                  <li key={question.id} className="text-sm leading-6 text-ink/75">
+                    <p className="font-semibold text-ink">{question.question}</p>
+                    <p className="mt-1 text-ink/65">{question.reason}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {decision.blockers.length > 0 ? (
+        <div className="mt-5 rounded-md border border-red-200 bg-white/80 p-4">
+          <h3 className="text-sm font-semibold text-red-950">Why Boardsmith will not create build instructions yet</h3>
+          <ul className="mt-3 space-y-3">
+            {decision.blockers.map((blocker) => (
+              <li key={blocker.id} className="text-sm leading-6 text-red-950/85">
+                <p className="font-semibold text-red-950">{blocker.title}</p>
+                <p className="mt-1">{blocker.reason}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {!decision.supportedProjectType ? (
+        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
+          Boardsmith can keep this as planning notes, but a full build packet needs a supported safe template before it should produce cut lists or build steps.
+        </p>
+      ) : null}
+
+      {isArchived ? (
+        <p className="mt-4 text-xs leading-5 text-ink/55">This archived project remains read-only. Restore it before changing details or generating another plan.</p>
+      ) : null}
+    </section>
+  );
+}
+
+function groupClarificationQuestions(decision: ClarificationGateDecision): {
+  category: ClarificationQuestionCategory;
+  questions: ClarificationGateDecision["questions"];
+}[] {
+  const grouped = new Map<ClarificationQuestionCategory, ClarificationGateDecision["questions"]>();
+
+  for (const question of decision.questions) {
+    grouped.set(question.category, [...(grouped.get(question.category) ?? []), question]);
+  }
+
+  return Array.from(grouped.entries()).map(([category, questions]) => ({ category, questions }));
+}
+
+function clarificationQuestionCategoryLabel(category: ClarificationQuestionCategory): string {
+  if (category === "dimensions") return "Size and dimensions";
+  if (category === "material") return "Material";
+  if (category === "layout") return "Shelf layout";
+  if (category === "support_frame") return "Support or frame";
+  if (category === "mounting") return "Mounting";
+  if (category === "use_load") return "Use and load";
+  if (category === "tools") return "Available tools";
+  if (category === "finish_exposure") return "Finish and exposure";
+  return "Safety boundary";
+}
+
+function clarificationGatePanelClass(status: ClarificationGateDecision["status"]): string {
+  if (status === "ready_for_full_plan") return "border-green-200 bg-green-50";
+  if (status === "blocked_for_safety") return "border-red-200 bg-red-50";
+  if (status === "needs_details") return "border-amber-200 bg-amber-50";
+  return "border-sawdust bg-white";
+}
+
+function clarificationGateBadgeClass(status: ClarificationGateDecision["status"]): string {
+  if (status === "ready_for_full_plan") return "bg-green-100 text-green-950";
+  if (status === "blocked_for_safety") return "bg-red-100 text-red-950";
+  if (status === "needs_details") return "bg-amber-100 text-amber-950";
+  return "bg-shop text-ink/70";
 }
 
 function ProjectReviewTriggers({ project }: { project: Project }) {
@@ -953,7 +1088,7 @@ function ProjectIntakeCard({ project }: { project: Project }) {
     <section id="project-intake" className="scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
       <h2 className="text-lg font-semibold text-ink">Project intake</h2>
       <dl className="mt-4 grid gap-3 text-sm">
-        <Row label="Project type" value={projectTypeLabels[project.project_type]} />
+        <Row label="Project type" value={projectTypeLabel(project.project_type)} />
         {dimensionRows.map((row) => (
           <Row key={row.label} label={row.label} value={row.value} />
         ))}

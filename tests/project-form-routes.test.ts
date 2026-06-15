@@ -3,7 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import NewProjectPage from "@/app/projects/new/page";
 import { decodeProjectIntakeDraft, encodeProjectIntakeDraft, type ProjectIntakeDraft } from "@/lib/projects/intake-draft";
-import { createProject } from "@/lib/storage/project-store";
+import type { Project } from "@/lib/projects/types";
+import { createProject, getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { activeProjectArchiveFields } from "./project-test-helpers";
 
 const headerMocks = vi.hoisted(() => ({
@@ -31,8 +32,26 @@ vi.mock("next/headers", () => ({
 
 vi.mock("@/lib/storage/project-store", () => ({
   createProject: vi.fn(),
-  getProject: vi.fn(() =>
-    Promise.resolve({
+  getProject: vi.fn(),
+  listGeneratedPlans: vi.fn(() => Promise.resolve([])),
+}));
+
+describe("project form routes", () => {
+  beforeEach(() => {
+    vi.mocked(createProject).mockReset();
+    vi.mocked(getProject).mockReset();
+    vi.mocked(getProject).mockResolvedValue(projectDetailProject());
+    vi.mocked(listGeneratedPlans).mockReset();
+    vi.mocked(listGeneratedPlans).mockResolvedValue([]);
+    headerMocks.cookies.mockResolvedValue({
+      get: vi.fn(() => undefined),
+    });
+  });
+
+  type ProjectDetailProjectOverrides = Omit<Partial<Project>, "project_type"> & { project_type?: string };
+
+  function projectDetailProject(overrides: ProjectDetailProjectOverrides = {}): Project {
+    const baseProject = {
       id: "project_form_route",
       created_at: new Date(0).toISOString(),
       updated_at: new Date(0).toISOString(),
@@ -41,13 +60,16 @@ vi.mock("@/lib/storage/project-store", () => ({
       skill_level: "beginner",
       status: "draft",
       width_inches: 36,
-      height_inches: 6,
+      height_inches: 0.75,
       depth_inches: 10,
       material_thickness_inches: 0.75,
       material_type: "pine board",
+      shelf_layout: "single_shelf",
+      shelf_count: 1,
+      shelf_spacing_inches: undefined,
       tools_available: ["tape_measure", "pencil", "drill"],
-      style_notes: "Wall mounted",
-      intended_use: "Decorative shelf",
+      style_notes: "Wall mounted with metal brackets screwed into studs.",
+      intended_use: "Decorative shelf for light display items.",
       safety_review_required: true,
       safety_flags: ["Wall mounting review", "Heavy shelving review"],
       notes: "",
@@ -57,18 +79,21 @@ vi.mock("@/lib/storage/project-store", () => ({
       build_plan_changes: "",
       build_lessons_learned: "",
       ...activeProjectArchiveFields,
-    }),
-  ),
-  listGeneratedPlans: vi.fn(() => Promise.resolve([])),
-}));
+    } satisfies Project;
 
-describe("project form routes", () => {
-  beforeEach(() => {
-    vi.mocked(createProject).mockReset();
-    headerMocks.cookies.mockResolvedValue({
-      get: vi.fn(() => undefined),
-    });
-  });
+    return { ...baseProject, ...overrides } as unknown as Project;
+  }
+
+  async function renderProjectDetail() {
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    return renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: "project_form_route" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+  }
 
   function validProjectFormData(overrides: Record<string, string> = {}) {
     const body = new URLSearchParams({
@@ -488,30 +513,85 @@ describe("project form routes", () => {
   });
 
   it("uses an explicit POST route for plan generation", async () => {
-    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
-
-    const markup = renderToStaticMarkup(
-      await ProjectDetailPage({
-        params: Promise.resolve({ id: "project_form_route" }),
-        searchParams: Promise.resolve({}),
-      }),
-    );
+    const markup = await renderProjectDetail();
 
     expect(markup).toContain('action="/projects/project_form_route/generate"');
     expect(markup).toContain('method="post"');
   });
 
   it("renders generate plan pending-state copy for the client submit control", async () => {
-    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
-
-    const markup = renderToStaticMarkup(
-      await ProjectDetailPage({
-        params: Promise.resolve({ id: "project_form_route" }),
-        searchParams: Promise.resolve({}),
-      }),
-    );
+    const markup = await renderProjectDetail();
 
     expect(markup).toContain('data-pending-label="Generating plan..."');
     expect(markup).toContain("Generate Plan");
+  });
+
+  it("renders ready clarification gate copy on the project detail route", async () => {
+    const markup = await renderProjectDetail();
+
+    expect(markup).toContain("Plan readiness");
+    expect(markup).toContain("Ready for full plan");
+    expect(markup).toContain("Full plan path available");
+    expect(markup).toContain("The saved intake has enough detail for a first plan.");
+    expect(markup).toContain('action="/projects/project_form_route/generate"');
+  });
+
+  it("renders needs-details clarification questions on the project detail route", async () => {
+    vi.mocked(getProject).mockResolvedValueOnce(
+      projectDetailProject({
+        title: "Multiple shelf bathroom storage",
+        material_type: "unknown",
+        shelf_layout: undefined,
+        shelf_count: undefined,
+        tools_available: [],
+        style_notes: "",
+        intended_use: "Multiple shelves for bathroom towels.",
+      }),
+    );
+
+    const markup = await renderProjectDetail();
+
+    expect(markup).toContain("Needs details");
+    expect(markup).toContain("Review before full plan");
+    expect(markup).toContain("What material should this be built from?");
+    expect(markup).toContain("How many shelves or shelf openings should the plan include?");
+    expect(markup).toContain("What safe tools are available for cutting, drilling, sanding, and assembly?");
+    expect(markup).not.toContain("Zod");
+  });
+
+  it("renders unsupported clarification gate boundaries without internal errors", async () => {
+    vi.mocked(getProject).mockResolvedValueOnce(
+      projectDetailProject({
+        title: "Replace a bicycle chain",
+        project_type: "bike_repair",
+        intended_use: "Fix a bicycle drivetrain.",
+        style_notes: "",
+      }),
+    );
+
+    const markup = await renderProjectDetail();
+
+    expect(markup).toContain("Unsupported");
+    expect(markup).toContain("This idea is outside the current supported Boardsmith project types.");
+    expect(markup).toContain("a full build packet needs a supported safe template");
+    expect(markup).not.toContain("Unsupported project type:");
+    expect(markup).not.toContain("schema");
+  });
+
+  it("renders blocked clarification gate boundaries on the project detail route", async () => {
+    vi.mocked(getProject).mockResolvedValueOnce(
+      projectDetailProject({
+        title: "Nursery loft bed",
+        intended_use: "Loft bed sleep surface for a child.",
+        style_notes: "Includes storage stairs.",
+      }),
+    );
+
+    const markup = await renderProjectDetail();
+
+    expect(markup).toContain("Blocked for safety");
+    expect(markup).toContain("This project is too safety-sensitive for build instructions in the private MVP.");
+    expect(markup).toContain("Child sleep or entrapment risk");
+    expect(markup).toContain("Boardsmith should not generate build instructions");
   });
 });
