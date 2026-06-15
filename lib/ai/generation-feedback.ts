@@ -93,7 +93,7 @@ export function getGenerationFailureFeedback(reason: GenerationFailureReason, sa
 
   return {
     title: "Boardsmith generated a draft, but it did not pass review checks.",
-    summary: "No plan was saved.",
+    summary: "No new plan was saved.",
     detail:
       reason === "generation_failed"
         ? "Generation did not complete successfully. The existing project and any previous plans were left unchanged."

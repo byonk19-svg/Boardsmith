@@ -115,4 +115,22 @@ describe("calculateSafetyReviewFlags", () => {
       expect.arrayContaining(["Impossible or missing shelf layout dimensions", "Shelf support/frame review"]),
     );
   });
+
+  it("does not block multiple separate shelves for individual board thickness height", () => {
+    const flags = calculateSafetyReviewFlags({
+      ...baseProject,
+      title: "Five separate bathroom wall shelves",
+      project_type: "simple_shelf",
+      width_inches: 12,
+      height_inches: 0.75,
+      depth_inches: 6,
+      material_thickness_inches: 0.75,
+      shelf_layout: "multiple_separate_shelves",
+      shelf_count: 5,
+      intended_use: "Five separate wall shelves for light towels.",
+    });
+
+    expect(flags.map((flag) => flag.code)).not.toContain("shelf_height_impossible");
+    expect(flags.map((flag) => flag.code)).not.toContain("connected_shelf_support_incomplete");
+  });
 });

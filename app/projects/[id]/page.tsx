@@ -101,7 +101,7 @@ export default async function ProjectDetailPage({
           </Link>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">{project.title}</h1>
           <p className="mt-2 text-sm text-ink/65">
-            {projectTypeLabels[project.project_type]} · {project.skill_level} · {project.status.replaceAll("_", " ")}
+            {projectTypeLabels[project.project_type]} · {project.skill_level} · {projectDetailStatusLabel(project, Boolean(latestPlanReview))}
             {isProjectArchived(project) ? " · archived" : ""}
           </p>
         </div>
@@ -113,6 +113,7 @@ export default async function ProjectDetailPage({
       </div>
 
       {isProjectArchived(project) ? <ArchivedProjectBanner project={project} /> : null}
+      {project.status === "generation_failed" && latestPlanReview ? <LatestAttemptFailedPanel /> : null}
       {isGenerationFailureReason(query.generation_error) ? (
         <GenerationFailurePanel reason={query.generation_error} safetyFlags={project.safety_flags} project={project} />
       ) : null}
@@ -838,6 +839,23 @@ function ArchiveProjectAction({ project }: { project: Project }) {
 
 function isProjectArchived(project: Project): boolean {
   return typeof project.archived_at === "string" && project.archived_at.length > 0;
+}
+
+function projectDetailStatusLabel(project: Project, hasLatestPlan: boolean): string {
+  if (project.status === "generation_failed" && hasLatestPlan) return "latest attempt failed";
+  return project.status.replaceAll("_", " ");
+}
+
+function LatestAttemptFailedPanel() {
+  return (
+    <section className="rounded-lg border border-amber-200 bg-amber-50 p-5">
+      <h2 className="text-lg font-semibold text-ink">Latest generation attempt needs review.</h2>
+      <p className="mt-2 text-sm leading-6 text-amber-950">
+        The most recent generation or revision attempt did not save a new plan version. The saved latest plan below is still available for review,
+        history, and browser print.
+      </p>
+    </section>
+  );
 }
 
 const revisionFailureReasons = ["empty", "too_long", "no_plan", "archived"] as const;

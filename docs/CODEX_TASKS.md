@@ -959,12 +959,25 @@
 - [x] Confirm validation passed: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check`.
 - [x] Keep the checkpoint docs-only with no app behavior change, schema change, package change, lockfile change, migration, hosted Supabase change, pricing, vendor, inventory, PDF/CAD/CNC/export work, cut optimization, AI images, public sharing, marketplace, shopping, or new project type.
 
+## Task 84A - Hosted Lifecycle Smoke And Buying Plan Dogfood
+
+- [x] Run `npm run smoke:hosted` and confirm the protected hosted route smoke still reaches `/` and `/projects`.
+- [x] Verify deterministic hosted generation failure for impossible connected multi-shelf layout without saving a plan.
+- [x] Verify archived direct generation blocking from the hosted route path.
+- [x] Verify revision input failure leaves the saved plan version unchanged.
+- [x] Generate successful hosted wall-shelf dogfood packets and confirm Buying Plan renders on detail and print.
+- [x] Use Buying Plan manually on single bathroom shelf, five separate wall shelves, and kitchen spice ledge scenarios.
+- [x] Record repeated Buying Plan friction in `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` without expanding shopping, pricing, vendor, inventory, or exact stock purchase behavior.
+- [x] Fix the separate-wall-shelves validation mismatch so individual board thickness is not treated as impossible connected-unit height.
+- [x] Clarify `generation_failed` UI copy when a latest attempt failed but an older saved latest plan remains available.
+- [x] Keep the pass limited to lifecycle copy, shelf-layout validation, docs, and tests with no schema change, migration, package change, prompt/model change, hosted Supabase schema change, PDF/SVG/DXF/CAD/CNC/export work, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Pause broad feature work and use the current private baseline manually before selecting any additional major lane.
-2. [ ] Use the wall-shelf Buying Plan manually before expanding buying-plan behavior beyond conservative material grouping.
+1. [ ] Rerun hosted smoke after the Task 84A changes are deployed so the separate-wall-shelves validation fix is proven on hosted.
+2. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
 3. [ ] Choose later lanes only from repeated manual dogfood friction.
-4. [ ] Rerun hosted smoke after any deployment, env-var, access-gate, archive, project detail, or `Tweak this plan` change.
+4. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
 
 ## Remaining Hardening
 

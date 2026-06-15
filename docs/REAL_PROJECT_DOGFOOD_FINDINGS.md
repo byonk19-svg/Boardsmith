@@ -102,3 +102,43 @@ Browser print remains enough for the private MVP. The printed shop-plan flow is 
 No product code change was needed from this fresh dogfood pass. Larger feature ideas remain documentation-only and should not be built without a separate scoped task.
 
 This fresh pass is the dogfood evidence for the `private-mvp-1.0` baseline checkpoint. It supports pausing broad feature work and using the app manually before choosing another major lane.
+
+## Wall-Shelf Buying Plan Dogfood
+
+Date: June 15, 2026
+
+Scope: authenticated hosted route smoke plus manual Buying Plan dogfood on clearly labeled non-critical wall-shelf smoke/dogfood projects. Hosted URLs, project IDs, project titles, row data, cookies, request headers, screenshots, session-file content, and sensitive logs are intentionally not recorded.
+
+Hosted lifecycle smoke:
+
+- `npm run smoke:hosted` passed through the protected hosted access path.
+- Deterministic generation failure was verified with an impossible connected multi-shelf height; no plan was saved.
+- Archived direct generation blocking was verified; archived projects stayed readable and required restore before generation.
+- Revision input failure was verified with an empty `Tweak this plan` instruction; no plan version was changed.
+- Normal hosted generation was verified on successful wall-shelf dogfood projects, with browser print preview rendering the Buying Plan.
+
+Buying Plan dogfood coverage:
+
+- Single bathroom wall shelf: generated successfully; Buying Plan appeared after Cut Checklist and before Materials and Parts on detail and print.
+- Five separate wall shelves: initially blocked when the hosted intake used individual board thickness as height; rerun with a total wall span generated successfully and rendered Buying Plan on detail and print.
+- Single kitchen spice ledge: generated successfully; Buying Plan appeared in the expected packet order on detail and print.
+- Connected bathroom shelf unit with side supports: blocked by generated-plan review. This is useful generation-quality friction, not a reason to weaken safety checks.
+- Toddler/nursery book ledge: blocked by generated-plan review. Child-adjacent work should stay conservative until repeated real use shows a narrower safe template path.
+
+What worked:
+
+- The deterministic packet order held in all successful dogfood packets: Cut Checklist -> Buying Plan -> Materials and Parts.
+- Buying Plan consistently grouped modeled wood pieces by material and kept the output framed as material planning, not a purchase order.
+- Detail and print both carried the stock-length review note instead of inventing an exact board purchase.
+- Hardware, fastener, bracket, anchor, stud, and support review language stayed present without becoming vendor, pricing, cart, or inventory behavior.
+
+Friction log:
+
+- Stock length still needs selection in every successful Buying Plan. That is intentionally conservative, but it is also the most repeated manual gap.
+- Hardware and fasteners remain split between Buying Plan, Materials and Parts, and review notes. This is safer than pretending to know exact bracket/anchor purchases, but it may make the packet feel less like a complete buying checklist.
+- Separate wall shelves exposed a validation mismatch: the current hosted app treated individual board thickness as impossible total stacked height. The local follow-up narrows the impossible-height blocker to connected shelf units.
+- Connected shelf units and child-adjacent ledges can still be blocked by generated-plan review. That is acceptable for now; do not change prompts until more examples show the same specific failure mode.
+
+Result:
+
+The Buying Plan is useful enough for private MVP manual use, but it should remain conservative. The only code change justified by this dogfood pass is the narrow separate-shelf validation fix plus clearer lifecycle copy for projects whose latest attempt failed while an older saved plan remains available.

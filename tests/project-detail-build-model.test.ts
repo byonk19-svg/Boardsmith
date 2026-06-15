@@ -925,11 +925,35 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("Boardsmith generated a draft, but it did not pass review checks.");
-    expect(markup).toContain("No plan was saved.");
+    expect(markup).toContain("No new plan was saved.");
     expect(markup).toContain("Boardsmith blocks drafts that fail validation or safety review before they can be saved.");
     expect(markup).toContain("For wall-mounted projects, verify studs or anchors, fasteners, wall structure, and expected load before trying again.");
     expect(markup).toContain("For child-adjacent projects, describe edge treatment, finish choice, supervision needs, mounting height, and inspection plans.");
     expect(markup).not.toContain("Generated plan failed deterministic quality checks");
+  });
+
+  it("shows failed-latest-attempt copy without hiding the saved latest plan", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      status: "generation_failed",
+    });
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("latest attempt failed");
+    expect(markup).toContain("Latest generation attempt needs review.");
+    expect(markup).toContain("The saved latest plan below is still available for review");
+    expect(markup).toContain("Latest generated plan");
+    expect(markup).toContain("Print build sheet");
+    expect(markup).toContain('href="/projects/project_saved_bbm/print"');
+    expect(markup).not.toContain("No generated plan yet.");
   });
 
   it("shows a direct shelf-layout repair form when generation is blocked by missing shelf count", async () => {
@@ -1064,7 +1088,7 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(knownMarkup).toContain("Project update was not saved.");
     expect(knownMarkup).toContain("Project notes could not be saved. Try again from the project detail page.");
-    expect(knownMarkup).not.toContain("No plan was saved.");
+    expect(knownMarkup).not.toContain("No new plan was saved.");
 
     const rawMarkup = renderToStaticMarkup(
       await ProjectDetailPage({

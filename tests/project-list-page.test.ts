@@ -222,6 +222,31 @@ describe("ProjectsPage", () => {
     expect(markup).not.toContain("/projects/completed_sign");
   });
 
+  it("distinguishes a failed latest attempt from an available saved plan", async () => {
+    const store = await import("@/lib/storage/project-store");
+    vi.mocked(store.listProjects).mockResolvedValueOnce([
+      {
+        ...projects[1],
+        status: "generation_failed",
+      },
+    ]);
+
+    const { default: ProjectsPage } = await import("@/app/projects/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectsPage({
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Latest attempt needs review");
+    expect(markup).toContain("Latest attempt failed");
+    expect(markup).toContain("Latest plan saved");
+    expect(markup).toContain("Print build sheet");
+    expect(markup).toContain('href="/projects/project_with_history/print"');
+    expect(markup).not.toContain("No generated plan yet");
+  });
+
   it("renders an actionable empty state when no projects exist", async () => {
     const store = await import("@/lib/storage/project-store");
     vi.mocked(store.listProjects).mockResolvedValueOnce([]);

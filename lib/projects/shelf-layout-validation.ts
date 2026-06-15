@@ -39,7 +39,7 @@ export function minimumStackedShelfBoardHeight(project: ShelfValidationProject):
   const shelfCount = shelfIntent.shelfCount;
   const thickness = positiveNumber(project.material_thickness_inches);
 
-  if (!shelfIntent.isMultiShelfIntent || !shelfCount || shelfCount <= 1 || !thickness) return null;
+  if (shelfIntent.layoutKind !== "multi_shelf_unit" || !shelfCount || shelfCount <= 1 || !thickness) return null;
   return shelfCount * thickness;
 }
 

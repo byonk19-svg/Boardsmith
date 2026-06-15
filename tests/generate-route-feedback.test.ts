@@ -104,6 +104,33 @@ describe("generate plan route feedback", () => {
     expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
   });
 
+  it("does not treat multiple separate shelves as an impossible connected shelf unit", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Five separate bathroom wall shelves",
+      width_inches: 12,
+      height_inches: 0.75,
+      depth_inches: 6,
+      material_thickness_inches: 0.75,
+      shelf_layout: "multiple_separate_shelves",
+      shelf_count: 5,
+      intended_use: "Five separate wall shelves for light towels.",
+      style_notes: "Review brackets and anchors before mounting.",
+    });
+    generateStructuredProjectPlanMock.mockRejectedValue(new Error("Hosted model unavailable in this route preflight test."));
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/blocked_generation_project?generation_error=generation_failed");
+    expect(generateStructuredProjectPlanMock).toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
+  });
+
   it("does not generate a new plan version for archived projects", async () => {
     getProjectMock.mockResolvedValue({
       ...project,

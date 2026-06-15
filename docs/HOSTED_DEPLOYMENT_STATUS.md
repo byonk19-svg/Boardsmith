@@ -206,3 +206,19 @@ Status: provider linked, hosted env names present, and user-supplied authorized 
 Boardsmith is safe to share only with intended private users who can pass the active access layers. Keep Vercel-level protection and/or the Boardsmith `/access` gate in place while real OpenAI and Supabase keys are configured.
 
 Browser print remains the supported MVP output path. Do not start app-generated PDF/export work as part of hosted smoke follow-up.
+
+## Hosted Lifecycle And Buying Plan Smoke
+
+Date: June 15, 2026
+
+Sanitized authenticated hosted checks passed through the intended protected access path without recording hosted URLs, project IDs, project titles, row data, cookies, headers, screenshots, session-file content, or sensitive logs.
+
+Verified:
+
+- `npm run smoke:hosted` reached `/` and `/projects` with `200` responses and Boardsmith rendered.
+- Deterministic invalid connected multi-shelf generation redirected to safe shelf-layout feedback without saving a plan.
+- Archived direct generation redirected to restore-before-generating feedback and preserved read-only archived project viewing.
+- Empty revision input redirected to revision feedback and left the saved latest plan unchanged.
+- Successful wall-shelf generations rendered latest plan, Plan Review, Cut Checklist, Buying Plan, Materials and Parts, and browser print preview.
+
+Dogfood findings are recorded in [REAL_PROJECT_DOGFOOD_FINDINGS.md](REAL_PROJECT_DOGFOOD_FINDINGS.md). A local follow-up narrows separate-shelf impossible-height validation before relying on this exact five-separate-shelves scenario after the next hosted deployment.

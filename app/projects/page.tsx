@@ -203,7 +203,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                       {isProjectArchived(project) ? (
                         <span className="w-fit rounded-md bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-900">Archived</span>
                       ) : null}
-                      <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">{statusLabel(project)}</span>
+                      <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">{statusLabel(project, planCount)}</span>
                     </div>
                   </div>
 
@@ -370,6 +370,7 @@ function ProjectSignal({ label, value, tone = "neutral" }: { label: string; valu
 function projectListNextStepLabel(project: Project, planCount: number): string {
   if (isProjectArchived(project)) return "Archived review";
   if (planCount === 0) return "Needs generated plan";
+  if (project.status === "generation_failed") return "Latest attempt needs review";
   if (project.build_completed) return "Built project record";
   return "Ready to review";
 }
@@ -414,9 +415,10 @@ function projectListEmptyState(filters: ProjectFilters): { title: string; body: 
   };
 }
 
-function statusLabel(project: Project): string {
+function statusLabel(project: Project, planCount = 0): string {
   if (project.build_completed) return "Built";
   if (project.status === "plan_generated") return "Plan generated";
+  if (project.status === "generation_failed" && planCount > 0) return "Latest attempt failed";
   if (project.status === "generation_failed") return "Needs review";
   return "Draft";
 }

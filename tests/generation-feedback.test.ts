@@ -6,7 +6,7 @@ describe("getGenerationFailureFeedback", () => {
     const feedback = getGenerationFailureFeedback("review_blocked", ["Wall mounting review", "Child or baby use"]);
 
     expect(feedback.title).toBe("Boardsmith generated a draft, but it did not pass review checks.");
-    expect(feedback.summary).toBe("No plan was saved.");
+    expect(feedback.summary).toBe("No new plan was saved.");
     expect(feedback.detail).toContain("validation or safety review");
     expect(feedback.suggestions).toEqual(
       expect.arrayContaining([
