@@ -973,12 +973,61 @@
 - [x] Clarify `generation_failed` UI copy when a latest attempt failed but an older saved latest plan remains available.
 - [x] Keep the pass limited to lifecycle copy, shelf-layout validation, docs, and tests with no schema change, migration, package change, prompt/model change, hosted Supabase schema change, PDF/SVG/DXF/CAD/CNC/export work, public sharing, marketplace, shopping, pricing, vendor, inventory, auth expansion, production multi-user behavior, or new project type.
 
+## Task 85A - Website Planning Process Asset
+
+- [x] Add `CONTEXT.md` as the root domain glossary for Matt-style Grill/PRD/issue planning.
+- [x] Add `docs/WEBSITE_PLANNING_PROCESS.md` to capture the Grill -> Research -> Prototype -> PRD -> Issues -> Implement -> Review flow for Boardsmith website work.
+- [x] Clarify that "website" currently means the private Boardsmith app/workspace experience, not a public marketing site or launch page.
+- [x] Map the existing source docs that future planning sessions should read before implementation.
+- [x] Record the paired roadmap split: Clarification Gate first, Visual Plan Packet for wall shelves second.
+- [x] Keep the pass docs-only with no app behavior change, route change, schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, public sharing, marketplace, shopping, pricing, vendor, inventory, or new project type.
+
+## Task 86A - Clarification Gate PRD
+
+- [x] Add `docs/CLARIFICATION_GATE_PRD.md` as the first paired website-planning PRD.
+- [x] Define the five readiness outcomes: ready for full plan, needs details, concept only, unsupported, and blocked for safety.
+- [x] Ground the first slice after structured intake while keeping it compatible with future natural-language intake.
+- [x] Capture user stories, implementation decisions, testing decisions, out-of-scope boundaries, and the handoff to the Visual Plan Packet PRD.
+- [x] Keep the pass docs-only with no app behavior change, route change, schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
+## Task 87A - Agent Skill Setup And Visual Plan Packet PRD
+
+- [x] Add the `## Agent skills` block to `AGENTS.md`.
+- [x] Add `docs/agents/issue-tracker.md`, `docs/agents/triage-labels.md`, and `docs/agents/domain.md` for the installed Matt-style skills.
+- [x] Record GitHub Issues as the default tracker, default triage labels, and single-context domain docs.
+- [x] Add `docs/VISUAL_PLAN_PACKET_PRD.md` as the paired PRD after the Clarification Gate PRD.
+- [x] Define the full Visual Plan Packet destination: hero visual, consistent labels, assembly view, dimensioned views, cut layout, buying/material alignment, step diagrams, browser print, and safety callouts.
+- [x] Keep wall shelves as the golden first template and keep deterministic build-plan visuals as the build-truth rule.
+- [x] Keep the pass docs-only with no app behavior change, route change, schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
+## Task 88A - Publish Clarification Gate And Visual Plan Packet Issues
+
+- [x] Create missing GitHub triage labels for the installed Matt-style issue workflow.
+- [x] Publish Clarification Gate implementation issues:
+  - [#1 Add Clarification Gate readiness classifier](https://github.com/byonk19-svg/Boardsmith/issues/1)
+  - [#2 Render Clarification Gate panel on project detail](https://github.com/byonk19-svg/Boardsmith/issues/2)
+  - [#3 Gate full plan generation from readiness state](https://github.com/byonk19-svg/Boardsmith/issues/3)
+  - [#4 Add missing-detail question model for wall shelves](https://github.com/byonk19-svg/Boardsmith/issues/4)
+  - [#5 Preserve archived and prior-plan behavior through Clarification Gate](https://github.com/byonk19-svg/Boardsmith/issues/5)
+- [x] Publish Visual Plan Packet implementation issues:
+  - [#6 Standardize wall-shelf part labels across packet surfaces](https://github.com/byonk19-svg/Boardsmith/issues/6)
+  - [#7 Add wall-shelf exploded assembly view](https://github.com/byonk19-svg/Boardsmith/issues/7)
+  - [#8 Add dimensioned wall-shelf front side top views](https://github.com/byonk19-svg/Boardsmith/issues/8)
+  - [#9 Add wall-shelf stock board cut layout visual](https://github.com/byonk19-svg/Boardsmith/issues/9)
+  - [#10 Add step mini diagrams for wall-shelf Build Guide](https://github.com/byonk19-svg/Boardsmith/issues/10)
+  - [#11 Polish deterministic wall-shelf hero visual and print packet order](https://github.com/byonk19-svg/Boardsmith/issues/11)
+- [x] Apply `ready-for-agent` to the published issues.
+- [x] Keep the pass tracker/docs-only with no app behavior change, route change, schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-2. [ ] Choose later lanes only from repeated manual dogfood friction.
-3. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
-4. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
+1. [ ] Start implementation with [#1 Clarification Gate readiness classifier](https://github.com/byonk19-svg/Boardsmith/issues/1) or [#6 wall-shelf part-label consistency](https://github.com/byonk19-svg/Boardsmith/issues/6).
+2. [ ] Keep Clarification Gate issue order: #1 -> #2/#4 -> #3 -> #5.
+3. [ ] Keep Visual Plan Packet issue order: #6 -> #7/#8/#9 -> #10 -> #11.
+4. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
+5. [ ] Choose later implementation lanes only from repeated manual dogfood friction.
+6. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
+7. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
 
 ## Remaining Hardening
 
