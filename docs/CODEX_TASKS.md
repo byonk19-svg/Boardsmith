@@ -1078,16 +1078,24 @@
 - [x] Preserve review-only placeholder behavior; unresolved support/frame placeholders still do not receive trusted part labels.
 - [x] Keep the pass test/docs-only because the production label pipeline already flowed from the Part Schedule source of truth.
 
+## Task 90B - Wall-Shelf Exploded Assembly View
+
+- [x] Implement [#7 Add wall-shelf exploded assembly view](https://github.com/byonk19-svg/Boardsmith/issues/7).
+- [x] Add a deterministic labeled exploded assembly panel to the wall-shelf diagram packet.
+- [x] Render single shelves, multiple separate shelves, and connected shelf units with different assembly language.
+- [x] Use standardized part labels from the packet model in the exploded view.
+- [x] Show unresolved connected support/frame states as review-needed, not as complete structure.
+- [x] Cover detail route, Browser Print Plan route, single-shelf, separate-shelf, connected unresolved, and connected modeled-support rendering in tests.
+- [x] Keep the pass SVG/view-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue Visual Plan Packet implementation with [#7 Add wall-shelf exploded assembly view](https://github.com/byonk19-svg/Boardsmith/issues/7), [#8 Add dimensioned wall-shelf front side top views](https://github.com/byonk19-svg/Boardsmith/issues/8), or [#9 Add wall-shelf stock board cut layout visual](https://github.com/byonk19-svg/Boardsmith/issues/9).
-2. [ ] Keep Visual Plan Packet issue order: #7/#8/#9 -> #10 -> #11.
+1. [ ] Continue Visual Plan Packet implementation with [#8 Add dimensioned wall-shelf front side top views](https://github.com/byonk19-svg/Boardsmith/issues/8) or [#9 Add wall-shelf stock board cut layout visual](https://github.com/byonk19-svg/Boardsmith/issues/9).
+2. [ ] Keep Visual Plan Packet issue order: #8/#9 -> #10 -> #11.
 3. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-4. [ ] Keep Visual Plan Packet issue order: #6 -> #7/#8/#9 -> #10 -> #11.
-5. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-6. [ ] Choose later implementation lanes only from repeated manual dogfood friction.
-7. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
-8. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
+4. [ ] Choose later implementation lanes only from repeated manual dogfood friction.
+5. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
+6. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
 
 ## Remaining Hardening
 

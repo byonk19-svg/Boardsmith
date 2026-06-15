@@ -184,6 +184,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).not.toContain('name="plan_action_');
     expect(markup).not.toContain("Review child-adjacent or load-related safety flags.");
     expect(markup).toContain("Planning diagram - not to scale");
+    expect(markup).toContain("Exploded assembly view");
     expect(markup).toContain("Front elevation / shelf layout");
     expect(markup).toContain("Side view");
     expect(markup).toContain("Cut parts");

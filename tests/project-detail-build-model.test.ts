@@ -412,6 +412,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup.indexOf("Hero Visual")).toBeLessThan(markup.indexOf("Project Visuals / Diagrams"));
     expect(markup).toContain("Project Visuals / Diagrams");
     expect(markup).toContain("Planning diagram - not to scale");
+    expect(markup).toContain("Exploded assembly view");
     expect(markup).toContain("Front elevation / shelf layout");
     expect(markup).toContain("Side view");
     expect(markup).toContain("Cut parts");

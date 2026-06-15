@@ -98,6 +98,9 @@ describe("WallShelfDiagrams", () => {
     const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
 
     expect(markup).toContain("drawn from the Diagram View Model and cut list");
+    expect(markup).toContain("Exploded assembly view");
+    expect(markup).toContain("Part A - Shelf board");
+    expect(markup).toContain("single shelf assembly");
     expect(markup).toContain("single shelf layout");
     expect(markup).toContain("1 shelf");
     expect(markup).toContain("Width 12 in");
@@ -110,6 +113,9 @@ describe("WallShelfDiagrams", () => {
     const model = renderModel(baseProject, buildModel());
     const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
 
+    expect(markup).toContain("Exploded assembly view");
+    expect(markup).toContain("Part A - Shelf boards");
+    expect(markup).toContain("connected shelf unit assembly");
     expect(markup).toContain("Front elevation / shelf layout");
     expect(markup).toContain("connected shelf unit layout");
     expect(markup).toContain("5 shelves");
@@ -126,6 +132,28 @@ describe("WallShelfDiagrams", () => {
     expect(markup).toContain("support/frame review required");
     expect(markup).toContain("Each shelf needs a verified support method.");
     expect(markup).not.toContain("connection planning aid");
+  });
+
+  it("renders multiple separate shelves as repeated assemblies without implying a connected unit", () => {
+    const model = renderModel(
+      { ...baseProject, shelf_layout: "multiple_separate_shelves", shelf_count: 3, height_inches: 0.75, shelf_spacing_inches: undefined },
+      buildModel({
+        pieces: [
+          {
+            ...simpleShelfBuildModelFixture.pieces[0],
+            label: "Shelf boards",
+            quantity: 3,
+          },
+        ],
+      }),
+    );
+    const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
+
+    expect(markup).toContain("Exploded assembly view");
+    expect(markup).toContain("Part A - Shelf boards");
+    expect(markup).toContain("separate wall shelf assemblies");
+    expect(markup).toContain("separate wall shelf layout");
+    expect(markup).not.toContain("connected shelf unit assembly");
   });
 
   it("does not render invalid 5-shelf height as a valid dimension", () => {
@@ -154,6 +182,7 @@ describe("WallShelfDiagrams", () => {
     const model = renderModel(baseProject, buildModel());
     const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
 
+    expect(markup).toContain("Exploded assembly view");
     expect(markup).toContain("Support/frame review");
     expect(markup).toContain("support/frame to review");
     expect(markup).toContain("Support/frame design needs review");
@@ -174,6 +203,9 @@ describe("WallShelfDiagrams", () => {
     const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
 
     expect(markup).toContain("modeled support/frame");
+    expect(markup).toContain("Part A - Shelf boards");
+    expect(markup).toContain("Part B - Left side support");
+    expect(markup).toContain("connected shelf unit assembly");
     expect(markup).toContain("Left side support");
     expect(markup).toContain("Right side support");
     expect(markup).not.toContain("Support/frame design needs review");

@@ -32,6 +32,12 @@ export function WallShelfDiagrams({ model, compact = false }: { model: WallShelf
         </div>
       ) : null}
       <div className="mt-3 grid gap-3 lg:grid-cols-2 print:grid-cols-2">
+        <DiagramPanel title="Exploded assembly view">
+          <ExplodedAssemblyView model={model} viewModel={viewModel} />
+          <DiagramNote>
+            Shows how labeled shelf and support parts relate before assembly. Review mounting and support details before building.
+          </DiagramNote>
+        </DiagramPanel>
         <DiagramPanel title="Front elevation / shelf layout">
           <FrontElevation model={model} viewModel={viewModel} />
           <DiagramNote>
@@ -55,6 +61,66 @@ export function WallShelfDiagrams({ model, compact = false }: { model: WallShelf
 
 function safeDimensionLabel(dimension: WallShelfDiagramDimension, fallback: string): string {
   return dimension.status === "known" ? dimension.label : fallback;
+}
+
+function ExplodedAssemblyView({ model, viewModel }: { model: WallShelfDiagramModel; viewModel: WallShelfDiagramViewModel }) {
+  const shelves = viewModel.visibleBoards.filter((piece) => piece.role === "shelf_board");
+  const modeledSupports = viewModel.visibleBoards.filter((piece) => piece.role === "support_frame");
+  const placeholderSupports = viewModel.visibleBoards.filter((piece) => piece.role === "support_frame_placeholder");
+  const shelfLabel = shelves.at(0)?.printLabel ?? model.partSchedule.find((row) => /shelf/i.test(row.label))?.printLabel ?? "Part A - Shelf board";
+  const supportLabels = modeledSupports.length > 0 ? modeledSupports.map((piece) => piece.printLabel) : placeholderSupports.map((piece) => `${piece.label} - review only`);
+  const shelfCount = Math.max(1, Math.min(viewModel.shelfCount ?? shelves.at(0)?.quantity ?? 1, 5));
+  const connected = viewModel.layout === "connected_shelf_unit";
+  const separate = viewModel.layout === "multiple_separate_shelves";
+  const supportNeedsReview = connected && viewModel.supportFrameReview.needsReview;
+  const supportFill = supportNeedsReview ? "#fff3c4" : "#c99a57";
+  const supportStroke = supportNeedsReview ? "5 4" : undefined;
+  const shelfY = connected ? [58, 86, 114, 142, 170] : [72, 102, 132, 162, 192];
+
+  return (
+    <DiagramSvg title="Wall shelf exploded assembly view" description="Exploded wall shelf assembly view with standardized part labels, not to scale.">
+      <rect x="34" y="28" width="360" height="176" rx="8" fill="#fffaf0" stroke="#d7c7a1" />
+      <rect x="54" y="48" width="18" height="136" rx="4" fill="#eef3e8" stroke="#47624a" strokeWidth="2" />
+      <Callout x={38} y={42}>wall</Callout>
+
+      {connected ? (
+        <>
+          <rect x="98" y="54" width="16" height="128" rx="3" fill={supportFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={supportStroke} />
+          <rect x="314" y="54" width="16" height="128" rx="3" fill={supportFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={supportStroke} />
+          <line x1="118" y1="72" x2="156" y2="72" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 5" />
+          <line x1="276" y1="72" x2="310" y2="72" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 5" />
+          <Callout x={94} y={198}>{supportLabels.at(0) ?? "Support/frame to review"}</Callout>
+        </>
+      ) : null}
+
+      {Array.from({ length: shelfCount }).map((_, index) => {
+        const y = shelfY[index] ?? 170;
+        const offset = separate ? index * 5 : 0;
+        return (
+          <g key={index.toString()}>
+            <BoardRect x={connected ? 148 : 118 + offset} y={y} width={connected ? 132 : 188} height={14} label={shelfCount <= 3 ? shelfLabel : undefined} />
+            {!connected ? (
+              <>
+                <polygon points={trianglePoints(132 + offset, y + 18, 150 + offset, y + 18, 132 + offset, y + 36)} fill="#fff3c4" stroke="#7a5b2e" strokeWidth="1.5" />
+                <polygon points={trianglePoints(270 + offset, y + 18, 288 + offset, y + 18, 270 + offset, y + 36)} fill="#fff3c4" stroke="#7a5b2e" strokeWidth="1.5" />
+              </>
+            ) : null}
+          </g>
+        );
+      })}
+
+      <Callout x={connected ? 176 : 118} y={42}>{shelfLabel}</Callout>
+      <Callout x={connected ? 196 : 142} y={218}>
+        {connected ? "connected shelf unit assembly" : separate ? "separate wall shelf assemblies" : "single shelf assembly"}
+      </Callout>
+      {!connected ? <ReviewBadge x={248} y={178} label={model.supportLabel} /> : null}
+      {supportNeedsReview ? <ReviewBadge x={220} y={178} label="Support/frame review" /> : null}
+    </DiagramSvg>
+  );
+}
+
+function trianglePoints(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): string {
+  return `${x1.toString()},${y1.toString()} ${x2.toString()},${y2.toString()} ${x3.toString()},${y3.toString()}`;
 }
 
 function FrontElevation({ model, viewModel }: { model: WallShelfDiagramModel; viewModel: WallShelfDiagramViewModel }) {
