@@ -61,6 +61,8 @@ export function BuildStepCards({ cards, compact = false }: { cards: BuildStepCar
             </>
           )}
 
+          <BuildStepMiniDiagram card={card} compact={compact} />
+
           <dl className={`${bodySpacing} grid gap-2 text-xs ${compact ? "sm:grid-cols-2 print:grid-cols-2" : "sm:grid-cols-2"}`}>
             {card.tools.length > 0 ? <StepMeta label="Tools" value={card.tools.join(", ")} /> : null}
             {!compact && card.estimatedTimeLabel ? <StepMeta label="Time" value={card.estimatedTimeLabel} /> : null}
@@ -100,6 +102,113 @@ export function BuildStepCards({ cards, compact = false }: { cards: BuildStepCar
       ))}
     </ol>
   );
+}
+
+function BuildStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact: boolean }) {
+  if (!shouldRenderMiniDiagram(card)) return null;
+
+  const phase = stepDiagramPhase(card);
+  const reviewNeeded = Boolean(card.reviewBlockers?.length) || /review|blocked|do not|confirm wall mounting/i.test(`${card.title} ${card.instructions}`);
+  const pieceLabels = card.relatedPieceLabels.length > 0 ? card.relatedPieceLabels : ["Modeled pieces"];
+  const visiblePieces = pieceLabels.slice(0, compact ? 2 : 3);
+  const ariaLabel = `Step ${card.stepNumber.toString()} mini diagram: ${card.title}; ${pieceLabels.join(", ")}${reviewNeeded ? "; review first" : ""}`;
+  const boardFill = reviewNeeded ? "#fff3c4" : "#d9b77f";
+  const boardStroke = reviewNeeded ? "5 4" : undefined;
+
+  return (
+    <svg className={`${compact ? "mt-2 h-24" : "mt-3 h-28"} w-full rounded-md border border-sawdust bg-shop print:bg-white`} viewBox="0 0 420 112" role="img" aria-label={ariaLabel}>
+      <rect x="12" y="12" width="396" height="88" rx="8" fill="#fffaf0" stroke="#d7c7a1" />
+      {phase === "cut" ? (
+        <>
+          <rect x="32" y="28" width="286" height="30" rx="5" fill="#f7efe0" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="6 5" />
+          <line x1="96" y1="28" x2="96" y2="58" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+          <line x1="178" y1="28" x2="178" y2="58" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+          <text x="174" y="78" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+            check dimensions before cutting
+          </text>
+        </>
+      ) : null}
+      {phase === "layout" ? (
+        <>
+          <rect x="48" y="32" width="24" height="52" rx="4" fill="#eef3e8" stroke="#47624a" strokeWidth="2" />
+          <rect x="104" y="34" width="210" height="16" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
+          <rect x="104" y="64" width="210" height="16" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
+          <text x="48" y="96" className="fill-ink text-[10px] font-semibold">
+            wall
+          </text>
+        </>
+      ) : null}
+      {phase === "support" ? (
+        <>
+          <rect x="96" y="28" width="20" height="58" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
+          <rect x="280" y="28" width="20" height="58" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
+          <line x1="120" y1="42" x2="276" y2="42" stroke="#7a5b2e" strokeWidth="2" strokeDasharray={reviewNeeded ? "5 4" : undefined} />
+          <line x1="120" y1="72" x2="276" y2="72" stroke="#7a5b2e" strokeWidth="2" strokeDasharray={reviewNeeded ? "5 4" : undefined} />
+        </>
+      ) : null}
+      {phase === "mount" ? (
+        <>
+          <rect x="70" y="24" width="24" height="66" rx="4" fill="#eef3e8" stroke="#47624a" strokeWidth="2" />
+          <rect x="122" y="44" width="180" height="18" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
+          <line x1="94" y1="53" x2="122" y2="53" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+          <text x="66" y="102" className="fill-ink text-[10px] font-semibold">
+            wall/support review
+          </text>
+        </>
+      ) : null}
+      {phase === "finish" ? (
+        <>
+          <rect x="86" y="36" width="230" height="32" rx="5" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" />
+          <path d="M118 48h152M118 58h116" stroke="#fffaf0" strokeWidth="3" strokeLinecap="round" />
+          <text x="200" y="88" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+            finish and final check
+          </text>
+        </>
+      ) : null}
+      {phase === "review" ? (
+        <>
+          <rect x="64" y="34" width="216" height="32" rx="5" fill="#fff3c4" stroke="#d7a526" strokeWidth="2" strokeDasharray="5 4" />
+          <text x="172" y="54" textAnchor="middle" className="fill-ink text-[11px] font-semibold">
+            review before building
+          </text>
+        </>
+      ) : null}
+
+      <text x="330" y="32" className="fill-ink text-[10px] font-semibold">
+        step mini diagram
+      </text>
+      {visiblePieces.map((label, index) => (
+        <text key={`${card.id}:${label}`} x="330" y={50 + index * 14} className="fill-ink text-[10px] font-semibold">
+          {shortPartLabel(label)}
+        </text>
+      ))}
+      {reviewNeeded ? (
+        <text x="330" y="94" className="fill-ink text-[10px] font-semibold">
+          review first
+        </text>
+      ) : null}
+    </svg>
+  );
+}
+
+function shouldRenderMiniDiagram(card: BuildStepCard): boolean {
+  return !/^step_\d+$/u.test(card.id) && (card.relatedPieceLabels.length > 0 || Boolean(card.dimensionReferences?.length) || Boolean(card.reviewBlockers?.length));
+}
+
+function stepDiagramPhase(card: BuildStepCard): "cut" | "layout" | "support" | "mount" | "finish" | "review" {
+  const text = `${card.id} ${card.title} ${card.phaseLabel}`.toLowerCase();
+  if (text.includes("cut")) return "cut";
+  if (/support|frame|assemble connected|assembly blocked/.test(text)) return "support";
+  if (/mount|installation/.test(text)) return "mount";
+  if (/finish|sand|prep/.test(text)) return "finish";
+  if (/dry fit|layout/.test(text)) return "layout";
+  return "review";
+}
+
+function shortPartLabel(label: string): string {
+  const partMatch = /Part [A-Z]/.exec(label);
+  if (partMatch) return partMatch[0];
+  return label.length > 18 ? `${label.slice(0, 15)}...` : label;
 }
 
 function shouldShowSafetyNote(note: string | null, compact: boolean): note is string {

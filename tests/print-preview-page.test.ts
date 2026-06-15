@@ -617,6 +617,8 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Review dimensions and support method");
     expect(markup).toContain("Cut shelf board pieces");
     expect(markup).toContain("Confirm wall mounting/support method before installation");
+    expect(markup).toContain("step mini diagram");
+    expect(markup).toContain("review first");
     expect(markup).not.toContain("Think through the plan");
     expect(markup).not.toContain("Read the plan and pause if anything is unclear.");
     expect(markup).not.toContain("Modeled step");

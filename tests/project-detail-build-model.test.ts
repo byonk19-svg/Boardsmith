@@ -440,6 +440,8 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Stock length still needs selection");
     expect(markup).toContain("Verify all dimensions against your actual space, lumber, and hardware.");
     expect(markup).toContain("Build Guide");
+    expect(markup).toContain("step mini diagram");
+    expect(markup).toContain("review first");
     expect(markup).toContain("Step 1");
     expect(markup).toContain("Inspect / review");
     expect(markup).toContain("Tools");

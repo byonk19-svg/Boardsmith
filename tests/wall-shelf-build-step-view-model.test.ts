@@ -220,6 +220,12 @@ describe("createWallShelfBuildStepViewModel", () => {
       ]),
     );
     expect(steps.stepCards.map((step) => step.title)).not.toContain("Do not assemble connected unit yet");
+
+    const markup = renderToStaticMarkup(React.createElement(BuildStepCards, { cards: steps.stepCards }));
+    expect(markup).toContain("step mini diagram");
+    expect(markup).toContain("Part A - Shelf boards");
+    expect(markup).toContain("Part B - Side supports");
+    expect(markup).toContain("Assemble connected shelf unit");
   });
 
   it("filters stale freestanding generated-plan copy from manifest build cards", () => {
@@ -244,6 +250,10 @@ describe("createWallShelfBuildStepViewModel", () => {
     });
     const markup = renderToStaticMarkup(React.createElement(BuildStepCards, { cards: manifest.buildStepCards, compact: true }));
 
+    expect(markup).toContain("step mini diagram");
+    expect(markup).toContain("Step 1 mini diagram");
+    expect(markup).toContain("Part A - Shelf boards");
+    expect(markup).toContain("review first");
     expect(markup).toContain("Add support/frame details");
     expect(markup).toContain("Do not assemble connected unit yet");
     expect(markup).toContain("Choose a verified support method");
