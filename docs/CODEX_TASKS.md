@@ -1098,10 +1098,20 @@
 - [x] Cover detail route, Browser Print Plan route, trusted top-view labels, separate shelf layout, and invalid-height suppression in tests.
 - [x] Keep the pass SVG/view-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 90D - Wall-Shelf Stock-Board Planning Visual
+
+- [x] Implement [#9 Add wall-shelf stock board cut layout visual](https://github.com/byonk19-svg/Boardsmith/issues/9).
+- [x] Add a deterministic stock-board planning visual to the wall-shelf Buying Plan material groups.
+- [x] Use the same standardized part identifiers and full accessible part labels as the cut list, Buying Plan, materials, build steps, and print.
+- [x] Show review-needed states for missing material thickness, unresolved support/frame work, and stock-length selection.
+- [x] Preserve conservative copy: no exact purchase, vendor, price, cart, inventory, or cut-optimization claim.
+- [x] Cover detail route, Browser Print Plan route, print-compatible Buying Plan rendering, and missing-thickness review rendering in tests.
+- [x] Keep the pass SVG/view-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] Continue Visual Plan Packet implementation with [#9 Add wall-shelf stock board cut layout visual](https://github.com/byonk19-svg/Boardsmith/issues/9).
-2. [ ] Keep Visual Plan Packet issue order: #9 -> #10 -> #11.
+1. [ ] Continue Visual Plan Packet implementation with [#10 Add wall-shelf build step mini diagrams](https://github.com/byonk19-svg/Boardsmith/issues/10).
+2. [ ] Keep Visual Plan Packet issue order: #10 -> #11.
 3. [ ] Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
 4. [ ] Choose later implementation lanes only from repeated manual dogfood friction.
 5. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.

@@ -203,6 +203,9 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Materials to gather");
     expect(markup).toContain("Pieces to cut");
     expect(markup).not.toContain("Pieces to identify");
+    expect(markup).toContain("stock-board planning visual");
+    expect(markup).toContain("stock length to select");
+    expect(markup).toContain("not optimized");
     expect(markup).toContain("1 - 36 in x 10 in x 0.75 in");
     expect(markup).toContain("1 planned piece");
     expect(markup).toContain("Support method needs review");

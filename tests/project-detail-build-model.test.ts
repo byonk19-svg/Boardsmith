@@ -433,6 +433,9 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Materials and Parts");
     expect(markup).toContain("Cut Checklist");
     expect(markup).toContain("Buying Plan");
+    expect(markup).toContain("stock-board planning visual");
+    expect(markup).toContain("stock length to select");
+    expect(markup).toContain("not optimized");
     expect(markup).toContain("Pieces to get from this material");
     expect(markup).toContain("Stock length still needs selection");
     expect(markup).toContain("Verify all dimensions against your actual space, lumber, and hardware.");

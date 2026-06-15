@@ -79,6 +79,7 @@ function BuyingMaterialGroup({ group, compact }: { group: WallShelfStockBoardMat
 
       <div className="mt-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Pieces to get from this material</p>
+        <StockBoardPlanningGraphic group={group} />
         <ul className="mt-2 space-y-2">
           {group.pieces.map((piece) => (
             <li key={piece.id} className="text-sm leading-6 text-ink/70">
@@ -96,5 +97,53 @@ function BuyingMaterialGroup({ group, compact }: { group: WallShelfStockBoardMat
         Stock length still needs selection from available boards.
       </p>
     </div>
+  );
+}
+
+function StockBoardPlanningGraphic({ group }: { group: WallShelfStockBoardMaterialGroup }) {
+  const visiblePieces = group.pieces.slice(0, 4);
+  const hasHiddenPieces = group.pieces.length > visiblePieces.length;
+  const needsReview = group.reviewReasons.length > 0 || group.thickness.status === "missing" || group.pieces.some((piece) => piece.needsReview);
+  const visualLabel = `${group.displayName} stock-board planning visual: ${group.pieces.map((piece) => piece.printLabel).join(", ")}; stock length to select; not optimized`;
+
+  return (
+    <svg className="mt-3 h-28 w-full rounded-md border border-sawdust bg-white" viewBox="0 0 420 112" role="img" aria-label={visualLabel}>
+      <rect x="18" y="18" width="320" height="42" rx="5" fill="#f7efe0" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="6 5" />
+      <text x="178" y="44" textAnchor="middle" className="fill-ink text-[11px] font-semibold">
+        stock length to select
+      </text>
+      {visiblePieces.map((piece, index) => {
+        const x = 28 + index * 74;
+        const fill = piece.needsReview || needsReview ? "#fff3c4" : "#d9b77f";
+        return (
+          <g key={piece.id}>
+            <rect x={x} y="70" width="62" height="24" rx="4" fill={fill} stroke="#7a5b2e" strokeWidth="1.5" strokeDasharray={piece.needsReview ? "4 3" : undefined} />
+            <text x={x + 31} y="86" textAnchor="middle" className="fill-ink text-[9px] font-semibold">
+              {piece.partLabel ?? piece.badgeLabel ?? "Part"}
+            </text>
+            <text x={x + 31} y="106" textAnchor="middle" className="fill-ink text-[9px] font-semibold">
+              {piece.quantityLabel}
+            </text>
+          </g>
+        );
+      })}
+      {hasHiddenPieces ? (
+        <text x="326" y="86" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+          more parts
+        </text>
+      ) : null}
+      <rect x="344" y="18" width="62" height="34" rx="5" fill={needsReview ? "#fff3c4" : "#fffaf0"} stroke="#d7c7a1" />
+      <text x="375" y="32" textAnchor="middle" className="fill-ink text-[9px] font-semibold">
+        not
+      </text>
+      <text x="375" y="44" textAnchor="middle" className="fill-ink text-[9px] font-semibold">
+        optimized
+      </text>
+      {needsReview ? (
+        <text x="350" y="64" className="fill-ink text-[10px] font-semibold">
+          review
+        </text>
+      ) : null}
+    </svg>
   );
 }

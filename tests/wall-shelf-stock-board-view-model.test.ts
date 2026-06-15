@@ -276,10 +276,30 @@ describe("createWallShelfStockBoardViewModel", () => {
 
     expect(markup).toContain("Buying Plan");
     expect(markup).toContain("Buying plan needs review before purchasing material.");
+    expect(markup).toContain("stock-board planning visual: Part A - Shelf boards");
+    expect(markup).toContain("stock length to select");
+    expect(markup).toContain("not optimized");
     expect(markup).toContain("Pieces to get from this material");
     expect(markup).toContain("Qty 5");
     expect(markup).toContain("Shelf boards");
     expect(markup).toContain("Support/frame review");
     expect(markup).not.toMatch(/\bbuy one\b|home depot|pricing|inventory|1x10x8|freestanding|non-mounted/i);
+  });
+
+  it("renders missing material thickness as review-needed in the stock-board visual", () => {
+    const viewModel = createWallShelfStockBoardViewModel({
+      project: { ...baseProject, shelf_layout: "single_shelf", shelf_count: 1, height_inches: 0.75 },
+      buildModel: buildModel({
+        pieces: [shelfPiece({ label: "Shelf board", quantity: 1 })],
+        materials: [{ ...simpleShelfBuildModelFixture.materials[0], label: "Pine board", nominalThicknessInches: null }],
+      }),
+    });
+    const markup = renderToStaticMarkup(React.createElement(WallShelfBuyingPlan, { viewModel, compact: true }));
+
+    expect(markup).toContain("Pine board stock-board planning visual: Part A - Shelf board");
+    expect(markup).toContain("thickness needs review");
+    expect(markup).toContain("review");
+    expect(markup).toContain("Stock length still needs selection from available boards.");
+    expect(markup).not.toMatch(/\bbuy one\b|vendor|price|pricing|inventory|optimized cut/i);
   });
 });
