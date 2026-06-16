@@ -1,6 +1,7 @@
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { findShelfLayoutIssues } from "@/lib/projects/shelf-layout-validation";
 import { projectTypes, type ProjectIntake, type ProjectType } from "@/lib/projects/types";
+import { analyzeWallShelfMountingIntent, isBathroomOrHumidityText } from "@/lib/projects/wall-shelf-intent";
 import { calculateSafetyReviewFlags, type SafetyReviewFlag } from "@/lib/safety/safety-review";
 
 export type ClarificationGateStatus =
@@ -65,24 +66,10 @@ function isNonNegativeNumber(value: number | null | undefined): value is number 
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
-function hasSupportMethod(project: ClarificationGateInput): boolean {
-  return /\b(brackets?|cleats?|standards?|side\s+supports?|vertical\s+supports?|frame|uprights?|rails?|studs?|anchors?)\b/.test(projectText(project));
-}
-
-function isWallMounted(project: ClarificationGateInput): boolean {
-  const text = projectText(project);
-  if (/\b(no|not|without)\s+(?:wall\s+)?(?:mounting|mounted|mount|anchors?|studs?|brackets?)\b/.test(text)) return false;
-  return /\b(wall|wall-mounted|mounted|mount|hang|anchor|stud|bracket|cleat)\b/.test(text);
-}
-
 function hasFinishProtectionContext(project: ClarificationGateInput): boolean {
   return /\b(finish|paint|stain|seal|sealed|sealer|polyurethane|spar\s+urethane|exterior\s+screws?|stainless|galvanized|cedar|treated|weatherproof|waterproof)\b/.test(
     projectText(project),
   );
-}
-
-function hasExpectedUseContext(project: ClarificationGateInput): boolean {
-  return /\b(light|decor|towels?|books?|plants?|display|load|weight|pantry|spice|storage|toiletries|nursery)\b/.test(projectText(project));
 }
 
 function isWoodworkingAdjacent(project: ClarificationGateInput): boolean {
@@ -239,7 +226,8 @@ function shelfQuestions(project: ClarificationGateInput, reviewFlags: SafetyRevi
     });
   }
 
-  if (isWallMounted(project) && !hasSupportMethod(project)) {
+  const mountingIntent = analyzeWallShelfMountingIntent(project);
+  if (mountingIntent.wallMounted && !mountingIntent.supportMethodSpecified) {
     addUniqueQuestion(questions, {
       id: "mounting_support_method",
       category: "mounting",
@@ -249,12 +237,32 @@ function shelfQuestions(project: ClarificationGateInput, reviewFlags: SafetyRevi
     });
   }
 
-  if (reviewFlags.some((flag) => flag.code === "heavy_shelving") && !hasExpectedUseContext(project)) {
+  if (mountingIntent.wallMounted && !mountingIntent.wallFastenerContextSpecified) {
+    addUniqueQuestion(questions, {
+      id: "wall_fastener_context",
+      category: "mounting",
+      question: "What wall type, stud, anchor, or fastener plan should be reviewed?",
+      reason: "Wall-shelf plans need wall-type and fastener context before the mounting review can be specific enough to trust.",
+      requiredForFullPlan: true,
+    });
+  }
+
+  if ((mountingIntent.wallMounted || reviewFlags.some((flag) => flag.code === "heavy_shelving")) && !mountingIntent.expectedUseSpecified) {
     addUniqueQuestion(questions, {
       id: "expected_load_or_use",
       category: "use_load",
       question: "What will the shelf hold, and should any load be treated as heavy?",
       reason: "Shelf load affects support, fasteners, mounting, and whether Boardsmith should block or limit the packet.",
+      requiredForFullPlan: true,
+    });
+  }
+
+  if (isBathroomOrHumidityText(project) && !mountingIntent.finishProtectionSpecified) {
+    addUniqueQuestion(questions, {
+      id: "finish_exposure",
+      category: "finish_exposure",
+      question: "What finish or hardware should be reviewed for bathroom humidity?",
+      reason: "Bathroom and damp-use shelves need finish, corrosion, and moisture-movement review before the plan feels complete.",
       requiredForFullPlan: true,
     });
   }

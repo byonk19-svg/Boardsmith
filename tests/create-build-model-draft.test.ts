@@ -147,6 +147,34 @@ describe("createBuildModelDraft", () => {
     expect(draft.unresolvedQuestions.join(" ")).not.toContain("How many shelves or openings");
   });
 
+  it("treats the wall-shelf template as mounting-review work when mounting details are missing", () => {
+    const draft = draftFor(
+      project({
+        title: "Single bathroom shelf",
+        project_type: "simple_shelf",
+        width_inches: 24,
+        height_inches: 0.75,
+        depth_inches: 8,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        style_notes: "",
+        intended_use: "Indoor bathroom shelf.",
+      }),
+    );
+
+    expect(draft.hardware.map((item) => item.id)).toEqual(
+      expect.arrayContaining(["wall_brackets", "wall_anchors", "moisture_resistant_finish_review"]),
+    );
+    expect(draft.operations.map((operation) => operation.id)).toEqual(
+      expect.arrayContaining(["cut_shelf_board", "sand_shelf_board", "inspect_mounting_location", "review_bathroom_finish"]),
+    );
+    expect(draft.safety.flags.map((flag) => flag.category)).toContain("wall_mounting");
+    expect(draft.assumptions.join(" ")).toContain("Mounting/support method is unresolved");
+    expect(draft.assumptions.join(" ")).not.toMatch(/freestanding|non-mounted/i);
+  });
+
   it("flags multi-shelf wording without shelf count instead of treating it as a complete one-board shelf", () => {
     const draft = draftFor(
       project({

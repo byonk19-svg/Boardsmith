@@ -198,10 +198,11 @@ describe("createWallShelfPlanReadinessViewModel", () => {
     );
   });
 
-  it("keeps a single shelf compact and free of connected-unit warnings", () => {
+  it("keeps a single shelf compact while surfacing mounting review", () => {
     const manifest = manifestFor({ ...baseProject, shelf_layout: "single_shelf", shelf_count: 1, height_inches: 0.75 }, buildModel({ pieces: [shelfPiece({ label: "Shelf board", quantity: 1 })] }));
 
-    expect(manifest.wallShelfPlanReadinessViewModel.status).toBe("build_ready");
+    expect(manifest.wallShelfPlanReadinessViewModel.status).toBe("needs_review");
+    expect(manifest.wallShelfPlanReadinessViewModel.actions.map((action) => action.id)).toContain("mounting_support_method");
     expect(manifest.wallShelfPlanReadinessViewModel.actions.map((action) => action.id)).not.toContain("support_frame_design");
     expect(manifest.wallShelfPlanReadinessViewModel.actions.map((action) => action.id)).not.toContain("total_height_review");
     expect(JSON.stringify(manifest.wallShelfPlanReadinessViewModel)).not.toMatch(/connected unit|connected shelf unit|freestanding|non-mounted/i);

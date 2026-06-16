@@ -69,6 +69,10 @@ function safeDimensionLabel(dimension: WallShelfDiagramDimension, fallback: stri
   return dimension.status === "known" ? dimension.label : fallback;
 }
 
+function compactThicknessLabel(dimension: WallShelfDiagramDimension): string {
+  return safeDimensionLabel(dimension, "Thickness to verify").replace(/^Material thickness/i, "Thickness");
+}
+
 function ExplodedAssemblyView({ model, viewModel }: { model: WallShelfDiagramModel; viewModel: WallShelfDiagramViewModel }) {
   const shelves = viewModel.visibleBoards.filter((piece) => piece.role === "shelf_board");
   const modeledSupports = viewModel.visibleBoards.filter((piece) => piece.role === "support_frame");
@@ -193,7 +197,7 @@ function SideView({ model, viewModel }: { model: WallShelfDiagramModel; viewMode
       <Callout x={46} y={32}>wall</Callout>
       <BoardRect x={94} y={92} width={210} height={24} />
       <DimensionLine x1={94} y1={76} x2={304} y2={76} label={safeDimensionLabel(viewModel.dimensions.depth, "Depth to verify")} />
-      <DimensionLine x1={322} y1={92} x2={322} y2={116} label={safeDimensionLabel(viewModel.dimensions.boardThickness, "Material thickness to verify")} />
+      <DimensionLine x1={350} y1={92} x2={350} y2={116} label={compactThicknessLabel(viewModel.dimensions.boardThickness)} />
       <ReviewBadge x={112} y={130} label={model.supportLabel} />
       <line x1="92" y1="116" x2="304" y2="116" stroke="#7a5b2e" strokeDasharray="4 4" />
       <Callout x={112} y={164}>{viewModel.supportFrameReview.needsReview ? "support/frame review required" : "mounting review required"}</Callout>

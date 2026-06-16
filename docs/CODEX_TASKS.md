@@ -1138,6 +1138,22 @@
 - [x] Add regression coverage for the new hero label position.
 - [x] Keep the pass SVG/view-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 90H - Single Wall-Shelf Dogfood Corrections
+
+- [x] Implement the dogfood follow-up from `docs/BUILD_PLAN_VISUALS_DOGFOOD_IMPROVEMENT_PLAN.md`.
+- [x] Treat `simple_shelf` wall-shelf projects as wall-mounted review work unless the intake explicitly says freestanding, tabletop, desktop, riser, display board, or no wall mounting.
+- [x] Gate pre-generation wall-shelf plans on missing support method, wall/fastener context, expected use/load, and bathroom/humidity finish context.
+- [x] Filter stale generated-plan and manifest copy that calls unresolved wall shelves `freestanding` or `non-mounted`.
+- [x] Replace single-shelf print snapshot `Total project height` with shelf width, shelf depth, and board thickness facts.
+- [x] Clarify cut checklist counters by separating dimension review counts from plan-level warnings.
+- [x] Make compact readiness print cards preserve mounting, buying-plan, and support/frame actions when the action list is long.
+- [x] Use operation-specific tools in wall-shelf build steps instead of repeating the entire available tool inventory.
+- [x] Add single-shelf mini-diagram variants for cut, layout, and support review phases.
+- [x] Shorten the side-view board-thickness diagram label to reduce overlap risk.
+- [x] Keep explicit freestanding shelf-like risers supported without adding wall hardware or wall-mounting review.
+- [x] Cover the new semantics with clarification-gate, build-model, generated-plan, readiness, material-summary, print, route, and rendered-diagram tests.
+- [x] Keep the pass deterministic and safety-bounded with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
 1. [ ] Keep using the wall-shelf Visual Plan Packet and Buying Plan manually; only expand behavior if stock-length selection, hardware grouping, or visual review remains repeatedly annoying.

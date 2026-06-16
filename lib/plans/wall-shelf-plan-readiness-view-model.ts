@@ -5,6 +5,7 @@ import type { WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-v
 import type { WallShelfStockBoardViewModel } from "@/lib/plans/wall-shelf-stock-board-view-model";
 import { findShelfLayoutIssues } from "@/lib/projects/shelf-layout-validation";
 import type { Project } from "@/lib/projects/types";
+import { analyzeWallShelfMountingIntent } from "@/lib/projects/wall-shelf-intent";
 
 export type WallShelfPlanReadinessStatus = "build_ready" | "needs_review" | "blocked" | "unsupported";
 export type WallShelfPlanReadinessSeverity = "info" | "review" | "blocker";
@@ -180,6 +181,7 @@ export function createWallShelfPlanReadinessViewModel(params: {
   }
 
   const layoutIssues = findShelfLayoutIssues(project);
+  const mountingIntent = analyzeWallShelfMountingIntent(project);
   const actions: WallShelfPlanReadinessAction[] = [];
 
   for (const issue of layoutIssues) {
@@ -232,7 +234,7 @@ export function createWallShelfPlanReadinessViewModel(params: {
     ...buildStepViewModel.reviewBlockers,
   ];
   if (hasText(mountingSignals, /wall|mount|anchor|stud|fastener|bracket|cleat|support|load/)) {
-    actions.push(mountingSupportAction(diagramViewModel.supportFrameReview.needsReview ? "review" : "info"));
+    actions.push(mountingSupportAction(diagramViewModel.supportFrameReview.needsReview || mountingIntent.wallMounted ? "review" : "info"));
   }
 
   if (buildModel.safety.reviewRequired || buildModel.safety.flags.length > 0) {
@@ -241,7 +243,15 @@ export function createWallShelfPlanReadinessViewModel(params: {
 
   const orderedActions = uniqueActions(actions).sort((a, b) => {
     const severityOrder: Record<WallShelfPlanReadinessSeverity, number> = { blocker: 0, review: 1, info: 2 };
-    return severityOrder[a.severity] - severityOrder[b.severity];
+    const sectionOrder: Record<WallShelfPlanReadinessSection, number> = {
+      dimensions: 0,
+      mounting: project.shelf_layout === "multi_shelf_unit" ? 2 : 1,
+      "support/frame": project.shelf_layout === "multi_shelf_unit" ? 1 : 2,
+      "buying plan": 3,
+      cuts: 4,
+      safety: 5,
+    };
+    return severityOrder[a.severity] - severityOrder[b.severity] || sectionOrder[a.relatedSection] - sectionOrder[b.relatedSection];
   });
   const status = statusFor(orderedActions);
   const summary = summaryFor(status);

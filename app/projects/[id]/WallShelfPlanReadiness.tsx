@@ -15,6 +15,8 @@ export function WallShelfPlanReadiness({
 }) {
   if (viewModel.status === "unsupported") return null;
 
+  const visibleActions = compact ? compactReadinessActions(viewModel.actions) : viewModel.actions.slice(0, 6);
+
   return (
     <div className={`break-inside-avoid rounded-md border ${containerClass(viewModel.status)} ${compact ? "p-3" : "p-4"} print:break-inside-avoid`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -33,7 +35,7 @@ export function WallShelfPlanReadiness({
 
       {viewModel.actions.length > 0 ? (
         <ol className={`mt-4 grid gap-3 ${compact ? "" : "lg:grid-cols-2 print:grid-cols-2"}`}>
-          {viewModel.actions.slice(0, compact ? 4 : 6).map((action) => (
+          {visibleActions.map((action) => (
             <ReadinessActionCard key={action.id} action={action} compact={compact} />
           ))}
         </ol>
@@ -44,6 +46,27 @@ export function WallShelfPlanReadiness({
       )}
     </div>
   );
+}
+
+function compactReadinessActions(actions: WallShelfPlanReadinessAction[]): WallShelfPlanReadinessAction[] {
+  if (actions.length <= 4) return actions;
+
+  const selected: WallShelfPlanReadinessAction[] = [];
+  const add = (action: WallShelfPlanReadinessAction | undefined) => {
+    if (action && !selected.some((selectedAction) => selectedAction.id === action.id)) selected.push(action);
+  };
+
+  add(actions.find((action) => action.severity === "blocker"));
+  add(actions.find((action) => action.relatedSection === "mounting"));
+  add(actions.find((action) => action.relatedSection === "buying plan"));
+  add(actions.find((action) => action.relatedSection === "support/frame"));
+
+  for (const action of actions) {
+    if (selected.length >= 4) break;
+    add(action);
+  }
+
+  return selected;
 }
 
 function ReadinessActionCard({ action, compact }: { action: WallShelfPlanReadinessAction; compact: boolean }) {

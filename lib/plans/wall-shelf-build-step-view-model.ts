@@ -3,7 +3,7 @@ import type { BuildStepCard, BuildStepPhaseLabel } from "@/lib/plans/build-step-
 import type { WallShelfCutDiagramViewModel, WallShelfCutPieceGroup } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import type { WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
 import type { Project } from "@/lib/projects/types";
-import { formatToolLabel } from "@/lib/projects/types";
+import { formatToolLabel, type ToolOption } from "@/lib/projects/types";
 
 export type WallShelfBuildStepStatus = "ready" | "needs_review" | "unsupported";
 
@@ -42,9 +42,24 @@ function operationFor(buildModel: BoardsmithBuildModel, id: string): BuildModelO
   return buildModel.operations.find((operation) => operation.id === id) ?? null;
 }
 
-function toolsFor(project: WallShelfBuildStepProjectInput, operation: BuildModelOperation | null): string[] {
-  const toolNames = operation?.toolNames.length ? operation.toolNames : project.tools_available;
+function selectedTools(project: WallShelfBuildStepProjectInput, preferred: ToolOption[], fallback: string): string[] {
+  const available = new Set(project.tools_available);
+  const selected = preferred.filter((tool) => available.has(tool));
+  return selected.length > 0 ? selected : [fallback];
+}
+
+function toolsFor(_project: WallShelfBuildStepProjectInput, operation: BuildModelOperation | null, fallback: string[] = ["tools to confirm"]): string[] {
+  const toolNames = operation?.toolNames.length ? operation.toolNames : fallback;
   return uniqueStrings(toolNames).map(formatToolLabel);
+}
+
+function projectDimensionReferences(project: WallShelfBuildStepProjectInput, diagramViewModel: WallShelfDiagramViewModel): string[] {
+  return [
+    diagramViewModel.dimensions.width.label,
+    diagramViewModel.dimensions.depth.label,
+    ...(project.shelf_layout === "single_shelf" || project.shelf_count === 1 ? [] : [diagramViewModel.dimensions.height.label]),
+    diagramViewModel.dimensions.boardThickness.label,
+  ];
 }
 
 function operationPartLabels(cutViewModel: WallShelfCutDiagramViewModel, operation: BuildModelOperation | null): string[] {
@@ -182,15 +197,10 @@ function buildCards(params: {
         ? "Resolve the listed review items before treating these steps as a complete build sequence."
         : "Confirm shelf width, depth, board thickness, and the support method against the actual space and material.",
       phaseLabel: "Inspect / review",
-      tools: toolsFor(project, mountingOperation),
+      tools: toolsFor(project, mountingOperation, selectedTools(project, ["tape_measure", "pencil"], "measurement tools to confirm")),
       relatedOperationTitle: mountingOperation?.title ?? null,
       relatedPieceLabels: allPieceLabels,
-      dimensionReferences: [
-        diagramViewModel.dimensions.width.label,
-        diagramViewModel.dimensions.depth.label,
-        diagramViewModel.dimensions.height.label,
-        diagramViewModel.dimensions.boardThickness.label,
-      ],
+      dimensionReferences: projectDimensionReferences(project, diagramViewModel),
       reviewBlockers,
       warnings: uniqueStrings([...diagramViewModel.warnings, ...cutViewModel.warnings]).slice(0, 8),
       safetyNote: "Boardsmith cannot verify load capacity, wall safety, anchors, studs, or site conditions.",
@@ -206,7 +216,7 @@ function buildCards(params: {
           ? "Do not cut until every shelf-board dimension and quantity has been checked against the review notes."
           : "Cut the shelf board pieces only after checking the dimensions against your actual lumber.",
       phaseLabel: "Cut",
-      tools: toolsFor(project, cutOperation),
+      tools: toolsFor(project, cutOperation, selectedTools(project, ["tape_measure", "pencil"], "cutting tools to confirm")),
       estimatedTimeLabel: estimateFor(cutOperation),
       relatedOperationTitle: cutOperation?.title ?? null,
       relatedPieceLabels: operationPartLabels(cutViewModel, cutOperation).length > 0 ? operationPartLabels(cutViewModel, cutOperation) : shelfLabels,
@@ -231,7 +241,7 @@ function buildCards(params: {
           ? "Prepare the modeled support/frame pieces and verify how they locate the shelves before assembly."
           : "Choose verified side supports, frame, cleat, brackets, or another support method before assembling or mounting this connected shelf unit.",
         phaseLabel: supportModeled ? "Measure / mark" : "Inspect / review",
-        tools: toolsFor(project, supportOperation),
+        tools: toolsFor(project, supportOperation, selectedTools(project, ["tape_measure", "pencil"], "support review tools to confirm")),
         estimatedTimeLabel: estimateFor(supportOperation),
         relatedOperationTitle: supportOperation?.title ?? null,
         relatedPieceLabels: uniqueStrings([...supports.map((piece) => piece.printLabel), ...supportPlaceholders.map((piece) => piece.printLabel)]),
@@ -255,7 +265,7 @@ function buildCards(params: {
           ? "After the support/frame design is resolved, dry fit the shelf boards with the verified support pieces before any permanent assembly."
           : "Dry fit the shelf pieces and confirm the layout matches the reviewed dimensions.",
       phaseLabel: "Assemble",
-      tools: toolsFor(project, null),
+      tools: toolsFor(project, null, selectedTools(project, ["tape_measure", "pencil", "clamps"], "layout tools to confirm")),
       relatedPieceLabels: allPieceLabels,
       dimensionReferences: [
         ...(diagramViewModel.shelfCount ? [`${diagramViewModel.shelfCount.toString()} ${diagramViewModel.shelfCount === 1 ? "shelf" : "shelves"}`] : []),
@@ -271,7 +281,7 @@ function buildCards(params: {
       purpose: "Make the pieces safer to handle and ready for finish.",
       instructions: "Sand exposed edges and faces, then clean dust before finish or final assembly review.",
       phaseLabel: "Sand",
-      tools: toolsFor(project, sandOperation),
+      tools: toolsFor(project, sandOperation, selectedTools(project, ["sander"], "sanding tools to confirm")),
       estimatedTimeLabel: estimateFor(sandOperation),
       relatedOperationTitle: sandOperation?.title ?? null,
       relatedPieceLabels: operationPartLabels(cutViewModel, sandOperation).length > 0 ? operationPartLabels(cutViewModel, sandOperation) : allPieceLabels,
@@ -291,7 +301,7 @@ function buildCards(params: {
           ? "Assemble only the modeled shelf and support/frame pieces after confirming fit, square, and fastener choices."
           : "Do not assemble a connected shelf unit until side supports, frame, cleat, brackets, or another support method are modeled and reviewed.",
         phaseLabel: supportModeled ? "Assemble" : "Inspect / review",
-        tools: toolsFor(project, supportOperation),
+        tools: toolsFor(project, supportOperation, selectedTools(project, ["tape_measure", "pencil", "clamps"], "assembly review tools to confirm")),
         relatedOperationTitle: supportOperation?.title ?? null,
         relatedPieceLabels: allPieceLabels,
         reviewBlockers: supportModeled ? [] : ["Add support/frame details before this plan is build-ready."],
@@ -309,7 +319,7 @@ function buildCards(params: {
       purpose: "Keep wall attachment and support choices explicit and manually reviewed.",
       instructions: "Choose a verified support method, locate studs or appropriate anchors, and confirm fasteners before drilling or installation.",
       phaseLabel: "Inspect / review",
-      tools: toolsFor(project, mountingOperation),
+      tools: toolsFor(project, mountingOperation, selectedTools(project, ["tape_measure", "pencil", "drill"], "mounting review tools to confirm")),
       estimatedTimeLabel: estimateFor(mountingOperation),
       relatedOperationTitle: mountingOperation?.title ?? null,
       relatedPieceLabels: operationPartLabels(cutViewModel, mountingOperation).length > 0 ? operationPartLabels(cutViewModel, mountingOperation) : allPieceLabels,
@@ -324,7 +334,7 @@ function buildCards(params: {
       purpose: "Complete surface prep while preserving final review before use.",
       instructions: "Apply finish according to product labels, let it cure, then inspect edges, fasteners, support method, and intended use before loading the shelf.",
       phaseLabel: "Finish",
-      tools: toolsFor(project, null),
+      tools: toolsFor(project, null, selectedTools(project, ["paint_brush", "sander"], "finish review tools to confirm")),
       relatedPieceLabels: allPieceLabels,
       warnings: buildModel.safety.flags.map((flag) => flag.message),
       safetyNote: "Use your own judgment before loading, mounting, or placing objects on the shelf.",

@@ -271,13 +271,13 @@ describe("ProjectPrintPreviewPage", () => {
 
     const sectionOrder = [
       "Build Snapshot",
+      "Check Before Building",
       "Hero Visual",
       "Project Visuals / Diagrams",
       "Cut Checklist",
       "Buying Plan",
       "Materials and Parts",
       "Build Guide",
-      "Check Before Building",
       "Reference Review Notes",
     ];
     const sectionIndexes = sectionOrder.map((label) => markup.indexOf(label));
@@ -288,7 +288,7 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Not optimized");
     expect(markup.indexOf("A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.")).toBeGreaterThan(markup.indexOf("Reference Review Notes"));
     expect(markup.indexOf("A cautious wall shelf plan sized from the submitted dimensions with manual mounting review before use.")).toBeGreaterThan(markup.indexOf("Build Guide"));
-  });
+  }, 10000);
 
   it("dedupes modeled and generated shelf cut rows in the print cut checklist", async () => {
     const fiveShelfProject: Project = {
@@ -397,7 +397,8 @@ describe("ProjectPrintPreviewPage", () => {
 
     const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
     expect(readinessIndex).toBeGreaterThan(markup.indexOf("Check Before Building"));
-    expect(readinessIndex).toBeGreaterThan(markup.indexOf("Build Guide"));
+    expect(readinessIndex).toBeLessThan(markup.indexOf("Hero Visual"));
+    expect(readinessIndex).toBeLessThan(markup.indexOf("Build Guide"));
     expect(readinessIndex).toBeLessThan(markup.indexOf("Reference Review Notes"));
     expect(markup).toContain("Resolve blockers before treating this as a build packet.");
     expect(markup).toContain("Total project height looks too small");

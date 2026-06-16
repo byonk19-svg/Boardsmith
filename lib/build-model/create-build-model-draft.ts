@@ -10,7 +10,8 @@ import {
 } from "@/lib/build-model/build-model-schema";
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { findShelfLayoutIssues, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
-import { projectTypes, type Project, type ProjectType, type SkillLevel } from "@/lib/projects/types";
+import { projectTypes, type Project, type ProjectType, type SkillLevel, type ToolOption } from "@/lib/projects/types";
+import { analyzeWallShelfMountingIntent, isBathroomOrHumidityText } from "@/lib/projects/wall-shelf-intent";
 import type { SafetyReviewFlag } from "@/lib/safety/safety-review";
 import { getTemplateHint, type TemplateHint } from "@/lib/templates/template-hints";
 
@@ -226,20 +227,39 @@ function operation(params: {
   };
 }
 
-function isWallMounted(project: BuildModelDraftProject, safetyFlags: SafetyReviewFlag[]): boolean {
-  const text = `${project.title} ${project.style_notes} ${project.intended_use}`.toLowerCase();
-  const explicitlyNotMounted = /\b(no|not|without)\s+(?:wall\s+)?(?:mounting|mounted|mount|anchors?|studs?|brackets?)\b/.test(text);
-
-  if (explicitlyNotMounted) return false;
-  return safetyFlags.some((flag) => flag.code === "wall_mounting") || textIncludes(project, /\b(wall|mounted|mount|hang|anchor|stud|bracket)\b/);
-}
-
 function isBookLedge(project: BuildModelDraftProject): boolean {
   return textIncludes(project, /\b(book\s*ledge|book\s*rail|toddler\s+book|nursery\s+book|children'?s\s+book)\b/);
 }
 
 function isBathroomOrHumidityProject(project: BuildModelDraftProject): boolean {
-  return textIncludes(project, /\b(bathroom|humid|humidity|damp|wet|towel|shower)\b/);
+  return isBathroomOrHumidityText(project);
+}
+
+function selectedTools(project: BuildModelDraftProject, preferred: ToolOption[], fallback: string): string[] {
+  const available = new Set(project.tools_available);
+  const selected = preferred.filter((tool) => available.has(tool));
+  return selected.length > 0 ? selected : [fallback];
+}
+
+function reviewTools(project: BuildModelDraftProject): string[] {
+  return selectedTools(project, ["tape_measure", "pencil"], "measurement tools to confirm");
+}
+
+function cutTools(project: BuildModelDraftProject): string[] {
+  const cuttingTool = selectedTools(project, ["miter_saw", "circular_saw", "jigsaw"], "cutting tool to review").at(0) ?? "cutting tool to review";
+  return [...selectedTools(project, ["tape_measure", "pencil"], "measuring and marking tools to confirm"), cuttingTool];
+}
+
+function sandTools(project: BuildModelDraftProject): string[] {
+  return selectedTools(project, ["sander"], "sandpaper or sander to review");
+}
+
+function finishTools(project: BuildModelDraftProject): string[] {
+  return selectedTools(project, ["paint_brush"], "finish applicator to review");
+}
+
+function mountingTools(project: BuildModelDraftProject): string[] {
+  return selectedTools(project, ["tape_measure", "pencil", "drill"], "mounting review tools to confirm");
 }
 
 function createDoorHangerParts(project: BuildModelDraftProject, materialId: string, templateHint: TemplateHint, wallMounted: boolean): DraftParts {
@@ -750,7 +770,7 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
         title: "Cut shelf board",
         description: "Confirm the shelf dimensions, then cut the shelf board from the selected material.",
         pieceIds: ["shelf_board"],
-        toolNames: project.tools_available,
+        toolNames: cutTools(project),
         safetyNotes: ["Measure twice before cutting and do not rely on Boardsmith for load ratings."],
       }),
       operation({
@@ -760,7 +780,7 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
         title: "Sand shelf board",
         description: "Sand exposed edges and faces before assembly, finish, or mounting review.",
         pieceIds: ["shelf_board"],
-        toolNames: project.tools_available,
+        toolNames: sandTools(project),
         safetyNotes: ["Wear appropriate PPE and control dust."],
       }),
       ...(connectedShelfUnit
@@ -773,7 +793,7 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
               description:
                 "Choose verified side supports, frame, cleat, bracket, or other support method before assembling or mounting this connected shelf unit.",
               pieceIds: ["shelf_board", "side_support_frame_placeholder"],
-              toolNames: project.tools_available,
+              toolNames: reviewTools(project),
               safetyNotes: ["Do not treat shelf boards alone as a complete connected shelf unit."],
             }),
           ]
@@ -787,7 +807,7 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
               title: "Inspect mounting location",
               description: "Review wall structure, stud locations, anchor choice, fasteners, and expected use before drilling or mounting.",
               pieceIds: ["shelf_board"],
-              toolNames: project.tools_available,
+              toolNames: mountingTools(project),
               safetyNotes: ["Manual mounting review is required; Boardsmith cannot verify wall safety or load capacity."],
             }),
           ]
@@ -801,7 +821,7 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
               title: "Review bathroom finish",
               description: "Choose finish and hardware appropriate for bathroom humidity before use.",
               pieceIds: ["shelf_board"],
-              toolNames: project.tools_available,
+              toolNames: finishTools(project),
               safetyNotes: ["Boardsmith cannot verify waterproofing, corrosion resistance, or long-term moisture performance."],
             }),
           ]
@@ -809,7 +829,8 @@ function createSimpleShelfParts(project: BuildModelDraftProject, materialId: str
     ],
     assumptions: [
       ...(wallMounted ? templateHint.assumptions : []),
-      ...(!wallMounted && !connectedShelfUnit ? ["Project is treated as freestanding or non-mounted because the intake does not ask for wall mounting."] : []),
+      ...(!wallMounted && !connectedShelfUnit ? ["Project is treated as non-wall-mounted only because the intake explicitly excludes wall mounting."] : []),
+      ...(wallMounted && !connectedShelfUnit ? ["Mounting/support method is unresolved and must be reviewed before installation."] : []),
       ...(shelfQuantity > 1 ? [`The intake describes ${shelfQuantity.toString()} shelves; spacing and support details still need review.`] : []),
       ...(wallMounted && multipleSeparateWallShelves
         ? [`Bracket placeholder uses 2 per shelf for planning only: ${(shelfQuantity * 2).toString()} brackets for ${shelfQuantity.toString()} shelves.`]
@@ -971,7 +992,7 @@ export function createBuildModelDraft(
   }
 
   const material = createPrimaryMaterial(project);
-  const wallMounted = isWallMounted(project, safetyFlags);
+  const wallMounted = analyzeWallShelfMountingIntent(project).wallMounted || safetyFlags.some((flag) => flag.code === "wall_mounting");
   const mappedSafetyFlags = safetyFlags.map((flag) => mapSafetyFlag(flag));
   const parts = createParts(project, material.id, templateHint, wallMounted);
   const unresolvedQuestions = [...new Set([...missingDimensionQuestions(project), ...parts.unresolvedQuestions])];

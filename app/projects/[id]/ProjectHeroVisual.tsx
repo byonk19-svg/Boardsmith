@@ -10,13 +10,13 @@ export function ProjectHeroVisual({
   compact?: boolean;
   wallShelfViewModel?: WallShelfDiagramViewModel | null;
 }) {
-  const svgHeightClass = compact ? "h-56 print:h-48" : "h-72 print:h-56";
+  const svgHeightClass = compact ? "h-72 print:h-56" : "h-[26rem] print:h-64";
   const shouldRenderShelfProject = visual.kind === "simple_shelf";
   const heroAriaLabel = shouldRenderShelfProject ? "Deterministic finished wall-shelf hero visual" : "Build-model hero visual";
 
   return (
-    <div className="break-inside-avoid rounded-md border border-sawdust bg-shop/30 p-3 print:break-inside-avoid print:bg-white">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <div className="break-inside-avoid rounded-lg border border-sawdust bg-[#fbf8f1] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] print:break-inside-avoid print:bg-white print:shadow-none">
+      <div className="flex flex-col gap-2 px-1 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-ink">Main project visual from structured plan data.</p>
           <p className="mt-1 text-xs leading-5 text-ink/60">Build-model hero visual - planning aid only.</p>
@@ -31,7 +31,7 @@ export function ProjectHeroVisual({
         <p className="mt-3 rounded-md border border-sawdust bg-white p-3 text-sm leading-6 text-ink/70">{visual.fallbackMessage}</p>
       ) : (
         <>
-          <svg className={`mt-3 w-full rounded-md border border-sawdust bg-white ${svgHeightClass}`} viewBox="0 0 680 340" role="img" aria-label={heroAriaLabel}>
+          <svg className={`mt-3 w-full rounded-md border border-sawdust bg-white shadow-[0_18px_45px_rgba(71,98,74,0.08)] ${svgHeightClass} print:shadow-none`} viewBox="0 0 680 340" role="img" aria-label={heroAriaLabel}>
             <rect x="28" y="24" width="624" height="292" rx="10" fill="#fffaf0" stroke="#d7c7a1" />
             {shouldRenderShelfProject ? <ShelfProjectVisual visual={visual} viewModel={wallShelfViewModel} /> : <GenericProjectVisual visual={visual} />}
           </svg>
@@ -85,9 +85,9 @@ function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisua
   const supportFrameNeedsReview = viewModel?.supportFrameReview.needsReview ?? false;
   const showSupportFrame = connectedLayout && (supportPieces.length > 0 || supportFrameNeedsReview);
   const widthLabel = viewModel?.dimensions.width.label ?? visual.widthLabel;
-  const heightLabel = viewModel?.dimensions.height.label ?? visual.heightLabel;
   const depthLabel = viewModel?.dimensions.depth.label ?? visual.depthLabel;
   const thicknessLabel = viewModel?.dimensions.boardThickness.label ?? visual.materialThicknessLabel;
+  const heightLabel = rawShelfCount === 1 ? compactThicknessLabel(thicknessLabel) : (viewModel?.dimensions.height.label ?? visual.heightLabel);
 
   return (
     <>
@@ -148,6 +148,10 @@ function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisua
       ) : null}
     </>
   );
+}
+
+function compactThicknessLabel(label: string): string {
+  return label.replace(/^Material thickness/i, "Thickness");
 }
 
 function ShelfSupportFrame({

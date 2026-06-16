@@ -16,6 +16,7 @@ import { createWallShelfPlanReadinessViewModel, type WallShelfPlanReadinessViewM
 import { createWallShelfStockBoardViewModel, type WallShelfStockBoardViewModel } from "@/lib/plans/wall-shelf-stock-board-view-model";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
 import { formatToolLabel, projectTypeLabels, type Project } from "@/lib/projects/types";
+import { analyzeWallShelfMountingIntent } from "@/lib/projects/wall-shelf-intent";
 
 export type PrintablePlanBuildModelSource = "saved" | "derived";
 
@@ -108,6 +109,23 @@ function formatProjectDimensionFacts(project: Project): { label: string; value: 
   const totalHeightValue = hasImpossibleShelfHeight(project) ? "Total height needs review" : `${project.height_inches.toString()} in`;
 
   if (project.project_type === "simple_shelf") {
+    if (project.shelf_layout === "single_shelf") {
+      return [
+        { label: "Shelf width", value: `${project.width_inches.toString()} in` },
+        { label: "Shelf depth from wall", value: `${project.depth_inches.toString()} in` },
+        { label: "Board thickness", value: `${project.material_thickness_inches.toString()} in` },
+      ];
+    }
+
+    if (project.shelf_layout === "multiple_separate_shelves") {
+      return [
+        { label: "Shelf width", value: `${project.width_inches.toString()} in` },
+        { label: "Shelf count", value: project.shelf_count ? project.shelf_count.toString() : "Shelf count needs review" },
+        { label: "Shelf depth from wall", value: `${project.depth_inches.toString()} in` },
+        { label: "Board thickness", value: `${project.material_thickness_inches.toString()} in` },
+      ];
+    }
+
     return [
       { label: "Shelf width", value: `${project.width_inches.toString()} in` },
       { label: "Total project height", value: totalHeightValue },
@@ -128,11 +146,15 @@ function formatProjectMaterial(project: Project): string {
   return `${project.material_type}, ${project.material_thickness_inches.toString()} in thick`;
 }
 
-function generatedPlanSummary(planRecord: GeneratedProjectPlanRecord | null, buildModel: BoardsmithBuildModel) {
+function generatedPlanSummary(planRecord: GeneratedProjectPlanRecord | null, project: Project, buildModel: BoardsmithBuildModel) {
   if (!planRecord) return null;
 
+  const staleFreestandingPattern = /\bfreestanding\b|\bnon-mounted\b/i;
+  const wallShelfMountingReview = analyzeWallShelfMountingIntent(project).wallMounted;
   const summary = hasConnectedShelfSupportPlaceholder(buildModel)
     ? "This saved plan needs support/frame review before it can be treated as a complete connected shelf unit. Confirm total height, side supports/frame, mounting method, and cut dimensions before building."
+    : wallShelfMountingReview && staleFreestandingPattern.test(planRecord.plan_json.project_summary)
+      ? "This saved wall-shelf plan needs mounting/support review before installation. Confirm support method, wall type, fasteners, expected load, and finish before building."
     : planRecord.plan_json.project_summary;
 
   return {
@@ -146,8 +168,9 @@ function generatedPlanSummary(planRecord: GeneratedProjectPlanRecord | null, bui
   };
 }
 
-function filterStaleConnectedShelfCopy(messages: string[], buildModel: BoardsmithBuildModel): string[] {
-  if (!hasConnectedShelfSupportPlaceholder(buildModel)) {
+function filterStaleWallShelfCopy(messages: string[], project: Project, buildModel: BoardsmithBuildModel): string[] {
+  const wallShelfMountingReview = analyzeWallShelfMountingIntent(project).wallMounted;
+  if (!hasConnectedShelfSupportPlaceholder(buildModel) && !wallShelfMountingReview) {
     return messages;
   }
 
@@ -155,14 +178,24 @@ function filterStaleConnectedShelfCopy(messages: string[], buildModel: Boardsmit
   return messages.filter((message) => !staleFreestandingPattern.test(message));
 }
 
-function planSections(plan: GeneratedPlan | null, buildModel: BoardsmithBuildModel): PrintablePlanManifest["sections"] {
+function filterStaleWallShelfSummary(summary: string | null, project: Project, buildModel: BoardsmithBuildModel): string | null {
+  if (!summary) return null;
+  const staleFreestandingPattern = /\bfreestanding\b|\bnon-mounted\b/i;
+  if ((hasConnectedShelfSupportPlaceholder(buildModel) || analyzeWallShelfMountingIntent(project).wallMounted) && staleFreestandingPattern.test(summary)) {
+    return "This wall-shelf plan needs mounting/support review before installation.";
+  }
+
+  return summary;
+}
+
+function planSections(plan: GeneratedPlan | null, project: Project, buildModel: BoardsmithBuildModel): PrintablePlanManifest["sections"] {
   return {
-    projectSummary: plan?.project_summary ?? null,
+    projectSummary: filterStaleWallShelfSummary(plan?.project_summary ?? null, project, buildModel),
     buildSteps: plan?.assembly_steps ?? [],
     modeledOperations: buildModel.operations,
-    safetyNotes: filterStaleConnectedShelfCopy(plan?.safety_notes ?? [], buildModel),
+    safetyNotes: filterStaleWallShelfCopy(plan?.safety_notes ?? [], project, buildModel),
     safetyFlags: buildModel.safety.flags,
-    assumptions: filterStaleConnectedShelfCopy([...new Set([...(plan?.assumptions ?? []), ...buildModel.assumptions])], buildModel),
+    assumptions: filterStaleWallShelfCopy([...new Set([...(plan?.assumptions ?? []), ...buildModel.assumptions])], project, buildModel),
     unresolvedQuestions: buildModel.unresolvedQuestions,
     finishingSteps: plan?.finishing_steps ?? [],
     beginnerTips: plan?.beginner_tips ?? [],
@@ -333,7 +366,7 @@ export function createPrintablePlanManifest({
   const plan = planRecord?.plan_json ?? null;
   const planReview = plan ? summarizeGeneratedPlanReview(plan, reviewBuildModel, { buildModelSource }) : null;
   const exportReadiness = plan ? summarizeExportReadiness(plan, reviewBuildModel, { buildModelSource }) : null;
-  const materials = summarizeMaterialReview(plan, reviewBuildModel);
+  const materials = summarizeMaterialReview(plan, reviewBuildModel, { wallMountingReview: analyzeWallShelfMountingIntent(project).wallMounted });
   const cutList = plan ? summarizeCutListReview(plan, reviewBuildModel) : null;
   const wallShelfPartScheduleViewModel = createWallShelfPartScheduleViewModel({ buildModel: reviewBuildModel });
   const wallShelfCutDiagramViewModel = createWallShelfCutDiagramViewModel({ project, buildModel: reviewBuildModel });
@@ -385,7 +418,7 @@ export function createPrintablePlanManifest({
         safetyFlags: project.safety_flags,
       },
     },
-    generatedPlan: generatedPlanSummary(planRecord, reviewBuildModel),
+    generatedPlan: generatedPlanSummary(planRecord, project, reviewBuildModel),
     buildModel: {
       available: true,
       source: buildModelSource,
@@ -413,7 +446,7 @@ export function createPrintablePlanManifest({
     actionChecklist,
     planReview,
     exportReadiness,
-    sections: planSections(plan, reviewBuildModel),
+    sections: planSections(plan, project, reviewBuildModel),
     disclaimers: [...new Set(baseDisclaimers(reviewBuildModel))],
     futureExportNotes: futureExportNotes(planRecord, exportReadiness),
   };

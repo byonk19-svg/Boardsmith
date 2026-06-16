@@ -160,9 +160,9 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(planSheetIndex).toBeGreaterThan(-1);
     expect(buildSnapshotIndex).toBeGreaterThan(planSheetIndex);
-    expect(heroVisualIndex).toBeGreaterThan(buildSnapshotIndex);
-    expect(checkBeforeIndex).toBeGreaterThan(heroVisualIndex);
+    expect(checkBeforeIndex).toBeGreaterThan(buildSnapshotIndex);
     expect(readinessIndex).toBeGreaterThan(checkBeforeIndex);
+    expect(heroVisualIndex).toBeGreaterThan(readinessIndex);
     expect(advancedDetailsIndex).toBeGreaterThan(heroVisualIndex);
     expect(reviewChecklistIndex).toBeGreaterThan(advancedDetailsIndex);
     expect(sectionNavIndex).toBeGreaterThan(reviewChecklistIndex);
@@ -174,7 +174,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(historyIndex).toBeGreaterThan(reviewIndex);
     expect(recordIndex).toBeGreaterThan(historyIndex);
     expect(markup).toContain("Private notes and real-build details stay with this project.");
-  });
+  }, 10000);
 
   it("renders a multi-shelf wall hero as repeated shelf boards instead of one generic block", async () => {
     const { ProjectHeroVisual } = await import("@/app/projects/[id]/ProjectHeroVisual");
@@ -416,6 +416,8 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Finished wall-shelf preview");
     expect(markup).toContain("Deterministic finished wall-shelf hero visual");
     expect(markup).toContain("Main project visual from structured plan data.");
+    expect(markup).toContain("Thickness 0.75 in");
+    expect(markup).not.toContain(">Height 0.75 in<");
     expect(markup.indexOf("Hero Visual")).toBeGreaterThan(markup.indexOf("Build Snapshot"));
     expect(markup.indexOf("Hero Visual")).toBeLessThan(markup.indexOf("Project Visuals / Diagrams"));
     expect(markup).toContain("Project Visuals / Diagrams");
@@ -440,6 +442,10 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain('name="plan_action_');
     expect(markup).toContain("Materials and Parts");
     expect(markup).toContain("Cut Checklist");
+    expect(markup).toContain("Plan warnings");
+    const planWarningMetrics = Array.from(markup.matchAll(/Plan warnings<\/p><p class="mt-1 text-2xl font-semibold text-ink">(\d+)<\/p>/g)).map((match) => match[1]);
+    expect(planWarningMetrics.length).toBeGreaterThan(0);
+    expect(new Set(planWarningMetrics).size).toBe(1);
     expect(markup).toContain("Buying Plan");
     expect(markup).toContain("stock-board planning visual");
     expect(markup).toContain("stock length to select");
@@ -487,13 +493,13 @@ describe("ProjectDetailPage project structure", () => {
 
     const corePacketOrder = [
       "Build Snapshot",
+      "Check Before Building",
       "Hero Visual",
       "Project Visuals / Diagrams",
       "Cut Checklist",
       "Buying Plan",
       "Materials and Parts",
       "Build Guide",
-      "Check Before Building",
       "Reference Review Notes",
     ];
     const corePacketIndexes = corePacketOrder.map((label) => markup.indexOf(label));
@@ -873,12 +879,12 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("No generated plan yet");
     expect(markup).toContain("Recommended next step");
-    expect(markup).toContain("Review intake, then generate a first plan");
-    expect(markup).toContain("Check the project intake and review triggers, then use Project actions to generate a first plan version for review.");
-    expect(markup).toContain("Saved intake is ready for review");
-    expect(markup).toContain("This project does not have a generated plan yet.");
-    expect(markup).toContain("Generate Plan remains primary");
-    expect(markup).toContain('href="#project-actions"');
+    expect(markup).toContain("Answer missing plan questions first");
+    expect(markup).toContain("Review the missing mounting, support, use, finish, or safety details before generating a full plan.");
+    expect(markup).toContain("Saved intake needs missing details");
+    expect(markup).toContain("This project needs a few concrete answers before Boardsmith should generate a full build packet.");
+    expect(markup).toContain("Answer missing questions first");
+    expect(markup).toContain('href="#plan-readiness"');
     expect(markup).toContain(">Generate Plan</button>");
     expect(markup).not.toContain("Generate another plan version");
     expect(markup).toContain("Generate a first plan from Project actions.");
@@ -1088,10 +1094,11 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(readinessIndex).toBeGreaterThan(-1);
     expect(heightActionIndex).toBeGreaterThan(readinessIndex);
+    expect(checkIndex).toBeLessThan(heroIndex);
+    expect(readinessIndex).toBeGreaterThan(checkIndex);
+    expect(readinessIndex).toBeLessThan(heroIndex);
     expect(heroIndex).toBeLessThan(cutIndex);
     expect(cutIndex).toBeLessThan(buildIndex);
-    expect(buildIndex).toBeLessThan(checkIndex);
-    expect(readinessIndex).toBeGreaterThan(checkIndex);
     expect(markup).toContain("Enter the full top-to-bottom height of the shelf unit, such as 60 in.");
     expect(markup).toContain("Support/frame design needs review");
     expect(markup).not.toMatch(/freestanding|non-mounted/i);

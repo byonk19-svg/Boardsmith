@@ -70,6 +70,15 @@ export default async function ProjectPrintPreviewPage({
           <PrintBuildSnapshot manifest={manifest} />
         </PrintSection>
 
+        <PrintSection title="Check Before Building">
+          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
+            <div className="mb-4">
+              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact />
+            </div>
+          ) : null}
+          <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
+        </PrintSection>
+
         <PrintSection title="Hero Visual">
           <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} compact />
         </PrintSection>
@@ -103,15 +112,6 @@ export default async function ProjectPrintPreviewPage({
 
         <PrintSection title="Build Guide" printBreakBefore>
           <PrintBuildGuide manifest={manifest} />
-        </PrintSection>
-
-        <PrintSection title="Check Before Building">
-          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
-            <div className="mb-4">
-              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact />
-            </div>
-          ) : null}
-          <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
         </PrintSection>
 
         <PrintSection title="Reference Review Notes" appendix printBreakBefore>
@@ -210,11 +210,12 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
   return (
     <div className="space-y-4">
       <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} compact />
-      <dl className="grid gap-3 text-sm sm:grid-cols-4 print:grid-cols-4">
+      <dl className="grid gap-3 text-sm sm:grid-cols-5 print:grid-cols-5">
         <PrintFact label="Total cut pieces" value={manifest.cutList.totalPieces.toString()} />
         <PrintFact label="Unique cuts" value={manifest.cutList.cutListRows.toString()} />
         <PrintFact label="Pieces with dimensions" value={manifest.cutList.piecesWithDimensions.toString()} />
-        <PrintFact label="Needs review" value={manifest.cutList.piecesNeedingReview.toString()} />
+        <PrintFact label="Dimension review" value={manifest.cutList.piecesNeedingReview.toString()} />
+        <PrintFact label="Plan warnings" value={manifest.wallShelfCutDiagramViewModel.warnings.length.toString()} />
       </dl>
       <p className="text-xs text-ink/55 sm:hidden print:hidden">Scroll sideways to review all cut-list columns.</p>
       <div className="overflow-x-auto">
@@ -475,7 +476,8 @@ function humanMaterialNote(item: PrintablePlanManifest["materials"]["primaryMate
   if (item.label.toLowerCase().includes("support method")) return "Choose brackets, cleats, side supports, or frame details before trusting hardware quantity.";
   if (item.label.toLowerCase().includes("anchor") || item.label.toLowerCase().includes("fastener")) return "Select hardware after checking the wall type and mounting location.";
   if (text.includes("humidity") || text.includes("moisture")) return "Review finish and hardware for bathroom humidity before building.";
-  return item.notes.at(0) ?? null;
+  const note = item.notes.at(0) ?? null;
+  return note?.replace(/^Plan material:\s*[^.]+\.\s*/i, "") ?? null;
 }
 
 function referenceReviewGroups(manifest: PrintablePlanManifest): { title: string; items: string[]; emptyCopy?: string; compact?: boolean }[] {

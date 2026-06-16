@@ -108,7 +108,7 @@ describe("WallShelfDiagrams", () => {
     expect(markup).toContain("1 shelf");
     expect(markup).toContain("Width 12 in");
     expect(markup).toContain("Depth 6 in");
-    expect(markup).toContain("Material thickness 0.75 in");
+    expect(markup).toContain("Thickness 0.75 in");
     expect(markup).not.toContain("Height 0.1 in");
   });
 
@@ -127,7 +127,7 @@ describe("WallShelfDiagrams", () => {
     expect(markup).toContain("Height 60 in");
     expect(markup).toContain("12 in spacing");
     expect(markup).toContain("Depth 6 in");
-    expect(markup).toContain("Material thickness 0.75 in");
+    expect(markup).toContain("Thickness 0.75 in");
     expect(markup).toContain("Qty 5");
     expect(markup).toContain("Shelf boards cut part planning graphic");
     expect(markup).toContain("12 in x 6 in x 0.75 in");

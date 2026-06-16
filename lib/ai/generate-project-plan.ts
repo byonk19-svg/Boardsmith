@@ -4,6 +4,7 @@ import { assertGeneratedPlanQuality } from "@/lib/plans/plan-quality";
 import { generatedPlanJsonSchema, generatedPlanSchema, type GeneratedPlan, type GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import { addRevisionAssumption } from "@/lib/plans/plan-revisions";
 import type { Project } from "@/lib/projects/types";
+import { analyzeWallShelfMountingIntent } from "@/lib/projects/wall-shelf-intent";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getTemplateHint } from "@/lib/templates/template-hints";
 
@@ -16,8 +17,11 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
   const safetyFlags = calculateSafetyReviewFlags(project);
   const hint = getTemplateHint(project.project_type);
   const intakeText = `${project.title} ${project.style_notes} ${project.intended_use}`.toLowerCase();
+  const wallShelfMountingIntent = analyzeWallShelfMountingIntent(project);
   const wallMountingReviewRequired =
-    safetyFlags.some((flag) => flag.code === "wall_mounting") || Boolean(buildModel?.safety.flags.some((flag) => flag.category === "wall_mounting"));
+    wallShelfMountingIntent.wallMounted ||
+    safetyFlags.some((flag) => flag.code === "wall_mounting") ||
+    Boolean(buildModel?.safety.flags.some((flag) => flag.category === "wall_mounting"));
   const childOrBabyReviewRequired =
     safetyFlags.some((flag) => flag.code === "child_or_baby_use") || Boolean(buildModel?.safety.flags.some((flag) => flag.category === "child_use"));
   const bathroomOrHumidityReview = /\b(bathroom|humid|humidity|damp|wet|towel|shower)\b/.test(intakeText);
@@ -35,6 +39,7 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
     project,
     intake_interpretation: {
       wall_mounting_review_required: wallMountingReviewRequired,
+      wall_mounting_intent: wallShelfMountingIntent.kind,
       child_or_baby_review_required: childOrBabyReviewRequired,
       bathroom_or_humidity_review: bathroomOrHumidityReview,
       book_ledge_review: bookLedgeReview,
@@ -43,9 +48,9 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
       exact_review_labels_required: exactReviewLabels,
       use_template_hints_as_guidance_only: true,
       if_wall_mounting_review_is_false:
-        "Treat the project as freestanding or non-mounted. Do not add wall brackets, anchors, studs, hanging hardware, mounting steps, or wall-load review unless the intake or build model explicitly includes them.",
+        "Only treat the project as non-wall-mounted when the intake explicitly says freestanding, tabletop, desktop, riser, or no wall mounting. Do not add wall brackets, anchors, studs, hanging hardware, mounting steps, or wall-load review for those explicit non-wall-mounted cases.",
       if_wall_mounting_review_is_true:
-        "Treat mounting as unresolved manual review. Include studs, anchors, fasteners, wall structure, and load-use review in needs_review_flags and safety_notes, but do not say the shelf is safely mounted or load rated.",
+        "Treat mounting/support as unresolved manual review unless the build model contains reviewed hardware. Include studs, anchors, fasteners, wall structure, support method, and load-use review in needs_review_flags and safety_notes, but do not say the shelf is freestanding, safely mounted, or load rated.",
       if_child_or_baby_review_is_true:
         "Copy the Child or baby use review label exactly. Use cautious adult-review language about secure mounting, rounded and sanded edges, adult-reviewed non-toxic finish selection, regular inspection, and supervision. Do not say child-safe, child safe, kid-safe, safe for toddlers, safe for children, certified, approved, or guaranteed.",
       if_bathroom_or_humidity_review_is_true:
@@ -87,6 +92,7 @@ export function buildProjectPlanPromptContext(project: Project, buildModel?: Boa
     ],
     output_alignment_rules: [
       "Treat template hints as guidance. If the project intake and build model do not include wall mounting or wall hardware, do not add brackets, anchors, studs, or mounting steps.",
+      "For the simple_shelf wall-shelf template, missing mounting hardware means mounting/support method unresolved; it does not mean freestanding or non-mounted unless the intake explicitly says so.",
       "Use the build model pieces as the cut-list source of truth. Reuse piece labels, material labels, and dimensions from build_model_context when present.",
       "Include concrete materials, named pieces, dimensions, build operations, assumptions, unresolved questions, safety notes, and review flags.",
       "For book ledges, reuse modeled ledge piece names such as bottom shelf board, back rail, and front lip when present; do not add unmodeled child-safety claims.",

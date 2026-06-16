@@ -111,6 +111,7 @@ function BuildStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact:
   const reviewNeeded = Boolean(card.reviewBlockers?.length) || /review|blocked|do not|confirm wall mounting/i.test(`${card.title} ${card.instructions}`);
   const pieceLabels = card.relatedPieceLabels.length > 0 ? card.relatedPieceLabels : ["Modeled pieces"];
   const visiblePieces = pieceLabels.slice(0, compact ? 2 : 3);
+  const singleShelf = isSingleShelfCard(card);
   const ariaLabel = `Step ${card.stepNumber.toString()} mini diagram: ${card.title}; ${pieceLabels.join(", ")}${reviewNeeded ? "; review first" : ""}`;
   const boardFill = reviewNeeded ? "#fff3c4" : "#d9b77f";
   const boardStroke = reviewNeeded ? "5 4" : undefined;
@@ -121,8 +122,12 @@ function BuildStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact:
       {phase === "cut" ? (
         <>
           <rect x="32" y="28" width="286" height="30" rx="5" fill="#f7efe0" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="6 5" />
-          <line x1="96" y1="28" x2="96" y2="58" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
-          <line x1="178" y1="28" x2="178" y2="58" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+          {!singleShelf ? (
+            <>
+              <line x1="96" y1="28" x2="96" y2="58" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+              <line x1="178" y1="28" x2="178" y2="58" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+            </>
+          ) : null}
           <text x="174" y="78" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
             check dimensions before cutting
           </text>
@@ -132,19 +137,31 @@ function BuildStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact:
         <>
           <rect x="48" y="32" width="24" height="52" rx="4" fill="#eef3e8" stroke="#47624a" strokeWidth="2" />
           <rect x="104" y="34" width="210" height="16" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
-          <rect x="104" y="64" width="210" height="16" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
+          {!singleShelf ? <rect x="104" y="64" width="210" height="16" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} /> : null}
+          {singleShelf ? <line x1="94" y1="42" x2="104" y2="42" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" /> : null}
           <text x="48" y="96" className="fill-ink text-[10px] font-semibold">
             wall
           </text>
         </>
       ) : null}
       {phase === "support" ? (
-        <>
-          <rect x="96" y="28" width="20" height="58" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
-          <rect x="280" y="28" width="20" height="58" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
-          <line x1="120" y1="42" x2="276" y2="42" stroke="#7a5b2e" strokeWidth="2" strokeDasharray={reviewNeeded ? "5 4" : undefined} />
-          <line x1="120" y1="72" x2="276" y2="72" stroke="#7a5b2e" strokeWidth="2" strokeDasharray={reviewNeeded ? "5 4" : undefined} />
-        </>
+        singleShelf ? (
+          <>
+            <rect x="70" y="24" width="24" height="66" rx="4" fill="#eef3e8" stroke="#47624a" strokeWidth="2" />
+            <rect x="122" y="44" width="180" height="18" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
+            <line x1="94" y1="53" x2="122" y2="53" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+            <text x="122" y="80" className="fill-ink text-[10px] font-semibold">
+              support method?
+            </text>
+          </>
+        ) : (
+          <>
+            <rect x="96" y="28" width="20" height="58" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
+            <rect x="280" y="28" width="20" height="58" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
+            <line x1="120" y1="42" x2="276" y2="42" stroke="#7a5b2e" strokeWidth="2" strokeDasharray={reviewNeeded ? "5 4" : undefined} />
+            <line x1="120" y1="72" x2="276" y2="72" stroke="#7a5b2e" strokeWidth="2" strokeDasharray={reviewNeeded ? "5 4" : undefined} />
+          </>
+        )
       ) : null}
       {phase === "mount" ? (
         <>
@@ -203,6 +220,11 @@ function stepDiagramPhase(card: BuildStepCard): "cut" | "layout" | "support" | "
   if (/finish|sand|prep/.test(text)) return "finish";
   if (/dry fit|layout/.test(text)) return "layout";
   return "review";
+}
+
+function isSingleShelfCard(card: BuildStepCard): boolean {
+  const labels = card.relatedPieceLabels.join(" ");
+  return /\bShelf board\b/.test(labels) && !/\bShelf boards\b/.test(labels);
 }
 
 function shortPartLabel(label: string): string {

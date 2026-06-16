@@ -117,7 +117,7 @@ describe("generate plan route feedback", () => {
       shelf_layout: "multiple_separate_shelves",
       shelf_count: 5,
       intended_use: "Five separate wall shelves for light towels.",
-      style_notes: "Review brackets and anchors before mounting.",
+      style_notes: "Review brackets and anchors before mounting into drywall studs; use a moisture-resistant finish and corrosion-resistant hardware.",
     });
     generateStructuredProjectPlanMock.mockRejectedValue(new Error("Hosted model unavailable in this route preflight test."));
     const { POST } = await import("@/app/projects/[id]/generate/route");

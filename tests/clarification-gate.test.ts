@@ -31,6 +31,44 @@ describe("createClarificationGateDecision", () => {
     expect(decision.questions).toEqual([]);
   });
 
+  it("asks missing mounting, load, and finish questions for a single bathroom wall-shelf template", () => {
+    const decision = createClarificationGateDecision(
+      project({
+        title: "Single bathroom shelf",
+        height_inches: 0.75,
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        style_notes: "",
+        intended_use: "Indoor bathroom shelf.",
+      }),
+    );
+
+    expect(decision.status).toBe("needs_details");
+    expect(decision.canGenerateFullPlan).toBe(false);
+    expect(decision.reviewFlags.map((flag) => flag.code)).toContain("wall_mounting");
+    expect(decision.questions.map((question) => question.id)).toEqual(
+      expect.arrayContaining(["mounting_support_method", "wall_fastener_context", "expected_load_or_use", "finish_exposure"]),
+    );
+  });
+
+  it("does not add wall mounting questions for explicit freestanding shelf-like risers", () => {
+    const decision = createClarificationGateDecision(
+      project({
+        title: "Cordless lamp riser",
+        height_inches: 3,
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        style_notes: "",
+        intended_use: "Freestanding cordless lamp riser for a bookshelf with no wall mounting.",
+      }),
+    );
+
+    expect(decision.reviewFlags.map((flag) => flag.code)).not.toContain("wall_mounting");
+    expect(decision.questions.map((question) => question.id)).not.toEqual(
+      expect.arrayContaining(["mounting_support_method", "wall_fastener_context"]),
+    );
+  });
+
   it("asks for concrete missing dimensions, material, tools, and shelf layout details", () => {
     const decision = createClarificationGateDecision(
       project({

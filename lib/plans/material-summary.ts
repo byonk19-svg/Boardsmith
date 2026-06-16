@@ -76,7 +76,7 @@ function planMaterialMatches(material: BuildModelMaterial, planMaterialName: str
 function planNotesForMaterial(plan: GeneratedPlan | null, material: BuildModelMaterial): string[] {
   if (!plan) return [];
   return plan.materials
-    .filter((item) => !hasAnyKeyword(`${item.name} ${item.notes}`, finishKeywords))
+    .filter((item) => !hasAnyKeyword(item.name, finishKeywords))
     .filter((item) => planMaterialMatches(material, item.name))
     .map((item) => `Plan material: ${item.quantity} ${item.name === material.label ? "" : item.name}. ${item.notes}`.replace(/\s+\./, "."));
 }
@@ -120,7 +120,7 @@ function finishSupplies(plan: GeneratedPlan | null, buildModel: BoardsmithBuildM
 
   const planFinishSupplies =
     plan?.materials
-      .filter((item) => hasAnyKeyword(`${item.name} ${item.notes}`, finishKeywords))
+      .filter((item) => hasAnyKeyword(item.name, finishKeywords))
       .map((item, index) => ({
         id: `plan_finish_${index.toString()}`,
         label: item.name,
@@ -131,7 +131,7 @@ function finishSupplies(plan: GeneratedPlan | null, buildModel: BoardsmithBuildM
   return uniqueItems([...buildModelFinishSupplies, ...planFinishSupplies]);
 }
 
-function reviewNotes(plan: GeneratedPlan | null, buildModel: BoardsmithBuildModel): string[] {
+function reviewNotes(plan: GeneratedPlan | null, buildModel: BoardsmithBuildModel, wallMountingReviewFromProject = false): string[] {
   const notes = ["Verify materials before purchasing or cutting."];
 
   if (buildModel.materials.length === 0) {
@@ -147,24 +147,29 @@ function reviewNotes(plan: GeneratedPlan | null, buildModel: BoardsmithBuildMode
     if (!item.quantity) notes.push(`Quantity to review for ${item.label}.`);
   }
 
-  const staleConnectedShelfPattern = hasConnectedShelfSupportPlaceholder(buildModel) ? /\bfreestanding\b|\bnon-mounted\b/i : null;
+  const wallMountingReview =
+    wallMountingReviewFromProject ||
+    hasConnectedShelfSupportPlaceholder(buildModel) ||
+    buildModel.safety.flags.some((flag) => flag.category === "wall_mounting") ||
+    buildModel.hardware.some((item) => item.hardwareType === "anchor" || item.hardwareType === "bracket" || item.hardwareType === "hanger");
+  const staleWallShelfPattern = wallMountingReview ? /\bfreestanding\b|\bnon-mounted\b/i : null;
   const reviewMessages = [
     ...buildModel.assumptions.filter((message) => hasAnyKeyword(message, materialReviewKeywords)),
     ...buildModel.unresolvedQuestions.filter((message) => hasAnyKeyword(message, materialReviewKeywords)),
     ...buildModel.confidence.reasons.filter((message) => hasAnyKeyword(message, materialReviewKeywords)),
     ...(plan?.assumptions.filter((message) => hasAnyKeyword(message, materialReviewKeywords)) ?? []),
-  ].filter((message) => !staleConnectedShelfPattern?.test(message));
+  ].filter((message) => !staleWallShelfPattern?.test(message));
 
   notes.push(...reviewMessages);
 
   return unique(notes);
 }
 
-export function summarizeMaterialReview(plan: GeneratedPlan | null, buildModel: BoardsmithBuildModel): MaterialReviewSummary {
+export function summarizeMaterialReview(plan: GeneratedPlan | null, buildModel: BoardsmithBuildModel, options: { wallMountingReview?: boolean } = {}): MaterialReviewSummary {
   return {
     primaryMaterials: uniqueItems(primaryMaterials(plan, buildModel)),
     hardwareFasteners: uniqueItems(hardwareFasteners(buildModel)),
     finishSupplies: finishSupplies(plan, buildModel),
-    reviewNotes: reviewNotes(plan, buildModel),
+    reviewNotes: reviewNotes(plan, buildModel, options.wallMountingReview ?? false),
   };
 }

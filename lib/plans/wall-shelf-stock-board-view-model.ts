@@ -236,10 +236,27 @@ function summaryFor(status: WallShelfStockBoardStatus, materialGroups: WallShelf
   return "Buying plan from Build Model pieces.";
 }
 
-function fallbackMessageFor(status: WallShelfStockBoardStatus, materialGroups: WallShelfStockBoardMaterialGroup[], reviewReasons: string[]): string | null {
+function layoutAwareFallbackMessage(project: WallShelfStockBoardProjectInput): string {
+  if (project.shelf_layout === "multi_shelf_unit") {
+    return "Review support/frame design, dimensions, finish, and stock length before using this as a purchase checklist.";
+  }
+
+  if (project.shelf_layout === "multiple_separate_shelves") {
+    return "Review per-shelf mounting hardware, bracket count, dimensions, finish, and stock length before using this as a purchase checklist.";
+  }
+
+  return "Review mounting hardware/support method, dimensions, finish, and stock length before using this as a purchase checklist.";
+}
+
+function fallbackMessageFor(
+  project: WallShelfStockBoardProjectInput,
+  status: WallShelfStockBoardStatus,
+  materialGroups: WallShelfStockBoardMaterialGroup[],
+  reviewReasons: string[],
+): string | null {
   if (status === "unsupported") return "Stock-board planning is available for wall shelf build models only.";
   if (materialGroups.length === 0) return "No modeled pieces are available for a buying plan yet.";
-  if (reviewReasons.length > 0) return "Review material, dimensions, and support/frame gaps before using this as a purchase checklist.";
+  if (reviewReasons.length > 0) return layoutAwareFallbackMessage(project);
   return null;
 }
 
@@ -276,7 +293,7 @@ export function createWallShelfStockBoardViewModel(params: {
     renderLabels: {
       title: "Buying Plan",
       summary: summaryFor(status, materialGroups, reviewReasons),
-      fallbackMessage: fallbackMessageFor(status, materialGroups, reviewReasons),
+      fallbackMessage: fallbackMessageFor(project, status, materialGroups, reviewReasons),
     },
   };
 }

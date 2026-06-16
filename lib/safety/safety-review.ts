@@ -1,6 +1,7 @@
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { findShelfLayoutIssues } from "@/lib/projects/shelf-layout-validation";
 import type { ProjectIntake } from "@/lib/projects/types";
+import { analyzeWallShelfMountingIntent } from "@/lib/projects/wall-shelf-intent";
 
 export type SafetyReviewFlag = {
   code: string;
@@ -11,17 +12,8 @@ export type SafetyReviewFlag = {
 const textMatches = (project: Pick<ProjectIntake, "title" | "style_notes" | "intended_use">, terms: RegExp) =>
   terms.test(`${project.title} ${project.style_notes} ${project.intended_use}`.toLowerCase());
 
-function projectText(project: Pick<ProjectIntake, "title" | "style_notes" | "intended_use">): string {
-  return `${project.title} ${project.style_notes} ${project.intended_use}`.toLowerCase();
-}
-
 function needsWallMountingReview(project: Pick<ProjectIntake, "title" | "project_type" | "style_notes" | "intended_use">): boolean {
-  const text = projectText(project);
-  const explicitlyNotMounted = /\b(no|not|without)\s+(?:wall\s+)?(?:mounting|mounted|mount|anchors?|studs?|brackets?)\b/.test(text);
-  const mountingRequested = /\b(wall|wall-mounted|mounted|mount|hang|anchor|stud|bracket)\b/.test(text);
-
-  if (explicitlyNotMounted) return false;
-  return mountingRequested;
+  return analyzeWallShelfMountingIntent(project).wallMounted;
 }
 
 export function calculateSafetyReviewFlags(

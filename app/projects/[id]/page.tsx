@@ -176,7 +176,13 @@ export default async function ProjectDetailPage({
               {templateHint && buildModel && displayedManifest ? (
                 <>
                   <TemplateGuidancePanel projectTypeLabel={projectTypeLabel(project.project_type)} assumptions={templateHint.assumptions} cautions={templateHint.cautions} />
-                  <BuildModelView buildModel={buildModel} source={buildModelSource} materialReview={displayedManifest.materials} cutListReview={displayedManifest.cutList} />
+                  <BuildModelView
+                    buildModel={buildModel}
+                    source={buildModelSource}
+                    materialReview={displayedManifest.materials}
+                    cutListReview={displayedManifest.cutList}
+                    planWarningCount={displayedManifest.wallShelfCutDiagramViewModel.warnings.length}
+                  />
                 </>
               ) : null}
               {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
@@ -636,16 +642,21 @@ function ReviewBeforeBuildingSummary({
 
 function NoPlanReviewSummary({ project, isArchived }: { project: Project; isArchived: boolean }) {
   const triggerCount = project.safety_flags.length;
+  const gate = createClarificationGateDecision(project);
+  const needsDetails = !gate.canGenerateFullPlan;
 
   return (
     <section className="no-print rounded-lg border border-sawdust bg-white p-5 shadow-soft">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-wide text-moss">No generated plan yet</p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Saved intake is ready for review</h2>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">
+            {needsDetails ? "Saved intake needs missing details" : "Saved intake is ready for review"}
+          </h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            This project does not have a generated plan yet. Review the saved intake and safety triggers first; notes, build log, and planning
-            internals can stay secondary until a first plan exists.
+            {needsDetails
+              ? "This project needs a few concrete answers before Boardsmith should generate a full build packet. Review the readiness questions first."
+              : "This project does not have a generated plan yet. Review the saved intake and safety triggers first; notes, build log, and planning internals can stay secondary until a first plan exists."}
           </p>
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
@@ -671,8 +682,14 @@ function NoPlanReviewSummary({ project, isArchived }: { project: Project; isArch
         />
         <NoPlanSummaryFact
           label="Next action"
-          value={isArchived ? "Restore before generation" : "Generate Plan remains primary"}
-          detail={isArchived ? "Archived projects are read-only until restored." : "Generation creates the first plan version for review."}
+          value={isArchived ? "Restore before generation" : needsDetails ? "Answer missing questions first" : "Generate review-first plan"}
+          detail={
+            isArchived
+              ? "Archived projects are read-only until restored."
+              : needsDetails
+                ? "Readiness questions explain what is missing for a safer plan."
+                : "Generation creates the first plan version for review."
+          }
         />
       </div>
     </section>
@@ -848,6 +865,21 @@ function RecommendedNextStep({
   }
 
   if (!latestPlanReview) {
+    const gate = createClarificationGateDecision(project);
+    if (!gate.canGenerateFullPlan) {
+      return (
+        <NextStepPanel
+          title="Answer missing plan questions first"
+          body="Review the missing mounting, support, use, finish, or safety details before generating a full plan."
+          links={[
+            { href: "#plan-readiness", label: "Review questions" },
+            { href: "#project-intake", label: "Review intake" },
+          ]}
+          tone="warning"
+        />
+      );
+    }
+
     return (
       <NextStepPanel
         title="Review intake, then generate a first plan"
@@ -1706,11 +1738,13 @@ function BuildModelView({
   source,
   materialReview,
   cutListReview,
+  planWarningCount,
 }: {
   buildModel: BoardsmithBuildModel;
   source: "saved" | "derived";
   materialReview: MaterialReviewSummary;
   cutListReview: CutListReviewSummary | null;
+  planWarningCount: number;
 }) {
   return (
     <section id="project-structure" className="scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
@@ -1747,7 +1781,7 @@ function BuildModelView({
 
         {cutListReview ? (
           <StructureGroup title="Cut List Review">
-            <CutListReviewSummaryView summary={cutListReview} compact showTitle={false} />
+            <CutListReviewSummaryView summary={cutListReview} planWarningCount={planWarningCount} compact showTitle={false} />
           </StructureGroup>
         ) : null}
 
@@ -1898,21 +1932,24 @@ function MaterialReviewGroup({ title, items, emptyCopy }: { title: string; items
 
 function CutListReviewSummaryView({
   summary,
+  planWarningCount = summary.warnings.length,
   compact = false,
   showTitle = true,
 }: {
   summary: CutListReviewSummary;
+  planWarningCount?: number;
   compact?: boolean;
   showTitle?: boolean;
 }) {
   return (
     <div className={compact ? "space-y-4" : "space-y-5"}>
       {showTitle ? <h4 className="text-sm font-semibold text-ink">Cut List Review</h4> : null}
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-5">
         <ReviewMetric label="Total cut pieces" value={summary.totalPieces.toString()} />
         <ReviewMetric label="Cut-list rows" value={summary.cutListRows.toString()} />
         <ReviewMetric label="Pieces with dimensions" value={summary.piecesWithDimensions.toString()} />
-        <ReviewMetric label="Needs review" value={summary.piecesNeedingReview.toString()} />
+        <ReviewMetric label="Dimension review" value={summary.piecesNeedingReview.toString()} />
+        <ReviewMetric label="Plan warnings" value={planWarningCount.toString()} />
       </div>
 
       {summary.warnings.length > 0 ? <ReviewMessageGroup title="Cut-list warnings" messages={summary.warnings} tone="warning" /> : null}
@@ -1990,13 +2027,22 @@ function PlanView({
       {unresolvedDimensionItems.length > 0 ? <UnresolvedCutDimensionsWarning items={unresolvedDimensionItems} /> : null}
 
       <div className="divide-y divide-sawdust">
+        <PlanSheetSection title="Check Before Building">
+          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
+            <div className="mb-5">
+              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} />
+            </div>
+          ) : null}
+          <PlanActionChecklist items={manifest.actionChecklist} />
+        </PlanSheetSection>
+
         <PlanSheetSection title="Hero Visual">
           <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} />
         </PlanSheetSection>
 
         <PlanSheetSection title="Project Visuals / Diagrams">
           {manifest.wallShelfDiagram ? (
-            <WallShelfDiagrams model={manifest.wallShelfDiagram} compact />
+            <WallShelfDiagrams model={manifest.wallShelfDiagram} />
           ) : (
             <PlanningDiagramsSection diagrams={manifest.planningDiagrams.diagrams} fallbackMessage={manifest.planningDiagrams.fallbackMessage} />
           )}
@@ -2007,7 +2053,7 @@ function PlanView({
             <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} />
           </div>
           <div className="mb-5">
-            <CutListReviewSummaryView summary={manifest.cutList} />
+            <CutListReviewSummaryView summary={manifest.cutList} planWarningCount={manifest.wallShelfCutDiagramViewModel.warnings.length} />
           </div>
           {generatedCuts.length > 0 ? (
             <>
@@ -2057,15 +2103,6 @@ function PlanView({
             <BuildStepStatusSummary viewModel={manifest.wallShelfBuildStepViewModel} />
           </div>
           <BuildStepCards cards={manifest.buildStepCards} />
-        </PlanSheetSection>
-
-        <PlanSheetSection title="Check Before Building">
-          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
-            <div className="mb-5">
-              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} />
-            </div>
-          ) : null}
-          <PlanActionChecklist items={manifest.actionChecklist} />
         </PlanSheetSection>
 
         <PlanSheetSection title="Reference Review Notes">
