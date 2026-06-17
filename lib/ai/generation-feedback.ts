@@ -22,11 +22,18 @@ export function classifyGenerationFailure(error: unknown): GenerationFailureReas
   const message = error instanceof Error ? error.message : String(error);
 
   if (message.includes("OPENAI_API_KEY is not configured")) return "missing_openai_key";
-  if (message.includes("Project is archived")) return "archived";
+  if (isArchivedProjectSaveFailure(message)) return "archived";
   if (message.includes("Generated plan failed deterministic quality checks")) return "review_blocked";
   if (message.includes("Generated plan failed validation")) return "validation_failed";
 
   return "generation_failed";
+}
+
+function isArchivedProjectSaveFailure(message: string): boolean {
+  return (
+    message.includes("Project is archived") ||
+    (/Project .+ is archived or not found/.test(message) && message.includes("saving generated plan"))
+  );
 }
 
 export function isGenerationFailureReason(value: string | undefined): value is GenerationFailureReason {

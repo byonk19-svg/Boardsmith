@@ -278,4 +278,22 @@ describe("generate plan route feedback", () => {
     expect(saveGeneratedPlanMock).toHaveBeenCalled();
     expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
   });
+
+  it("does not mark failed when Supabase reports an archived generated-plan save", async () => {
+    generateStructuredProjectPlanMock.mockResolvedValue({ modelName: "test-model", plan: {} });
+    saveGeneratedPlanMock.mockRejectedValue(
+      new Error("Project 11111111-1111-4111-8111-111111111111 is archived or not found while saving generated plan"),
+    );
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/blocked_generation_project?generation_error=archived");
+    expect(generateStructuredProjectPlanMock).toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
+  });
 });

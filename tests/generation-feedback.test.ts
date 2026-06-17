@@ -1,7 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { getGenerationFailureFeedback } from "@/lib/ai/generation-feedback";
+import { classifyGenerationFailure, getGenerationFailureFeedback } from "@/lib/ai/generation-feedback";
 
 describe("getGenerationFailureFeedback", () => {
+  it("classifies Supabase archived generated-plan save failures as archived", () => {
+    const reason = classifyGenerationFailure(
+      new Error("Project 11111111-1111-4111-8111-111111111111 is archived or not found while saving generated plan"),
+    );
+
+    expect(reason).toBe("archived");
+  });
+
+  it("does not classify unrelated not-found errors as archived", () => {
+    const reason = classifyGenerationFailure(new Error("Project 11111111-1111-4111-8111-111111111111 is archived or not found"));
+
+    expect(reason).toBe("generation_failed");
+  });
+
   it("maps deterministic quality failures to non-technical blocked-generation feedback", () => {
     const feedback = getGenerationFailureFeedback("review_blocked", ["Wall mounting review", "Child or baby use"]);
 

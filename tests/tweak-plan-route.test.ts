@@ -199,6 +199,22 @@ describe("tweak plan route", () => {
     expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
   });
 
+  it("does not mark failed when Supabase reports an archived revised-plan save", async () => {
+    saveGeneratedPlanMock.mockRejectedValue(
+      new Error("Project 11111111-1111-4111-8111-111111111111 is archived or not found while saving generated plan"),
+    );
+    const { POST } = await import("@/app/projects/[id]/revise/route");
+
+    const response = await POST(revisionRequest("Make the steps easier for a beginner."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.headers.get("location")).toBe("http://localhost/projects/revision-project?generation_error=archived");
+    expect(generateRevisedStructuredProjectPlanMock).toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
+  });
+
   it("does not revise archived projects or projects with no latest plan", async () => {
     const { POST } = await import("@/app/projects/[id]/revise/route");
 
