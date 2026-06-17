@@ -11,3 +11,8 @@ dist/
 *.tsbuildinfo
 
 .vercel
+
+# Local Codex/Matt Pocock skill installs and generated verification output
+.agents/skills/
+skills-lock.json
+output/
