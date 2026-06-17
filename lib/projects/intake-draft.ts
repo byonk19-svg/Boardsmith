@@ -32,6 +32,7 @@ import {
 } from "@/lib/projects/types";
 
 export const projectIntakeDraftCookieName = "boardsmith_project_intake_draft";
+export const maxProjectIntakeDraftCookieValueLength = 3600;
 
 export type ProjectIntakeDraft = {
   title: string;
@@ -148,7 +149,48 @@ export function createProjectIntakeDraft(formData: FormData): ProjectIntakeDraft
 }
 
 export function encodeProjectIntakeDraft(draft: ProjectIntakeDraft): string {
-  return encodeURIComponent(JSON.stringify(draft));
+  const boundedDraft = { ...draft };
+  const shrinkableFields: (keyof Pick<
+    ProjectIntakeDraft,
+    | "style_notes"
+    | "intended_use"
+    | "wall_obstructions"
+    | "finish_preference"
+    | "edge_treatment"
+    | "planned_mounting_height"
+    | "material_type"
+    | "title"
+  >)[] = [
+    "style_notes",
+    "intended_use",
+    "wall_obstructions",
+    "finish_preference",
+    "edge_treatment",
+    "planned_mounting_height",
+    "material_type",
+    "title",
+  ];
+
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const encoded = encodeURIComponent(JSON.stringify(boundedDraft));
+    if (encoded.length <= maxProjectIntakeDraftCookieValueLength) {
+      return encoded;
+    }
+
+    const longestField = shrinkableFields
+      .map((field) => ({ field, length: boundedDraft[field].length }))
+      .filter((entry) => entry.length > 0)
+      .sort((a, b) => b.length - a.length)
+      .at(0);
+
+    if (!longestField) {
+      return encodeURIComponent(JSON.stringify(createProjectIntakeDraft(new FormData())));
+    }
+
+    boundedDraft[longestField.field] = boundedDraft[longestField.field].slice(0, Math.max(0, longestField.length - 128)).trimEnd();
+  }
+
+  return encodeURIComponent(JSON.stringify(createProjectIntakeDraft(new FormData())));
 }
 
 export function decodeProjectIntakeDraft(value: string | undefined): ProjectIntakeDraft {

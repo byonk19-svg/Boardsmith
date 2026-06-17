@@ -185,6 +185,20 @@ describe("tweak plan route", () => {
     expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
   });
 
+  it("does not mark failed when a project becomes archived before a revision can be saved", async () => {
+    saveGeneratedPlanMock.mockRejectedValue(new Error("Project is archived. Restore it before saving a generated plan."));
+    const { POST } = await import("@/app/projects/[id]/revise/route");
+
+    const response = await POST(revisionRequest("Make the steps easier for a beginner."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.headers.get("location")).toBe("http://localhost/projects/revision-project?generation_error=archived");
+    expect(generateRevisedStructuredProjectPlanMock).toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
+  });
+
   it("does not revise archived projects or projects with no latest plan", async () => {
     const { POST } = await import("@/app/projects/[id]/revise/route");
 

@@ -262,4 +262,20 @@ describe("generate plan route feedback", () => {
     expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
     expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
   });
+
+  it("does not mark failed when a project becomes archived before the generated plan can be saved", async () => {
+    generateStructuredProjectPlanMock.mockResolvedValue({ modelName: "test-model", plan: {} });
+    saveGeneratedPlanMock.mockRejectedValue(new Error("Project is archived. Restore it before saving a generated plan."));
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/blocked_generation_project?generation_error=archived");
+    expect(generateStructuredProjectPlanMock).toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
+  });
 });

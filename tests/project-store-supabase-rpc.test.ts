@@ -180,9 +180,10 @@ describe("Supabase generated plan save RPC", () => {
       build_lessons_learned: "",
       ...activeProjectArchiveFields,
     };
-    const single = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
-    const select = vi.fn(() => ({ single }));
-    const eq = vi.fn(() => ({ select }));
+    const maybeSingle = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
+    const select = vi.fn(() => ({ maybeSingle }));
+    const is = vi.fn(() => ({ select }));
+    const eq = vi.fn(() => ({ is }));
     const update = vi.fn(() => ({ eq }));
     const from = vi.fn(() => ({ update }));
 
@@ -197,5 +198,6 @@ describe("Supabase generated plan save RPC", () => {
     expect(from).toHaveBeenCalledWith("projects");
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: "generation_failed" }));
     expect(eq).toHaveBeenCalledWith("id", "project-id");
+    expect(is).toHaveBeenCalledWith("archived_at", null);
   });
 });

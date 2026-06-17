@@ -76,4 +76,22 @@ describe("Supabase migrations", () => {
     expect(sql).not.toContain("anon");
     expect(sql).not.toContain("authenticated");
   });
+
+  it("guards atomic generated-plan saves against archived projects without opening public access", async () => {
+    const sql = await readFile("supabase/migrations/20260617120000_guard_generated_plan_save_lifecycle.sql", "utf8");
+
+    expect(sql).toContain("create or replace function public.save_generated_plan_atomic");
+    expect(sql).toContain("and archived_at is null");
+    expect(sql).toContain("for update");
+    expect(sql).toContain("is archived or not found while saving generated plan");
+    expect(sql).toContain("update public.generated_project_plans");
+    expect(sql).toContain("insert into public.generated_project_plans");
+    expect(sql).toContain("update public.projects");
+    expect(sql).toContain("revoke all on function public.save_generated_plan_atomic");
+    expect(sql).toContain("grant execute on function public.save_generated_plan_atomic");
+    expect(sql).toContain("to service_role");
+    expect(sql).not.toMatch(/grant execute on function public\.save_generated_plan_atomic[\s\S]*to public/);
+    expect(sql).not.toMatch(/grant execute on function public\.save_generated_plan_atomic[\s\S]*to anon/);
+    expect(sql).not.toMatch(/grant execute on function public\.save_generated_plan_atomic[\s\S]*to authenticated/);
+  });
 });

@@ -43,7 +43,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     return NextResponse.redirect(new URL(`/projects/${project.id}?generated=1`, request.url), 303);
   } catch (error) {
     const reason = classifyGenerationFailure(error);
-    await markProjectGenerationFailed(project.id);
+    if (reason !== "archived") {
+      await markProjectGenerationFailed(project.id);
+    }
     revalidatePath(`/projects/${project.id}`);
     return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=${reason}`, request.url), 303);
   }

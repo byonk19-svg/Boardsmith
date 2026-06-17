@@ -22,6 +22,7 @@ export function classifyGenerationFailure(error: unknown): GenerationFailureReas
   const message = error instanceof Error ? error.message : String(error);
 
   if (message.includes("OPENAI_API_KEY is not configured")) return "missing_openai_key";
+  if (message.includes("Project is archived")) return "archived";
   if (message.includes("Generated plan failed deterministic quality checks")) return "review_blocked";
   if (message.includes("Generated plan failed validation")) return "validation_failed";
 

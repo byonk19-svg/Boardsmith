@@ -3,6 +3,7 @@ import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { generatedProjectPlanRecordSchema, type GeneratedPlan, type GeneratedProjectPlanRecord, renderPlanMarkdown } from "@/lib/plans/plan-schema";
+import { isProjectArchived } from "@/lib/projects/project-planning-lifecycle";
 import {
   projectBuildLogSchema,
   projectNotesSchema,
@@ -411,14 +412,22 @@ export async function updateProjectStatus(projectId: string, status: ProjectStat
   const now = new Date().toISOString();
 
   if (isSupabasePersistenceConfigured()) {
-    const { data, error } = await getSupabase().from("projects").update({ status, updated_at: now }).eq("id", projectId).select("*").single();
+    const { data, error } = await getSupabase()
+      .from("projects")
+      .update({ status, updated_at: now })
+      .eq("id", projectId)
+      .is("archived_at", null)
+      .select("*")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) return null;
     return normalizeProjectRow(data);
   }
 
   return mutateLocalStore((store) => {
     const project = store.projects.find((candidate) => candidate.id === projectId);
     if (!project) return null;
+    if (isProjectArchived(project)) return null;
 
     project.status = status;
     project.updated_at = now;
@@ -491,6 +500,9 @@ export async function saveGeneratedPlan(params: {
     const project = store.projects.find((candidate) => candidate.id === params.projectId);
     if (!project) {
       throw new Error("Project not found.");
+    }
+    if (isProjectArchived(project)) {
+      throw new Error("Project is archived. Restore it before saving a generated plan.");
     }
 
     for (const plan of store.plans) {

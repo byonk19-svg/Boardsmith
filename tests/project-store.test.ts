@@ -253,11 +253,16 @@ describe("project store lifecycle", () => {
 
     const archived = await store.archiveProject(project.id);
     const archivedPlans = await store.listGeneratedPlans(project.id);
+    const failedWhileArchived = await store.markProjectGenerationFailed(project.id);
 
     expect(archived?.archived_at).toEqual(expect.any(String));
     expect(archived?.updated_at).not.toBe(project.updated_at);
     expect(archivedPlans).toHaveLength(1);
     expect(archivedPlans[0]?.is_latest).toBe(true);
+    expect(failedWhileArchived).toBeNull();
+    await expect(store.saveGeneratedPlan({ projectId: project.id, modelName: "test-model", plan })).rejects.toThrow(
+      "Project is archived. Restore it before saving a generated plan.",
+    );
 
     const restored = await store.restoreProject(project.id);
     const restoredPlans = await store.listGeneratedPlans(project.id);

@@ -2,7 +2,12 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import NewProjectPage from "@/app/projects/new/page";
-import { decodeProjectIntakeDraft, encodeProjectIntakeDraft, type ProjectIntakeDraft } from "@/lib/projects/intake-draft";
+import {
+  decodeProjectIntakeDraft,
+  encodeProjectIntakeDraft,
+  maxProjectIntakeDraftCookieValueLength,
+  type ProjectIntakeDraft,
+} from "@/lib/projects/intake-draft";
 import type { Project } from "@/lib/projects/types";
 import { createProject, getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { activeProjectArchiveFields } from "./project-test-helpers";
@@ -400,6 +405,71 @@ describe("project form routes", () => {
     expect(decodedDraft.tools_available).toEqual(["tape_measure", "pencil", "drill"]);
     expect(draftCookie).not.toContain("Zod");
     expect(decodedDraft.tools_available).not.toContain("invalid_tool");
+  });
+
+  it("bounds large invalid-intake drafts so the recovery cookie survives browser limits", () => {
+    const draft: ProjectIntakeDraft = {
+      title: "Hosted smoke shelf with a long but valid title".padEnd(120, "x"),
+      project_type: "simple_shelf",
+      skill_level: "beginner",
+      width_inches: "240",
+      height_inches: "240",
+      depth_inches: "240",
+      material_thickness_inches: "12",
+      material_type: "pine board".padEnd(120, "x"),
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: "20",
+      shelf_spacing_inches: "120",
+      board_size: "other_not_sure",
+      measurement_confidence: "not_sure",
+      mounting_method: "not_sure",
+      wall_type: "not_sure",
+      stud_access: "not_sure",
+      shelf_load: "not_sure",
+      moisture_exposure: "covered_outdoor",
+      higher_risk_spots: [
+        "above_bed_crib_seat_or_sleeping_area",
+        "above_toilet_sink_or_walkway",
+        "child_accessible",
+        "near_water_shower_or_tub",
+        "holding_breakable_or_heavy_items",
+        "not_sure",
+      ],
+      install_location: "other_not_sure",
+      planned_mounting_height: "Around 60 inches from the floor.".padEnd(160, "x"),
+      support_count: "not_sure",
+      wall_obstructions: "Towel bars, switches, and other wall constraints.".padEnd(300, "x"),
+      cut_strategy: "not_sure",
+      finish_preference: "Moisture-resistant finish review.".padEnd(240, "x"),
+      edge_treatment: "Rounded front corners.".padEnd(240, "x"),
+      tools_available: [
+        "tape_measure",
+        "pencil",
+        "clamps",
+        "drill",
+        "stud_finder",
+        "level",
+        "safety_glasses",
+        "jigsaw",
+        "circular_saw",
+        "miter_saw",
+        "sander",
+        "paint_brush",
+      ],
+      style_notes: "Detailed style notes. ".repeat(50),
+      intended_use: "Detailed intended use. ".repeat(50),
+    };
+
+    const encodedDraft = encodeProjectIntakeDraft(draft);
+    const decodedDraft = decodeProjectIntakeDraft(encodedDraft);
+
+    expect(encodedDraft.length).toBeLessThanOrEqual(maxProjectIntakeDraftCookieValueLength);
+    expect(decodedDraft.title).toBe(draft.title);
+    expect(decodedDraft.project_type).toBe("simple_shelf");
+    expect(decodedDraft.shelf_layout).toBe("multi_shelf_unit");
+    expect(decodedDraft.tools_available).toContain("safety_glasses");
+    expect(decodedDraft.style_notes.length).toBeLessThanOrEqual(draft.style_notes.length);
+    expect(decodedDraft.intended_use.length).toBeLessThanOrEqual(draft.intended_use.length);
   });
 
   it("creates projects with whole-number dimensions and decimal material thickness", async () => {
