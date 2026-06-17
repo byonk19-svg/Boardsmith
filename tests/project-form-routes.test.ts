@@ -140,8 +140,9 @@ describe("project form routes", () => {
   it("shows practical project examples and detail prompts on the intake form", async () => {
     const markup = renderToStaticMarkup(await NewProjectPage({}));
 
-    expect(markup).toContain("Start a project plan");
-    expect(markup).toContain("Save a clear project intake first.");
+    expect(markup).toContain("Tell Boardsmith what you want to build");
+    expect(markup).toContain("Add the basic details first.");
+    expect(markup).toContain('placeholder="Example: Small bathroom wall shelf"');
     expect(markup).toContain("Start from an example");
     expect(markup).toContain("optional editable starters");
     expect(markup).toContain("Examples fill the form with beginner-friendly details.");
@@ -157,38 +158,58 @@ describe("project form routes", () => {
     expect(markup).toContain("finished dimensions or your best current estimate");
     expect(markup).toContain("material and thickness");
     expect(markup).toContain("tools you can safely use");
-    expect(markup).toContain("Project basics");
-    expect(markup).toContain("Measurements");
+    expect(markup).toContain("Project");
+    expect(markup).toContain("Size and board");
     expect(markup).toContain("Shelf size and boards");
+    expect(markup).toContain("Mounting and safety");
+    expect(markup).toContain("Wall, load, and exposure");
+    expect(markup).toContain("Tools and finish");
     expect(markup).toContain("Wall shelf");
     expect(markup).toContain('<option value="simple_shelf" selected="">Wall shelf</option>');
+    expect(markup).toContain("Need help measuring?");
     expect(markup).toContain("Shelf width = left to right");
     expect(markup).toContain("Shelf depth = from wall to front edge");
     expect(markup).toContain("Total project height = full top-to-bottom size");
     expect(markup).toContain("Board thickness = each board, not the whole project");
-    expect(markup).toContain("For a wall shelf, start with width, depth from the wall, and board thickness.");
-    expect(markup).toContain("For shelves");
+    expect(markup).toContain("Measure the space where the shelf will go.");
+    expect(markup).toContain("Shelf size");
     expect(markup).toContain("Single shelf");
     expect(markup).toContain("Multiple separate wall shelves");
     expect(markup).toContain("Connected shelf unit with side supports/frame");
-    expect(markup).toContain("choose the layout, add the number of shelves");
     expect(markup).toContain('name="shelf_layout"');
     expect(markup).toContain('name="shelf_count"');
     expect(markup).toContain('name="shelf_spacing_inches"');
+    expect(markup).toContain('name="board_size"');
+    expect(markup).toContain('name="measurement_confidence"');
     expect(markup).toContain("Number of shelves");
     expect(markup).toContain("Shelf spacing, inches, optional");
     expect(markup).toContain("Shelf width, inches");
     expect(markup).toContain("Shelf depth from wall, inches");
-    expect(markup).toContain("Shelf board thickness, inches");
+    expect(markup).toContain("Actual board thickness, inches");
+    expect(markup).toContain("Board size from store");
+    expect(markup).toContain("Board material");
     expect(markup).toContain("Total project height, inches, optional");
-    expect(markup).toContain("A shelf usually needs a depth greater than 0.");
-    expect(markup).toContain("Tools and safety context");
-    expect(markup).toContain("Use, constraints, and finish notes");
-    expect(markup).toContain("Before saving");
-    expect(markup).toContain("generated plans are saved only after validation");
+    expect(markup).not.toContain("A shelf usually needs a depth greater than 0.");
+    expect(markup).toContain("How do you want to mount it?");
+    expect(markup).toContain("What will it mount into?");
+    expect(markup).toContain("Can you attach to studs?");
+    expect(markup).toContain("What will the shelf hold?");
+    expect(markup).toContain("Moisture exposure");
+    expect(markup).toContain("Where on the wall will it go?");
+    expect(markup).toContain("How many supports or brackets?");
+    expect(markup).toContain("Is this shelf in a higher-risk spot?");
+    expect(markup).toContain("Anything behind or near the shelf location?");
+    expect(markup).toContain("Stud finder");
+    expect(markup).toContain("Safety glasses");
+    expect(markup).toContain("How will the board be cut?");
+    expect(markup).toContain("Quick select: Basic layout tools");
+    expect(markup).toContain("Review before saving");
+    expect(markup).toContain("Boardsmith saves this setup first.");
+    expect(markup).toContain("Save incomplete setup");
+    expect(markup).toContain("Save and review project");
     expect(markup.match(/Use example/g)?.length).toBe(5);
     expect(markup.indexOf("<summary")).toBeLessThan(markup.indexOf("<form"));
-    expect(markup.indexOf('<h2 class="text-lg font-semibold text-ink">Project basics</h2>')).toBeGreaterThan(markup.indexOf("<form"));
+    expect(markup.indexOf('id="project-basics"')).toBeGreaterThan(markup.indexOf("<form"));
     expect(markup).toContain('href="/projects/new?example=plant_display_board"');
     expect(markup).toContain('href="/projects/new?example=lamp_riser"');
     expect(markup).toContain('href="/projects/new?example=desktop_organizer"');
@@ -270,6 +291,21 @@ describe("project form routes", () => {
       shelf_layout: "multiple_separate_shelves",
       shelf_count: "2",
       shelf_spacing_inches: "12",
+      board_size: "one_by_eight",
+      measurement_confidence: "measured_ready",
+      mounting_method: "visible_l_brackets",
+      wall_type: "drywall_wood_studs",
+      stud_access: "yes",
+      shelf_load: "towels",
+      moisture_exposure: "bathroom_humid",
+      higher_risk_spots: ["above_toilet_sink_or_walkway"],
+      install_location: "above_toilet",
+      planned_mounting_height: "Around 60 in from floor.",
+      support_count: "two",
+      wall_obstructions: "Towel bar below shelf.",
+      cut_strategy: "store_cut_or_precut",
+      finish_preference: "Moisture-resistant paint.",
+      edge_treatment: "Rounded front corners.",
       tools_available: ["tape_measure", "pencil"],
       style_notes: "Painted white.",
       intended_use: "Indoor wall shelf.",
@@ -293,6 +329,21 @@ describe("project form routes", () => {
     expect(markup).toContain('<option value="multiple_separate_shelves" selected="">Multiple separate wall shelves</option>');
     expect(markup).toContain('name="shelf_count" value="2"');
     expect(markup).toContain('name="shelf_spacing_inches" value="12"');
+    expect(markup).toContain('<option value="one_by_eight" selected="">1x8 board</option>');
+    expect(markup).toContain('<option value="measured_ready" selected="">Yes, measured and ready</option>');
+    expect(markup).toContain('<option value="visible_l_brackets" selected="">Visible L brackets</option>');
+    expect(markup).toContain('<option value="drywall_wood_studs" selected="">Drywall with wood studs</option>');
+    expect(markup).toContain('<option value="yes" selected="">Yes, studs can be used</option>');
+    expect(markup).toContain('<option value="towels" selected="">Towels</option>');
+    expect(markup).toContain('<option value="bathroom_humid" selected="">Bathroom/humid room</option>');
+    expect(markup).toContain('<option value="above_toilet" selected="">Above toilet</option>');
+    expect(markup).toContain('name="planned_mounting_height" value="Around 60 in from floor."');
+    expect(markup).toContain('<option value="two" selected="">2</option>');
+    expect(markup).toContain('checked="" value="above_toilet_sink_or_walkway"');
+    expect(markup).toContain("Towel bar below shelf.");
+    expect(markup).toContain('<option value="store_cut_or_precut" selected="">I need store-cut or pre-cut boards</option>');
+    expect(markup).toContain('value="Moisture-resistant paint."');
+    expect(markup).toContain('value="Rounded front corners."');
     expect(markup).toContain("Painted white.");
     expect(markup).toContain("Indoor wall shelf.");
     expect(markup).toContain('checked="" value="tape_measure"');
@@ -399,6 +450,138 @@ describe("project form routes", () => {
         shelf_count: 1,
       }),
     );
+  });
+
+  it("persists guided mounting, load, exposure, and cutting answers into the saved intake text", async () => {
+    vi.mocked(createProject).mockResolvedValueOnce({
+      id: "guided_intake_project",
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+      title: "Bathroom wall shelf",
+      project_type: "simple_shelf",
+      skill_level: "beginner",
+      status: "draft",
+      width_inches: 24,
+      height_inches: 0.75,
+      depth_inches: 8,
+      material_thickness_inches: 0.75,
+      material_type: "pine board",
+      tools_available: ["tape_measure", "pencil", "drill", "stud_finder", "safety_glasses"],
+      style_notes: "Painted white.",
+      intended_use: "Bathroom shelf for towels.",
+      safety_review_required: true,
+      safety_flags: ["Wall mounting review"],
+      notes: "",
+      build_completed: false,
+      build_completed_at: "",
+      build_actual_material: "",
+      build_plan_changes: "",
+      build_lessons_learned: "",
+      ...activeProjectArchiveFields,
+    });
+    const { POST } = await import("@/app/projects/create/route");
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/create", {
+        method: "POST",
+        body: validProjectFormData({
+          title: "Bathroom wall shelf",
+          height_inches: "",
+          depth_inches: "8",
+          material_type: "pine board",
+          intended_use: "Bathroom shelf for towels.",
+          style_notes: "Painted white.",
+          mounting_method: "visible_l_brackets",
+          wall_type: "drywall_wood_studs",
+          stud_access: "yes",
+          shelf_load: "towels",
+          moisture_exposure: "bathroom_humid",
+          install_location: "above_toilet",
+          planned_mounting_height: "Around 60 in from floor.",
+          support_count: "two",
+          higher_risk_spots: "above_toilet_sink_or_walkway",
+          wall_obstructions: "Towel bar below shelf.",
+          measurement_confidence: "measured_ready",
+          board_size: "one_by_eight",
+          cut_strategy: "store_cut_or_precut",
+          finish_preference: "Moisture-resistant paint.",
+          edge_treatment: "Rounded front corners.",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(303);
+    expect(createProject).toHaveBeenCalledTimes(1);
+    const createdIntake = vi.mocked(createProject).mock.calls[0][0];
+    expect(createdIntake.intended_use).toContain("Structured intake");
+    expect(createdIntake.style_notes).toContain("Planning preferences");
+    expect(createdIntake.intended_use).toContain("Mounting method: Visible L brackets");
+    expect(createdIntake.style_notes).toContain("Cut plan: I need store-cut or pre-cut boards");
+    expect(createdIntake.intended_use).toContain("Moisture exposure: Bathroom/humid room");
+    expect(createdIntake.intended_use).toContain("Install location: Above toilet");
+    expect(createdIntake.intended_use).toContain("Support/bracket count: 2");
+    expect(createdIntake.intended_use).toContain("Higher-risk spot: Above a toilet, sink, or walkway");
+    expect(createdIntake.intended_use).toContain("Nearby wall conditions or obstructions: Towel bar below shelf.");
+    expect(createdIntake.style_notes).toContain("Edge treatment: Rounded front corners.");
+  });
+
+  it("allows final notes to stay blank when structured setup answers are present", async () => {
+    vi.mocked(createProject).mockResolvedValueOnce({
+      id: "blank_notes_guided_project",
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+      title: "Bathroom wall shelf",
+      project_type: "simple_shelf",
+      skill_level: "beginner",
+      status: "draft",
+      width_inches: 24,
+      height_inches: 0.75,
+      depth_inches: 8,
+      material_thickness_inches: 0.75,
+      material_type: "pine board",
+      tools_available: ["tape_measure", "pencil", "level", "safety_glasses"],
+      style_notes: "Planning preferences",
+      intended_use: "Structured intake",
+      safety_review_required: true,
+      safety_flags: ["Wall mounting review"],
+      notes: "",
+      build_completed: false,
+      build_completed_at: "",
+      build_actual_material: "",
+      build_plan_changes: "",
+      build_lessons_learned: "",
+      ...activeProjectArchiveFields,
+    });
+    const { POST } = await import("@/app/projects/create/route");
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/create", {
+        method: "POST",
+        body: validProjectFormData({
+          title: "Bathroom wall shelf",
+          height_inches: "",
+          depth_inches: "8",
+          material_type: "pine board",
+          intended_use: "",
+          style_notes: "",
+          mounting_method: "visible_l_brackets",
+          wall_type: "drywall_wood_studs",
+          stud_access: "yes",
+          shelf_load: "towels",
+          moisture_exposure: "bathroom_humid",
+          measurement_confidence: "measured_ready",
+          board_size: "one_by_eight",
+          cut_strategy: "store_cut_or_precut",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(303);
+    expect(createProject).toHaveBeenCalledTimes(1);
+    const createdIntake = vi.mocked(createProject).mock.calls[0][0];
+    expect(createdIntake.intended_use).toContain("Structured intake");
+    expect(createdIntake.intended_use).toContain("Mounting method: Visible L brackets");
+    expect(createdIntake.intended_use).toContain("What it will hold: Towels");
   });
 
   it("submits structured multi-shelf layout fields", async () => {
