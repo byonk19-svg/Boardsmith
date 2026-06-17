@@ -1,289 +1,260 @@
 ---
-name: Boardsmith
-description: Private MVP for cautious, reviewable woodworking project plans.
+name: Heritage Workshop
+description: Boardsmith design system for a warm, precise digital craftsmanship workspace.
 colors:
-  ink: "#1f2520"
-  bark: "#72533b"
-  moss: "#48634f"
-  shop: "#f7f4ef"
-  sawdust: "#e8dccb"
-  caution: "#a34d12"
-  white: "#ffffff"
-  warning-bg: "#fffbeb"
-  warning-border: "#fde68a"
-  warning-text: "#78350f"
-  success-bg: "#f0fdf4"
-  success-border: "#bbf7d0"
-  success-text: "#166534"
-  destructive-bg: "#fef2f2"
-  destructive-border: "#fecaca"
-  destructive-text: "#991b1b"
+  surface: "#fbf9f4"
+  surface-dim: "#dbdad5"
+  surface-bright: "#fbf9f4"
+  surface-container-lowest: "#ffffff"
+  surface-container-low: "#f5f3ee"
+  surface-container: "#f0eee9"
+  surface-container-high: "#eae8e3"
+  surface-container-highest: "#e4e2dd"
+  on-surface: "#1b1c19"
+  on-surface-variant: "#414846"
+  inverse-surface: "#30312e"
+  inverse-on-surface: "#f2f1ec"
+  outline: "#717976"
+  outline-variant: "#c1c8c4"
+  surface-tint: "#46645c"
+  primary: "#16342d"
+  on-primary: "#ffffff"
+  primary-container: "#2d4b43"
+  on-primary-container: "#99bab0"
+  inverse-primary: "#adcec3"
+  secondary: "#a14000"
+  on-secondary: "#ffffff"
+  secondary-container: "#fe7f3c"
+  on-secondary-container: "#652600"
+  tertiary: "#3d2b1d"
+  on-tertiary: "#ffffff"
+  tertiary-container: "#554131"
+  on-tertiary-container: "#c9ad99"
+  error: "#ba1a1a"
+  on-error: "#ffffff"
+  error-container: "#ffdad6"
+  on-error-container: "#93000a"
+  primary-fixed: "#c8eadf"
+  primary-fixed-dim: "#adcec3"
+  on-primary-fixed: "#01201a"
+  on-primary-fixed-variant: "#2e4c44"
+  secondary-fixed: "#ffdbcc"
+  secondary-fixed-dim: "#ffb694"
+  on-secondary-fixed: "#351000"
+  on-secondary-fixed-variant: "#7b2f00"
+  tertiary-fixed: "#fbddc7"
+  tertiary-fixed-dim: "#dec1ac"
+  on-tertiary-fixed: "#28180b"
+  on-tertiary-fixed-variant: "#574333"
+  background: "#fbf9f4"
+  on-background: "#1b1c19"
+  surface-variant: "#e4e2dd"
 typography:
-  display:
-    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: "1.875rem"
-    fontWeight: 600
-    lineHeight: 1.2
-    letterSpacing: "-0.025em"
-  headline:
-    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 600
-    lineHeight: 1.35
-    letterSpacing: "normal"
-  title:
-    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 600
-    lineHeight: 1.4
-    letterSpacing: "normal"
-  body:
-    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: "0.875rem"
-    fontWeight: 400
-    lineHeight: 1.5
-    letterSpacing: "normal"
-  label:
-    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-    fontSize: "0.75rem"
-    fontWeight: 600
-    lineHeight: 1.25
-    letterSpacing: "0.025em"
+  display-lg:
+    fontFamily: "Source Serif 4"
+    fontSize: "48px"
+    fontWeight: "700"
+    lineHeight: "56px"
+    letterSpacing: "-0.02em"
+  headline-lg:
+    fontFamily: "Source Serif 4"
+    fontSize: "32px"
+    fontWeight: "600"
+    lineHeight: "40px"
+  headline-lg-mobile:
+    fontFamily: "Source Serif 4"
+    fontSize: "28px"
+    fontWeight: "600"
+    lineHeight: "36px"
+  title-md:
+    fontFamily: "Inter"
+    fontSize: "18px"
+    fontWeight: "600"
+    lineHeight: "24px"
+  body-lg:
+    fontFamily: "Inter"
+    fontSize: "16px"
+    fontWeight: "400"
+    lineHeight: "24px"
+  body-sm:
+    fontFamily: "Inter"
+    fontSize: "14px"
+    fontWeight: "400"
+    lineHeight: "20px"
+  label-caps:
+    fontFamily: "JetBrains Mono"
+    fontSize: "12px"
+    fontWeight: "500"
+    lineHeight: "16px"
+    letterSpacing: "0.05em"
 rounded:
   sm: "0.125rem"
+  DEFAULT: "0.25rem"
   md: "0.375rem"
   lg: "0.5rem"
+  xl: "0.75rem"
+  full: "9999px"
 spacing:
-  xs: "0.5rem"
-  sm: "0.75rem"
-  md: "1rem"
-  lg: "1.25rem"
-  xl: "1.5rem"
-  page-x: "1.25rem"
-components:
-  button-primary:
-    backgroundColor: "{colors.moss}"
-    textColor: "{colors.white}"
-    rounded: "{rounded.md}"
-    padding: "0.5rem 1rem"
-    typography: "{typography.body}"
-  button-secondary:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.md}"
-    padding: "0.5rem 1rem"
-    typography: "{typography.body}"
-  card:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.lg}"
-    padding: "1rem"
-  input:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.md}"
-    padding: "0.5rem 0.75rem"
-    typography: "{typography.body}"
-  chip:
-    backgroundColor: "{colors.shop}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.md}"
-    padding: "0.25rem 0.625rem"
-    typography: "{typography.label}"
+  unit: "8px"
+  container-padding-desktop: "40px"
+  container-padding-mobile: "20px"
+  gutter: "24px"
+  section-gap: "64px"
+  component-gap: "16px"
 ---
 
-# Design System: Boardsmith
+# Design System: Heritage Workshop
 
-## 1. Overview
+## Brand And Style
 
-**Creative North Star: "The Clean Digital Workbench"**
+Boardsmith uses the Heritage Workshop system. The philosophy is Digital Craftsmanship: traditional woodworking clarity translated into a modern private planning workspace. The app should feel tactile, sturdy, calm, and precise, like a clean walnut workbench with labeled tools close at hand.
 
-Boardsmith should feel like a clean digital workbench: useful tools close at hand, labels where they reduce hesitation, and warnings visible before the user mistakes a plan for approval. The current system is a restrained product UI built from shop-neutral surfaces, moss-green action affordances, dark ink text, sawdust borders, and compact cards.
+The aesthetic is industrial-chic, not generic SaaS. It should move away from plain white admin screens toward a warm, high-fidelity environment that feels reliable, organized, and premium. The target user is a discerning maker who values precision, quality materials, clear hierarchy, and review-before-building discipline.
 
-The design serves repeated planning work. It should be calm, practical, builder-ready, warm, organized, trustworthy, precise, and low-noise. Screens should help a user understand what project they are working on, whether a plan exists, what needs review before building, what the next best action is, and what is safe to print, archive, edit, or regenerate.
+The emotional response should be confidence, calm focus, and professional pride. The UI should make project state, dimensions, missing information, safety review, and next action obvious without becoming noisy or decorative.
 
-The system explicitly rejects SaaS marketing, maker-hype, playful AI-toy styling, hobby-blog decoration, CAD/pro-engineering visual language, marketplace cues, and export or fabrication certainty. The interface should look like a professional project planning tool, not a product trying to sell itself.
+## Colors
 
-**Key Characteristics:**
+The palette is anchored in natural workshop materials. The primary background is a warm Birch neutral that reduces eye strain during long planning sessions.
 
-- Restrained light UI with tinted workshop neutrals.
-- Moss green reserved for primary actions, links, and ready states.
-- Compact cards and dense scan surfaces for repeated private use.
-- Safety, review, and planning-aid language kept close to actions.
-- Print-aware surfaces that stay useful on paper.
-- Work-queue dashboards, state-forward project pages, and job-packet print views.
+- Forest Green (`#2d4b43`): Primary success actions, ready states, and active navigation. It represents the start of useful project work.
+- Safety Orange (`#a14000` / `#fe7f3c`): High-priority review markers, caution states, and critical status indicators. Use it like workshop safety markings, not decoration.
+- Deep Walnut (`#3d2b1d` / `#554131`): Secondary brand depth and subtle material accents.
+- Warm Slate And Charcoal (`#414846`, `#30312e`): Text and utility neutrals. Grays should remain warm-toned so the interface feels organic rather than clinical.
+- Birch Surfaces (`#fbf9f4`, `#f5f3ee`, `#f0eee9`, `#eae8e3`): Page canvas, panels, card layers, and quiet grouping surfaces.
 
-## 2. Colors
+## Typography
 
-The palette is quiet workshop-neutral with one practical green accent and a small status vocabulary for safety review, success, warning, and destructive actions.
+The type system pairs a sturdy serif with a utilitarian sans-serif.
 
-### Primary
+- Source Serif 4: Headings and high-level page moments. It conveys tradition, authority, and the editorial quality of high-end woodworking publications.
+- Inter: Body copy, forms, controls, and secondary text. It keeps complex data entry clear and familiar.
+- JetBrains Mono: Technical labels, dimensions, quantities, status chips, and metadata. The monospaced texture should evoke blueprints, measurements, and precision.
 
-- **Moss Action**: Primary action color for save, generate, apply, active links, and ready-state accents.
+Use display typography sparingly. Boardsmith is a working app, not a marketing site. Large serif type is appropriate for dashboard and page-level hierarchy, while project forms, review checklists, and generated plan details should stay compact and scannable.
 
-### Secondary
+## Layout And Spacing
 
-- **Bark Wood**: Reserved secondary wood tone. Use sparingly when the interface needs a material cue that is not an action.
+The layout follows a fixed-fluid hybrid model. Content should max out near 1280px for readability, while the Birch canvas can remain fluid behind it.
 
-### Tertiary
+- Grid: Use a 12-column mindset for dashboard and overview pages. Cards typically span 4 columns for three-up summaries or 6 columns for two-up project cards.
+- Rhythm: Maintain an 8px baseline. Use 16px component gaps, 24px gutters, and 64px section gaps when a page needs breathing room.
+- Mobile: Under 768px, collapse to a single column with 20px side margins. Cards should stack vertically, long titles must truncate or wrap safely, and no dashboard surface should create horizontal overflow.
+- Density: Operational pages can be denser than dashboard pages. Generated plans, cut lists, and print views should prioritize scan speed over decorative whitespace.
 
-- **Caution Rust**: Safety and planning-warning emphasis. Use for review warnings, not for decorative warmth.
+## Elevation And Depth
 
-### Neutral
+Hierarchy comes from tonal layers and ambient shadows.
 
-- **Ink Text**: Primary text and strong headings.
-- **Shop Surface**: Page background, subtle panels, filter groups, and non-interactive neutral chips.
-- **Sawdust Border**: Borders, dividers, dashed empty states, print separators.
-- **White Work Surface**: Main cards, forms, project rows, and print sheets.
-- **Warning Tint**: Amber warning background and border for intake errors, archived state, unresolved details, and review-sensitive notices.
-- **Success Tint**: Muted green for successful archive/restore and saved-state confirmations.
-- **Destructive Tint**: Red for real destructive or failed states only. Use sparingly and always with clear recovery copy.
+- Level 0 Canvas: Warm Birch background, usually `#f2efe9` or `#fbf9f4`.
+- Level 1 Cards/Paper: White or near-white work surfaces with a subtle border and soft shadow. They should feel like sheets of technical paper on a desk.
+- Level 2 Popovers/Modals: Use stronger ambient shadow only for temporary interaction.
+- Tactile Depth: Buttons and interactive surfaces may use subtle hover shifts and pressed states, but motion should remain restrained and practical.
 
-### Named Rules
+Use borders and tonal layering before shadows. Do not make every repeated list item feel like a floating marketing card.
 
-**The One Green Rule.** Moss is the product's action color. Do not introduce competing blue, purple, or neon CTAs.
+## Shapes
 
-**The Warning Is Functional Rule.** Amber and rust exist to mark review work and safety caution. They are not decorative brand colors.
+The shape language is soft but structural.
 
-**The Status Is Text Rule.** Color can reinforce draft, plan generated, needs review, ready to print, archived, manual plan, success, warning, and destructive states, but text must carry the meaning.
+- Inputs and compact controls: 4px to 6px radius.
+- Main cards: 8px radius.
+- Status chips: 2px to 4px radius, closer to a label-maker or stamped tag than a bubbly badge.
+- Avoid oversized rounded corners that make the app feel playful or toy-like.
 
-**The Paper Is Not Marketing Rule.** Shop and white surfaces should feel like workspace materials, not a landing page canvas.
-
-## 3. Typography
-
-**Display Font:** system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif
-**Body Font:** system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif
-**Label/Mono Font:** system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif
-
-**Character:** One system sans family keeps the app direct and utilitarian. Hierarchy comes from weight, spacing, and compact scale, not from display type or expressive font pairing.
-
-### Hierarchy
-
-- **Display** (600, 1.875rem, 1.2 line-height): Page titles such as dashboard, project list, intake, and print sheet titles.
-- **Headline** (600, 1.25rem, 1.35 line-height): Section headers inside cards and review panels.
-- **Title** (600, 1.125rem, 1.4 line-height): Project card titles, queue cards, form groups, and repeated section titles.
-- **Body** (400, 0.875rem, 1.5 line-height): Explanatory copy, form help, card metadata, and review descriptions. Long generated plan content should use generous line-height and stay near 65 to 75 characters per line.
-- **Label** (600, 0.75rem, 0.025em letter spacing): Status chips, section markers, table headers, and review category labels. Uppercase labels are allowed when they aid scanning.
-
-### Named Rules
-
-**The Plain Label Rule.** Labels must clarify workflow state or review category. Do not add decorative eyebrows to every section.
-
-**The No Display Drama Rule.** Product UI uses fixed rem sizing and system sans. Do not add fluid hero type or marketing display fonts.
-
-**The Measurement Clarity Rule.** Numeric values, measurements, quantities, and cut-list data must be easy to distinguish. Do not hide important builder information in tiny secondary text.
-
-## 4. Elevation
-
-Boardsmith uses a hybrid of tonal layering and one soft ambient shadow. Most structure comes from white cards on shop backgrounds, sawdust borders, and compact spacing. Shadows are light and occasional, used to separate major cards without making the product feel glossy.
-
-### Shadow Vocabulary
-
-- **Soft Work Surface** (`0 18px 50px rgba(31, 37, 32, 0.08)`): Major cards, forms, dashboard panels, and print toolbars. Do not stack it on every repeated item.
-
-### Named Rules
-
-**The Border First Rule.** Use sawdust borders and tonal backgrounds before adding a shadow.
-
-**The No Ghost Card Rule.** Do not combine decorative wide shadows with ornate borders. If a surface needs emphasis, tighten the content or use state copy first.
-
-## 5. Components
-
-Components are compact, familiar, and state-explicit. The system favors standard controls over invented affordances.
+## Components
 
 ### Buttons
 
-- **Shape:** gently rounded rectangles (0.375rem).
-- **Primary:** moss background, white text, semibold 0.875rem label, 0.5rem vertical padding, 1rem horizontal padding.
-- **Hover / Focus:** darken moss slightly on hover; focus should use a visible moss ring or border shift.
-- **Secondary / Ghost / Tertiary:** white or transparent background, sawdust border, ink text, shop hover. Use for navigation, clear filters, restore, print, and alternate actions.
-- **Hierarchy:** one primary button per major section. Secondary buttons are useful but not urgent. Ghost/link buttons are for navigation or low-priority action. Destructive buttons are for archive/delete-type actions only.
+- Primary buttons use Forest Green with white text.
+- Secondary buttons use a warm neutral or white surface, clear border, and ink text.
+- Ghost actions are for low-priority navigation or archive-style actions.
+- Pressed states should feel like a physical switch: subtle scale, darker tone, or inner-shadow is enough.
+- Keep one dominant primary action per major section.
 
-### Chips
+### Cards
 
-- **Style:** compact rounded-md tags with shop, moss-tint, amber, or white backgrounds depending on state.
-- **State:** chips label real status: archived, no plan, latest plan saved, review priority, project status, and filters. They are not badges for marketing claims.
-- **Vocabulary:** keep badge language short and consistent: Draft, Plan generated, Needs review, Ready to print, Archived, Manual plan, Starter-created.
+Project cards should include a status strip or clear state marker tied to the project lifecycle. Recent-project cards may include a generated preview, material metadata, dimensions, updated date, and direct actions.
 
-### Cards / Containers
+Use bottom metadata bars or mono labels for dimensions and material details. Do not hide project state behind color alone.
 
-- **Corner Style:** rounded-lg for major cards (0.5rem), rounded-md for nested or compact rows (0.375rem).
-- **Background:** white for work surfaces, shop for subdued panels, amber for warning panels.
-- **Shadow Strategy:** major cards may use Soft Work Surface; repeated list rows usually use borders only.
-- **Border:** sawdust border by default; moss border appears only for hover or selected emphasis.
-- **Internal Padding:** 1rem for compact cards, 1.25rem to 1.5rem for forms and major sections, 2rem for empty states.
+### Input Fields
 
-### Inputs / Fields
+Fields use a paper metaphor: white background, warm neutral stroke, and clear focus ring. On focus, shift the stroke toward Forest Green or Walnut with a visible low-opacity ring.
 
-- **Style:** white background, sawdust border, rounded-md, 0.75rem horizontal padding, 0.5rem vertical padding.
-- **Focus:** moss border with a low-opacity moss focus ring. Focus must be visible on keyboard navigation.
-- **Error / Disabled:** amber warning panels explain recoverable errors. Disabled or loading actions reduce moss strength and keep readable labels.
+Form help text should explain what the field changes, what the system can infer, and what still needs manual review.
 
-### Navigation
+### Status Indicators
 
-- **Style:** top navigation on shop background with sawdust bottom border. Brand text is semibold ink; links are compact rounded text buttons.
-- **States:** default links use ink at reduced opacity; hover moves to sawdust background and full ink. Active route styling should use the same vocabulary if added.
-- **Mobile Treatment:** navigation wraps instead of hiding. Keep labels readable and avoid icon-only route navigation.
+- Draft: Warm neutral outline or subdued chip.
+- Plan Generated: Forest Green tint or solid green when a strong ready-to-review signal is needed.
+- Needs Review: Safety Orange or amber panel with explicit review copy.
+- Blocked/Missing Info: Amber warning surface with next action.
+- Error: Red only for actual failed operations or destructive-risk states.
 
-### Accordions / Disclosure
+Text must carry the meaning. Color is reinforcement, not the only signal.
 
-Disclosure is for secondary information only: plan history, export readiness details, assumptions, and less urgent generated-plan metadata. Never hide primary build steps, safety notes, or the main next action behind an accordion.
+### Custom Woodworking Icons
 
-### Planning Review Surfaces
+When icons are used, prefer line icons with a 1.5px stroke weight and a workshop vocabulary: hand plane for refining, drafting triangle for planning, saw for building, ruler for dimensions, clamp for assembly, and sheet for print views.
 
-Planning aids, print sheets, review checklists, diagrams, and cut-list tables must keep warnings, assumptions, dimensions, and manual checks visible. Horizontal scrolling is acceptable for dense tables when accompanied by clear copy. Print output must remove app navigation while preserving planning-aid cautions.
+Avoid generic SaaS icons when a woodworking-specific symbol would be clearer.
+
+## Boardsmith Product Guardrails
+
+Boardsmith is a private MVP for cautious, reviewable woodworking and craft planning. The design must support that product truth.
+
+- Generated plans are planning aids, not professional approvals.
+- Do not imply load rating, structural safety, child-safety certification, CAD/CNC readiness, fabrication certainty, public sharing, payments, vendors, subscriptions, or marketplace behavior.
+- Safety notes, missing information, assumptions, dimensions, quantities, material review, mounting review, and open questions must remain visible near build, print, generate, and revise actions.
+- Wall mounting, child/baby use, chairs, stools, benches, ladders, platforms, heavy shelving, electrical/lighted signs, outdoor load exposure, unclear dimensions, and missing material thickness need explicit review treatment.
+- Print sheets should feel like job packets: practical, readable, caution-forward, and stripped of app chrome.
+
+## Page Patterns
 
 ### Dashboard
 
-The dashboard is a work queue, not a landing page. Prioritize active projects, project status, next action, recent activity, and a clear create-new-project entry point. Archive access should exist without making archived work feel primary.
+The dashboard is a private workbench, not a landing page. It should show active projects, generated-plan readiness, draft projects needing generation, latest update, recent projects, and an obvious new-project entry point. It may use the richest visual treatment in the app, including warm canvas texture, serif headings, and project-preview artwork.
 
-### Project Detail Page
+### Project Intake
 
-The project detail page is the core app workspace. Structure should answer: what is this project, is there a generated plan, what should be reviewed first, what actions are available, what changed over time, and what can be printed. Use this order as the default hierarchy: project header with title/status/primary action, review-before-building summary, generated plan or no-plan state, material summary, cut list, build steps, safety notes, assumptions/open questions, then secondary details and plan history.
+Intake should help the user discover missing information before generation. Keep fields grouped around the decisions a builder actually needs: object type, dimensions, material, thickness, mounting/support, expected load or use, environment, tools, and safety-sensitive conditions. Use helper copy and live summaries to explain what is still unknown.
+
+### Project Detail
+
+The detail page is the core workspace. It should answer: what is this project, does a generated plan exist, what must be reviewed first, what actions are available, what changed, and what can be printed.
+
+Default hierarchy: title/status/primary action, plan readiness, review-before-building summary, generated plan or no-plan state, diagrams, materials, cut list, build steps, safety notes, assumptions/open questions, build notes, and history.
 
 ### Generated Plan Display
 
-Generated plans must be easy to scan and verify. Use section cards or clear dividers. Keep safety notes visible, assumptions and open questions distinct, and measurements/quantities highly readable. Do not hide critical content behind excessive accordions.
+Generated plans should be easy to scan and verify. Use section cards, clear dividers, readable measurements, visible warnings, and compact metadata. Do not hide critical safety content behind disclosure.
 
 ### Print View
 
-Printable plan sheets should feel like a job packet. Prioritize project name, materials, cut list, build steps, safety notes, assumptions/open questions, and date or plan version when useful. Strip app chrome, navigation, filters, and unnecessary buttons from print output.
+Printable plan sheets should prioritize project name, build snapshot, visual reference, materials, cut list, buying plan, build steps, check-before-building items, safety notes, assumptions, and plan version/date. The print path is browser print only unless a future explicit export feature is approved.
 
 ### Empty States
 
-Empty states should be useful, not cute. Each empty state must state what is missing, why it matters, the next best action, and a clear button or link. Cover no generated plan yet, no archived projects, no project notes, and no build log entries with plain copy.
+Empty states should be useful, not cute. State what is missing, why it matters, and the next best action. Provide a real link or button.
 
-### Mobile
+## Do And Don't
 
-Mobile is not a shrunken desktop. Primary actions should be easy to reach, cards should stack cleanly, secondary metadata may collapse, generated content must remain readable, and cut lists must avoid accidental horizontal overflow unless scrolling is intentional and explained.
+Do:
 
-### Implementation Posture
+- Use warm workshop surfaces and material-inspired depth.
+- Use Source Serif 4 for page-level moments and Inter for working UI.
+- Use JetBrains Mono for dimensions, quantities, metadata, and status labels.
+- Keep review copy near actions that could imply build readiness.
+- Make lifecycle states explicit: draft, ready to generate, generated, needs review, archived, printable, read-only.
+- Validate mobile layout for every dashboard or card change.
+- Preserve readable print output.
 
-Boardsmith currently uses Next.js and Tailwind. Reuse existing local component vocabulary before adding new abstractions or packages. Do not assume shadcn/ui components are available unless the dependency is added deliberately.
+Don't:
 
-## 6. Do's and Don'ts
-
-### Do:
-
-- **Do** keep the product register: design serves project creation, plan review, safety checks, and print readability.
-- **Do** make the page's primary action obvious and keep secondary actions from competing.
-- **Do** use Moss Action for primary actions, current selection, links, and ready states.
-- **Do** use Shop Surface and White Work Surface to distinguish page background from task surfaces.
-- **Do** keep review copy near actions that could otherwise imply build readiness.
-- **Do** make lifecycle states explicit: draft, ready to generate, blocked, ready to review, archived, printable, and read-only.
-- **Do** use plain action copy: Review before building, Generate plan, Print plan sheet, Tweak this plan, Archive project, Restore project, No plan yet, Needs review.
-- **Do** keep generated plan safety notes, assumptions, open questions, measurements, quantities, and cut-list data visible and scannable.
-- **Do** validate mobile layout for UI changes and print layout for printable plan changes.
-- **Do** preserve readable contrast for muted text, placeholders, warning panels, and print surfaces.
-- **Do** keep focus states visible and interactive controls clearly named.
-
-### Don't:
-
-- **Don't** make Boardsmith look like a SaaS marketing site, maker-hype landing page, playful AI toy, hobby blog, CAD or professional engineering package, Etsy or marketplace workflow, shopping assistant, or public portfolio system.
-- **Don't** imply structural approval, load ratings, child-safety certification, fabrication readiness, export/CAD/CNC output, public sharing, payments, subscriptions, inventory, pricing, vendors, or production multi-user readiness.
-- **Don't** add gradient text, glassmorphism, bouncy motion, decorative side-stripe borders, or repeated identical icon-card grids.
-- **Don't** use vague AI language, overly clever copy, or marketing-heavy phrases where a short helper line works.
-- **Don't** use color as the only warning signal. Pair caution colors with explicit text.
-- **Don't** hide safety notes, primary build steps, review-before-building content, or the main next action behind disclosure.
-- **Don't** over-round cards beyond the existing md/lg vocabulary.
-- **Don't** introduce new visual languages unless repeated dogfood friction shows the current one is blocking real use.
+- Make Boardsmith look like a SaaS marketing site, playful AI toy, hobby blog, CAD package, store, or marketplace.
+- Add gradient text, glassmorphism, bouncy motion, decorative icon grids, or one-note beige/brown styling.
+- Hide primary actions, build steps, safety notes, assumptions, or open questions.
+- Use color without text for warning or readiness state.
+- Over-round cards or buttons.
+- Introduce new packages, external services, image upload, export, auth, public sharing, payments, or marketplace surfaces as part of visual polish.

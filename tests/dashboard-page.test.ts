@@ -117,10 +117,12 @@ describe("DashboardPage", () => {
     const markup = renderToStaticMarkup(await DashboardPage());
 
     expect(markup).toContain("Private Boardsmith workspace");
-    expect(markup).toContain("Planning aid");
+    expect(markup).toContain("Welcome back, Maker");
+    expect(markup).toContain("Digital craftsmanship");
+    expect(markup).toContain("Dashboard shortcuts");
     expect(markup).toContain("Total projects");
-    expect(markup).toContain("With generated plans");
-    expect(markup).toContain("Need generated plans");
+    expect(markup).toContain("Generated plans");
+    expect(markup).toContain("Active drafts");
     expect(markup).toContain("2");
     expect(markup).toContain("1");
     expect(markup).toContain("Latest update");
@@ -132,6 +134,9 @@ describe("DashboardPage", () => {
     expect(markup).toContain("Recent projects");
     expect(markup).toContain("Very long latest shelf project title for dashboard readability cleanup");
     expect(markup).toContain("Porch planter");
+    expect(markup).toContain("Very long latest shelf project title for dashboard readability cleanup project preview");
+    expect(markup).toContain("Ready to review");
+    expect(markup).toContain("Needs plan");
     expect(markup).not.toContain("Archived dogfood shelf");
     expect(markup).toContain("Archived projects are hidden from this dashboard.");
     expect(markup).toContain("Open project");
