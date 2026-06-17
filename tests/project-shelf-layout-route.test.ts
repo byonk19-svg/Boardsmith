@@ -100,6 +100,25 @@ describe("project shelf layout route", () => {
     expect(updateProjectShelfLayoutMock).not.toHaveBeenCalled();
   });
 
+  it("maps a stale archived storage no-op to the archived project intake error", async () => {
+    getProjectMock
+      .mockResolvedValueOnce(updatedProject)
+      .mockResolvedValueOnce({ ...updatedProject, archived_at: "2026-06-08T12:00:00.000Z" });
+    updateProjectShelfLayoutMock.mockResolvedValueOnce(null);
+    const { POST } = await import("@/app/projects/[id]/shelf-layout/route");
+    const formData = new FormData();
+    formData.set("shelf_layout", "multi_shelf_unit");
+    formData.set("shelf_count", "3");
+
+    const response = await POST(new Request("http://localhost/projects/project-with-shelf-layout/shelf-layout", { method: "POST", body: formData }), {
+      params: Promise.resolve({ id: "project-with-shelf-layout" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/project-with-shelf-layout?error=project_archived#project-intake");
+    expect(updateProjectShelfLayoutMock).toHaveBeenCalled();
+  });
+
   it("redirects to a schema-specific error when storage reports missing shelf layout columns", async () => {
     updateProjectShelfLayoutMock.mockRejectedValue(new Error("Could not find the 'shelf_layout' column of 'projects' in the schema cache"));
     const { POST } = await import("@/app/projects/[id]/shelf-layout/route");

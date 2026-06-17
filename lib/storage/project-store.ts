@@ -246,7 +246,7 @@ export async function createProject(input: ProjectIntake): Promise<Project> {
 }
 
 export async function duplicateProject(projectId: string): Promise<Project | null> {
-  const sourceProject = await getProject(projectId);
+  const sourceProject = await getActiveProject(projectId);
   if (!sourceProject) return null;
 
   return createProject({
@@ -274,6 +274,7 @@ export async function updateProjectShelfLayout(projectId: string, input: Project
   if (isSupabasePersistenceConfigured()) {
     const existingProject = await getProject(projectId);
     if (!existingProject) return null;
+    if (isProjectArchived(existingProject)) return null;
     const nextProjectForFlags = {
       ...existingProject,
       shelf_layout: parsedInput.shelf_layout,
@@ -294,15 +295,18 @@ export async function updateProjectShelfLayout(projectId: string, input: Project
         updated_at: now,
       })
       .eq("id", projectId)
+      .is("archived_at", null)
       .select("*")
-      .single();
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) return null;
     return normalizeProjectRow(data);
   }
 
   return mutateLocalStore((store) => {
     const project = store.projects.find((candidate) => candidate.id === projectId);
     if (!project) return null;
+    if (isProjectArchived(project)) return null;
 
     project.shelf_layout = parsedInput.shelf_layout;
     project.shelf_count = parsedInput.shelf_count;
@@ -320,14 +324,22 @@ export async function updateProjectNotes(projectId: string, notes: string): Prom
   const now = new Date().toISOString();
 
   if (isSupabasePersistenceConfigured()) {
-    const { data, error } = await getSupabase().from("projects").update({ notes: parsedNotes }).eq("id", projectId).select("*").single();
+    const { data, error } = await getSupabase()
+      .from("projects")
+      .update({ notes: parsedNotes, updated_at: now })
+      .eq("id", projectId)
+      .is("archived_at", null)
+      .select("*")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) return null;
     return normalizeProjectRow(data);
   }
 
   return mutateLocalStore((store) => {
     const project = store.projects.find((candidate) => candidate.id === projectId);
     if (!project) return null;
+    if (isProjectArchived(project)) return null;
 
     project.notes = parsedNotes;
     project.updated_at = now;
@@ -348,17 +360,21 @@ export async function updateProjectBuildLog(projectId: string, input: ProjectBui
         build_actual_material: parsedBuildLog.build_actual_material,
         build_plan_changes: parsedBuildLog.build_plan_changes,
         build_lessons_learned: parsedBuildLog.build_lessons_learned,
+        updated_at: now,
       })
       .eq("id", projectId)
+      .is("archived_at", null)
       .select("*")
-      .single();
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) return null;
     return normalizeProjectRow(data);
   }
 
   return mutateLocalStore((store) => {
     const project = store.projects.find((candidate) => candidate.id === projectId);
     if (!project) return null;
+    if (isProjectArchived(project)) return null;
 
     project.build_completed = parsedBuildLog.build_completed;
     project.build_completed_at = parsedBuildLog.build_completed_at;
@@ -374,14 +390,22 @@ export async function archiveProject(projectId: string): Promise<Project | null>
   const archivedAt = new Date().toISOString();
 
   if (isSupabasePersistenceConfigured()) {
-    const { data, error } = await getSupabase().from("projects").update({ archived_at: archivedAt }).eq("id", projectId).select("*").single();
+    const { data, error } = await getSupabase()
+      .from("projects")
+      .update({ archived_at: archivedAt, updated_at: archivedAt })
+      .eq("id", projectId)
+      .is("archived_at", null)
+      .select("*")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) return null;
     return normalizeProjectRow(data);
   }
 
   return mutateLocalStore((store) => {
     const project = store.projects.find((candidate) => candidate.id === projectId);
     if (!project) return null;
+    if (isProjectArchived(project)) return null;
 
     project.archived_at = archivedAt;
     project.updated_at = archivedAt;
@@ -393,14 +417,22 @@ export async function restoreProject(projectId: string): Promise<Project | null>
   const now = new Date().toISOString();
 
   if (isSupabasePersistenceConfigured()) {
-    const { data, error } = await getSupabase().from("projects").update({ archived_at: null }).eq("id", projectId).select("*").single();
+    const { data, error } = await getSupabase()
+      .from("projects")
+      .update({ archived_at: null, updated_at: now })
+      .eq("id", projectId)
+      .not("archived_at", "is", null)
+      .select("*")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) return null;
     return normalizeProjectRow(data);
   }
 
   return mutateLocalStore((store) => {
     const project = store.projects.find((candidate) => candidate.id === projectId);
     if (!project) return null;
+    if (!isProjectArchived(project)) return null;
 
     project.archived_at = null;
     project.updated_at = now;
@@ -527,6 +559,24 @@ function copyProjectTitle(title: string): string {
   }
 
   return `${baseTitle.slice(0, maxTitleLength - suffix.length).trimEnd()}${suffix}`;
+}
+
+async function getActiveProject(projectId: string): Promise<Project | null> {
+  if (isSupabasePersistenceConfigured()) {
+    const { data, error } = await getSupabase()
+      .from("projects")
+      .select("*")
+      .eq("id", projectId)
+      .is("archived_at", null)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    return normalizeProjectRow(data);
+  }
+
+  const project = await getProject(projectId);
+  if (!project || isProjectArchived(project)) return null;
+  return project;
 }
 
 function compareProjectsByRecentUpdate(a: Project, b: Project): number {

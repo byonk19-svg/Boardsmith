@@ -23,6 +23,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const project = await restoreProject(id);
 
     if (!project) {
+      const latestProject = await getProject(id);
+      if (latestProject && !evaluateRestoreCommand(latestProject).allowed) {
+        if (formData?.get("return_to") === "archived_list") {
+          return NextResponse.redirect(new URL("/projects?archive=archived&error=project_not_archived", request.url), 303);
+        }
+        return NextResponse.redirect(new URL(`/projects/${id}?error=project_not_archived`, request.url), 303);
+      }
       return NextResponse.redirect(new URL("/projects?error=Project%20not%20found", request.url), 303);
     }
 

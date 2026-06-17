@@ -272,4 +272,57 @@ describe("project store lifecycle", () => {
     expect(restoredPlans).toHaveLength(1);
     expect(restoredPlans[0]?.id).toBe(archivedPlans[0]?.id);
   });
+
+  it("blocks stale local writes after a project is archived", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const project = await store.createProject({
+      ...intake,
+      title: `Archived stale write shelf ${crypto.randomUUID()}`,
+    });
+    const archived = await store.archiveProject(project.id);
+
+    const notesResult = await store.updateProjectNotes(project.id, "Do not save after archive.");
+    const buildLogResult = await store.updateProjectBuildLog(project.id, {
+      build_completed: true,
+      build_completed_at: "2026-06-02",
+      build_actual_material: "Oak board.",
+      build_plan_changes: "Changed after archive.",
+      build_lessons_learned: "Should not persist.",
+    });
+    const shelfLayoutResult = await store.updateProjectShelfLayout(project.id, {
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: 3,
+      shelf_spacing_inches: 12,
+      height_inches: 48,
+    });
+    const duplicateResult = await store.duplicateProject(project.id);
+    const archiveAgainResult = await store.archiveProject(project.id);
+    const reloaded = await store.getProject(project.id);
+
+    expect(archived?.archived_at).toEqual(expect.any(String));
+    expect(notesResult).toBeNull();
+    expect(buildLogResult).toBeNull();
+    expect(shelfLayoutResult).toBeNull();
+    expect(duplicateResult).toBeNull();
+    expect(archiveAgainResult).toBeNull();
+    expect(reloaded?.notes).toBe("");
+    expect(reloaded?.build_completed).toBe(false);
+    expect(reloaded?.shelf_layout).toBe(project.shelf_layout);
+    expect(reloaded?.updated_at).toBe(archived?.updated_at);
+  });
+
+  it("does not restore an active local project from a stale restore action", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const project = await store.createProject({
+      ...intake,
+      title: `Active stale restore shelf ${crypto.randomUUID()}`,
+    });
+
+    const restored = await store.restoreProject(project.id);
+    const reloaded = await store.getProject(project.id);
+
+    expect(restored).toBeNull();
+    expect(reloaded?.archived_at).toBeNull();
+    expect(reloaded?.updated_at).toBe(project.updated_at);
+  });
 });

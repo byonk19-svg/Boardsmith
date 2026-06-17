@@ -48,6 +48,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const project = await updateProjectShelfLayout(id, parsedInput);
 
     if (!project) {
+      const latestProject = await getProject(id);
+      if (latestProject && !evaluateProjectWriteCommand(latestProject).allowed) {
+        return NextResponse.redirect(new URL(`/projects/${id}?error=project_archived#project-intake`, request.url), 303);
+      }
       return NextResponse.redirect(new URL("/projects?error=Project%20not%20found", request.url), 303);
     }
 

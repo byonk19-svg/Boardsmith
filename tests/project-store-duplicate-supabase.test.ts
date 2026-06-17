@@ -44,7 +44,8 @@ describe("Supabase project duplication", () => {
     let insertedProject: Project | null = null;
     const maybeSingle = vi.fn(() => Promise.resolve({ data: sourceProject, error: null }));
     const single = vi.fn(() => Promise.resolve({ data: insertedProject, error: null }));
-    const eq = vi.fn(() => ({ maybeSingle }));
+    const is = vi.fn(() => ({ maybeSingle }));
+    const eq = vi.fn(() => ({ is }));
     const select = vi.fn(() => ({ eq, single }));
     const insert = vi.fn((project: Project) => {
       insertedProject = project;
@@ -62,6 +63,7 @@ describe("Supabase project duplication", () => {
 
     expect(from).toHaveBeenCalledWith("projects");
     expect(eq).toHaveBeenCalledWith("id", sourceProject.id);
+    expect(is).toHaveBeenCalledWith("archived_at", null);
     expect(insert).toHaveBeenCalledTimes(1);
     expect(insertedProject).toEqual(
       expect.objectContaining({
@@ -105,12 +107,13 @@ describe("Supabase project duplication", () => {
       safety_review_required: true,
       safety_flags: ["Wall mounting review"],
     };
-    const maybeSingle = vi.fn(() => Promise.resolve({ data: sourceProject, error: null }));
-    const single = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
+    const getMaybeSingle = vi.fn(() => Promise.resolve({ data: sourceProject, error: null }));
+    const updateMaybeSingle = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
+    const is = vi.fn(() => ({ select: () => ({ maybeSingle: updateMaybeSingle }) }));
     const eq = vi
       .fn()
-      .mockReturnValueOnce({ maybeSingle })
-      .mockReturnValueOnce({ select: () => ({ single }) });
+      .mockReturnValueOnce({ maybeSingle: getMaybeSingle })
+      .mockReturnValueOnce({ is });
     const select = vi.fn(() => ({ eq }));
     const update = vi.fn<(payload: Record<string, unknown>) => { eq: typeof eq }>(() => ({ eq }));
     const from = vi.fn(() => ({ select, update }));
@@ -140,6 +143,7 @@ describe("Supabase project duplication", () => {
     const updatePayload = update.mock.calls[0]?.[0];
     expect(updatePayload).not.toHaveProperty("style_notes");
     expect(eq).toHaveBeenCalledWith("id", sourceProject.id);
+    expect(is).toHaveBeenCalledWith("archived_at", null);
     expect(saved?.shelf_layout).toBe("multi_shelf_unit");
     expect(saved?.shelf_count).toBe(4);
     expect(saved?.shelf_spacing_inches).toBe(14);
@@ -154,8 +158,9 @@ describe("Supabase project duplication", () => {
       updated_at: new Date(2).toISOString(),
       notes: "Confirm bracket screw length.",
     };
-    const single = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
-    const eq = vi.fn(() => ({ select: () => ({ single }) }));
+    const maybeSingle = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
+    const is = vi.fn(() => ({ select: () => ({ maybeSingle }) }));
+    const eq = vi.fn(() => ({ is }));
     const update = vi.fn(() => ({ eq }));
     const from = vi.fn(() => ({ update }));
 
@@ -169,7 +174,30 @@ describe("Supabase project duplication", () => {
     expect(from).toHaveBeenCalledWith("projects");
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ notes: "Confirm bracket screw length." }));
     expect(eq).toHaveBeenCalledWith("id", sourceProject.id);
+    expect(is).toHaveBeenCalledWith("archived_at", null);
     expect(saved?.notes).toBe("Confirm bracket screw length.");
+  });
+
+  it("does not update project notes when the Supabase row is already archived", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
+
+    const maybeSingle = vi.fn(() => Promise.resolve({ data: null, error: null }));
+    const is = vi.fn(() => ({ select: () => ({ maybeSingle }) }));
+    const eq = vi.fn(() => ({ is }));
+    const update = vi.fn(() => ({ eq }));
+    const from = vi.fn(() => ({ update }));
+
+    vi.doMock("@supabase/supabase-js", () => ({
+      createClient: vi.fn(() => ({ from })),
+    }));
+
+    const store = await import("@/lib/storage/project-store");
+    const saved = await store.updateProjectNotes(sourceProject.id, "Stale archived write.");
+
+    expect(saved).toBeNull();
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ notes: "Stale archived write." }));
+    expect(is).toHaveBeenCalledWith("archived_at", null);
   });
 
   it("updates the project build log on the existing project row", async () => {
@@ -185,8 +213,9 @@ describe("Supabase project duplication", () => {
       build_plan_changes: "Changed brackets after dry fitting.",
       build_lessons_learned: "Mark pilot holes earlier next time.",
     };
-    const single = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
-    const eq = vi.fn(() => ({ select: () => ({ single }) }));
+    const maybeSingle = vi.fn(() => Promise.resolve({ data: updatedProject, error: null }));
+    const is = vi.fn(() => ({ select: () => ({ maybeSingle }) }));
+    const eq = vi.fn(() => ({ is }));
     const update = vi.fn(() => ({ eq }));
     const from = vi.fn(() => ({ update }));
 
@@ -214,6 +243,7 @@ describe("Supabase project duplication", () => {
       }),
     );
     expect(eq).toHaveBeenCalledWith("id", sourceProject.id);
+    expect(is).toHaveBeenCalledWith("archived_at", null);
     expect(saved?.build_completed).toBe(true);
     expect(saved?.build_plan_changes).toBe("Changed brackets after dry fitting.");
   });
@@ -231,11 +261,13 @@ describe("Supabase project duplication", () => {
       ...sourceProject,
       updated_at: new Date(5).toISOString(),
     };
-    const single = vi
+    const maybeSingle = vi
       .fn()
       .mockResolvedValueOnce({ data: archivedProject, error: null })
       .mockResolvedValueOnce({ data: restoredProject, error: null });
-    const eq = vi.fn(() => ({ select: () => ({ single }) }));
+    const is = vi.fn(() => ({ select: () => ({ maybeSingle }) }));
+    const not = vi.fn(() => ({ select: () => ({ maybeSingle }) }));
+    const eq = vi.fn(() => ({ is, not }));
     const update = vi.fn<(payload: { archived_at: string | null }) => { eq: typeof eq }>(() => ({ eq }));
     const from = vi.fn(() => ({ update }));
 
@@ -249,8 +281,10 @@ describe("Supabase project duplication", () => {
 
     expect(from).toHaveBeenCalledWith("projects");
     expect(typeof update.mock.calls[0]?.[0].archived_at).toBe("string");
-    expect(update).toHaveBeenNthCalledWith(2, { archived_at: null });
+    expect(update).toHaveBeenNthCalledWith(2, expect.objectContaining({ archived_at: null }));
     expect(eq).toHaveBeenCalledWith("id", sourceProject.id);
+    expect(is).toHaveBeenCalledWith("archived_at", null);
+    expect(not).toHaveBeenCalledWith("archived_at", "is", null);
     expect(archived?.archived_at).toBe("2026-06-06T10:00:00.000Z");
     expect(restored?.archived_at).toBeNull();
   });

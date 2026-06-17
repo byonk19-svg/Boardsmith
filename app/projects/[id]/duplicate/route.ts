@@ -18,6 +18,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
     const duplicatedProject = await duplicateProject(id);
     if (!duplicatedProject) {
+      const latestProject = await getProject(id);
+      if (latestProject && !evaluateProjectWriteCommand(latestProject).allowed) {
+        return NextResponse.redirect(new URL(`/projects/${id}?error=project_archived`, request.url), 303);
+      }
       return NextResponse.redirect(new URL("/projects?error=Project%20not%20found", request.url), 303);
     }
 

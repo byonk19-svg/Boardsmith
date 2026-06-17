@@ -101,6 +101,24 @@ describe("project build log route", () => {
     expect(updateProjectBuildLogMock).not.toHaveBeenCalled();
   });
 
+  it("maps a stale archived storage no-op to the archived project error", async () => {
+    getProjectMock
+      .mockResolvedValueOnce(updatedProject)
+      .mockResolvedValueOnce({ ...updatedProject, archived_at: "2026-06-08T12:00:00.000Z" });
+    updateProjectBuildLogMock.mockResolvedValueOnce(null);
+    const { POST } = await import("@/app/projects/[id]/build-log/route");
+    const formData = new FormData();
+    formData.set("build_completed", "on");
+
+    const response = await POST(new Request("http://localhost/projects/project-with-build-log/build-log", { method: "POST", body: formData }), {
+      params: Promise.resolve({ id: "project-with-build-log" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/project-with-build-log?error=project_archived");
+    expect(updateProjectBuildLogMock).toHaveBeenCalled();
+  });
+
   it("uses a stable project-detail error key when build log save fails", async () => {
     updateProjectBuildLogMock.mockRejectedValueOnce(new Error("database build log stack detail"));
     const { POST } = await import("@/app/projects/[id]/build-log/route");

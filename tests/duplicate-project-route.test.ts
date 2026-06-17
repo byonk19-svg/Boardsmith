@@ -90,6 +90,31 @@ describe("duplicate project route", () => {
     expect(duplicateProjectMock).not.toHaveBeenCalled();
   });
 
+  it("maps a stale archived storage no-op to the archived source project error", async () => {
+    getProjectMock
+      .mockResolvedValueOnce({
+        ...duplicatedProject,
+        id: "source-project-id",
+        title: "Bathroom shelf",
+      })
+      .mockResolvedValueOnce({
+        ...duplicatedProject,
+        id: "source-project-id",
+        title: "Bathroom shelf",
+        archived_at: "2026-06-08T12:00:00.000Z",
+      });
+    duplicateProjectMock.mockResolvedValueOnce(null);
+    const { POST } = await import("@/app/projects/[id]/duplicate/route");
+
+    const response = await POST(new Request("http://localhost/projects/source-project-id/duplicate", { method: "POST" }), {
+      params: Promise.resolve({ id: "source-project-id" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/source-project-id?error=project_archived");
+    expect(duplicateProjectMock).toHaveBeenCalledWith("source-project-id");
+  });
+
   it("uses a stable project-detail error key when duplication fails", async () => {
     duplicateProjectMock.mockRejectedValueOnce(new Error("database duplicate stack detail"));
     const { POST } = await import("@/app/projects/[id]/duplicate/route");

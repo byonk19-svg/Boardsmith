@@ -140,6 +140,34 @@ describe("project archive routes", () => {
     expect(restoreProjectMock).not.toHaveBeenCalled();
   });
 
+  it("maps stale archive and restore storage no-ops to lifecycle errors", async () => {
+    const { POST: archivePost } = await import("@/app/projects/[id]/archive/route");
+    const { POST: restorePost } = await import("@/app/projects/[id]/restore/route");
+    const archiveFormData = new FormData();
+    archiveFormData.set("return_to", "project_detail");
+    const restoreFormData = new FormData();
+    restoreFormData.set("return_to", "archived_list");
+
+    archiveProjectMock.mockResolvedValueOnce(null);
+    getProjectMock
+      .mockResolvedValueOnce(project)
+      .mockResolvedValueOnce({ ...project, archived_at: "2026-06-08T12:00:00.000Z" });
+    const archiveResponse = await archivePost(new Request("http://localhost/projects/archive-project-id/archive", { method: "POST", body: archiveFormData }), {
+      params: Promise.resolve({ id: "archive-project-id" }),
+    });
+
+    restoreProjectMock.mockResolvedValueOnce(null);
+    getProjectMock.mockResolvedValueOnce({ ...project, archived_at: "2026-06-08T12:00:00.000Z" }).mockResolvedValueOnce(project);
+    const restoreResponse = await restorePost(new Request("http://localhost/projects/archive-project-id/restore", { method: "POST", body: restoreFormData }), {
+      params: Promise.resolve({ id: "archive-project-id" }),
+    });
+
+    expect(archiveResponse.headers.get("location")).toBe("http://localhost/projects/archive-project-id?error=project_archived");
+    expect(restoreResponse.headers.get("location")).toBe("http://localhost/projects?archive=archived&error=project_not_archived");
+    expect(archiveProjectMock).toHaveBeenCalledWith("archive-project-id");
+    expect(restoreProjectMock).toHaveBeenCalledWith("archive-project-id");
+  });
+
   it("uses stable project-detail error keys when archive or restore fails", async () => {
     archiveProjectMock.mockRejectedValueOnce(new Error("database archive stack detail"));
     restoreProjectMock.mockRejectedValueOnce(new Error("database restore stack detail"));

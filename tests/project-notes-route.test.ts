@@ -88,6 +88,24 @@ describe("project notes route", () => {
     expect(updateProjectNotesMock).not.toHaveBeenCalled();
   });
 
+  it("maps a stale archived storage no-op to the archived project error", async () => {
+    getProjectMock
+      .mockResolvedValueOnce(updatedProject)
+      .mockResolvedValueOnce({ ...updatedProject, archived_at: "2026-06-08T12:00:00.000Z" });
+    updateProjectNotesMock.mockResolvedValueOnce(null);
+    const { POST } = await import("@/app/projects/[id]/notes/route");
+    const formData = new FormData();
+    formData.set("notes", "Try to write during an archive race.");
+
+    const response = await POST(new Request("http://localhost/projects/project-with-notes/notes", { method: "POST", body: formData }), {
+      params: Promise.resolve({ id: "project-with-notes" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/project-with-notes?error=project_archived");
+    expect(updateProjectNotesMock).toHaveBeenCalledWith("project-with-notes", "Try to write during an archive race.");
+  });
+
   it("uses a stable project-detail error key when notes fail to save", async () => {
     updateProjectNotesMock.mockRejectedValueOnce(new Error("database notes stack detail"));
     const { POST } = await import("@/app/projects/[id]/notes/route");
