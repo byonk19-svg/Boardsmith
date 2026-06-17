@@ -3,12 +3,14 @@ import type { Project } from "@/lib/projects/types";
 import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
 const updateProjectNotesMock = vi.fn<(projectId: string, notes: string) => Promise<Project | null>>();
+const getProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
 vi.mock("@/lib/storage/project-store", () => ({
+  getProject: (projectId: string) => getProjectMock(projectId),
   updateProjectNotes: (projectId: string, notes: string) => updateProjectNotesMock(projectId, notes),
 }));
 
@@ -38,6 +40,7 @@ const updatedProject: Project = {
 describe("project notes route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getProjectMock.mockResolvedValue(updatedProject);
   });
 
   it("saves notes and redirects back to the project detail page", async () => {
@@ -56,7 +59,7 @@ describe("project notes route", () => {
   });
 
   it("redirects with an error if the project is missing", async () => {
-    updateProjectNotesMock.mockResolvedValue(null);
+    getProjectMock.mockResolvedValue(null);
     const { POST } = await import("@/app/projects/[id]/notes/route");
     const formData = new FormData();
     formData.set("notes", "Confirm screw length.");
@@ -67,6 +70,22 @@ describe("project notes route", () => {
 
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("http://localhost/projects?error=Project%20not%20found");
+    expect(updateProjectNotesMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks archived projects before saving notes", async () => {
+    getProjectMock.mockResolvedValue({ ...updatedProject, archived_at: "2026-06-08T12:00:00.000Z" });
+    const { POST } = await import("@/app/projects/[id]/notes/route");
+    const formData = new FormData();
+    formData.set("notes", "Try to write after archive.");
+
+    const response = await POST(new Request("http://localhost/projects/project-with-notes/notes", { method: "POST", body: formData }), {
+      params: Promise.resolve({ id: "project-with-notes" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/project-with-notes?error=project_archived");
+    expect(updateProjectNotesMock).not.toHaveBeenCalled();
   });
 
   it("uses a stable project-detail error key when notes fail to save", async () => {

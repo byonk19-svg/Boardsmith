@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import { cutListStatusLabel } from "@/lib/plans/cut-list-review";
-import { createPrintablePlanManifest, type PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
+import { createGatedBuildPacketSnapshot, createGatedBuildPacketSnapshots, latestGatedBuildPacketSnapshot } from "@/lib/plans/gated-build-packet-snapshot";
+import type { PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { Project } from "@/lib/projects/types";
-import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
-import { getTemplateHint } from "@/lib/templates/template-hints";
 import { BuildStepCards, BuildStepStatusSummary } from "../BuildStepCards";
 import { PlanActionChecklist } from "../PlanActionChecklist";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
@@ -29,14 +27,9 @@ export default async function ProjectPrintPreviewPage({
   if (!project) notFound();
 
   const plans = await listGeneratedPlans(project.id);
-  const latestPlan = plans.length > 0 ? (plans.find((plan) => plan.is_latest) ?? plans[0]) : null;
-  const buildModel = latestPlan?.build_model_json ?? createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
-  const manifest = createPrintablePlanManifest({
-    project,
-    planRecord: latestPlan,
-    buildModel,
-    buildModelSource: latestPlan?.build_model_json ? "saved" : "derived",
-  });
+  const latestPlanSnapshot = latestGatedBuildPacketSnapshot(createGatedBuildPacketSnapshots({ project, plans }));
+  const snapshot = latestPlanSnapshot ?? createGatedBuildPacketSnapshot({ project, plan: null });
+  const manifest = snapshot.manifest;
 
   if (!manifest.generatedPlan) {
     return <PrintPreviewEmptyState project={project} />;

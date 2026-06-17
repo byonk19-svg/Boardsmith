@@ -1,12 +1,22 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import { evaluateProjectWriteCommand } from "@/lib/projects/project-planning-lifecycle";
 import { projectBuildLogSchema } from "@/lib/projects/types";
-import { updateProjectBuildLog } from "@/lib/storage/project-store";
+import { getProject, updateProjectBuildLog } from "@/lib/storage/project-store";
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }): Promise<Response> {
   const { id } = await context.params;
 
   try {
+    const existingProject = await getProject(id);
+    if (!existingProject) {
+      return NextResponse.redirect(new URL("/projects?error=Project%20not%20found", request.url), 303);
+    }
+    const writeDecision = evaluateProjectWriteCommand(existingProject);
+    if (!writeDecision.allowed) {
+      return NextResponse.redirect(new URL(`/projects/${id}?error=project_archived`, request.url), 303);
+    }
+
     const formData = await request.formData();
     const buildLog = projectBuildLogSchema.parse({
       build_completed: formData.get("build_completed") === "on",

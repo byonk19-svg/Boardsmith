@@ -20,9 +20,17 @@ _Avoid_: Public beta, production launch, multi-user product
 The saved structured project description, including project type, dimensions, material, tools, intended use, constraints, and finish notes.
 _Avoid_: Prompt, chat message, order form
 
+**Project Planning Lifecycle**:
+The deterministic state rules that decide which planning actions are available for a project, why a command is blocked, and which review or repair path comes next.
+_Avoid_: UI copy source, workflow automation, user permissions system
+
 **Supported Project Type**:
 A narrow beginner-friendly template category that Boardsmith can plan with deterministic guidance and safety review.
 _Avoid_: Any woodworking project, general project category
+
+**Supported Project Type Drafting**:
+The internal deterministic adapter set that turns each Supported Project Type into Boardsmith Build Model pieces, hardware, operations, assumptions, unresolved questions, and output readiness.
+_Avoid_: New project type expansion, public plugin system, generic woodworking planner
 
 **Universal Intake**:
 The long-term product direction where a user can enter any project idea, and Boardsmith classifies what level of safe output is allowed.

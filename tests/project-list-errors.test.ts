@@ -9,6 +9,8 @@ describe("project list error messages", () => {
     expect(getProjectListErrorMessage("project_not_found")).toBe(
       "That project could not be found. It may have been archived, restored, or removed from this workspace.",
     );
+    expect(getProjectListErrorMessage("project_archived")).toBe("That project is already archived.");
+    expect(getProjectListErrorMessage("project_not_archived")).toBe("That project is already active.");
   });
 
   it("does not expose unknown raw error query strings", () => {

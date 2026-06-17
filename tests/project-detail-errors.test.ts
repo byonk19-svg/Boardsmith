@@ -6,6 +6,8 @@ describe("project detail error messages", () => {
     expect(getProjectDetailErrorMessage("archive_failed")).toBe("That project could not be archived. Try again from the project detail page.");
     expect(getProjectDetailErrorMessage("restore_failed")).toBe("That project could not be restored. Try again from the project detail page.");
     expect(getProjectDetailErrorMessage("duplicate_failed")).toBe("That project could not be duplicated. Review the project details and try again.");
+    expect(getProjectDetailErrorMessage("project_archived")).toBe("Restore this archived project before making changes.");
+    expect(getProjectDetailErrorMessage("project_not_archived")).toBe("This project is already active.");
     expect(getProjectDetailErrorMessage("notes_failed")).toBe("Project notes could not be saved. Try again from the project detail page.");
     expect(getProjectDetailErrorMessage("build_log_failed")).toBe("Build log changes could not be saved. Review the entered details and try again.");
   });

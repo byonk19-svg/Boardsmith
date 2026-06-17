@@ -2,24 +2,29 @@ import Link from "next/link";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { getGenerationFailureFeedback, isGenerationFailureReason, type GenerationFailureReason } from "@/lib/ai/generation-feedback";
-import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { BoardsmithBuildModel } from "@/lib/build-model/build-model-schema";
 import { cutListStatusLabel, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
 import { type ExportReadinessStatus, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
+import {
+  createGatedBuildPacketSnapshot,
+  createGatedBuildPacketSnapshots,
+  latestGatedBuildPacketSnapshot,
+  type PlanVersionGatedBuildPacketSnapshot,
+} from "@/lib/plans/gated-build-packet-snapshot";
 import { type MaterialReviewItem, type MaterialReviewSummary } from "@/lib/plans/material-summary";
 import { createPlanHistoryComparison, type PlanComparisonChange, type PlanHistoryComparison } from "@/lib/plans/plan-comparison";
 import { type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
-import { createPrintablePlanManifest, type PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
+import type { PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import {
   createClarificationGateDecision,
   type ClarificationGateDecision,
   type ClarificationQuestionCategory,
 } from "@/lib/projects/clarification-gate";
+import { createProjectPlanningLifecycle, isProjectArchived } from "@/lib/projects/project-planning-lifecycle";
 import { getProjectDetailErrorMessage } from "@/lib/projects/project-detail-errors";
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { formatToolLabel, projectTypeLabels, shelfLayoutLabels, shelfLayoutOptions, type Project } from "@/lib/projects/types";
-import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
 import { BuildStepCards, BuildStepStatusSummary } from "./BuildStepCards";
@@ -62,21 +67,15 @@ export default async function ProjectDetailPage({
   const clarificationGate = createClarificationGateDecision(project);
 
   const plans = await listGeneratedPlans(project.id);
-  const planReviews = clarificationGate.supportedProjectType ? plans.map((plan) => buildPlanReview(project, plan)) : [];
-  const latestPlanReview = planReviews.length > 0 ? (planReviews.find((entry) => entry.plan.is_latest) ?? planReviews[0]) : null;
+  const planReviews = clarificationGate.supportedProjectType ? createGatedBuildPacketSnapshots({ project, plans }) : [];
+  const latestPlanReview = latestGatedBuildPacketSnapshot(planReviews);
+  const lifecycle = createProjectPlanningLifecycle(project, { hasLatestPlan: Boolean(latestPlanReview) });
   const templateHint = clarificationGate.supportedProjectType ? getTemplateHint(project.project_type) : null;
-  const buildModel = latestPlanReview?.buildModel ?? (templateHint ? createBuildModelDraft(project, templateHint, calculateSafetyReviewFlags(project)) : null);
+  const noPlanSnapshot = !latestPlanReview && templateHint ? createGatedBuildPacketSnapshot({ project, plan: null }) : null;
+  const displayedSnapshot = latestPlanReview ?? noPlanSnapshot;
+  const buildModel = displayedSnapshot?.buildModel ?? null;
   const buildModelSource = latestPlanReview?.buildModelSource ?? "derived";
-  const displayedManifest =
-    latestPlanReview?.manifest ??
-    (buildModel
-      ? createPrintablePlanManifest({
-          project,
-          planRecord: null,
-          buildModel,
-          buildModelSource,
-        })
-      : null);
+  const displayedManifest = displayedSnapshot?.manifest ?? null;
   const olderPlanReviews = latestPlanReview ? planReviews.filter((entry) => entry.plan.id !== latestPlanReview.plan.id) : [];
   const comparedPlanReview =
     olderPlanReviews.length > 0 ? (olderPlanReviews.find((entry) => entry.plan.id === query.compare_plan) ?? olderPlanReviews[0]) : null;
@@ -93,8 +92,8 @@ export default async function ProjectDetailPage({
       : null;
   const printPreviewHref = `/projects/${project.id}/print` as Route;
   const sectionLinks = createProjectSectionLinks({
-    isArchived: isProjectArchived(project),
-    hasLatestPlan: Boolean(latestPlanReview),
+    isArchived: lifecycle.isArchived,
+    hasLatestPlan: lifecycle.hasLatestPlan,
     hasPlanReview: Boolean(latestPlanReview?.manifest.planReview),
     hasPrintablePlan: Boolean(latestPlanReview?.manifest.generatedPlan && latestPlanReview.manifest.cutList),
     hasPlanHistory: planReviews.length > 0,
@@ -121,7 +120,7 @@ export default async function ProjectDetailPage({
       </div>
 
       {isProjectArchived(project) ? <ArchivedProjectBanner project={project} /> : null}
-      {project.status === "generation_failed" && latestPlanReview ? <LatestAttemptFailedPanel /> : null}
+      {lifecycle.latestAttemptFailedWithSavedPlan ? <LatestAttemptFailedPanel /> : null}
       {isGenerationFailureReason(query.generation_error) ? (
         <GenerationFailurePanel reason={query.generation_error} safetyFlags={project.safety_flags} project={project} />
       ) : null}
@@ -149,7 +148,7 @@ export default async function ProjectDetailPage({
         </p>
       ) : null}
       {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} /> : null}
-      <ClarificationGatePanel decision={clarificationGate} hasLatestPlan={Boolean(latestPlanReview)} isArchived={isProjectArchived(project)} />
+      <ClarificationGatePanel decision={clarificationGate} hasLatestPlan={lifecycle.hasLatestPlan} isArchived={lifecycle.isArchived} />
 
       {latestPlanReview ? (
         <>
@@ -187,7 +186,7 @@ export default async function ProjectDetailPage({
               ) : null}
               {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
               {latestPlanReview.manifest.exportReadiness ? <ExportReadinessPanel summary={latestPlanReview.manifest.exportReadiness} /> : null}
-              {!isProjectArchived(project) ? <TweakPlanSection project={project} hasLatestPlan={Boolean(latestPlanReview)} /> : null}
+              {lifecycle.canRevisePlan ? <TweakPlanSection project={project} hasLatestPlan={lifecycle.hasLatestPlan} /> : null}
               <PlanComparisonPanel
                 comparison={planComparison}
                 comparedVersionLabel={comparedPlanReview ? planVersionLabel(planReviews, comparedPlanReview.plan) : null}
@@ -541,24 +540,7 @@ function ProjectReviewTriggers({ project }: { project: Project }) {
   );
 }
 
-function buildPlanReview(project: Project, plan: GeneratedProjectPlanRecord) {
-  const buildModel = plan.build_model_json ?? createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
-  const buildModelSource: "saved" | "derived" = plan.build_model_json ? "saved" : "derived";
-
-  return {
-    plan,
-    buildModel,
-    buildModelSource,
-    manifest: createPrintablePlanManifest({
-      project,
-      planRecord: plan,
-      buildModel,
-      buildModelSource,
-    }),
-  };
-}
-
-type PlanReviewEntry = ReturnType<typeof buildPlanReview>;
+type PlanReviewEntry = PlanVersionGatedBuildPacketSnapshot;
 
 type ReviewSummaryTone = "ok" | "warning" | "blocked" | "info";
 
@@ -956,7 +938,7 @@ function NextStepPanel({
   );
 }
 
-function planVersionLabel(planReviews: ReturnType<typeof buildPlanReview>[], plan: GeneratedProjectPlanRecord): string {
+function planVersionLabel(planReviews: PlanReviewEntry[], plan: GeneratedProjectPlanRecord): string {
   const index = planReviews.findIndex((entry) => entry.plan.id === plan.id);
   return index >= 0 ? `Version ${(planReviews.length - index).toString()}` : "older version";
 }
@@ -1011,10 +993,6 @@ function ArchiveProjectAction({ project }: { project: Project }) {
       <span className="mt-1 text-xs text-ink/55">Hides without deleting plans.</span>
     </form>
   );
-}
-
-function isProjectArchived(project: Project): boolean {
-  return typeof project.archived_at === "string" && project.archived_at.length > 0;
 }
 
 function projectDetailStatusLabel(project: Project, hasLatestPlan: boolean): string {

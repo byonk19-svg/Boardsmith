@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { projectIntakeExamples } from "@/lib/projects/intake-examples";
+import { isProjectArchived } from "@/lib/projects/project-planning-lifecycle";
 import { projectTypeLabels, type Project } from "@/lib/projects/types";
 import { listGeneratedPlans, listProjects } from "@/lib/storage/project-store";
 
@@ -301,10 +302,6 @@ function statusLabel(project: Project): string {
 
 function dimensionLabel(project: Project): string {
   return `${project.width_inches.toString()} x ${project.height_inches.toString()} x ${project.depth_inches.toString()} in`;
-}
-
-function isProjectArchived(project: Project): boolean {
-  return typeof project.archived_at === "string" && project.archived_at.length > 0;
 }
 
 function formatProjectDate(value: string): string {

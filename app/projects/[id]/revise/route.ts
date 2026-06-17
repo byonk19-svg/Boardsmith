@@ -2,11 +2,10 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { classifyGenerationFailure } from "@/lib/ai/generation-feedback";
 import { generateRevisedStructuredProjectPlan } from "@/lib/ai/generate-project-plan";
-import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
+import { createGatedBuildPacketSnapshots, latestGatedBuildPacketSnapshot } from "@/lib/plans/gated-build-packet-snapshot";
 import { maxRevisionInstructionLength, normalizeRevisionInstruction } from "@/lib/plans/revision-input";
-import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
+import { evaluateProjectWriteCommand, evaluateRevisionCommand } from "@/lib/projects/project-planning-lifecycle";
 import { getProject, listGeneratedPlans, markProjectGenerationFailed, saveGeneratedPlan } from "@/lib/storage/project-store";
-import { getTemplateHint } from "@/lib/templates/template-hints";
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }): Promise<Response> {
   const { id } = await context.params;
@@ -15,8 +14,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     return NextResponse.redirect(new URL("/projects?error=Project%20not%20found", request.url), 303);
   }
 
-  if (typeof project.archived_at === "string" && project.archived_at.length > 0) {
-    return NextResponse.redirect(new URL(`/projects/${project.id}?revision_error=archived`, request.url), 303);
+  const writeDecision = evaluateProjectWriteCommand(project);
+  if (!writeDecision.allowed) {
+    return NextResponse.redirect(new URL(`/projects/${project.id}?revision_error=${writeDecision.reason}`, request.url), 303);
   }
 
   const formData = await request.formData();
@@ -29,17 +29,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   }
 
   const plans = await listGeneratedPlans(project.id);
-  if (plans.length === 0) {
+  const revisionDecision = evaluateRevisionCommand(project, { hasLatestPlan: plans.length > 0 });
+  if (!revisionDecision.allowed) {
+    return NextResponse.redirect(new URL(`/projects/${project.id}?revision_error=${revisionDecision.reason}`, request.url), 303);
+  }
+  const latestPlanSnapshot = latestGatedBuildPacketSnapshot(createGatedBuildPacketSnapshots({ project, plans }));
+  if (!latestPlanSnapshot) {
     return NextResponse.redirect(new URL(`/projects/${project.id}?revision_error=no_plan`, request.url), 303);
   }
-  const latestPlan = plans.find((plan) => plan.is_latest) ?? plans[0];
+  const latestPlan = latestPlanSnapshot.plan;
 
   try {
-    const buildModel =
-      latestPlan.build_model_json ?? createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
     const result = await generateRevisedStructuredProjectPlan({
       project,
-      buildModel,
+      buildModel: latestPlanSnapshot.buildModel,
       latestPlan,
       revisionInstruction,
     });
@@ -47,7 +50,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       projectId: project.id,
       modelName: result.modelName,
       plan: result.plan,
-      buildModel,
+      buildModel: latestPlanSnapshot.buildModel,
     });
     revalidatePath(`/projects/${project.id}`);
     return NextResponse.redirect(new URL(`/projects/${project.id}?revised=1&compare_plan=${latestPlan.id}`, request.url), 303);

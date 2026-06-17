@@ -3,12 +3,14 @@ import type { Project, ProjectBuildLogInput } from "@/lib/projects/types";
 import { activeProjectArchiveFields } from "./project-test-helpers";
 
 const updateProjectBuildLogMock = vi.fn<(projectId: string, input: ProjectBuildLogInput) => Promise<Project | null>>();
+const getProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
 vi.mock("@/lib/storage/project-store", () => ({
+  getProject: (projectId: string) => getProjectMock(projectId),
   updateProjectBuildLog: (projectId: string, input: ProjectBuildLogInput) => updateProjectBuildLogMock(projectId, input),
 }));
 
@@ -42,6 +44,7 @@ const updatedProject: Project = {
 describe("project build log route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getProjectMock.mockResolvedValue(updatedProject);
   });
 
   it("saves the build log and redirects back to the project detail page", async () => {
@@ -70,7 +73,7 @@ describe("project build log route", () => {
   });
 
   it("redirects with an error if the project is missing", async () => {
-    updateProjectBuildLogMock.mockResolvedValue(null);
+    getProjectMock.mockResolvedValue(null);
     const { POST } = await import("@/app/projects/[id]/build-log/route");
     const formData = new FormData();
 
@@ -80,6 +83,22 @@ describe("project build log route", () => {
 
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("http://localhost/projects?error=Project%20not%20found");
+    expect(updateProjectBuildLogMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks archived projects before saving build log changes", async () => {
+    getProjectMock.mockResolvedValue({ ...updatedProject, archived_at: "2026-06-08T12:00:00.000Z" });
+    const { POST } = await import("@/app/projects/[id]/build-log/route");
+    const formData = new FormData();
+    formData.set("build_completed", "on");
+
+    const response = await POST(new Request("http://localhost/projects/project-with-build-log/build-log", { method: "POST", body: formData }), {
+      params: Promise.resolve({ id: "project-with-build-log" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/project-with-build-log?error=project_archived");
+    expect(updateProjectBuildLogMock).not.toHaveBeenCalled();
   });
 
   it("uses a stable project-detail error key when build log save fails", async () => {

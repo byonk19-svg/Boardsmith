@@ -3,12 +3,14 @@ import type { Project } from "@/lib/projects/types";
 import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
 const duplicateProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
+const getProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
 vi.mock("@/lib/storage/project-store", () => ({
+  getProject: (projectId: string) => getProjectMock(projectId),
   duplicateProject: (projectId: string) => duplicateProjectMock(projectId),
 }));
 
@@ -38,6 +40,11 @@ const duplicatedProject: Project = {
 describe("duplicate project route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getProjectMock.mockResolvedValue({
+      ...duplicatedProject,
+      id: "source-project-id",
+      title: "Bathroom shelf",
+    });
   });
 
   it("duplicates the project and redirects to the new project detail page", async () => {
@@ -54,7 +61,7 @@ describe("duplicate project route", () => {
   });
 
   it("redirects to projects with an error when the source project is missing", async () => {
-    duplicateProjectMock.mockResolvedValue(null);
+    getProjectMock.mockResolvedValue(null);
     const { POST } = await import("@/app/projects/[id]/duplicate/route");
 
     const response = await POST(new Request("http://localhost/projects/missing-project/duplicate", { method: "POST" }), {
@@ -63,6 +70,24 @@ describe("duplicate project route", () => {
 
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("http://localhost/projects?error=Project%20not%20found");
+    expect(duplicateProjectMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks archived source projects before duplicating", async () => {
+    getProjectMock.mockResolvedValue({
+      ...duplicatedProject,
+      id: "source-project-id",
+      archived_at: "2026-06-08T12:00:00.000Z",
+    });
+    const { POST } = await import("@/app/projects/[id]/duplicate/route");
+
+    const response = await POST(new Request("http://localhost/projects/source-project-id/duplicate", { method: "POST" }), {
+      params: Promise.resolve({ id: "source-project-id" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/source-project-id?error=project_archived");
+    expect(duplicateProjectMock).not.toHaveBeenCalled();
   });
 
   it("uses a stable project-detail error key when duplication fails", async () => {

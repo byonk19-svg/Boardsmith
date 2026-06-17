@@ -1,8 +1,9 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { evaluateProjectWriteCommand } from "@/lib/projects/project-planning-lifecycle";
 import { projectShelfLayoutUpdateSchema, shelfLayoutOptions, type ShelfLayoutOption } from "@/lib/projects/types";
-import { updateProjectShelfLayout } from "@/lib/storage/project-store";
+import { getProject, updateProjectShelfLayout } from "@/lib/storage/project-store";
 
 function optionalNumber(formData: FormData, name: string): number | undefined {
   const value = formData.get(name);
@@ -24,6 +25,15 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const { id } = await context.params;
 
   try {
+    const existingProject = await getProject(id);
+    if (!existingProject) {
+      return NextResponse.redirect(new URL("/projects?error=Project%20not%20found", request.url), 303);
+    }
+    const writeDecision = evaluateProjectWriteCommand(existingProject);
+    if (!writeDecision.allowed) {
+      return NextResponse.redirect(new URL(`/projects/${id}?error=project_archived#project-intake`, request.url), 303);
+    }
+
     const formData = await request.formData();
     const layoutValue = formData.get("shelf_layout");
     const parsedInput = projectShelfLayoutUpdateSchema.parse({

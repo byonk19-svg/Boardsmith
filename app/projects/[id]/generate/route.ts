@@ -3,9 +3,7 @@ import { NextResponse } from "next/server";
 import { classifyGenerationFailure } from "@/lib/ai/generation-feedback";
 import { generateStructuredProjectPlan } from "@/lib/ai/generate-project-plan";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
-import { createClarificationGateDecision } from "@/lib/projects/clarification-gate";
-import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
-import { findBlockingShelfLayoutIssue } from "@/lib/projects/shelf-layout-validation";
+import { evaluateGenerationCommand } from "@/lib/projects/project-planning-lifecycle";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getProject, markProjectGenerationFailed, saveGeneratedPlan } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
@@ -17,33 +15,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     return NextResponse.redirect(new URL("/projects?error=Project%20not%20found", request.url), 303);
   }
 
-  if (typeof project.archived_at === "string" && project.archived_at.length > 0) {
-    return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=archived`, request.url), 303);
-  }
-
   try {
-    const clarificationGate = createClarificationGateDecision(project);
-
-    if (clarificationGate.status === "blocked_for_safety" || clarificationGate.status === "concept_only" || clarificationGate.status === "unsupported") {
-      await markProjectGenerationFailed(project.id);
-      revalidatePath(`/projects/${project.id}`);
-      return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=clarification_gate#plan-readiness`, request.url), 303);
-    }
-
-    if (analyzeShelfLayoutIntent(project).missingShelfCount) {
-      await markProjectGenerationFailed(project.id);
-      revalidatePath(`/projects/${project.id}`);
-      return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=shelf_layout_missing#project-intake`, request.url), 303);
-    }
-    if (findBlockingShelfLayoutIssue(project)) {
-      await markProjectGenerationFailed(project.id);
-      revalidatePath(`/projects/${project.id}`);
-      return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=shelf_layout_invalid#project-intake`, request.url), 303);
-    }
-    if (!clarificationGate.canGenerateFullPlan) {
-      await markProjectGenerationFailed(project.id);
-      revalidatePath(`/projects/${project.id}`);
-      return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=clarification_gate#plan-readiness`, request.url), 303);
+    const generationDecision = evaluateGenerationCommand(project);
+    if (!generationDecision.allowed) {
+      if (generationDecision.reason !== "archived") {
+        await markProjectGenerationFailed(project.id);
+        revalidatePath(`/projects/${project.id}`);
+      }
+      const hash =
+        generationDecision.reason === "archived"
+          ? ""
+          : generationDecision.reason === "shelf_layout_missing" || generationDecision.reason === "shelf_layout_invalid"
+            ? "#project-intake"
+            : "#plan-readiness";
+      return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=${generationDecision.reason}${hash}`, request.url), 303);
     }
 
     const buildModel = createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));

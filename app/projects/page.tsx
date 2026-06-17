@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getProjectListErrorMessage } from "@/lib/projects/project-list-errors";
+import { isProjectArchived } from "@/lib/projects/project-planning-lifecycle";
 import { projectTypeLabels, projectTypes, type Project, type ProjectStatus, type ProjectType } from "@/lib/projects/types";
 import { listGeneratedPlans, listProjects } from "@/lib/storage/project-store";
 
@@ -469,10 +470,6 @@ function projectListPrimaryActionLabel(project: Project, planCount: number): str
   if (isProjectArchived(project)) return "Review archived project";
   if (planCount === 0) return "Open to generate";
   return "Open project";
-}
-
-function isProjectArchived(project: Project): boolean {
-  return typeof project.archived_at === "string" && project.archived_at.length > 0;
 }
 
 function archiveSummaryLabel(archiveFilter: ProjectFilters["archive"]): string {

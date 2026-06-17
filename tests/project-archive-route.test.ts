@@ -4,12 +4,14 @@ import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test
 
 const archiveProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 const restoreProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
+const getProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
 vi.mock("@/lib/storage/project-store", () => ({
+  getProject: (projectId: string) => getProjectMock(projectId),
   archiveProject: (projectId: string) => archiveProjectMock(projectId),
   restoreProject: (projectId: string) => restoreProjectMock(projectId),
 }));
@@ -40,6 +42,7 @@ const project: Project = {
 describe("project archive routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getProjectMock.mockResolvedValue(project);
   });
 
   it("archives the project and redirects back to the project list by default", async () => {
@@ -68,6 +71,7 @@ describe("project archive routes", () => {
     const archiveResponse = await archivePost(new Request("http://localhost/projects/archive-project-id/archive", { method: "POST", body: archiveFormData }), {
       params: Promise.resolve({ id: "archive-project-id" }),
     });
+    getProjectMock.mockResolvedValueOnce({ ...project, archived_at: new Date(2).toISOString() });
     const restoreResponse = await restorePost(new Request("http://localhost/projects/archive-project-id/restore", { method: "POST", body: restoreFormData }), {
       params: Promise.resolve({ id: "archive-project-id" }),
     });
@@ -79,6 +83,7 @@ describe("project archive routes", () => {
   });
 
   it("restores the project and redirects to the archived filter when requested from the list", async () => {
+    getProjectMock.mockResolvedValue({ ...project, archived_at: new Date(2).toISOString() });
     restoreProjectMock.mockResolvedValue(project);
     const formData = new FormData();
     formData.set("return_to", "archived_list");
@@ -94,8 +99,7 @@ describe("project archive routes", () => {
   });
 
   it("redirects with a calm error when archive or restore cannot find the project", async () => {
-    archiveProjectMock.mockResolvedValue(null);
-    restoreProjectMock.mockResolvedValue(null);
+    getProjectMock.mockResolvedValue(null);
     const { POST: archivePost } = await import("@/app/projects/[id]/archive/route");
     const { POST: restorePost } = await import("@/app/projects/[id]/restore/route");
 
@@ -108,6 +112,32 @@ describe("project archive routes", () => {
 
     expect(archiveResponse.headers.get("location")).toBe("http://localhost/projects?error=Project%20not%20found");
     expect(restoreResponse.headers.get("location")).toBe("http://localhost/projects?error=Project%20not%20found");
+    expect(archiveProjectMock).not.toHaveBeenCalled();
+    expect(restoreProjectMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks stale archive and restore submissions that no longer match the lifecycle state", async () => {
+    const { POST: archivePost } = await import("@/app/projects/[id]/archive/route");
+    const { POST: restorePost } = await import("@/app/projects/[id]/restore/route");
+    const archiveFormData = new FormData();
+    archiveFormData.set("return_to", "project_detail");
+    const restoreFormData = new FormData();
+    restoreFormData.set("return_to", "archived_list");
+
+    getProjectMock.mockResolvedValueOnce({ ...project, archived_at: "2026-06-08T12:00:00.000Z" });
+    const archiveResponse = await archivePost(new Request("http://localhost/projects/archive-project-id/archive", { method: "POST", body: archiveFormData }), {
+      params: Promise.resolve({ id: "archive-project-id" }),
+    });
+
+    getProjectMock.mockResolvedValueOnce(project);
+    const restoreResponse = await restorePost(new Request("http://localhost/projects/archive-project-id/restore", { method: "POST", body: restoreFormData }), {
+      params: Promise.resolve({ id: "archive-project-id" }),
+    });
+
+    expect(archiveResponse.headers.get("location")).toBe("http://localhost/projects/archive-project-id?error=project_archived");
+    expect(restoreResponse.headers.get("location")).toBe("http://localhost/projects?archive=archived&error=project_not_archived");
+    expect(archiveProjectMock).not.toHaveBeenCalled();
+    expect(restoreProjectMock).not.toHaveBeenCalled();
   });
 
   it("uses stable project-detail error keys when archive or restore fails", async () => {
@@ -119,6 +149,7 @@ describe("project archive routes", () => {
     const archiveResponse = await archivePost(new Request("http://localhost/projects/archive-project-id/archive", { method: "POST" }), {
       params: Promise.resolve({ id: "archive-project-id" }),
     });
+    getProjectMock.mockResolvedValueOnce({ ...project, archived_at: "2026-06-08T12:00:00.000Z" });
     const restoreResponse = await restorePost(new Request("http://localhost/projects/archive-project-id/restore", { method: "POST" }), {
       params: Promise.resolve({ id: "archive-project-id" }),
     });

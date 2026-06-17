@@ -1,11 +1,21 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { duplicateProject } from "@/lib/storage/project-store";
+import { evaluateProjectWriteCommand } from "@/lib/projects/project-planning-lifecycle";
+import { duplicateProject, getProject } from "@/lib/storage/project-store";
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }): Promise<Response> {
   const { id } = await context.params;
 
   try {
+    const sourceProject = await getProject(id);
+    if (!sourceProject) {
+      return NextResponse.redirect(new URL("/projects?error=Project%20not%20found", request.url), 303);
+    }
+    const writeDecision = evaluateProjectWriteCommand(sourceProject);
+    if (!writeDecision.allowed) {
+      return NextResponse.redirect(new URL(`/projects/${id}?error=project_archived`, request.url), 303);
+    }
+
     const duplicatedProject = await duplicateProject(id);
     if (!duplicatedProject) {
       return NextResponse.redirect(new URL("/projects?error=Project%20not%20found", request.url), 303);

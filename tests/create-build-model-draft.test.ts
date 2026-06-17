@@ -5,7 +5,9 @@ import {
   validateBuildModelSemantics,
   type BoardsmithBuildModel,
 } from "@/lib/build-model/build-model-schema";
+import { supportedProjectTypeDraftAdapterProjectTypes } from "@/lib/build-model/supported-project-type-drafting";
 import type { ProjectType } from "@/lib/projects/types";
+import { projectTypes } from "@/lib/projects/types";
 import type { SafetyReviewFlag } from "@/lib/safety/safety-review";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getTemplateHint } from "@/lib/templates/template-hints";
@@ -54,6 +56,10 @@ function expectValidDraft(draft: BoardsmithBuildModel): void {
 }
 
 describe("createBuildModelDraft", () => {
+  it("has a Supported Project Type drafting adapter for every declared project type", () => {
+    expect(supportedProjectTypeDraftAdapterProjectTypes().sort()).toEqual([...projectTypes].sort());
+  });
+
   it.each<ProjectType>(["door_hanger", "layered_cutout", "wood_sign", "simple_shelf", "planter_box"])(
     "creates a valid semantic BBM draft for %s",
     (projectType) => {

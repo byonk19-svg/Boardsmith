@@ -5,6 +5,8 @@ const projectDetailErrorMessages = new Map<string, string>([
   ["archive_failed", "That project could not be archived. Try again from the project detail page."],
   ["restore_failed", "That project could not be restored. Try again from the project detail page."],
   ["duplicate_failed", "That project could not be duplicated. Review the project details and try again."],
+  ["project_archived", "Restore this archived project before making changes."],
+  ["project_not_archived", "This project is already active."],
   ["notes_failed", "Project notes could not be saved. Try again from the project detail page."],
   ["build_log_failed", "Build log changes could not be saved. Review the entered details and try again."],
   ["shelf_layout_failed", "Shelf layout changes could not be saved. Review the shelf count, spacing, and height before trying again."],

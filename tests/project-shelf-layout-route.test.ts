@@ -3,12 +3,14 @@ import type { Project, ProjectShelfLayoutUpdate } from "@/lib/projects/types";
 import { activeProjectArchiveFields, emptyProjectBuildLog } from "./project-test-helpers";
 
 const updateProjectShelfLayoutMock = vi.fn<(projectId: string, input: ProjectShelfLayoutUpdate) => Promise<Project | null>>();
+const getProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
 vi.mock("@/lib/storage/project-store", () => ({
+  getProject: (projectId: string) => getProjectMock(projectId),
   updateProjectShelfLayout: (projectId: string, input: ProjectShelfLayoutUpdate) => updateProjectShelfLayoutMock(projectId, input),
 }));
 
@@ -41,6 +43,7 @@ const updatedProject: Project = {
 describe("project shelf layout route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getProjectMock.mockResolvedValue(updatedProject);
   });
 
   it("saves shelf layout details and redirects back to project intake", async () => {
@@ -78,6 +81,22 @@ describe("project shelf layout route", () => {
 
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("http://localhost/projects/project-with-shelf-layout?error=shelf_layout_invalid#project-intake");
+    expect(updateProjectShelfLayoutMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks archived projects before saving shelf layout details", async () => {
+    getProjectMock.mockResolvedValue({ ...updatedProject, archived_at: "2026-06-08T12:00:00.000Z" });
+    const { POST } = await import("@/app/projects/[id]/shelf-layout/route");
+    const formData = new FormData();
+    formData.set("shelf_layout", "multi_shelf_unit");
+    formData.set("shelf_count", "3");
+
+    const response = await POST(new Request("http://localhost/projects/project-with-shelf-layout/shelf-layout", { method: "POST", body: formData }), {
+      params: Promise.resolve({ id: "project-with-shelf-layout" }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("http://localhost/projects/project-with-shelf-layout?error=project_archived#project-intake");
     expect(updateProjectShelfLayoutMock).not.toHaveBeenCalled();
   });
 
