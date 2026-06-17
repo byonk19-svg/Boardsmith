@@ -52,206 +52,294 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const archivedProjectCount = sortedProjectSummaries.filter((summary) => isProjectArchived(summary.project)).length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-ink">Projects</h1>
-          <p className="mt-2 text-sm text-ink/65">Saved project intakes, generated plan history, and private build records.</p>
-        </div>
-        <Link href="/projects/new" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-          New Project
-        </Link>
-      </div>
+    <div className="dashboard-canvas -mx-5 -my-8 px-5 py-8 sm:-mx-6 sm:px-6">
+      <div className="mx-auto grid min-w-0 max-w-7xl gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
+        <ProjectsSideNav />
 
-      {errorMessage ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{errorMessage}</p> : null}
-      {params.archived ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project archived. It is hidden from the active project list, and its plans are preserved.</p> : null}
-      {params.restored ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project restored to the active project list.</p> : null}
-
-      {projects.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
-          <p className="font-medium text-ink">No projects yet.</p>
-          <p className="mt-2 text-sm text-ink/65">Create a project intake to start a private planning record. Generated plans and shop notes will appear here after you save work.</p>
-          <Link href="/projects/new" className="mt-4 inline-flex rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-            Start first project
-          </Link>
-        </div>
-      ) : (
-        <>
-          <section className="grid gap-3 md:grid-cols-4">
-            <ProjectListMetric label="Showing" value={filteredProjectSummaries.length.toString()} note={`${archiveFilteredSummaries.length.toString()} ${archiveSummaryLabel(filters.archive)}`} />
-            <ProjectListMetric label="Ready to review" value={visibleWithPlans.toString()} note="generated plans saved" />
-            <ProjectListMetric label="Need plans" value={visibleNeedingPlans.toString()} note="drafts or failed generations" />
-            <ProjectListMetric label="Archived" value={archivedProjectCount.toString()} note="read-only unless restored" />
-          </section>
-
-          <section className="rounded-lg border border-sawdust bg-white p-4 shadow-soft">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-ink">Find a project</h2>
-                <p className="mt-1 text-sm text-ink/65">Search first, then open advanced filters only when the list needs narrowing.</p>
-              </div>
-              {filtersActive ? (
-                <Link href="/projects" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                  Clear filters
-                </Link>
-              ) : null}
+        <div className="min-w-0 space-y-6 pb-16">
+          <header className="flex flex-col gap-5 rounded-lg border border-sawdust bg-[#fbf8f1] p-6 shadow-soft sm:p-8 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-caution">Private project library</p>
+              <h1 className="mt-2 font-serif text-4xl font-semibold leading-tight tracking-tight text-ink">My Projects</h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/65">Manage saved project intakes, generated plan history, and private build records.</p>
             </div>
-            <form action="/projects" className="mt-4 space-y-3">
-              <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_14rem_auto] lg:items-end">
-                <label className="grid gap-1.5 text-sm font-medium text-ink">
-                  Search
-                  <input
-                    name="q"
-                    type="search"
-                    defaultValue={filters.query}
-                    placeholder="Title, use, style notes..."
-                    className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss"
-                  />
-                </label>
-                <label className="grid gap-1.5 text-sm font-medium text-ink">
-                  Workspace
-                  <select name="archive" defaultValue={filters.archive} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
-                    <option value="active">Active projects</option>
-                    <option value="archived">Archived projects</option>
-                    <option value="all">All projects</option>
-                  </select>
-                </label>
-                <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-                  Apply
-                </button>
-              </div>
-              <details className="rounded-md border border-sawdust bg-shop/40 p-3" open={advancedFiltersActive}>
-                <summary className="cursor-pointer text-sm font-semibold text-ink">
-                  More filters
-                  <span className="ml-2 text-xs font-normal text-ink/55">type, status, plan, record</span>
-                </summary>
-                <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-                  <label className="grid gap-1.5 text-sm font-medium text-ink">
-                    Project type
-                    <select name="type" defaultValue={filters.type} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
-                      <option value="all">All types</option>
-                      {projectTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {projectTypeLabels[type]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="grid gap-1.5 text-sm font-medium text-ink">
-                    Status
-                    <select name="status" defaultValue={filters.status} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
-                      <option value="all">All statuses</option>
-                      <option value="draft">Draft</option>
-                      <option value="plan_generated">Plan generated</option>
-                      <option value="generation_failed">Needs review</option>
-                      <option value="built">Built</option>
-                    </select>
-                  </label>
-                  <label className="grid gap-1.5 text-sm font-medium text-ink">
-                    Plan state
-                    <select name="plan" defaultValue={filters.plan} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
-                      <option value="all">Any plan state</option>
-                      <option value="has_plan">Has latest plan</option>
-                      <option value="no_plan">No plan yet</option>
-                    </select>
-                  </label>
-                  <label className="grid gap-1.5 text-sm font-medium text-ink">
-                    Record
-                    <select name="record" defaultValue={filters.record} className="rounded-md border border-sawdust px-3 py-2 text-sm font-normal text-ink outline-none focus:border-moss">
-                      <option value="all">Any record state</option>
-                      <option value="has_record">Has notes or build log</option>
-                      <option value="no_record">No record yet</option>
-                    </select>
-                  </label>
-                </div>
-              </details>
-            </form>
-            <p className="mt-3 text-sm text-ink/65">
-              Showing {filteredProjectSummaries.length.toString()} of {archiveFilteredSummaries.length.toString()} {archiveSummaryLabel(filters.archive)}. Most recently updated first.
-            </p>
-            {filtersActive ? <p className="mt-1 text-xs text-ink/55">{filterSummaryLabel(filters)}</p> : null}
-          </section>
+            <Link href="/projects/new" className="inline-flex w-fit items-center justify-center rounded-md bg-moss px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-moss/90 active:scale-[0.98]">
+              New Project
+            </Link>
+          </header>
 
-          {filteredProjectSummaries.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-sawdust bg-white p-8 text-center">
-              <p className="font-medium text-ink">{emptyState.title}</p>
-              <p className="mt-2 text-sm text-ink/65">{emptyState.body}</p>
-              <div className="mt-4 flex flex-wrap justify-center gap-2">
-                <Link href="/projects" className="rounded-md border border-sawdust px-4 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                  {emptyState.clearLabel}
-                </Link>
-                <Link href="/projects/new" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-                  New Project
+          {errorMessage ? <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{errorMessage}</p> : null}
+          {params.archived ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project archived. It is hidden from the active project list, and its plans are preserved.</p> : null}
+          {params.restored ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project restored to the active project list.</p> : null}
+
+          {projects.length === 0 ? (
+            <div className="grid gap-5 rounded-lg border border-dashed border-sawdust bg-white/90 p-6 shadow-soft lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center">
+              <div>
+                <p className="font-serif text-2xl font-semibold text-ink">No projects yet.</p>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-ink/65">Create a project intake to start a private planning record. Generated plans and shop notes will appear here after you save work.</p>
+                <Link href="/projects/new" className="mt-4 inline-flex rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+                  Start first project
                 </Link>
               </div>
+              <ProjectCardPreview state="draft" label="empty project preview" />
             </div>
           ) : (
-            <div className="grid gap-4">
-              {filteredProjectSummaries.map(({ project, planCount }) => (
-                <article key={project.id} className="rounded-lg border border-sawdust bg-white p-4 transition hover:border-moss hover:shadow-soft">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-moss">{projectListNextStepLabel(project, planCount)}</p>
-                      <p className="truncate text-lg font-semibold text-ink" title={project.title}>
-                        {project.title}
-                      </p>
-                      <p className="mt-1 text-sm text-ink/65">
-                        {projectTypeLabels[project.project_type]} | {dimensionLabel(project)} | Updated {formatProjectDate(project.updated_at)}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {isProjectArchived(project) ? (
-                        <span className="w-fit rounded-md bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-900">Archived</span>
-                      ) : null}
-                      <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">{statusLabel(project, planCount)}</span>
-                    </div>
-                  </div>
+            <>
+              <section className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <ProjectListMetric label="Showing" value={filteredProjectSummaries.length.toString()} note={`${archiveFilteredSummaries.length.toString()} ${archiveSummaryLabel(filters.archive)}`} tone="primary" />
+                <ProjectListMetric label="Ready to review" value={visibleWithPlans.toString()} note="generated plans saved" tone="accent" />
+                <ProjectListMetric label="Need plans" value={visibleNeedingPlans.toString()} note="drafts or failed generations" />
+                <ProjectListMetric label="Archived" value={archivedProjectCount.toString()} note="read-only unless restored" />
+              </section>
 
-                  <div className="mt-3 flex flex-wrap gap-2 text-sm">
-                    <ProjectSignal label="Plan" value={planCount > 0 ? "Latest plan saved" : "No generated plan yet"} tone={planCount > 0 ? "ready" : "needs"} />
-                    <ProjectSignal label="History" value={planCount === 1 ? "1 plan version" : `${planCount.toString()} plan versions`} />
-                    <ProjectSignal label="Notes" value={project.notes.trim().length > 0 ? "Notes added" : "No notes yet"} />
-                    <ProjectSignal label="Record" value={buildLogLabel(project)} />
+              <section className="rounded-lg border border-sawdust bg-white/95 p-5 shadow-soft">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h2 className="font-serif text-2xl font-semibold text-ink">Find a project</h2>
+                    <p className="mt-1 text-sm text-ink/65">Search first, then open advanced filters only when the list needs narrowing.</p>
                   </div>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Link href={`/projects/${project.id}`} className="rounded-md bg-moss px-3 py-2 text-sm font-semibold text-white hover:bg-moss/90">
-                      {projectListPrimaryActionLabel(project, planCount)}
+                  {filtersActive ? (
+                    <Link href="/projects" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink transition hover:bg-shop">
+                      Clear filters
                     </Link>
-                    {planCount > 0 ? (
-                      <Link href={`/projects/${project.id}/print`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                        Print build sheet
-                      </Link>
-                    ) : null}
-                    {hasProjectRecord(project) ? (
-                      <Link href={`/projects/${project.id}`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                        Review project record
-                      </Link>
-                    ) : null}
-                    {isProjectArchived(project) ? (
-                      <form action={`/projects/${project.id}/restore`} method="post" className="inline-flex flex-col">
-                        <input type="hidden" name="return_to" value="archived_list" />
-                        <button type="submit" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                          Restore project
-                        </button>
-                      </form>
-                    ) : (
-                      <form action={`/projects/${project.id}/archive`} method="post" className="inline-flex flex-col">
-                        <button type="submit" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-                          Archive project
-                        </button>
-                        <span className="mt-1 text-xs text-ink/55">Hides this project without deleting plans.</span>
-                      </form>
-                    )}
+                  ) : null}
+                </div>
+                <form action="/projects" className="mt-5 space-y-4">
+                  <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_14rem_auto] lg:items-end">
+                    <label className="grid min-w-0 gap-1.5 text-sm font-medium text-ink">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/55">Search Projects</span>
+                      <input name="q" type="search" defaultValue={filters.query} placeholder="Title, wood type, or size..." className="input" />
+                    </label>
+                    <label className="grid gap-1.5 text-sm font-medium text-ink">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/55">Workspace</span>
+                      <select name="archive" defaultValue={filters.archive} className="input">
+                        <option value="active">Active projects</option>
+                        <option value="archived">Archived projects</option>
+                        <option value="all">All projects</option>
+                      </select>
+                    </label>
+                    <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white transition hover:bg-moss/90 active:scale-[0.98]">
+                      Apply
+                    </button>
                   </div>
-                </article>
-              ))}
-            </div>
+                  <details className="min-w-0 overflow-hidden rounded-md border border-sawdust bg-shop/50 p-3" open={advancedFiltersActive}>
+                    <summary className="cursor-pointer text-sm font-semibold text-ink">
+                      More filters
+                      <span className="ml-2 text-xs font-normal text-ink/55">type, status, plan, record</span>
+                    </summary>
+                    <div className="mt-3 grid min-w-0 gap-3 md:grid-cols-2 lg:grid-cols-4">
+                      <label className="grid gap-1.5 text-sm font-medium text-ink">
+                        Project type
+                        <select name="type" defaultValue={filters.type} className="input">
+                          <option value="all">All types</option>
+                          {projectTypes.map((type) => (
+                            <option key={type} value={type}>
+                              {projectTypeLabels[type]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="grid gap-1.5 text-sm font-medium text-ink">
+                        Status
+                        <select name="status" defaultValue={filters.status} className="input">
+                          <option value="all">All statuses</option>
+                          <option value="draft">Draft</option>
+                          <option value="plan_generated">Plan generated</option>
+                          <option value="generation_failed">Needs review</option>
+                          <option value="built">Built</option>
+                        </select>
+                      </label>
+                      <label className="grid gap-1.5 text-sm font-medium text-ink">
+                        Plan state
+                        <select name="plan" defaultValue={filters.plan} className="input">
+                          <option value="all">Any plan state</option>
+                          <option value="has_plan">Has latest plan</option>
+                          <option value="no_plan">No plan yet</option>
+                        </select>
+                      </label>
+                      <label className="grid gap-1.5 text-sm font-medium text-ink">
+                        Record
+                        <select name="record" defaultValue={filters.record} className="input">
+                          <option value="all">Any record state</option>
+                          <option value="has_record">Has notes or build log</option>
+                          <option value="no_record">No record yet</option>
+                        </select>
+                      </label>
+                    </div>
+                  </details>
+                </form>
+                <p className="mt-3 text-sm text-ink/65">
+                  Showing {filteredProjectSummaries.length.toString()} of {archiveFilteredSummaries.length.toString()} {archiveSummaryLabel(filters.archive)}. Most recently updated first.
+                </p>
+                {filtersActive ? <p className="mt-1 text-xs text-ink/55">{filterSummaryLabel(filters)}</p> : null}
+              </section>
+
+              {filteredProjectSummaries.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-sawdust bg-white/90 p-8 text-center shadow-soft">
+                  <p className="font-serif text-2xl font-semibold text-ink">{emptyState.title}</p>
+                  <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-ink/65">{emptyState.body}</p>
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    <Link href="/projects" className="rounded-md border border-sawdust px-4 py-2 text-sm font-semibold text-ink hover:bg-shop">
+                      {emptyState.clearLabel}
+                    </Link>
+                    <Link href="/projects/new" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+                      New Project
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {filteredProjectSummaries.map(({ project, planCount }) => (
+                    <ProjectListCard key={project.id} project={project} planCount={planCount} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+
+          <footer className="border-t border-sawdust pt-6 text-sm text-ink/55">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="font-semibold uppercase tracking-[0.14em] text-moss">Boardsmith</span>
+              <span>Private planning workspace. Review before cutting or building.</span>
+            </div>
+          </footer>
+        </div>
+      </div>
     </div>
   );
+}
+
+function ProjectsSideNav() {
+  return (
+    <aside className="hidden self-start rounded-lg border border-sawdust/80 bg-[#f0ede6]/90 p-4 shadow-soft lg:sticky lg:top-6 lg:block">
+      <div className="border-b border-sawdust pb-5">
+        <p className="font-serif text-3xl font-semibold tracking-tight text-moss">Boardsmith</p>
+        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-ink/50">Digital craftsmanship</p>
+      </div>
+      <nav className="mt-5 space-y-1 text-sm font-semibold" aria-label="Projects shortcuts">
+        <Link href="/" className="block rounded-md px-3 py-2 text-ink/70 transition hover:bg-white hover:text-ink">
+          Dashboard
+        </Link>
+        <Link href="/projects" className="block rounded-md bg-moss px-3 py-2 text-white">
+          My Projects
+        </Link>
+        <Link href="/projects/new" className="block rounded-md px-3 py-2 text-ink/70 transition hover:bg-white hover:text-ink">
+          New project
+        </Link>
+        <Link href="/settings" className="block rounded-md px-3 py-2 text-ink/70 transition hover:bg-white hover:text-ink">
+          Settings
+        </Link>
+      </nav>
+      <p className="mt-6 rounded-md bg-white/65 p-3 text-xs leading-5 text-ink/55">Archive hides work from the active list without deleting generated plans.</p>
+    </aside>
+  );
+}
+
+function ProjectListCard({ project, planCount }: { project: Project; planCount: number }) {
+  const archived = isProjectArchived(project);
+  const hasPlan = planCount > 0;
+  const built = project.build_completed;
+
+  return (
+    <article className="group min-w-0 overflow-hidden rounded-lg border border-sawdust bg-white shadow-soft transition hover:border-moss/50">
+      <div className={`h-1 w-full ${projectStatusStripClass(project, planCount)}`} />
+      <div className="grid min-w-0 gap-0 md:grid-cols-[12rem_minmax(0,1fr)]">
+        <ProjectCardPreview state={projectPreviewState(project, planCount)} label={`${project.title} project preview`} />
+        <div className="flex min-w-0 flex-col p-5">
+          <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-caution">{projectListNextStepLabel(project, planCount)}</p>
+              <h2 className="mt-1 truncate font-serif text-2xl font-semibold leading-tight text-moss" title={project.title}>
+                {project.title}
+              </h2>
+              <p className="mt-1 text-sm text-ink/65">
+                {projectTypeLabels[project.project_type]} | {dimensionLabel(project)} | Updated {formatProjectDate(project.updated_at)}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 xl:justify-end">
+              {archived ? <span className="w-fit rounded bg-amber-100 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-amber-900">Archived</span> : null}
+              <span className="w-fit rounded bg-shop px-2 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">{statusLabel(project, planCount)}</span>
+            </div>
+          </div>
+
+          <div className="mt-auto flex flex-wrap items-center gap-2 pt-5">
+            <Link href={`/projects/${project.id}`} className={`rounded-md px-3 py-2 text-sm font-semibold transition ${archived || built ? "bg-shop text-ink hover:bg-sawdust" : "bg-moss text-white hover:bg-moss/90"}`}>
+              {projectListPrimaryActionLabel(project, planCount)}
+            </Link>
+            {hasPlan ? (
+              <Link href={`/projects/${project.id}/print`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink transition hover:bg-shop">
+                Print build sheet
+              </Link>
+            ) : null}
+            {hasProjectRecord(project) ? (
+              <Link href={`/projects/${project.id}`} className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink transition hover:bg-shop">
+                Review project record
+              </Link>
+            ) : null}
+            <div className="flex flex-col sm:ml-auto">
+              {archived ? (
+                <form action={`/projects/${project.id}/restore`} method="post" className="inline-flex flex-col">
+                  <input type="hidden" name="return_to" value="archived_list" />
+                  <button type="submit" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink transition hover:bg-shop">
+                    Restore project
+                  </button>
+                </form>
+              ) : (
+                <form action={`/projects/${project.id}/archive`} method="post" className="inline-flex flex-col">
+                  <button type="submit" className="w-fit rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink transition hover:bg-shop">
+                    Archive project
+                  </button>
+                  <span className="mt-1 text-xs text-ink/55">Hides this project without deleting plans.</span>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex min-w-0 flex-wrap gap-2 border-t border-sawdust bg-[#f0eee9] px-5 py-2 sm:flex-nowrap sm:gap-6 sm:overflow-x-auto sm:whitespace-nowrap">
+        <ProjectSignal label="History" value={planCount === 1 ? "1 plan version" : `${planCount.toString()} plan versions`} />
+        <ProjectSignal label="Notes" value={project.notes.trim().length > 0 ? "Notes added" : "No notes yet"} />
+        <ProjectSignal label="Record" value={buildLogLabel(project)} />
+        <ProjectSignal label="Plan" value={hasPlan ? "Latest plan saved" : "No generated plan yet"} tone={hasPlan ? "ready" : "needs"} />
+      </div>
+    </article>
+  );
+}
+
+function ProjectCardPreview({ state, label }: { state: "ready" | "draft" | "built" | "archived" | "failed"; label: string }) {
+  const badgeLabel = state === "ready" ? "Ready to Review" : state === "built" ? "Built" : state === "archived" ? "Archived" : state === "failed" ? "Needs Review" : "Needs Generated Plan";
+  const badgeClass = state === "ready" ? "bg-caution text-white" : state === "built" ? "bg-moss text-white" : state === "failed" ? "bg-amber-100 text-amber-900" : "bg-ink/65 text-white";
+  const muted = state === "archived" || state === "built";
+
+  return (
+    <div className="min-h-40 border-b border-sawdust bg-[#f3efe7] p-4 md:border-b-0 md:border-r" aria-label={label}>
+      <div className={`relative flex h-32 items-center justify-center overflow-hidden rounded-md border border-sawdust bg-[#fffaf0] ${muted ? "opacity-75" : ""}`}>
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,rgba(114,83,59,0.07)_0_1px,transparent_1px_18px)]" />
+        <div className="absolute left-6 top-5 h-20 w-5 rounded border-2 border-moss/75 bg-moss/5" />
+        <div className={`absolute left-16 right-6 top-11 h-5 rounded-sm border-2 border-[#805f32] ${state === "draft" || state === "failed" ? "border-dashed bg-transparent" : "bg-[#d8b679]"}`} />
+        <div className="absolute bottom-5 left-16 right-8 h-3 rounded-full bg-ink/10" />
+        {state === "built" ? <div className="absolute inset-0 bg-moss/10" /> : null}
+        <span className={`absolute left-2 top-2 rounded px-2 py-0.5 text-[0.63rem] font-semibold uppercase tracking-[0.12em] ${badgeClass}`}>{badgeLabel}</span>
+      </div>
+    </div>
+  );
+}
+
+function projectStatusStripClass(project: Project, planCount: number): string {
+  if (isProjectArchived(project)) return "bg-sawdust";
+  if (project.build_completed) return "bg-moss/40";
+  if (project.status === "generation_failed") return "bg-amber-300";
+  if (planCount > 0) return "bg-caution";
+  return "bg-sawdust";
+}
+
+function projectPreviewState(project: Project, planCount: number): "ready" | "draft" | "built" | "archived" | "failed" {
+  if (isProjectArchived(project)) return "archived";
+  if (project.build_completed) return "built";
+  if (project.status === "generation_failed") return "failed";
+  if (planCount > 0) return "ready";
+  return "draft";
 }
 
 function parseProjectFilters(params: ProjectsSearchParams): ProjectFilters {
@@ -346,11 +434,13 @@ function projectSearchText(project: Project): string {
     .toLowerCase();
 }
 
-function ProjectListMetric({ label, value, note }: { label: string; value: string; note: string }) {
+function ProjectListMetric({ label, value, note, tone = "neutral" }: { label: string; value: string; note: string; tone?: "primary" | "accent" | "neutral" }) {
+  const valueClass = tone === "primary" ? "text-moss" : tone === "accent" ? "text-caution" : "text-ink";
+
   return (
-    <div className="rounded-lg border border-sawdust bg-white p-4">
-      <p className="text-sm font-medium text-ink/60">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-ink">{value}</p>
+    <div className="rounded-lg border border-sawdust bg-[#f5f3ee] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/55">{label}</p>
+      <p className={`mt-2 font-serif text-3xl font-semibold tabular-nums ${valueClass}`}>{value}</p>
       <p className="mt-1 text-xs leading-5 text-ink/55">{note}</p>
     </div>
   );
