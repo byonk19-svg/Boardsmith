@@ -510,9 +510,9 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Verify before building");
     expect(markup).toContain("Review unresolved questions.");
     expect(markup).toContain("Finish/humidity notes");
-    expect(markup).toContain("Front panel");
-    expect(markup).toContain("Back panel");
-    expect(markup).toContain("Bottom panel");
+    expect(markup).toContain("Part A - Front panel");
+    expect(markup).toContain("Part B - Back panel");
+    expect(markup).toContain("Part E - Bottom panel");
   });
 
   it("renders a connection fallback when a supported project has no modeled connections", async () => {

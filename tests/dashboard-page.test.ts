@@ -119,6 +119,10 @@ describe("DashboardPage", () => {
     expect(markup).toContain("Private Boardsmith workspace");
     expect(markup).toContain("Welcome back, Maker");
     expect(markup).toContain("Digital craftsmanship");
+    expect(markup).toContain("Start with an idea");
+    expect(markup).toContain('action="/projects/draft"');
+    expect(markup).toContain('name="idea_text"');
+    expect(markup).toContain("Draft setup fields");
     expect(markup).toContain("Dashboard shortcuts");
     expect(markup).toContain("Total projects");
     expect(markup).toContain("Generated plans");
@@ -151,6 +155,7 @@ describe("DashboardPage", () => {
     expect(markup).toContain("Freestanding plant display board");
     expect(markup).toContain("/projects/new?example=plant_display_board");
     expect(markup).toContain("Use starter");
+    expect(markup.indexOf('action="/projects/draft"')).toBeLessThan(markup.indexOf("Try a starter"));
   });
 
   it("renders a friendly empty state with starter examples", async () => {

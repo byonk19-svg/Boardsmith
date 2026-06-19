@@ -32,6 +32,7 @@ import {
 } from "@/lib/projects/types";
 
 export const projectIntakeDraftCookieName = "boardsmith_project_intake_draft";
+export const projectIntakeDraftCookiePath = "/projects";
 export const maxProjectIntakeDraftCookieValueLength = 3600;
 
 export type ProjectIntakeDraft = {
@@ -64,6 +65,10 @@ export type ProjectIntakeDraft = {
   tools_available: ToolOption[];
   style_notes: string;
   intended_use: string;
+  draft_source?: "natural_language" | "";
+  draft_missing_fields?: string[];
+  draft_blocked_reasons?: string[];
+  draft_review_notes?: string[];
 };
 
 const emptyDraft: ProjectIntakeDraft = {
@@ -96,6 +101,10 @@ const emptyDraft: ProjectIntakeDraft = {
   tools_available: [],
   style_notes: "",
   intended_use: "",
+  draft_source: "",
+  draft_missing_fields: [],
+  draft_blocked_reasons: [],
+  draft_review_notes: [],
 };
 
 function textValue(formData: FormData, name: keyof Omit<ProjectIntakeDraft, "tools_available">, maxLength: number): string {
@@ -105,6 +114,18 @@ function textValue(formData: FormData, name: keyof Omit<ProjectIntakeDraft, "too
 
 function optionValue<T extends string>(value: FormDataEntryValue | null, options: readonly T[]): T | "" {
   return typeof value === "string" && options.includes(value as T) ? (value as T) : "";
+}
+
+function textArrayValue(formData: FormData, name: keyof ProjectIntakeDraft, maxLength: number, maxItems: number): string[] {
+  return Array.from(
+    new Set(
+      formData
+        .getAll(name)
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim().slice(0, maxLength))
+        .filter(Boolean),
+    ),
+  ).slice(0, maxItems);
 }
 
 export function createProjectIntakeDraft(formData: FormData): ProjectIntakeDraft {
@@ -145,6 +166,10 @@ export function createProjectIntakeDraft(formData: FormData): ProjectIntakeDraft
     tools_available: Array.from(new Set(tools)),
     style_notes: textValue(formData, "style_notes", 1000),
     intended_use: textValue(formData, "intended_use", 1000),
+    draft_source: formData.get("draft_source") === "natural_language" ? "natural_language" : "",
+    draft_missing_fields: textArrayValue(formData, "draft_missing_fields", 80, 12),
+    draft_blocked_reasons: textArrayValue(formData, "draft_blocked_reasons", 120, 8),
+    draft_review_notes: textArrayValue(formData, "draft_review_notes", 240, 8),
   };
 }
 
@@ -228,6 +253,15 @@ export function decodeProjectIntakeDraft(value: string | undefined): ProjectInta
         rawValue.forEach((spot) => {
           if (typeof spot === "string") {
             formData.append("higher_risk_spots", spot);
+          }
+        });
+      } else if (
+        (key === "draft_missing_fields" || key === "draft_blocked_reasons" || key === "draft_review_notes") &&
+        Array.isArray(rawValue)
+      ) {
+        rawValue.forEach((metadataValue) => {
+          if (typeof metadataValue === "string") {
+            formData.append(key, metadataValue);
           }
         });
       } else if (typeof rawValue === "string") {

@@ -76,6 +76,22 @@ export default async function DashboardPage() {
                     View Projects
                   </Link>
                 </div>
+                <form action="/projects/draft" method="post" className="mt-6 max-w-2xl rounded-md border border-sawdust bg-white/70 p-4">
+                  <label className="block space-y-2">
+                    <span className="text-sm font-semibold text-ink">Start with an idea</span>
+                    <textarea
+                      name="idea_text"
+                      rows={3}
+                      minLength={8}
+                      maxLength={2000}
+                      className="input"
+                      placeholder="Example: Bathroom wall shelf, 24 x 8 x 6 inches, pine board, drill available."
+                    />
+                  </label>
+                  <button type="submit" className="mt-3 rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white transition hover:bg-moss/90">
+                    Draft setup fields
+                  </button>
+                </form>
               </div>
               <div className="min-w-0 border-t border-sawdust bg-[#f0ede6]/80 p-5 lg:border-l lg:border-t-0">
                 <div className="grid h-full min-w-0 gap-3 sm:grid-cols-2">

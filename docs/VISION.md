@@ -133,9 +133,11 @@ The long-term user experience should be hybrid:
 
 The current structured form remains a good MVP foundation. Natural language should improve intake and revision flow without weakening validation or making unsupported projects look complete.
 
+Current implementation now supports the first part of this flow: the user can start with natural language from the dashboard or New Project page, and Boardsmith drafts editable intake fields from that idea while keeping structured fields as the saved source of truth. The draft step surfaces missing details and safety-sensitive parser notes, but it does not replace structured review.
+
 For ambiguous projects, Boardsmith should not force one interpretation too early. It should offer targeted questions or 2-3 mini concept cards before producing a full build packet.
 
-Concept cards should include:
+Current unsupported woodworking-adjacent ideas can render bounded concept-only guidance and mini options without full packet content. Long-term concept cards should include:
 
 - A small hero sketch or visual.
 - Key dimensions.

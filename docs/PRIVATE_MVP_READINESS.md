@@ -386,7 +386,8 @@ Recommended next direction:
 ## What Works Now
 
 - Project creation from `/projects/new`.
-- Private workspace dashboard with project counts, latest update date, recent project shortcuts, empty state, and starter example links.
+- Plain-language idea drafting from the dashboard or `/projects/new` via `/projects/draft`, with editable setup fields and parser review notes before save.
+- Private workspace dashboard with project counts, latest update date, recent project shortcuts, empty state, idea-draft entry, and starter example links.
 - Project archive/restore foundation that hides archived projects from the default project list and dashboard while preserving project records and generated plans.
 - Hosted project intake accepts normal woodworking values like `12`, `8`, `4`, and material thickness `0.75`.
 - Supabase-backed project, generated-plan, notes, duplicate-project, and build-log persistence.
@@ -398,7 +399,8 @@ Recommended next direction:
 - Stored `build_model_json` on generated plan versions.
 - Plan history that preserves earlier versions.
 - Read-only plan comparison between the latest plan and an older saved version.
-- One-shot `Tweak this plan` active-project revision flow that saves revised output as a new generated-plan version, preserves the previous version in history, and redirects into revised-vs-prior comparison.
+- One-shot `Tweak this plan` active-project revision flow for prose-only changes that saves revised output as a new generated-plan version, preserves the previous version in history, and redirects into revised-vs-prior comparison.
+- Structural or safety-sensitive revision requests are classified and blocked or redirected before regeneration instead of silently saving a full new plan.
 - Deterministic Plan Review status.
 - Deterministic Export Readiness status for future export work.
 - Material Summary grouped for review.
@@ -409,6 +411,8 @@ Recommended next direction:
 - Browser print-preview visual aids: project anatomy, three-view planning diagram, visual piece inventory, and connection planning aid.
 - Compact print action checklist, materials/piece rows, checklist-style cut list, and procedural build-step cards.
 - Deterministic browser-rendered planning diagrams for supported simple shelf, book ledge, and planter box plans.
+- Conservative planter-box part labels now flow through the printable manifest, project detail materials/parts section, and browser print materials/parts section.
+- Unsupported woodworking-adjacent ideas can render concept-only guidance and mini options without cut lists, build steps, or packet visuals.
 - Connection planning aids from existing build-model connection data.
 - Beginner-friendly build step cards from existing generated plan and build-model operation data.
 - Export architecture decision remains browser-print-first for the private MVP; app-generated PDF is not approved.
@@ -432,6 +436,7 @@ Recommended next direction:
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
 - Hosted behavior after any future deployment, env-var change, migration, access-gate change, archive-related code change, or `Tweak this plan` code change until the hosted smoke checklist is rerun.
+- The new idea-drafting, concept-only guidance, planter-box part-label rendering, and revision-intent blocking paths have local automated coverage but have not yet had a fresh hosted smoke pass after this implementation.
 
 ## Non-Goals And Guardrails
 

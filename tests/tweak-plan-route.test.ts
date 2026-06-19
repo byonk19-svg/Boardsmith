@@ -176,13 +176,61 @@ describe("tweak plan route", () => {
     generateRevisedStructuredProjectPlanMock.mockRejectedValue(new Error("Generated plan failed validation: invalid plan"));
     const { POST } = await import("@/app/projects/[id]/revise/route");
 
-    const response = await POST(revisionRequest("Reduce the number of cuts."), {
+    const response = await POST(revisionRequest("Make the steps easier for a beginner."), {
       params: Promise.resolve({ id: project.id }),
     });
 
     expect(response.headers.get("location")).toBe("http://localhost/projects/revision-project?generation_error=validation_failed");
     expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
     expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
+  });
+
+  it("does not call generation or save for structural revision requests", async () => {
+    const { POST } = await import("@/app/projects/[id]/revise/route");
+
+    const response = await POST(revisionRequest("Make the shelf 30 inches wide and switch the material to oak."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/revision-project?revision_error=structured_change_required&revision_categories=dimensions%2Cmaterials%20or%20finish#project-intake",
+    );
+    expect(generateRevisedStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
+  });
+
+  it("does not call generation or save for support, cut-list, safety-sensitive, or ambiguous revision requests", async () => {
+    const { POST } = await import("@/app/projects/[id]/revise/route");
+
+    const supportResponse = await POST(revisionRequest("Use a French cleat instead of brackets."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+    const cutListResponse = await POST(revisionRequest("Reduce the number of cuts."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+    const safetyResponse = await POST(revisionRequest("Make it safe for heavy books."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+    const ambiguousResponse = await POST(revisionRequest("Make it sturdier."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(supportResponse.headers.get("location")).toBe(
+      "http://localhost/projects/revision-project?revision_error=structured_change_required&revision_categories=support%20or%20mounting#project-intake",
+    );
+    expect(cutListResponse.headers.get("location")).toBe(
+      "http://localhost/projects/revision-project?revision_error=structured_change_required&revision_categories=cut%20list%20or%20parts#project-intake",
+    );
+    expect(safetyResponse.headers.get("location")).toBe(
+      "http://localhost/projects/revision-project?revision_error=safety_sensitive_change&revision_categories=safety-sensitive%20assumptions#plan-readiness",
+    );
+    expect(ambiguousResponse.headers.get("location")).toBe(
+      "http://localhost/projects/revision-project?revision_error=ambiguous_revision&revision_categories=ambiguous%20structural%20change#tweak-this-plan",
+    );
+    expect(generateRevisedStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
   });
 
   it("does not mark failed when a project becomes archived before a revision can be saved", async () => {

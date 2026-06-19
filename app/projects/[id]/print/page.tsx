@@ -153,8 +153,8 @@ function PrintBuildSnapshot({ manifest }: { manifest: PrintablePlanManifest }) {
 
 function PrintMaterialsAndParts({ manifest }: { manifest: PrintablePlanManifest }) {
   const pieceItems =
-    manifest.wallShelfPartScheduleViewModel.rows.length > 0
-      ? manifest.wallShelfPartScheduleViewModel.rows
+    printPacketPartRows(manifest).length > 0
+      ? printPacketPartRows(manifest)
       : (manifest.cutList?.items.filter((item) => item.sourceLabel === "Modeled piece").map((item) => ({
           id: item.id,
           printLabel: item.label,
@@ -376,7 +376,7 @@ function numberWord(value: number): string {
 }
 
 function majorPieceLabels(manifest: PrintablePlanManifest): string[] {
-  const partLabels = manifest.wallShelfPartScheduleViewModel.assignedParts.map((row) => row.printLabel);
+  const partLabels = printPacketAssignedParts(manifest).map((row) => row.printLabel);
   if (partLabels.length > 0) return partLabels.slice(0, 3);
 
   const modeledPieces = manifest.cutList?.items.filter((item) => item.sourceLabel === "Modeled piece") ?? [];
@@ -419,7 +419,7 @@ function partQuantity(rowQuantityLabel: string): number | null {
 
 function printPartLabelForCutItem(item: NonNullable<PrintablePlanManifest["cutList"]>["items"][number], manifest: PrintablePlanManifest): string {
   const quantity = partQuantity(item.quantityLabel);
-  const match = manifest.wallShelfPartScheduleViewModel.assignedParts.find((row) => {
+  const match = printPacketAssignedParts(manifest).find((row) => {
     const rowName = normalizePartText(row.displayName).replace(/\bs$/, "");
     const itemName = normalizePartText(item.label).replace(/\bs$/, "");
     return (
@@ -432,6 +432,48 @@ function printPartLabelForCutItem(item: NonNullable<PrintablePlanManifest["cutLi
   });
 
   return match?.printLabel ?? item.label;
+}
+
+type PrintPacketPartRow = {
+  id: string;
+  displayName: string;
+  printLabel: string;
+  quantity: number;
+  quantityLabel: string;
+  dimensionsLabel: string;
+  materialLabel: string;
+};
+
+function printPacketAssignedParts(manifest: PrintablePlanManifest): PrintPacketPartRow[] {
+  if (manifest.wallShelfPartScheduleViewModel.assignedParts.length > 0) {
+    return manifest.wallShelfPartScheduleViewModel.assignedParts;
+  }
+
+  return manifest.planterBoxPartScheduleViewModel.assignedParts.map((row) => ({
+    id: row.pieceId,
+    displayName: row.pieceLabel,
+    printLabel: row.printLabel,
+    quantity: row.quantity,
+    quantityLabel: `${row.quantity.toString()}x`,
+    dimensionsLabel: row.dimensions,
+    materialLabel: row.materialLabel,
+  }));
+}
+
+function printPacketPartRows(manifest: PrintablePlanManifest): PrintPacketPartRow[] {
+  if (manifest.wallShelfPartScheduleViewModel.rows.length > 0) {
+    return manifest.wallShelfPartScheduleViewModel.rows;
+  }
+
+  return manifest.planterBoxPartScheduleViewModel.rows.map((row) => ({
+    id: row.pieceId,
+    displayName: row.pieceLabel,
+    printLabel: row.printLabel,
+    quantity: row.quantity,
+    quantityLabel: `${row.quantity.toString()}x`,
+    dimensionsLabel: row.dimensions,
+    materialLabel: row.materialLabel,
+  }));
 }
 
 function printCutRows(cutList: NonNullable<PrintablePlanManifest["cutList"]>): NonNullable<PrintablePlanManifest["cutList"]>["items"] {

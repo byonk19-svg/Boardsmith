@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { classifyGenerationFailure } from "@/lib/ai/generation-feedback";
 import { generateRevisedStructuredProjectPlan } from "@/lib/ai/generate-project-plan";
 import { createGatedBuildPacketSnapshots, latestGatedBuildPacketSnapshot } from "@/lib/plans/gated-build-packet-snapshot";
+import { classifyRevisionIntent, revisionIntentCategoryLabels } from "@/lib/plans/revision-intent";
 import { maxRevisionInstructionLength, normalizeRevisionInstruction } from "@/lib/plans/revision-input";
 import { evaluateProjectWriteCommand, evaluateRevisionCommand } from "@/lib/projects/project-planning-lifecycle";
 import { getProject, listGeneratedPlans, markProjectGenerationFailed, saveGeneratedPlan } from "@/lib/storage/project-store";
@@ -38,6 +39,14 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     return NextResponse.redirect(new URL(`/projects/${project.id}?revision_error=no_plan`, request.url), 303);
   }
   const latestPlan = latestPlanSnapshot.plan;
+  const revisionIntent = classifyRevisionIntent(revisionInstruction);
+  if (revisionIntent.decision !== "allow_direct_revision" && revisionIntent.messageKey) {
+    const categories = revisionIntentCategoryLabels(revisionIntent.categories);
+    const categoryQuery = categories.length > 0 ? `&revision_categories=${encodeURIComponent(categories.join(","))}` : "";
+    const hash = revisionIntent.messageKey === "structured_change_required" ? "#project-intake" : revisionIntent.messageKey === "safety_sensitive_change" ? "#plan-readiness" : "#tweak-this-plan";
+
+    return NextResponse.redirect(new URL(`/projects/${project.id}?revision_error=${revisionIntent.messageKey}${categoryQuery}${hash}`, request.url), 303);
+  }
 
   try {
     const result = await generateRevisedStructuredProjectPlan({

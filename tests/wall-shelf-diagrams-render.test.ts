@@ -208,9 +208,9 @@ describe("WallShelfDiagrams", () => {
     );
     const markup = renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model }));
 
-    expect(markup).toContain("modeled support/frame");
     expect(markup).toContain("Part A - Shelf boards");
     expect(markup).toContain("Part B - Left side support");
+    expect(markup).toContain("Part C - Right side support");
     expect(markup).toContain("connected shelf unit assembly");
     expect(markup).toContain("Left side support");
     expect(markup).toContain("Right side support");

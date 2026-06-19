@@ -1,6 +1,11 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { createProjectIntakeDraft, encodeProjectIntakeDraft, projectIntakeDraftCookieName } from "@/lib/projects/intake-draft";
+import {
+  createProjectIntakeDraft,
+  encodeProjectIntakeDraft,
+  projectIntakeDraftCookieName,
+  projectIntakeDraftCookiePath,
+} from "@/lib/projects/intake-draft";
 import { parseProjectFormData } from "@/lib/projects/types";
 import { createProject } from "@/lib/storage/project-store";
 
@@ -15,7 +20,7 @@ export async function POST(request: Request): Promise<Response> {
     const response = NextResponse.redirect(new URL(`/projects/${project.id}`, request.url), 303);
     response.cookies.set(projectIntakeDraftCookieName, "", {
       maxAge: 0,
-      path: "/projects/new",
+      path: projectIntakeDraftCookiePath,
     });
     return response;
   } catch (error) {
@@ -26,7 +31,7 @@ export async function POST(request: Request): Promise<Response> {
       response.cookies.set(projectIntakeDraftCookieName, encodeProjectIntakeDraft(createProjectIntakeDraft(formData)), {
         httpOnly: true,
         maxAge: 300,
-        path: "/projects/new",
+        path: projectIntakeDraftCookiePath,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",
       });

@@ -244,6 +244,9 @@ describe("createClarificationGateDecision", () => {
     expect(decision.statusLabel).toBe("Concept only");
     expect(decision.supportedProjectType).toBe(false);
     expect(decision.canGenerateFullPlan).toBe(false);
+    expect(decision.conceptBrief?.category).toBe("Storage concept");
+    expect(decision.conceptBrief?.options.map((option) => option.title)).toContain("Convert to a supported wall shelf");
+    expect(JSON.stringify(decision.conceptBrief?.options)).not.toMatch(/load rated|certified|vendor|price|cart|CAD-ready|CNC-ready|cut to|fasten with/i);
   });
 
   it("marks unrelated unsupported ideas as unsupported", () => {
@@ -259,5 +262,6 @@ describe("createClarificationGateDecision", () => {
     expect(decision.status).toBe("unsupported");
     expect(decision.statusLabel).toBe("Unsupported");
     expect(decision.canGenerateFullPlan).toBe(false);
+    expect(decision.conceptBrief).toBeNull();
   });
 });

@@ -16,6 +16,7 @@ import { createPlanHistoryComparison, type PlanComparisonChange, type PlanHistor
 import { type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import type { PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
+import type { ConceptBrief } from "@/lib/projects/concept-brief";
 import {
   createClarificationGateDecision,
   type ClarificationGateDecision,
@@ -58,6 +59,7 @@ export default async function ProjectDetailPage({
     restored?: string;
     revised?: string;
     revision_error?: string;
+    revision_categories?: string;
   }>;
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
@@ -147,7 +149,7 @@ export default async function ProjectDetailPage({
           Revised and saved a new plan version for review. The comparison below shows the new latest plan against the previous version.
         </p>
       ) : null}
-      {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} /> : null}
+      {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} categories={query.revision_categories} /> : null}
       <ClarificationGatePanel decision={clarificationGate} hasLatestPlan={lifecycle.hasLatestPlan} isArchived={lifecycle.isArchived} />
 
       {latestPlanReview ? (
@@ -462,6 +464,8 @@ function ClarificationGatePanel({
         </div>
       ) : null}
 
+      {decision.conceptBrief ? <ConceptBriefPanel brief={decision.conceptBrief} /> : null}
+
       {!decision.supportedProjectType ? (
         <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
           Boardsmith can keep this as planning notes, but a full build packet needs a supported safe template before it should produce cut lists or build steps.
@@ -472,6 +476,76 @@ function ClarificationGatePanel({
         <p className="mt-4 text-xs leading-5 text-ink/55">This archived project remains read-only. Restore it before changing details or generating another plan.</p>
       ) : null}
     </section>
+  );
+}
+
+function ConceptBriefPanel({ brief }: { brief: ConceptBrief }) {
+  return (
+    <div className="mt-5 rounded-md border border-sawdust bg-white/80 p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-ink">Concept-only guidance</h3>
+          <p className="mt-1 text-sm leading-6 text-ink/65">{brief.whyNotFullPlan}</p>
+        </div>
+        <span className="w-fit rounded bg-shop px-2 py-1 text-xs font-semibold uppercase tracking-wide text-ink/60">{brief.category}</span>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="space-y-4">
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-ink/55">Confirmed dimensions only</h4>
+            {brief.confirmedDimensions.length > 0 ? (
+              <ul className="mt-2 space-y-1 text-sm leading-6 text-ink/70">
+                {brief.confirmedDimensions.map((dimension) => (
+                  <li key={dimension.label}>
+                    <span className="font-semibold text-ink">{dimension.label}:</span> {dimension.value}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm leading-6 text-ink/65">No dimensions are treated as confirmed yet.</p>
+            )}
+          </div>
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-ink/55">Questions before any full packet</h4>
+            <List items={brief.questions} />
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          {brief.options.map((option) => (
+            <article key={option.id} className="rounded-md border border-sawdust bg-shop/40 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <h4 className="text-sm font-semibold text-ink">{option.title}</h4>
+                <span className="rounded bg-white px-2 py-1 text-xs font-semibold uppercase tracking-wide text-ink/55">{option.difficulty}</span>
+              </div>
+              <p className="mt-2 text-sm leading-6 text-ink/70">{option.summary}</p>
+              <p className="mt-2 text-sm leading-6 text-ink/65">{option.toolsAndMaterials}</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <MiniList title="Pros" items={option.pros} />
+                <MiniList title="Cons" items={option.cons} />
+                <MiniList title="Questions" items={option.questions} />
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">{brief.safeNextStep}</p>
+    </div>
+  );
+}
+
+function MiniList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">{title}</p>
+      <ul className="mt-2 space-y-1 text-sm leading-5 text-ink/65">
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -626,6 +700,8 @@ function NoPlanReviewSummary({ project, isArchived }: { project: Project; isArch
   const triggerCount = project.safety_flags.length;
   const gate = createClarificationGateDecision(project);
   const needsDetails = !gate.canGenerateFullPlan;
+  const conceptOnly = gate.status === "concept_only";
+  const blocked = gate.status === "blocked_for_safety";
 
   return (
     <section className="no-print rounded-lg border border-sawdust bg-white p-5 shadow-soft">
@@ -636,7 +712,11 @@ function NoPlanReviewSummary({ project, isArchived }: { project: Project; isArch
             {needsDetails ? "Saved intake needs missing details" : "Saved intake is ready for review"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            {needsDetails
+            {conceptOnly
+              ? "This idea can stay as concept notes, but Boardsmith should not generate cut lists, build steps, or packet visuals until a supported template fits it."
+              : blocked
+                ? "This idea crosses a safety boundary for the private MVP. Keep existing notes for reference, but do not generate build instructions."
+                : needsDetails
               ? "This project needs a few concrete answers before Boardsmith should generate a full build packet. Review the readiness questions first."
               : "This project does not have a generated plan yet. Review the saved intake and safety triggers first; notes, build log, and planning internals can stay secondary until a first plan exists."}
           </p>
@@ -646,7 +726,7 @@ function NoPlanReviewSummary({ project, isArchived }: { project: Project; isArch
             Review intake
           </a>
           <a href="#project-actions" className="rounded-md border border-sawdust px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
-            {isArchived ? "Restore actions" : "Generate Plan"}
+            {isArchived ? "Restore actions" : needsDetails ? "Review actions" : "Generate Plan"}
           </a>
         </div>
       </div>
@@ -664,13 +744,17 @@ function NoPlanReviewSummary({ project, isArchived }: { project: Project; isArch
         />
         <NoPlanSummaryFact
           label="Next action"
-          value={isArchived ? "Restore before generation" : needsDetails ? "Answer missing questions first" : "Generate review-first plan"}
+          value={isArchived ? "Restore before generation" : conceptOnly ? "Keep concept-only" : blocked ? "Do not generate" : needsDetails ? "Answer missing questions first" : "Generate review-first plan"}
           detail={
             isArchived
               ? "Archived projects are read-only until restored."
-              : needsDetails
-                ? "Readiness questions explain what is missing for a safer plan."
-                : "Generation creates the first plan version for review."
+              : conceptOnly
+                ? "Choose or revise toward a supported template first."
+                : blocked
+                  ? "Safety blockers explain why build instructions are not appropriate."
+                  : needsDetails
+                    ? "Readiness questions explain what is missing for a safer plan."
+                    : "Generation creates the first plan version for review."
           }
         />
       </div>
@@ -848,6 +932,34 @@ function RecommendedNextStep({
 
   if (!latestPlanReview) {
     const gate = createClarificationGateDecision(project);
+    if (gate.status === "concept_only") {
+      return (
+        <NextStepPanel
+          title="Keep this as concept guidance"
+          body="This idea is woodworking-adjacent, but it should stay concept-only until the saved intake is revised toward a supported safe template."
+          links={[
+            { href: "#plan-readiness", label: "Review concept" },
+            { href: "#project-intake", label: "Review intake" },
+          ]}
+          tone="warning"
+        />
+      );
+    }
+
+    if (gate.status === "blocked_for_safety") {
+      return (
+        <NextStepPanel
+          title="Do not generate build instructions"
+          body="This idea crosses a private-MVP safety boundary. Review the blockers and keep the project as notes unless the intake is changed to a lower-risk supported template."
+          links={[
+            { href: "#plan-readiness", label: "Review blockers" },
+            { href: "#project-intake", label: "Review intake" },
+          ]}
+          tone="warning"
+        />
+      );
+    }
+
     if (!gate.canGenerateFullPlan) {
       return (
         <NextStepPanel
@@ -1012,24 +1124,49 @@ function LatestAttemptFailedPanel() {
   );
 }
 
-const revisionFailureReasons = ["empty", "too_long", "no_plan", "archived"] as const;
+const revisionFailureReasons = ["empty", "too_long", "no_plan", "archived", "structured_change_required", "safety_sensitive_change", "ambiguous_revision"] as const;
 type RevisionFailureReason = (typeof revisionFailureReasons)[number];
 
 function isRevisionFailureReason(value: string | undefined): value is RevisionFailureReason {
   return revisionFailureReasons.some((reason) => reason === value);
 }
 
-function RevisionFailurePanel({ reason }: { reason: RevisionFailureReason }) {
+function revisionCategorySummary(categories: string | undefined): string | null {
+  if (!categories) return null;
+  const allowedLabels = new Set([
+    "dimensions",
+    "shelf layout",
+    "materials or finish",
+    "support or mounting",
+    "safety-sensitive assumptions",
+    "cut list or parts",
+    "ambiguous structural change",
+  ]);
+  const labels = categories
+    .split(",")
+    .map((category) => category.trim())
+    .filter((category) => allowedLabels.has(category))
+    .slice(0, 4);
+
+  return labels.length > 0 ? `Detected change area: ${labels.join(", ")}.` : null;
+}
+
+function RevisionFailurePanel({ reason, categories }: { reason: RevisionFailureReason; categories?: string }) {
   const copy: Record<RevisionFailureReason, string> = {
     empty: "Describe one change before creating a revised plan.",
     too_long: "Keep the revision note to 500 characters or fewer.",
     no_plan: "Generate a first plan before creating a revised version.",
     archived: "Restore this project before creating a revised plan.",
+    structured_change_required:
+      "This change affects saved project details. Update or duplicate the project intake first, then generate another plan version.",
+    safety_sensitive_change: "This request changes safety-critical planning assumptions. Review project readiness and saved intake details before generating another plan.",
+    ambiguous_revision: "Boardsmith could not tell whether this is a wording tweak or a structural change. Be more specific, or update the project intake first.",
   };
+  const categorySummary = revisionCategorySummary(categories);
 
   return (
     <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
-      {copy[reason]} No plan version was changed.
+      {copy[reason]} {categorySummary ? `${categorySummary} ` : ""}No plan version was changed.
     </p>
   );
 }
@@ -2138,6 +2275,15 @@ function PlanView({
 
 type UnresolvedCutDimensionItem = Pick<CutListReviewSummary["items"][number], "id" | "label" | "dimensionsLabel" | "messages">;
 
+type PacketPartRow = {
+  displayName: string;
+  printLabel: string;
+  quantity: number;
+  quantityLabel: string;
+  dimensionsLabel: string;
+  materialLabel: string;
+};
+
 function normalizePartText(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
@@ -2149,7 +2295,7 @@ function partQuantity(rowQuantityLabel: string): number | null {
 
 function partLabelForCutItem(item: CutListReviewSummary["items"][number], manifest: PrintablePlanManifest): string {
   const quantity = partQuantity(item.quantityLabel);
-  const match = manifest.wallShelfPartScheduleViewModel.assignedParts.find((row) => {
+  const match = packetAssignedParts(manifest).find((row) => {
     const rowNames = [row.displayName, row.printLabel].map(normalizePartText);
     return (
       rowNames.includes(normalizePartText(item.label)) ||
@@ -2164,13 +2310,45 @@ function partLabelForCutItem(item: CutListReviewSummary["items"][number], manife
 }
 
 function partScheduleListItems(manifest: PrintablePlanManifest): string[] {
-  if (manifest.wallShelfPartScheduleViewModel.rows.length === 0) {
+  const rows = packetPartRows(manifest);
+
+  if (rows.length === 0) {
     return manifest.cutList?.items
       .filter((item) => item.sourceLabel === "Modeled piece")
       .map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`) ?? [];
   }
 
-  return manifest.wallShelfPartScheduleViewModel.rows.map((row) => `${row.printLabel}: ${row.quantityLabel}, ${row.dimensionsLabel}`);
+  return rows.map((row) => `${row.printLabel}: ${row.quantityLabel}, ${row.dimensionsLabel}`);
+}
+
+function packetAssignedParts(manifest: PrintablePlanManifest): PacketPartRow[] {
+  if (manifest.wallShelfPartScheduleViewModel.assignedParts.length > 0) {
+    return manifest.wallShelfPartScheduleViewModel.assignedParts;
+  }
+
+  return manifest.planterBoxPartScheduleViewModel.assignedParts.map((row) => ({
+    displayName: row.pieceLabel,
+    printLabel: row.printLabel,
+    quantity: row.quantity,
+    quantityLabel: `${row.quantity.toString()}x`,
+    dimensionsLabel: row.dimensions,
+    materialLabel: row.materialLabel,
+  }));
+}
+
+function packetPartRows(manifest: PrintablePlanManifest): PacketPartRow[] {
+  if (manifest.wallShelfPartScheduleViewModel.rows.length > 0) {
+    return manifest.wallShelfPartScheduleViewModel.rows;
+  }
+
+  return manifest.planterBoxPartScheduleViewModel.rows.map((row) => ({
+    displayName: row.pieceLabel,
+    printLabel: row.printLabel,
+    quantity: row.quantity,
+    quantityLabel: `${row.quantity.toString()}x`,
+    dimensionsLabel: row.dimensions,
+    materialLabel: row.materialLabel,
+  }));
 }
 
 function unresolvedCutDimensionItems(summary: CutListReviewSummary): UnresolvedCutDimensionItem[] {

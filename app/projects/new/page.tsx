@@ -64,13 +64,33 @@ function draftOption<T extends string>(value: T | "" | undefined, fallback: T): 
   return value === "" || value === undefined ? fallback : value;
 }
 
-export default async function NewProjectPage({ searchParams }: { searchParams?: Promise<{ error?: string; example?: string }> }) {
+function formatDraftMetadataLabel(value: string): string {
+  return value
+    .replaceAll("_", " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word, index) => (index === 0 ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : word))
+    .join(" ");
+}
+
+export default async function NewProjectPage({ searchParams }: { searchParams?: Promise<{ error?: string; example?: string; draft?: string }> }) {
   const params = searchParams ? await searchParams : {};
   const selectedExample = findProjectIntakeExample(params.example);
   const draft =
-    params.error === "invalid_intake" ? decodeProjectIntakeDraft((await cookies()).get(projectIntakeDraftCookieName)?.value) : undefined;
+    params.error === "invalid_intake" || params.draft === "idea"
+      ? decodeProjectIntakeDraft((await cookies()).get(projectIntakeDraftCookieName)?.value)
+      : undefined;
   const formValues = draft ?? selectedExample?.draft;
   const starterLoaded = !draft && selectedExample;
+  const ideaDraftLoaded = Boolean(draft && params.draft === "idea");
+  const ideaDraftMetadataItems =
+    ideaDraftLoaded && formValues
+      ? [
+          ...(formValues.draft_missing_fields ?? []).map((field) => `Missing detail: ${formatDraftMetadataLabel(field)}`),
+          ...(formValues.draft_blocked_reasons ?? []).map((reason) => `Safety-sensitive term: ${formatDraftMetadataLabel(reason)}`),
+          ...(formValues.draft_review_notes ?? []),
+        ]
+      : [];
   const unknownExample = typeof params.example === "string" && params.example.length > 0 && !selectedExample;
   const starterChooserOpen = Boolean(starterLoaded) || unknownExample;
   const selectedProjectType = formValues?.project_type === "" || !formValues?.project_type ? "simple_shelf" : formValues.project_type;
@@ -108,6 +128,33 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
         </section>
       ) : null}
 
+      {params.error === "invalid_idea" ? (
+        <section className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+          <p className="font-semibold">Project idea needs a few more words.</p>
+          <p className="mt-1">Add the rough object, size, material, and where it will be used, then draft the setup again.</p>
+        </section>
+      ) : null}
+
+      {ideaDraftLoaded ? (
+        <section className="rounded-md border border-moss/30 bg-moss/10 p-4 text-sm leading-6 text-ink">
+          <p className="font-semibold">Idea drafted into setup fields - review before saving.</p>
+          <p className="mt-1 text-ink/70">
+            Boardsmith inferred only obvious details. Confirm dimensions, material, tools, mounting, and safety notes before creating the project.
+          </p>
+        </section>
+      ) : null}
+
+      {ideaDraftMetadataItems.length > 0 ? (
+        <section className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+          <p className="font-semibold">Draft review before saving</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {ideaDraftMetadataItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {starterLoaded ? (
         <section className="rounded-md border border-moss/30 bg-moss/10 p-4 text-sm leading-6 text-ink">
           <p className="font-semibold">Starter details loaded - review before creating.</p>
@@ -121,6 +168,34 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           <p className="mt-1">Choose one of the examples below or fill in your own project details.</p>
         </section>
       ) : null}
+
+      <section className="rounded-lg border border-sawdust bg-white/90 p-5 text-sm leading-6 text-ink/70 shadow-soft">
+        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <h2 className="text-base font-semibold text-ink">Draft from an idea</h2>
+            <p className="mt-2">
+              Paste a plain-language project idea and Boardsmith will prefill the setup form with conservative guesses. It does not generate a
+              build plan or save a project until you review and submit the fields below.
+            </p>
+          </div>
+          <form action="/projects/draft" method="post" className="space-y-3">
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Project idea</span>
+              <textarea
+                name="idea_text"
+                rows={4}
+                minLength={8}
+                maxLength={2000}
+                className="input"
+                placeholder="Example: Bathroom wall shelf, 24 x 8 x 6 inches, 3/4 inch pine board, drill and sander available, towels only, mount into studs if possible."
+              />
+            </label>
+            <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-moss/90">
+              Draft setup fields
+            </button>
+          </form>
+        </div>
+      </section>
 
       <details className="rounded-lg border border-sawdust bg-white/90 p-5 text-sm leading-6 text-ink/70 shadow-soft" open={starterChooserOpen}>
         <summary className="cursor-pointer text-base font-semibold text-ink">

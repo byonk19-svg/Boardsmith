@@ -34,14 +34,16 @@ Current routes and modules support:
 - Private dashboard at `/`.
 - Project list at `/projects`.
 - Project intake at `/projects/new`.
+- Plain-language intake drafting at `/projects/draft`, which pre-fills editable setup fields before project creation.
 - Project detail at `/projects/[id]`.
 - Browser print preview at `/projects/[id]/print`.
 - Settings and private access pages.
-- POST route handlers for create, generate, revise, duplicate, archive, restore, notes, build log, and shelf-layout updates.
+- POST route handlers for draft, create, generate, revise, duplicate, archive, restore, notes, build log, and shelf-layout updates.
 
 Current product capabilities include:
 
 - Structured project intake for supported beginner-friendly project types.
+- Deterministic plain-language idea drafting that writes conservative editable intake fields, missing-field hints, and safety-sensitive parser notes before save.
 - Deterministic safety-review flags.
 - Template hints by project type.
 - Boardsmith Build Model draft generation.
@@ -49,11 +51,12 @@ Current product capabilities include:
 - Zod validation before saving generated plans.
 - Deterministic plan quality checks when a build model is available.
 - Versioned generated plan history with latest-plan marking.
-- One-shot natural-language plan revision that saves a new generated-plan version.
+- Prose-only natural-language plan revision that saves a new generated-plan version; structural, cut-list, material, support/mounting, and safety-sensitive revision requests are classified and blocked or redirected before regeneration.
 - Plan comparison between latest and prior versions.
 - Project notes and build-log fields.
 - Archive/restore as private workspace organization.
 - Material Summary, Cut List Review, Plan Review, Export Readiness, action checklist, diagram helpers, build-step cards, and printable plan manifest.
+- Wall shelves have the most complete typed packet view-model path; the printable manifest also carries a conservative planter-box part-schedule view model.
 - Browser print preview from the same structured plan manifest used by the detail page.
 
 ## Current Storage
@@ -142,6 +145,7 @@ Rules:
 Current:
 
 - Structured form intake with project type, skill level, dimensions, material thickness, tools, style notes, intended use, and wall-shelf layout fields.
+- Plain-language ideas can draft conservative editable intake fields and parser review notes, but the saved project remains structured form data.
 - Zod validation blocks invalid project records.
 - Starter examples prefill editable form values.
 
@@ -247,7 +251,8 @@ Current:
 
 - Generated plans are versioned.
 - Saving a generated plan marks it latest and preserves prior plan history.
-- `Tweak this plan` accepts one natural-language instruction and saves a complete revised plan as a new version.
+- `Tweak this plan` accepts prose-only natural-language revisions directly.
+- Dimension, layout, material, support/mounting, cut-list, and safety-sensitive revision requests are classified and routed to structured-update or blocked states before regeneration.
 - Archived projects block revision until restored.
 
 Target:

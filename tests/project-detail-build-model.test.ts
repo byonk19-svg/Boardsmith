@@ -1,9 +1,12 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
+import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
+import { getTemplateHint } from "@/lib/templates/template-hints";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) =>
@@ -524,6 +527,51 @@ describe("ProjectDetailPage project structure", () => {
     expect(tweakMarkup).not.toMatch(/background agent|professional approval|structural approval|certification|CAD-ready|CNC-ready|fabrication-ready/i);
   });
 
+  it("renders structured revision blocking feedback without echoing raw instructions", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const structuredMarkup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({
+          revision_error: "structured_change_required",
+          revision_categories: "dimensions,materials or finish",
+        }),
+      }),
+    );
+    const safetyMarkup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({
+          revision_error: "safety_sensitive_change",
+          revision_categories: "safety-sensitive assumptions",
+        }),
+      }),
+    );
+    const ambiguousMarkup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({
+          revision_error: "ambiguous_revision",
+          revision_categories: "ambiguous structural change,Make it safe for heavy books",
+        }),
+      }),
+    );
+
+    expect(structuredMarkup).toContain("This change affects saved project details.");
+    expect(structuredMarkup).toContain("Update or duplicate the project intake first");
+    expect(structuredMarkup).toContain("Detected change area: dimensions, materials or finish.");
+    expect(safetyMarkup).toContain("This request changes safety-critical planning assumptions.");
+    expect(safetyMarkup).toContain("Review project readiness and saved intake details");
+    expect(ambiguousMarkup).toContain("Boardsmith could not tell whether this is a wording tweak or a structural change.");
+    expect(ambiguousMarkup).toContain("Detected change area: ambiguous structural change.");
+    expect(ambiguousMarkup).not.toContain("Make it safe for heavy books");
+    expect(ambiguousMarkup).not.toContain("stack trace");
+    expect(ambiguousMarkup).toContain("No plan version was changed.");
+  });
+
   it("shows a prominent warning before the plan when cut-list dimensions are missing or unresolved", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([
@@ -907,6 +955,91 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup.indexOf("Saved intake is ready for review")).toBeLessThan(markup.indexOf("Project intake"));
     expect(markup.indexOf("No generated plan yet")).toBeLessThan(markup.indexOf("Planning details before generation"));
+  });
+
+  it("renders unsupported woodworking-adjacent projects as concept-only guidance without packet sections", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      id: "concept_only_bookcase",
+      title: "Built-in bookcase",
+      project_type: "bookcase",
+      width_inches: 48,
+      height_inches: 72,
+      depth_inches: 12,
+      material_thickness_inches: 0.75,
+      material_type: "pine board",
+      style_notes: "Living room storage wall.",
+      intended_use: "Large built-in bookcase for living room storage.",
+      safety_flags: [],
+      status: "draft",
+    } as unknown as Project);
+    listGeneratedPlansMock.mockResolvedValue([]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: "concept_only_bookcase" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Concept only");
+    expect(markup).toContain("Concept-only guidance");
+    expect(markup).toContain("Storage concept");
+    expect(markup).toContain("Convert to a supported wall shelf");
+    expect(markup).toContain("Keep as freestanding storage notes");
+    expect(markup).toContain("Confirmed dimensions only");
+    expect(markup).toContain("Width:");
+    expect(markup).toContain("48 in");
+    expect(markup).toContain("Keep concept-only");
+    expect(markup).not.toContain("Build Guide");
+    expect(markup).not.toContain("Cut Checklist");
+    expect(markup).not.toContain("Project Visuals / Diagrams");
+    expect(markup).not.toContain("Print build sheet");
+  });
+
+  it("renders planter-box packet part labels on the project detail page", async () => {
+    const planterProject: Project = {
+      ...project,
+      id: "planter_detail_project",
+      title: "Outdoor planter box",
+      project_type: "planter_box",
+      height_inches: 8,
+      depth_inches: 8,
+      material_type: "cedar board",
+      intended_use: "Outdoor herb planter box.",
+      safety_flags: ["Outdoor exposure review"],
+    };
+    const buildModel = createBuildModelDraft(planterProject, getTemplateHint(planterProject.project_type), calculateSafetyReviewFlags(planterProject));
+    getProjectMock.mockResolvedValue(planterProject);
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        project_id: planterProject.id,
+        build_model_json: buildModel,
+        plan_json: {
+          ...planRecord.plan_json,
+          project_type: "planter_box",
+          project_summary: "A cautious planter box plan with drainage and outdoor exposure review.",
+        },
+      },
+    ]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: planterProject.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Materials and Parts");
+    expect(markup).toContain("Part A - Front panel");
+    expect(markup).toContain("Part B - Back panel");
+    expect(markup).toContain("Part C - Left side panel");
+    expect(markup).toContain("Part D - Right side panel");
+    expect(markup).toContain("Part E - Bottom panel");
+    expect(markup).not.toContain("Shelf board to review");
   });
 
   it("keeps notes and build log useful when no plan or saved record details exist", async () => {
