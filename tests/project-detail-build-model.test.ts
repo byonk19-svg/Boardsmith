@@ -572,6 +572,27 @@ describe("ProjectDetailPage project structure", () => {
     expect(ambiguousMarkup).toContain("No plan version was changed.");
   });
 
+  it("renders applied structured revision feedback without echoing raw instructions", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({
+          structured_revision: "updated",
+          clarification_status: "needs_details",
+        }),
+      }),
+    );
+
+    expect(markup).toContain("Project intake updated from the requested structured change.");
+    expect(markup).toContain("Some details still need review before generation.");
+    expect(markup).not.toContain("Make the shelf 30 inches wide");
+    expect(markup).not.toContain("stack trace");
+  });
+
   it("shows a prominent warning before the plan when cut-list dimensions are missing or unresolved", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([

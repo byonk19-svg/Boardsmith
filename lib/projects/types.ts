@@ -281,6 +281,26 @@ export const projectShelfLayoutUpdateSchema = z.object({
 
 export type ProjectShelfLayoutUpdate = z.infer<typeof projectShelfLayoutUpdateSchema>;
 
+function hasDefinedValue(input: Record<string, unknown>): boolean {
+  return Object.values(input).some((value) => value !== undefined);
+}
+
+export const projectStructuredRevisionUpdateSchema = z
+  .object({
+    width_inches: z.number().positive().max(240).optional(),
+    depth_inches: z.number().nonnegative().max(240).optional(),
+    material_thickness_inches: z.number().positive().max(12).optional(),
+    material_type: z.string().trim().min(2).max(120).optional(),
+    shelf_layout: z.enum(shelfLayoutOptions).optional(),
+    shelf_count: z.number().int().positive().max(20).optional(),
+    shelf_spacing_inches: z.number().positive().max(120).optional(),
+  })
+  .refine((input) => hasDefinedValue(input), {
+    message: "At least one structured revision field is required.",
+  });
+
+export type ProjectStructuredRevisionUpdate = z.infer<typeof projectStructuredRevisionUpdateSchema>;
+
 export const projectBuildLogSchema = z.object({
   build_completed: z.boolean().default(false),
   build_completed_at: z.string().trim().max(10).default(""),

@@ -9,11 +9,13 @@ import {
   projectNotesSchema,
   projectSchema,
   projectShelfLayoutUpdateSchema,
+  projectStructuredRevisionUpdateSchema,
   type Project,
   type ProjectBuildLogInput,
   type ProjectIntake,
   type ProjectStatus,
   type ProjectShelfLayoutUpdate,
+  type ProjectStructuredRevisionUpdate,
   type ShelfLayoutOption,
 } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
@@ -317,6 +319,53 @@ export async function updateProjectShelfLayout(projectId: string, input: Project
     project.safety_review_required = project.safety_flags.length > 0;
     return project;
   });
+}
+
+export async function updateProjectStructuredRevision(projectId: string, input: ProjectStructuredRevisionUpdate): Promise<Project | null> {
+  const parsedInput = stripUndefinedValues(projectStructuredRevisionUpdateSchema.parse(input));
+  const now = new Date().toISOString();
+
+  if (isSupabasePersistenceConfigured()) {
+    const existingProject = await getProject(projectId);
+    if (!existingProject) return null;
+    if (isProjectArchived(existingProject)) return null;
+    const nextProjectForFlags = {
+      ...existingProject,
+      ...parsedInput,
+    };
+    const nextFlags = calculateSafetyReviewFlags(nextProjectForFlags);
+    const { data, error } = await getSupabase()
+      .from("projects")
+      .update({
+        ...parsedInput,
+        safety_flags: nextFlags.map((flag) => flag.label),
+        safety_review_required: nextFlags.length > 0,
+        updated_at: now,
+      })
+      .eq("id", projectId)
+      .is("archived_at", null)
+      .select("*")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    return normalizeProjectRow(data);
+  }
+
+  return mutateLocalStore((store) => {
+    const project = store.projects.find((candidate) => candidate.id === projectId);
+    if (!project) return null;
+    if (isProjectArchived(project)) return null;
+
+    Object.assign(project, parsedInput);
+    project.updated_at = now;
+    project.safety_flags = calculateSafetyReviewFlags(project).map((flag) => flag.label);
+    project.safety_review_required = project.safety_flags.length > 0;
+    return project;
+  });
+}
+
+function stripUndefinedValues<T extends Record<string, unknown>>(input: T): T {
+  return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as T;
 }
 
 export async function updateProjectNotes(projectId: string, notes: string): Promise<Project | null> {

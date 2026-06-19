@@ -47,11 +47,27 @@ describe("classifyRevisionIntent", () => {
     );
   });
 
+  it("blocks mixed safety-sensitive and structured requests before revision generation", () => {
+    expect(classifyRevisionIntent("Make it 12 inches deeper for heavy books.")).toMatchObject({
+      categories: ["dimensions", "safety_sensitive"],
+      decision: "block_revision",
+      messageKey: "safety_sensitive_change",
+    });
+  });
+
   it("blocks vague structural revisions as ambiguous", () => {
     expect(classifyRevisionIntent("Make it sturdier.")).toMatchObject({
       categories: ["ambiguous"],
       decision: "block_revision",
       messageKey: "ambiguous_revision",
+    });
+  });
+
+  it("treats mixed ambiguous and structured requests as structured updates", () => {
+    expect(classifyRevisionIntent("Make it sturdier and switch the material to oak.")).toMatchObject({
+      categories: ["materials", "ambiguous"],
+      decision: "requires_structured_update",
+      messageKey: "structured_change_required",
     });
   });
 
@@ -61,6 +77,7 @@ describe("classifyRevisionIntent", () => {
       "materials or finish",
       "support or mounting",
     ]);
+    expect(revisionIntentCategoryLabels(["materials", "ambiguous"])).toEqual(["materials or finish", "ambiguous structural change"]);
   });
 
   it("preserves revision input normalization boundaries", () => {

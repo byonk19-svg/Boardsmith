@@ -5,8 +5,9 @@ import { generateRevisedStructuredProjectPlan } from "@/lib/ai/generate-project-
 import { createGatedBuildPacketSnapshots, latestGatedBuildPacketSnapshot } from "@/lib/plans/gated-build-packet-snapshot";
 import { classifyRevisionIntent, revisionIntentCategoryLabels } from "@/lib/plans/revision-intent";
 import { maxRevisionInstructionLength, normalizeRevisionInstruction } from "@/lib/plans/revision-input";
+import { createProjectIntakeRevisionDecision } from "@/lib/projects/project-intake-revision";
 import { evaluateProjectWriteCommand, evaluateRevisionCommand } from "@/lib/projects/project-planning-lifecycle";
-import { getProject, listGeneratedPlans, markProjectGenerationFailed, saveGeneratedPlan } from "@/lib/storage/project-store";
+import { getProject, listGeneratedPlans, markProjectGenerationFailed, saveGeneratedPlan, updateProjectStructuredRevision } from "@/lib/storage/project-store";
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }): Promise<Response> {
   const { id } = await context.params;
@@ -40,12 +41,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   }
   const latestPlan = latestPlanSnapshot.plan;
   const revisionIntent = classifyRevisionIntent(revisionInstruction);
-  if (revisionIntent.decision !== "allow_direct_revision" && revisionIntent.messageKey) {
-    const categories = revisionIntentCategoryLabels(revisionIntent.categories);
-    const categoryQuery = categories.length > 0 ? `&revision_categories=${encodeURIComponent(categories.join(","))}` : "";
-    const hash = revisionIntent.messageKey === "structured_change_required" ? "#project-intake" : revisionIntent.messageKey === "safety_sensitive_change" ? "#plan-readiness" : "#tweak-this-plan";
+  if (revisionIntent.decision === "requires_structured_update") {
+    const intakeRevision = createProjectIntakeRevisionDecision(project, revisionIntent);
+    if (intakeRevision.decision === "apply_safe_patch") {
+      const updatedProject = await updateProjectStructuredRevision(project.id, intakeRevision.patch);
+      revalidatePath(`/projects/${project.id}`);
+      if (!updatedProject) {
+        return NextResponse.redirect(new URL(`/projects/${project.id}?revision_error=archived`, request.url), 303);
+      }
 
-    return NextResponse.redirect(new URL(`/projects/${project.id}?revision_error=${revisionIntent.messageKey}${categoryQuery}${hash}`, request.url), 303);
+      return NextResponse.redirect(new URL(`/projects/${project.id}?structured_revision=updated&clarification_status=${intakeRevision.clarificationGateDecision.status}#project-intake`, request.url), 303);
+    }
+  }
+  if (revisionIntent.decision !== "allow_direct_revision" && revisionIntent.messageKey) {
+    return redirectRevisionFailure(request, project.id, revisionIntent.messageKey, revisionIntent.categories);
   }
 
   try {
@@ -71,4 +80,12 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     revalidatePath(`/projects/${project.id}`);
     return NextResponse.redirect(new URL(`/projects/${project.id}?generation_error=${reason}`, request.url), 303);
   }
+}
+
+function redirectRevisionFailure(request: Request, projectId: string, messageKey: NonNullable<ReturnType<typeof classifyRevisionIntent>["messageKey"]>, categories: ReturnType<typeof classifyRevisionIntent>["categories"]) {
+  const categoryLabels = revisionIntentCategoryLabels(categories);
+  const categoryQuery = categoryLabels.length > 0 ? `&revision_categories=${encodeURIComponent(categoryLabels.join(","))}` : "";
+  const hash = messageKey === "structured_change_required" ? "#project-intake" : messageKey === "safety_sensitive_change" ? "#plan-readiness" : "#tweak-this-plan";
+
+  return NextResponse.redirect(new URL(`/projects/${projectId}?revision_error=${messageKey}${categoryQuery}${hash}`, request.url), 303);
 }

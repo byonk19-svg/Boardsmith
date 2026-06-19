@@ -15,6 +15,7 @@ const getProjectMock = vi.fn<(projectId: string) => Promise<Project | null>>();
 const listGeneratedPlansMock = vi.fn<(projectId: string) => Promise<GeneratedProjectPlanRecord[]>>();
 const saveGeneratedPlanMock = vi.fn<(...args: unknown[]) => Promise<unknown>>();
 const markProjectGenerationFailedMock = vi.fn<(projectId: string) => Promise<Project | null>>();
+const updateProjectStructuredRevisionMock = vi.fn<(...args: unknown[]) => Promise<Project | null>>();
 
 const project: Project = {
   id: "revision-project",
@@ -115,6 +116,7 @@ vi.mock("@/lib/storage/project-store", () => ({
   listGeneratedPlans: (projectId: string) => listGeneratedPlansMock(projectId),
   markProjectGenerationFailed: (projectId: string) => markProjectGenerationFailedMock(projectId),
   saveGeneratedPlan: (...args: unknown[]) => saveGeneratedPlanMock(...args),
+  updateProjectStructuredRevision: (...args: unknown[]) => updateProjectStructuredRevisionMock(...args),
 }));
 
 function revisionRequest(instruction: string): Request {
@@ -130,6 +132,7 @@ describe("tweak plan route", () => {
     listGeneratedPlansMock.mockResolvedValue([latestPlan]);
     generateRevisedStructuredProjectPlanMock.mockResolvedValue({ modelName: "test-revision-model", plan });
     saveGeneratedPlanMock.mockResolvedValue({ ...latestPlan, id: "new-revised-plan", plan_json: plan, is_latest: true });
+    updateProjectStructuredRevisionMock.mockResolvedValue({ ...project, width_inches: 30, material_type: "Oak" });
   });
 
   it("saves a revised plan as a new version and redirects to comparison with the prior latest plan", async () => {
@@ -185,16 +188,37 @@ describe("tweak plan route", () => {
     expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
   });
 
-  it("does not call generation or save for structural revision requests", async () => {
+  it("updates project intake without generating a plan for parseable structured revision requests", async () => {
     const { POST } = await import("@/app/projects/[id]/revise/route");
 
     const response = await POST(revisionRequest("Make the shelf 30 inches wide and switch the material to oak."), {
       params: Promise.resolve({ id: project.id }),
     });
 
+    expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe(
-      "http://localhost/projects/revision-project?revision_error=structured_change_required&revision_categories=dimensions%2Cmaterials%20or%20finish#project-intake",
+      "http://localhost/projects/revision-project?structured_revision=updated&clarification_status=needs_details#project-intake",
     );
+    expect(updateProjectStructuredRevisionMock).toHaveBeenCalledWith(project.id, {
+      width_inches: 30,
+      material_type: "Oak",
+    });
+    expect(generateRevisedStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
+  });
+
+  it("falls back to intake review when structured revision requests cannot be parsed deterministically", async () => {
+    const { POST } = await import("@/app/projects/[id]/revise/route");
+
+    const response = await POST(revisionRequest("Make the shelf wider."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/revision-project?revision_error=structured_change_required&revision_categories=dimensions#project-intake",
+    );
+    expect(updateProjectStructuredRevisionMock).not.toHaveBeenCalled();
     expect(generateRevisedStructuredProjectPlanMock).not.toHaveBeenCalled();
     expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
     expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
@@ -228,6 +252,56 @@ describe("tweak plan route", () => {
     expect(ambiguousResponse.headers.get("location")).toBe(
       "http://localhost/projects/revision-project?revision_error=ambiguous_revision&revision_categories=ambiguous%20structural%20change#tweak-this-plan",
     );
+    expect(updateProjectStructuredRevisionMock).not.toHaveBeenCalled();
+    expect(generateRevisedStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps mixed ambiguous and structured revisions on the manual intake review path", async () => {
+    const { POST } = await import("@/app/projects/[id]/revise/route");
+
+    const response = await POST(revisionRequest("Make it sturdier and switch the material to oak."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/revision-project?revision_error=structured_change_required&revision_categories=materials%20or%20finish%2Cambiguous%20structural%20change#project-intake",
+    );
+    expect(updateProjectStructuredRevisionMock).not.toHaveBeenCalled();
+    expect(generateRevisedStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks mixed safety-sensitive and structured revisions before generation", async () => {
+    const { POST } = await import("@/app/projects/[id]/revise/route");
+
+    const response = await POST(revisionRequest("Make it 12 inches deeper for heavy books."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/revision-project?revision_error=safety_sensitive_change&revision_categories=dimensions%2Csafety-sensitive%20assumptions#plan-readiness",
+    );
+    expect(updateProjectStructuredRevisionMock).not.toHaveBeenCalled();
+    expect(generateRevisedStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();
+  });
+
+  it("does not generate when a project becomes archived before a structured revision update can be saved", async () => {
+    updateProjectStructuredRevisionMock.mockResolvedValueOnce(null);
+    const { POST } = await import("@/app/projects/[id]/revise/route");
+
+    const response = await POST(revisionRequest("Make the shelf 30 inches wide."), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.headers.get("location")).toBe("http://localhost/projects/revision-project?revision_error=archived");
+    expect(updateProjectStructuredRevisionMock).toHaveBeenCalledWith(project.id, {
+      width_inches: 30,
+    });
     expect(generateRevisedStructuredProjectPlanMock).not.toHaveBeenCalled();
     expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
     expect(markProjectGenerationFailedMock).not.toHaveBeenCalled();

@@ -51,7 +51,7 @@ Current product capabilities include:
 - Zod validation before saving generated plans.
 - Deterministic plan quality checks when a build model is available.
 - Versioned generated plan history with latest-plan marking.
-- Prose-only natural-language plan revision that saves a new generated-plan version; structural, cut-list, material, support/mounting, and safety-sensitive revision requests are classified and blocked or redirected before regeneration.
+- Prose-only natural-language plan revision that saves a new generated-plan version; safe, explicit dimension/material/shelf-layout revision requests patch structured Project Intake first, while cut-list, support/mounting, ambiguous, and safety-sensitive requests are blocked or redirected before regeneration.
 - Plan comparison between latest and prior versions.
 - Project notes and build-log fields.
 - Archive/restore as private workspace organization.
@@ -253,7 +253,8 @@ Current:
 - Generated plans are versioned.
 - Saving a generated plan marks it latest and preserves prior plan history.
 - `Tweak this plan` accepts prose-only natural-language revisions directly.
-- Dimension, layout, material, support/mounting, cut-list, and safety-sensitive revision requests are classified and routed to structured-update or blocked states before regeneration.
+- Explicit width, depth, material, material-thickness, shelf-layout, shelf-count, and shelf-spacing revision requests can patch structured Project Intake through a validated storage update before any new generated output appears.
+- Support/mounting, cut-list, ambiguous, safety-sensitive, unparseable, and shelf-height revision requests remain manual or blocked because they do not yet have a safe first-class intake target.
 - Archived projects block revision until restored.
 
 Target:

@@ -58,6 +58,8 @@ export default async function ProjectDetailPage({
     archived?: string;
     restored?: string;
     revised?: string;
+    structured_revision?: string;
+    clarification_status?: string;
     revision_error?: string;
     revision_categories?: string;
   }>;
@@ -140,6 +142,12 @@ export default async function ProjectDetailPage({
       {query.shelf_layout === "updated" ? (
         <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
           Shelf layout saved. Generate another plan version when the intake looks right.
+        </p>
+      ) : null}
+      {query.structured_revision === "updated" ? (
+        <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+          Project intake updated from the requested structured change. Review the fields, then generate another plan version when the intake looks right.
+          {query.clarification_status === "needs_details" ? " Some details still need review before generation." : ""}
         </p>
       ) : null}
       {query.archived ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project archived. Generated plans and records were preserved.</p> : null}
