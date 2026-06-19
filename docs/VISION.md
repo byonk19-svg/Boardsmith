@@ -133,7 +133,7 @@ The long-term user experience should be hybrid:
 
 The current structured form remains a good MVP foundation. Natural language should improve intake and revision flow without weakening validation or making unsupported projects look complete.
 
-Current implementation now supports the first part of this flow: the user can start with natural language from the dashboard or New Project page, and Boardsmith drafts editable intake fields from that idea while keeping structured fields as the saved source of truth. The draft step surfaces missing details and safety-sensitive parser notes, but it does not replace structured review.
+Current implementation now supports the first part of this flow: the user can start with natural language from the dashboard or New Project page, and Boardsmith drafts editable intake fields from that idea while keeping structured fields as the saved source of truth. The draft step surfaces missing details, safety-sensitive parser notes, and whether the idea is a supported draft, concept-only, unsupported, or blocked for safety. Concept-only or unsupported drafts require explicit supported-template resolution before they can become saved project setup; safety-blocked drafts cannot be saved as build setups.
 
 For ambiguous projects, Boardsmith should not force one interpretation too early. It should offer targeted questions or 2-3 mini concept cards before producing a full build packet.
 

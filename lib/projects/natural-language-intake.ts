@@ -64,6 +64,7 @@ export type NaturalLanguageIntakeMissingField =
   | "mounting_details";
 
 export type NaturalLanguageIntakeResult = {
+  status: "supported_draft" | "concept_only" | "unsupported" | "blocked_for_safety";
   draft: NaturalLanguageIntakeDraft;
   missingFields: NaturalLanguageIntakeMissingField[];
   blockedReasons: NaturalLanguageIntakeBlockedReason[];
@@ -126,8 +127,11 @@ export function parseNaturalLanguageIntake(rawIdea: string): NaturalLanguageInta
   const idea = rawIdea.trim().replace(/\s+/g, " ").slice(0, 2000);
   const normalized = idea.toLowerCase();
   const dimensions = parseDimensions(normalized);
-  const projectType = inferProjectType(normalized);
   const blockedReasons = inferBlockedReasons(normalized);
+  const conceptOnly = blockedReasons.length === 0 && isFutureOrUnsupportedWoodworkingTemplate(normalized);
+  const projectType = conceptOnly ? "" : inferProjectType(normalized);
+  const status: NaturalLanguageIntakeResult["status"] =
+    blockedReasons.length > 0 ? "blocked_for_safety" : conceptOnly ? "concept_only" : projectType === "" ? "unsupported" : "supported_draft";
   const higherRiskSpots = inferHigherRiskSpots(normalized);
   const tools = inferTools(normalized);
   const material = inferMaterial(normalized, dimensions.thickness);
@@ -143,7 +147,7 @@ export function parseNaturalLanguageIntake(rawIdea: string): NaturalLanguageInta
   const cutStrategy = inferCutStrategy(normalized);
   const boardSize = inferBoardSize(normalized, dimensions.depth);
   const title = inferTitle(normalized, projectType);
-  const reviewNotes = createReviewNotes(projectType, blockedReasons, higherRiskSpots, mountingMethod, wallType, studAccess);
+  const reviewNotes = createReviewNotes(status, projectType, blockedReasons, higherRiskSpots, mountingMethod, wallType, studAccess);
 
   const draft: NaturalLanguageIntakeDraft = {
     ...emptyDraft,
@@ -177,6 +181,7 @@ export function parseNaturalLanguageIntake(rawIdea: string): NaturalLanguageInta
   };
 
   return {
+    status,
     draft,
     missingFields: inferMissingFields(draft),
     blockedReasons,
@@ -252,7 +257,16 @@ function inferProjectType(text: string): ProjectType | "" {
   return "";
 }
 
+function isFutureOrUnsupportedWoodworkingTemplate(text: string): boolean {
+  return /\b(bookcase|bookshelf|built[-\s]?in|cabinet|cabinetry|closet storage|laundry storage|garage shelves|garage shelving|shop furniture|workbench|drawer|drawers)\b/.test(
+    text,
+  );
+}
+
 function inferTitle(text: string, projectType: ProjectType | ""): string {
+  if (/\b(bookcase|bookshelf)\b/.test(text)) return "Bookcase concept";
+  if (/\bcabinet|cabinetry\b/.test(text)) return "Cabinet concept";
+  if (/\bbuilt[-\s]?in\b/.test(text)) return "Built-in storage concept";
   if (/\bbathroom\b/.test(text) && projectType === "simple_shelf") return "Bathroom wall shelf";
   if (/\bkitchen\b/.test(text) && projectType === "simple_shelf") return "Kitchen wall shelf";
   if (/\bgarage\b/.test(text) && projectType === "simple_shelf") return "Garage wall shelf";
@@ -446,6 +460,7 @@ function inferEdgeTreatment(text: string): string {
 }
 
 function createReviewNotes(
+  status: NaturalLanguageIntakeResult["status"],
   projectType: ProjectType | "",
   blockedReasons: NaturalLanguageIntakeBlockedReason[],
   higherRiskSpots: HigherRiskSpotOption[],
@@ -455,6 +470,12 @@ function createReviewNotes(
 ): string[] {
   const notes: string[] = ["Drafted from a plain-language idea. Review every field before saving."];
   if (blockedReasons.length > 0) notes.push("This idea includes safety-sensitive terms that may block plan generation.");
+  if (status === "concept_only") {
+    notes.push("This looks woodworking-adjacent, but it is not a supported build-packet template yet. Choose a supported project type or keep it as concept review.");
+  }
+  if (status === "unsupported") {
+    notes.push("This does not match the current woodworking planning templates. Choose a supported project type only if the idea can honestly fit one.");
+  }
   if (projectType === "") notes.push("Project type could not be inferred confidently.");
   if (higherRiskSpots.length > 0) notes.push("Higher-risk mounting context was detected and needs manual review.");
   if (mountingMethod === "not_sure" || wallType === "not_sure" || studAccess === "not_sure") {

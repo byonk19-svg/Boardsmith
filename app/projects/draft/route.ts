@@ -19,6 +19,7 @@ export async function POST(request: Request): Promise<Response> {
   const result = parseNaturalLanguageIntake(ideaText);
   const draftFormData = naturalLanguageDraftToFormData(result.draft);
   draftFormData.set("draft_source", "natural_language");
+  draftFormData.set("draft_status", result.status);
   result.missingFields.forEach((field) => draftFormData.append("draft_missing_fields", field));
   result.blockedReasons.forEach((reason) => draftFormData.append("draft_blocked_reasons", reason));
   result.reviewNotes.forEach((note) => draftFormData.append("draft_review_notes", note));

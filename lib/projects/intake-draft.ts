@@ -66,6 +66,7 @@ export type ProjectIntakeDraft = {
   style_notes: string;
   intended_use: string;
   draft_source?: "natural_language" | "";
+  draft_status?: "supported_draft" | "concept_only" | "unsupported" | "blocked_for_safety" | "";
   draft_missing_fields?: string[];
   draft_blocked_reasons?: string[];
   draft_review_notes?: string[];
@@ -102,6 +103,7 @@ const emptyDraft: ProjectIntakeDraft = {
   style_notes: "",
   intended_use: "",
   draft_source: "",
+  draft_status: "",
   draft_missing_fields: [],
   draft_blocked_reasons: [],
   draft_review_notes: [],
@@ -129,6 +131,7 @@ function textArrayValue(formData: FormData, name: keyof ProjectIntakeDraft, maxL
 }
 
 export function createProjectIntakeDraft(formData: FormData): ProjectIntakeDraft {
+  const draftStatusValue = formData.get("draft_status");
   const tools = formData
     .getAll("tools_available")
     .filter((value): value is ToolOption => typeof value === "string" && toolOptions.includes(value as ToolOption));
@@ -167,6 +170,13 @@ export function createProjectIntakeDraft(formData: FormData): ProjectIntakeDraft
     style_notes: textValue(formData, "style_notes", 1000),
     intended_use: textValue(formData, "intended_use", 1000),
     draft_source: formData.get("draft_source") === "natural_language" ? "natural_language" : "",
+    draft_status:
+      draftStatusValue === "supported_draft" ||
+      draftStatusValue === "concept_only" ||
+      draftStatusValue === "unsupported" ||
+      draftStatusValue === "blocked_for_safety"
+        ? draftStatusValue
+        : "",
     draft_missing_fields: textArrayValue(formData, "draft_missing_fields", 80, 12),
     draft_blocked_reasons: textArrayValue(formData, "draft_blocked_reasons", 120, 8),
     draft_review_notes: textArrayValue(formData, "draft_review_notes", 240, 8),

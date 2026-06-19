@@ -83,9 +83,13 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
   const formValues = draft ?? selectedExample?.draft;
   const starterLoaded = !draft && selectedExample;
   const ideaDraftLoaded = Boolean(draft && params.draft === "idea");
+  const ideaDraftStatus = ideaDraftLoaded ? formValues?.draft_status : "";
   const ideaDraftMetadataItems =
     ideaDraftLoaded && formValues
       ? [
+          ...(formValues.draft_status === "concept_only" ? ["Concept-only draft: choose a supported project type before saving a build setup."] : []),
+          ...(formValues.draft_status === "unsupported" ? ["Unsupported draft: choose a supported project type only if this idea honestly fits one."] : []),
+          ...(formValues.draft_status === "blocked_for_safety" ? ["Safety-blocked draft: do not generate build instructions from this idea."] : []),
           ...(formValues.draft_missing_fields ?? []).map((field) => `Missing detail: ${formatDraftMetadataLabel(field)}`),
           ...(formValues.draft_blocked_reasons ?? []).map((reason) => `Safety-sensitive term: ${formatDraftMetadataLabel(reason)}`),
           ...(formValues.draft_review_notes ?? []),
@@ -93,8 +97,19 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
       : [];
   const unknownExample = typeof params.example === "string" && params.example.length > 0 && !selectedExample;
   const starterChooserOpen = Boolean(starterLoaded) || unknownExample;
-  const selectedProjectType = formValues?.project_type === "" || !formValues?.project_type ? "simple_shelf" : formValues.project_type;
-  const selectedShelfLayout = formValues?.shelf_layout === "" || !formValues?.shelf_layout ? "single_shelf" : formValues.shelf_layout;
+  const selectedProjectType =
+    ideaDraftLoaded &&
+    (!formValues?.project_type ||
+      formValues.draft_status === "concept_only" ||
+      formValues.draft_status === "unsupported" ||
+      formValues.draft_status === "blocked_for_safety")
+      ? ""
+      : formValues?.project_type === "" || !formValues?.project_type
+        ? "simple_shelf"
+        : formValues.project_type;
+  const needsSupportedTemplateChoice = selectedProjectType === "";
+  const selectedShelfLayout = needsSupportedTemplateChoice ? "" : formValues?.shelf_layout === "" || !formValues?.shelf_layout ? "single_shelf" : formValues.shelf_layout;
+  const selectedShelfCount = needsSupportedTemplateChoice ? "" : (formValues?.shelf_count ?? "1");
   const showShelfDepthWarning = selectedProjectType === "simple_shelf" && formValues?.depth_inches.trim() === "0";
   const selectedMountingMethod = draftOption(formValues?.mounting_method, "not_sure");
   const selectedWallType = draftOption(formValues?.wall_type, "not_sure");
@@ -107,6 +122,14 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
   const selectedSupportCount = draftOption(formValues?.support_count, "not_sure");
   const selectedCutStrategy = draftOption(formValues?.cut_strategy, "not_sure");
   const selectedHigherRiskSpots = formValues?.higher_risk_spots ?? [];
+  const visibleIntakeSections = needsSupportedTemplateChoice
+    ? [
+        { id: "project-basics", label: "Project Info", detail: "Name and template", status: "Choose template", tone: "warn" },
+        { id: "size-material", label: "Size & Material", detail: "Known measurements", status: "Review details", tone: "neutral" },
+        { id: "mounting-safety", label: "Safety", detail: "Use and constraints", status: "Needs review", tone: "review" },
+        { id: "tools-finish", label: "Tools & Finish", detail: "Tools and notes", status: "Review details", tone: "neutral" },
+      ]
+    : intakeSections;
 
   return (
     <div className="dashboard-canvas -mx-5 -my-8 px-5 py-8 sm:-mx-6 sm:px-6">
@@ -135,11 +158,52 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
         </section>
       ) : null}
 
+      {params.error === "blocked_idea" ? (
+        <section className="rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-950">
+          <p className="font-semibold">This idea cannot be saved as a build setup.</p>
+          <p className="mt-1">Boardsmith will not create build instructions from safety-sensitive natural-language drafts in the private MVP.</p>
+        </section>
+      ) : null}
+
+      {params.error === "unresolved_idea" ? (
+        <section className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+          <p className="font-semibold">Choose a supported project type before saving.</p>
+          <p className="mt-1">Concept-only and unsupported ideas need an explicit supported template selection before they become a saved project setup.</p>
+        </section>
+      ) : null}
+
       {ideaDraftLoaded ? (
         <section className="rounded-md border border-moss/30 bg-moss/10 p-4 text-sm leading-6 text-ink">
           <p className="font-semibold">Idea drafted into setup fields - review before saving.</p>
           <p className="mt-1 text-ink/70">
             Boardsmith inferred only obvious details. Confirm dimensions, material, tools, mounting, and safety notes before creating the project.
+          </p>
+        </section>
+      ) : null}
+
+      {ideaDraftStatus === "concept_only" ? (
+        <section className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+          <p className="font-semibold">Concept-only idea - not a supported build packet yet.</p>
+          <p className="mt-1">
+            Boardsmith kept this as review guidance instead of choosing a template for you. Select a supported project type only if the idea can honestly fit one of the current templates.
+          </p>
+        </section>
+      ) : null}
+
+      {ideaDraftStatus === "unsupported" ? (
+        <section className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+          <p className="font-semibold">Unsupported idea - not a Boardsmith build packet.</p>
+          <p className="mt-1">
+            This draft did not match the current woodworking planning templates. Select a supported project type only if the idea can honestly fit one.
+          </p>
+        </section>
+      ) : null}
+
+      {ideaDraftStatus === "blocked_for_safety" ? (
+        <section className="rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-950">
+          <p className="font-semibold">Safety-sensitive idea - do not create build instructions from this draft.</p>
+          <p className="mt-1">
+            This idea includes safety-sensitive terms that Boardsmith should not turn into a full build packet in the private MVP.
           </p>
         </section>
       ) : null}
@@ -254,7 +318,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           </p>
         </div>
         <nav aria-label="Project intake sections" className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {intakeSections.map((section, index) => (
+          {visibleIntakeSections.map((section, index) => (
             <a
               key={section.id}
               href={`#${section.id}`}
@@ -283,6 +347,12 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
 
       <form id="project-intake-form" action="/projects/create" method="post" className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <ProjectIntakeFormEnhancements />
+        {ideaDraftLoaded ? (
+          <>
+            <input type="hidden" name="draft_source" value="natural_language" />
+            <input type="hidden" name="draft_status" value={ideaDraftStatus ?? ""} />
+          </>
+        ) : null}
         <div className="min-w-0 space-y-8">
         <div className="rounded-lg border border-sawdust bg-white/90 p-4 shadow-soft">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -310,6 +380,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Project type" help="Pick the closest match. Boardsmith will use this to ask the right questions.">
               <select name="project_type" required className="input" defaultValue={selectedProjectType}>
+                {selectedProjectType === "" ? <option value="">Choose a supported project type</option> : null}
                 {intakeProjectTypes.map((type) => (
                   <option key={type} value={type}>
                     {projectTypeLabels[type]}
@@ -334,18 +405,21 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           <div className="flex items-start gap-4">
             <SectionIcon label="2" />
             <div>
-            <h2 className="font-serif text-2xl font-semibold text-ink">Size and board</h2>
+            <h2 className="font-serif text-2xl font-semibold text-ink">{needsSupportedTemplateChoice ? "Size and material" : "Size and board"}</h2>
             <p className="mt-1 text-sm leading-6 text-ink/65">
-              Measure the space where the shelf will go. Use inches. Estimates are okay because you will review before cutting.
+              {needsSupportedTemplateChoice
+                ? "Keep only measurements and material details you already know. Choose a supported template before treating this as a build setup."
+                : "Measure the space where the shelf will go. Use inches. Estimates are okay because you will review before cutting."}
             </p>
             </div>
           </div>
 
           <div className="rounded-md border border-moss/25 bg-moss/10 p-4 text-sm leading-6 text-ink/75">
-            <p className="font-semibold text-ink">Shelf size</p>
+            <p className="font-semibold text-ink">{needsSupportedTemplateChoice ? "Known size details" : "Shelf size"}</p>
             <p className="mt-1">
-              For one wall shelf, fill in width, depth from the wall, board thickness, and material. Add total height only for
-              multi-shelf units, side panels, front lips, or visible brackets.
+              {needsSupportedTemplateChoice
+                ? "Review the measurements from the idea. Boardsmith will not use them as build truth until the idea fits a supported template."
+                : "For one wall shelf, fill in width, depth from the wall, board thickness, and material. Add total height only for multi-shelf units, side panels, front lips, or visible brackets."}
             </p>
           </div>
 
@@ -364,8 +438,16 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           </details>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Shelf layout" help="For wall shelf projects, choose whether this is one shelf, separate shelves, or one connected unit.">
+            <Field
+              label={needsSupportedTemplateChoice ? "Template layout, if applicable" : "Shelf layout"}
+              help={
+                needsSupportedTemplateChoice
+                  ? "Leave this for later unless you intentionally convert the idea to a supported wall-shelf template."
+                  : "For wall shelf projects, choose whether this is one shelf, separate shelves, or one connected unit."
+              }
+            >
               <select name="shelf_layout" className="input" defaultValue={selectedShelfLayout}>
+                {needsSupportedTemplateChoice ? <option value="">Choose layout after template</option> : null}
                 {shelfLayoutOptions.map((layout) => (
                   <option key={layout} value={layout}>
                     {shelfLayoutLabels[layout]}
@@ -373,13 +455,23 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
                 ))}
               </select>
             </Field>
-            <Field label="Number of shelves" help="Use 1 for a single shelf. Required for multiple shelves or connected shelf units.">
-              <input name="shelf_count" type="number" min="1" max="20" step="1" className="input" placeholder="1" defaultValue={formValues?.shelf_count ?? "1"} />
+            <Field
+              label={needsSupportedTemplateChoice ? "Count, if applicable" : "Number of shelves"}
+              help={
+                needsSupportedTemplateChoice
+                  ? "Only use this when the selected supported template needs a count."
+                : "Use 1 for a single shelf. Required for multiple shelves or connected shelf units."
+              }
+            >
+              <input name="shelf_count" type="number" min="1" max="20" step="1" className="input" placeholder="1" defaultValue={selectedShelfCount} />
             </Field>
-            <Field label="Shelf width, inches" help="Left to right along the wall. Example: 24 in.">
+            <Field label={needsSupportedTemplateChoice ? "Width, inches" : "Shelf width, inches"} help="Left to right. Example: 24 in.">
               <input name="width_inches" required type="number" min="0.1" max="240" step="any" className="input" placeholder="Example: 24" defaultValue={formValues?.width_inches} />
             </Field>
-            <Field label="Shelf depth from wall, inches" help="How far the shelf sticks out. Example: 6-8 in.">
+            <Field
+              label={needsSupportedTemplateChoice ? "Depth, inches" : "Shelf depth from wall, inches"}
+              help={needsSupportedTemplateChoice ? "Front-to-back depth if known. Example: 6-12 in." : "How far the shelf sticks out. Example: 6-8 in."}
+            >
               <input name="depth_inches" required type="number" min="0" max="240" step="any" className="input" placeholder="Example: 8" defaultValue={formValues?.depth_inches} />
             </Field>
             <Field label="Actual board thickness, inches" help="Thickness of the real board. A common 1x board is usually 0.75 in thick.">
@@ -472,7 +564,9 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             <div>
             <h2 className="font-serif text-2xl font-semibold text-ink">Mounting and safety</h2>
             <p className="mt-1 text-sm leading-6 text-ink/65">
-              Wall shelves depend on the wall, supports, fasteners, and what they will hold. Choose "not sure" when needed.
+              {needsSupportedTemplateChoice
+                ? 'Capture known safety context without treating the idea as build-ready. Choose "not sure" when needed.'
+                : 'Wall shelves depend on the wall, supports, fasteners, and what they will hold. Choose "not sure" when needed.'}
             </p>
             </div>
           </div>
@@ -505,7 +599,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
                 ))}
               </select>
             </Field>
-            <Field label="What will the shelf hold?" help="Expected load changes warnings. Heavy items always need manual review.">
+            <Field label={needsSupportedTemplateChoice ? "What will it hold?" : "What will the shelf hold?"} help="Expected load changes warnings. Heavy items always need manual review.">
               <select name="shelf_load" className="input" defaultValue={selectedShelfLoad}>
                 {shelfLoadOptions.map((option) => (
                   <option key={option} value={option}>
@@ -552,7 +646,7 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
           </div>
 
           <fieldset className="rounded-md border border-sawdust p-4">
-            <legend className="px-1 text-sm font-semibold text-ink">Is this shelf in a higher-risk spot?</legend>
+            <legend className="px-1 text-sm font-semibold text-ink">{needsSupportedTemplateChoice ? "Is this idea in a higher-risk spot?" : "Is this shelf in a higher-risk spot?"}</legend>
             <p className="mt-1 text-sm text-ink/60">Check every item that applies. These create review prompts, not automatic approval.</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {higherRiskSpotOptions.map((option) => (
@@ -670,9 +764,24 @@ export default async function NewProjectPage({ searchParams }: { searchParams?: 
             <section className="rounded-lg border border-moss bg-moss p-5 text-white shadow-soft">
               <p className="text-sm font-semibold">Maker&apos;s tip</p>
               <p className="mt-3 text-sm leading-6 text-white/85">
-                For wall shelves, note nearby outlets, plumbing, tile, mirrors, and towel bars now. Those details help Boardsmith ask safer review questions before mounting.
+                {needsSupportedTemplateChoice
+                  ? "Choose a supported template only when the idea honestly fits one. Unsupported concepts should stay at review guidance instead of becoming build packets."
+                  : "For wall shelves, note nearby outlets, plumbing, tile, mirrors, and towel bars now. Those details help Boardsmith ask safer review questions before mounting."}
               </p>
             </section>
+            {ideaDraftStatus === "concept_only" || ideaDraftStatus === "unsupported" ? (
+              <label className="block rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+                <span className="flex items-start gap-3">
+                  <input name="draft_resolution" type="checkbox" value="supported_template_selected" required className="mt-1 h-4 w-4 accent-moss" />
+                  <span>
+                    <span className="block font-semibold">I am intentionally choosing a supported template.</span>
+                    <span className="mt-1 block">
+                      Save only if this idea honestly fits the selected project type. Boardsmith will not create a full build packet for unsupported concepts.
+                    </span>
+                  </span>
+                </span>
+              </label>
+            ) : null}
             <button type="submit" className="w-full rounded-md bg-moss px-4 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-moss/90 active:scale-[0.99]">
               <ProjectIntakeSubmitLabel />
             </button>

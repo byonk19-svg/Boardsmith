@@ -60,10 +60,42 @@ describe("natural-language intake drafting", () => {
   it("flags unsupported safety-sensitive ideas without inventing approval", () => {
     const result = parseNaturalLanguageIntake("Child loft bed platform with ladder and storage stairs for a nursery.");
 
+    expect(result.status).toBe("blocked_for_safety");
     expect(result.draft.title).toBe("Project idea");
     expect(result.draft.project_type).toBe("");
     expect(result.blockedReasons).toEqual(["child_sleep_or_entrapment", "load_bearing_or_climbable"]);
     expect(result.reviewNotes).toContain("This idea includes safety-sensitive terms that may block plan generation.");
     expect(result.missingFields).toContain("project_type");
+  });
+
+  it("keeps built-in bookcase cabinet ideas unsupported instead of defaulting them to wall shelves", () => {
+    const result = parseNaturalLanguageIntake(
+      "Built-in bookcase cabinets around a fireplace, 84 x 12 x 96 inches, 3/4 inch plywood, drill and sander available.",
+    );
+
+    expect(result.status).toBe("concept_only");
+    expect(result.draft.title).toBe("Bookcase concept");
+    expect(result.draft.project_type).toBe("");
+    expect(result.draft.shelf_layout).toBe("");
+    expect(result.draft.width_inches).toBe("84");
+    expect(result.draft.depth_inches).toBe("12");
+    expect(result.draft.height_inches).toBe("96");
+    expect(result.blockedReasons).toEqual([]);
+    expect(result.missingFields).toContain("project_type");
+    expect(result.reviewNotes).toContain(
+      "This looks woodworking-adjacent, but it is not a supported build-packet template yet. Choose a supported project type or keep it as concept review.",
+    );
+    expect(result.reviewNotes).toContain("Project type could not be inferred confidently.");
+    expect(result.reviewNotes).not.toContain("Mounting, wall type, and stud access still need confirmation.");
+  });
+
+  it("marks unrelated non-woodworking ideas unsupported without forcing a concept brief", () => {
+    const result = parseNaturalLanguageIntake("Replace a bicycle chain and adjust the rear derailleur.");
+
+    expect(result.status).toBe("unsupported");
+    expect(result.draft.project_type).toBe("");
+    expect(result.missingFields).toContain("project_type");
+    expect(result.reviewNotes).toContain("This does not match the current woodworking planning templates. Choose a supported project type only if the idea can honestly fit one.");
+    expect(result.reviewNotes).not.toContain("woodworking-adjacent");
   });
 });

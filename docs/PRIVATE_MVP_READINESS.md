@@ -386,7 +386,8 @@ Recommended next direction:
 ## What Works Now
 
 - Project creation from `/projects/new`.
-- Plain-language idea drafting from the dashboard or `/projects/new` via `/projects/draft`, with editable setup fields and parser review notes before save.
+- Plain-language idea drafting from the dashboard or `/projects/new` via `/projects/draft`, with editable setup fields, parser review notes, and supported/concept/unsupported/blocked draft status before save.
+- Natural-language concept-only or unsupported drafts no longer silently default into wall-shelf setup; they require explicit supported-template resolution before project creation, while safety-blocked drafts are refused at the create route.
 - Private workspace dashboard with project counts, latest update date, recent project shortcuts, empty state, idea-draft entry, and starter example links.
 - Project archive/restore foundation that hides archived projects from the default project list and dashboard while preserving project records and generated plans.
 - Hosted project intake accepts normal woodworking values like `12`, `8`, `4`, and material thickness `0.75`.
@@ -436,7 +437,7 @@ Recommended next direction:
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
 - Hosted behavior after any future deployment, env-var change, migration, access-gate change, archive-related code change, or `Tweak this plan` code change until the hosted smoke checklist is rerun.
-- The new idea-drafting, concept-only guidance, planter-box part-label rendering, and revision-intent blocking paths have local automated coverage but have not yet had a fresh hosted smoke pass after this implementation.
+- The new idea-drafting status lifecycle, concept-only guidance, planter-box part-label rendering, and revision-intent blocking paths have local automated coverage but have not yet had a fresh hosted smoke pass after this implementation.
 
 ## Non-Goals And Guardrails
 

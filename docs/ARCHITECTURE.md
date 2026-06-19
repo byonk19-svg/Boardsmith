@@ -43,7 +43,7 @@ Current routes and modules support:
 Current product capabilities include:
 
 - Structured project intake for supported beginner-friendly project types.
-- Deterministic plain-language idea drafting that writes conservative editable intake fields, missing-field hints, and safety-sensitive parser notes before save.
+- Deterministic plain-language idea drafting that writes conservative editable intake fields, missing-field hints, safety-sensitive parser notes, and supported/concept/unsupported/blocked draft status before save.
 - Deterministic safety-review flags.
 - Template hints by project type.
 - Boardsmith Build Model draft generation.
@@ -146,6 +146,7 @@ Current:
 
 - Structured form intake with project type, skill level, dimensions, material thickness, tools, style notes, intended use, and wall-shelf layout fields.
 - Plain-language ideas can draft conservative editable intake fields and parser review notes, but the saved project remains structured form data.
+- Natural-language draft status is preserved through the pre-create lifecycle: supported drafts can save normally, concept-only or unsupported drafts require explicit supported-template resolution before save, and safety-blocked drafts cannot be saved as build setups.
 - Zod validation blocks invalid project records.
 - Starter examples prefill editable form values.
 
