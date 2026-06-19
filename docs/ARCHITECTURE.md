@@ -147,6 +147,7 @@ Current:
 - Structured form intake with project type, skill level, dimensions, material thickness, tools, style notes, intended use, and wall-shelf layout fields.
 - Plain-language ideas can draft conservative editable intake fields and parser review notes, but the saved project remains structured form data.
 - Natural-language draft status is preserved through the pre-create lifecycle: supported drafts can save normally, concept-only or unsupported drafts require explicit supported-template resolution before save, and safety-blocked drafts cannot be saved as build setups.
+- Project detail readiness questions now have a clarification-answer loop for answerable saved-intake fields. Dimension, material, shelf-layout, tool, mounting-context, load/use, and finish/context answers save back to the existing project record, replace managed `Structured intake` / `Planning preferences` lines when needed, and recompute the gate without creating a generated-plan version.
 - Zod validation blocks invalid project records.
 - Starter examples prefill editable form values.
 
@@ -254,7 +255,8 @@ Current:
 - Saving a generated plan marks it latest and preserves prior plan history.
 - `Tweak this plan` accepts prose-only natural-language revisions directly.
 - Explicit width, depth, material, material-thickness, shelf-layout, shelf-count, and shelf-spacing revision requests can patch structured Project Intake through a validated storage update before any new generated output appears.
-- Support/mounting, cut-list, ambiguous, safety-sensitive, unparseable, and shelf-height revision requests remain manual or blocked because they do not yet have a safe first-class intake target.
+- Project detail clarification answers can save shelf height, tool availability, and guided support/mounting/load/finish context through existing intake fields and managed text sections. They do not auto-generate a plan.
+- Cut-list, ambiguous, safety-sensitive, unparseable, concept-only, unsupported, and child/electrical/load-certification questions remain manual or blocked because they do not yet have a safe first-class completion target.
 - Archived projects block revision until restored.
 
 Target:

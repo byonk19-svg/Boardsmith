@@ -513,13 +513,19 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("Tweak this plan");
     expect(markup).toContain("Describe one change to the latest plan.");
-    expect(markup).toContain("Boardsmith saves a new plan version for review; this is a one-shot revision, not a chat thread.");
-    expect(markup).toContain("Describe one change to make to the latest plan");
-    expect(markup).toContain("Boardsmith will save this as a new plan version.");
+    expect(markup).toContain("Boardsmith patches Project Intake first for safe structured changes");
+    expect(markup).toContain("or saves a new plan version for prose-only revisions.");
+    expect(markup).toContain("Safe explicit dimensions, materials, and shelf-layout changes update Project Intake first.");
+    expect(markup).toContain("Project type, support, mounting, cut-list, or safety-sensitive changes still need manual review.");
+    expect(markup).toContain("Describe one change");
+    expect(markup).toContain("Prose-only tweaks save a new plan version.");
+    expect(markup).toContain("Safe explicit intake changes update the saved project details first.");
     expect(markup).toContain("Revised plans still need manual review before cutting or building.");
     expect(markup).toContain('action="/projects/project_saved_bbm/revise"');
     expect(markup).toContain('name="revision_instruction"');
-    expect(markup).toContain("Create revised plan");
+    expect(markup).toContain("Submit revision");
+    expect(markup).not.toContain("For new dimensions, materials, project type, or mounting changes, update or duplicate the project intake first.");
+    expect(markup).not.toContain("Boardsmith will save this as a new plan version.");
     expect(markup).not.toContain("AI chat");
     const tweakStart = markup.indexOf('id="tweak-this-plan"');
     const tweakEnd = markup.indexOf("</section>", tweakStart);
@@ -561,11 +567,13 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(structuredMarkup).toContain("This change affects saved project details.");
-    expect(structuredMarkup).toContain("Update or duplicate the project intake first");
+    expect(structuredMarkup).toContain("Boardsmith could not patch Project Intake automatically.");
+    expect(structuredMarkup).toContain("Update the intake fields directly");
     expect(structuredMarkup).toContain("Detected change area: dimensions, materials or finish.");
     expect(safetyMarkup).toContain("This request changes safety-critical planning assumptions.");
-    expect(safetyMarkup).toContain("Review project readiness and saved intake details");
-    expect(ambiguousMarkup).toContain("Boardsmith could not tell whether this is a wording tweak or a structural change.");
+    expect(safetyMarkup).toContain("Review Plan readiness and saved Project Intake");
+    expect(ambiguousMarkup).toContain("Boardsmith could not tell whether this is a prose-only revision or a structured intake change.");
+    expect(ambiguousMarkup).toContain("Say the new dimensions, materials, or shelf layout directly");
     expect(ambiguousMarkup).toContain("Detected change area: ambiguous structural change.");
     expect(ambiguousMarkup).not.toContain("Make it safe for heavy books");
     expect(ambiguousMarkup).not.toContain("stack trace");
@@ -588,6 +596,7 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("Project intake updated from the requested structured change.");
+    expect(markup).toContain("No plan version was created yet.");
     expect(markup).toContain("Some details still need review before generation.");
     expect(markup).not.toContain("Make the shelf 30 inches wide");
     expect(markup).not.toContain("stack trace");
@@ -1137,6 +1146,59 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain("No generated plan yet.");
   });
 
+  it("shows a shelf-layout answer loop from the clarification gate when saved intake is missing shelf count", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Multiple shelf wall hanging",
+      height_inches: 60,
+      depth_inches: 6,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: undefined,
+      intended_use: "Bathroom wall storage for towels.",
+    });
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Plan readiness");
+    expect(markup).toContain("How many shelves or shelf openings should the plan include?");
+    expect(markup).toContain('id="answer-clarification-questions"');
+    expect(markup).toContain("Answer readiness questions");
+    expect(markup).toContain("Update Project Intake details");
+    expect(markup).toContain("These open questions map to saved Project Intake fields.");
+    expect(markup).toContain('action="/projects/project_saved_bbm/clarification"');
+    expect(markup).toContain('name="shelf_layout"');
+    expect(markup).toContain('name="shelf_count"');
+    expect(markup).toContain("Save clarification answers");
+    expect(markup).not.toContain("No generated plan yet.");
+  });
+
+  it("renders saved clarification answer feedback without implying a generated plan version", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({
+          clarification_answers: "updated",
+          clarification_status: "ready_for_full_plan",
+        }),
+      }),
+    );
+
+    expect(markup).toContain("Clarification answers saved to Project Intake.");
+    expect(markup).toContain("No plan version was created.");
+    expect(markup).toContain("The saved intake now has enough detail for the full-plan path.");
+  });
+
   it("shows a direct shelf-layout repair form when generation is blocked by missing shelf count", async () => {
     getProjectMock.mockResolvedValue({
       ...project,
@@ -1255,6 +1317,10 @@ describe("ProjectDetailPage project structure", () => {
     expect(cutIndex).toBeLessThan(buildIndex);
     expect(markup).toContain("Enter the full top-to-bottom height of the shelf unit, such as 60 in.");
     expect(markup).toContain("Support/frame design needs review");
+    const answerStart = markup.indexOf('id="answer-clarification-questions"');
+    const answerEnd = markup.indexOf("Recommended next step", answerStart);
+    const answerMarkup = markup.slice(answerStart, answerEnd);
+    expect(answerMarkup.match(/name="height_inches"/g)).toHaveLength(1);
     expect(markup).not.toMatch(/freestanding|non-mounted/i);
   });
 

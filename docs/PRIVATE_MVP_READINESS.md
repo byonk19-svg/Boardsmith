@@ -402,6 +402,7 @@ Recommended next direction:
 - Read-only plan comparison between the latest plan and an older saved version.
 - One-shot `Tweak this plan` active-project revision flow for prose-only changes that saves revised output as a new generated-plan version, preserves the previous version in history, and redirects into revised-vs-prior comparison.
 - Structural or safety-sensitive revision requests are classified and blocked or redirected before regeneration instead of silently saving a full new plan.
+- Project detail clarification answers can update answerable Project Intake fields and managed intake-context text without creating a generated-plan version.
 - Deterministic Plan Review status.
 - Deterministic Export Readiness status for future export work.
 - Material Summary grouped for review.

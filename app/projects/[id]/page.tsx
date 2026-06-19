@@ -17,6 +17,7 @@ import { type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from 
 import type { PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { ConceptBrief } from "@/lib/projects/concept-brief";
+import { answerableClarificationQuestionIds } from "@/lib/projects/clarification-answer-loop";
 import {
   createClarificationGateDecision,
   type ClarificationGateDecision,
@@ -25,7 +26,33 @@ import {
 import { createProjectPlanningLifecycle, isProjectArchived } from "@/lib/projects/project-planning-lifecycle";
 import { getProjectDetailErrorMessage } from "@/lib/projects/project-detail-errors";
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
-import { formatToolLabel, projectTypeLabels, shelfLayoutLabels, shelfLayoutOptions, type Project } from "@/lib/projects/types";
+import {
+  cutStrategyLabels,
+  cutStrategyOptions,
+  formatToolLabel,
+  higherRiskSpotLabels,
+  higherRiskSpotOptions,
+  installLocationLabels,
+  installLocationOptions,
+  moistureExposureLabels,
+  moistureExposureOptions,
+  mountingMethodLabels,
+  mountingMethodOptions,
+  projectTypeLabels,
+  shelfLayoutLabels,
+  shelfLayoutOptions,
+  shelfLoadLabels,
+  shelfLoadOptions,
+  studAccessLabels,
+  studAccessOptions,
+  supportCountLabels,
+  supportCountOptions,
+  toolLabels,
+  wallTypeLabels,
+  wallTypeOptions,
+  type Project,
+  type ToolOption,
+} from "@/lib/projects/types";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
 import { BuildStepCards, BuildStepStatusSummary } from "./BuildStepCards";
@@ -59,6 +86,7 @@ export default async function ProjectDetailPage({
     restored?: string;
     revised?: string;
     structured_revision?: string;
+    clarification_answers?: string;
     clarification_status?: string;
     revision_error?: string;
     revision_categories?: string;
@@ -146,8 +174,15 @@ export default async function ProjectDetailPage({
       ) : null}
       {query.structured_revision === "updated" ? (
         <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-          Project intake updated from the requested structured change. Review the fields, then generate another plan version when the intake looks right.
+          Project intake updated from the requested structured change. Review the fields, then generate another plan version when the intake looks right.{" "}
+          No plan version was created yet.
           {query.clarification_status === "needs_details" ? " Some details still need review before generation." : ""}
+        </p>
+      ) : null}
+      {query.clarification_answers === "updated" ? (
+        <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+          Clarification answers saved to Project Intake. No plan version was created. Review remaining readiness questions before generating again.
+          {query.clarification_status === "ready_for_full_plan" ? " The saved intake now has enough detail for the full-plan path." : ""}
         </p>
       ) : null}
       {query.archived ? <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">Project archived. Generated plans and records were preserved.</p> : null}
@@ -158,7 +193,7 @@ export default async function ProjectDetailPage({
         </p>
       ) : null}
       {isRevisionFailureReason(query.revision_error) ? <RevisionFailurePanel reason={query.revision_error} categories={query.revision_categories} /> : null}
-      <ClarificationGatePanel decision={clarificationGate} hasLatestPlan={lifecycle.hasLatestPlan} isArchived={lifecycle.isArchived} />
+      <ClarificationGatePanel decision={clarificationGate} project={project} hasLatestPlan={lifecycle.hasLatestPlan} isArchived={lifecycle.isArchived} />
 
       {latestPlanReview ? (
         <>
@@ -399,91 +434,396 @@ function projectTypeLabel(projectType: string): string {
   return projectType in projectTypeLabels ? projectTypeLabels[projectType as keyof typeof projectTypeLabels] : formatToolLabel(projectType);
 }
 
+const clarificationToolGroups = [
+  { label: "Layout", tools: ["tape_measure", "pencil", "level"] },
+  { label: "Mounting and safety", tools: ["drill", "stud_finder", "safety_glasses", "clamps"] },
+  { label: "Cutting", tools: ["jigsaw", "circular_saw", "miter_saw"] },
+  { label: "Finishing", tools: ["sander", "paint_brush"] },
+] satisfies readonly { label: string; tools: readonly ToolOption[] }[];
+
 function ClarificationGatePanel({
   decision,
+  project,
   hasLatestPlan,
   isArchived,
 }: {
   decision: ClarificationGateDecision;
+  project: Project;
   hasLatestPlan: boolean;
   isArchived: boolean;
 }) {
   const groupedQuestions = groupClarificationQuestions(decision);
+  const answerableQuestionIds = answerableClarificationQuestionIds(decision);
+  const canAnswerClarificationQuestions = !isArchived && answerableQuestionIds.length > 0;
 
   return (
-    <section id="plan-readiness" className={`no-print scroll-mt-6 rounded-lg border p-5 shadow-soft ${clarificationGatePanelClass(decision.status)}`}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Plan readiness</p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">{decision.statusLabel}</h2>
-          <p className="mt-2 text-sm leading-6 text-ink/70">{decision.summary}</p>
+    <>
+      <section id="plan-readiness" className={`no-print scroll-mt-6 rounded-lg border p-5 shadow-soft ${clarificationGatePanelClass(decision.status)}`}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Plan readiness</p>
+            <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">{decision.statusLabel}</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/70">{decision.summary}</p>
+          </div>
+          <span className={`w-fit rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${clarificationGateBadgeClass(decision.status)}`}>
+            {isArchived ? "Restore before full plan" : decision.canGenerateFullPlan ? "Full plan path available" : "Review before full plan"}
+          </span>
         </div>
-        <span className={`w-fit rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide ${clarificationGateBadgeClass(decision.status)}`}>
-          {isArchived ? "Restore before full plan" : decision.canGenerateFullPlan ? "Full plan path available" : "Review before full plan"}
-        </span>
-      </div>
 
-      {decision.status === "ready_for_full_plan" ? (
-        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
-          {isArchived
-            ? "The saved intake has enough detail for a plan, but archived projects stay read-only. Restore this project before generating or revising."
-            : hasLatestPlan
-            ? "The saved intake has enough detail for another plan version. Review the existing plan, then generate again only if the intake still matches the build you want."
-            : "The saved intake has enough detail for a first plan. Review the measurements, material, mounting, and tool choices before using Generate Plan."}
-        </p>
-      ) : null}
+        {decision.status === "ready_for_full_plan" ? (
+          <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
+            {isArchived
+              ? "The saved intake has enough detail for a plan, but archived projects stay read-only. Restore this project before generating or revising."
+              : hasLatestPlan
+              ? "The saved intake has enough detail for another plan version. Review the existing plan, then generate again only if the intake still matches the build you want."
+              : "The saved intake has enough detail for a first plan. Review the measurements, material, mounting, and tool choices before using Generate Plan."}
+          </p>
+        ) : null}
 
-      {hasLatestPlan && !decision.canGenerateFullPlan ? (
-        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
-          This blocks future generation only. Existing saved plan versions remain readable for review, history, and browser print; do not treat them
-          as refreshed or newly approved.
-        </p>
-      ) : null}
+        {hasLatestPlan && !decision.canGenerateFullPlan ? (
+          <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
+            This blocks future generation only. Existing saved plan versions remain readable for review, history, and browser print; do not treat them
+            as refreshed or newly approved.
+          </p>
+        ) : null}
 
-      {groupedQuestions.length > 0 ? (
-        <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          {groupedQuestions.map((group) => (
-            <div key={group.category} className="rounded-md border border-sawdust bg-white/80 p-4">
-              <h3 className="text-sm font-semibold text-ink">{clarificationQuestionCategoryLabel(group.category)}</h3>
-              <ul className="mt-3 space-y-3">
-                {group.questions.map((question) => (
-                  <li key={question.id} className="text-sm leading-6 text-ink/75">
-                    <p className="font-semibold text-ink">{question.question}</p>
-                    <p className="mt-1 text-ink/65">{question.reason}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      {decision.blockers.length > 0 ? (
-        <div className="mt-5 rounded-md border border-red-200 bg-white/80 p-4">
-          <h3 className="text-sm font-semibold text-red-950">Why Boardsmith will not create build instructions yet</h3>
-          <ul className="mt-3 space-y-3">
-            {decision.blockers.map((blocker) => (
-              <li key={blocker.id} className="text-sm leading-6 text-red-950/85">
-                <p className="font-semibold text-red-950">{blocker.title}</p>
-                <p className="mt-1">{blocker.reason}</p>
-              </li>
+        {groupedQuestions.length > 0 ? (
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            {groupedQuestions.map((group) => (
+              <div key={group.category} className="rounded-md border border-sawdust bg-white/80 p-4">
+                <h3 className="text-sm font-semibold text-ink">{clarificationQuestionCategoryLabel(group.category)}</h3>
+                <ul className="mt-3 space-y-3">
+                  {group.questions.map((question) => (
+                    <li key={question.id} className="text-sm leading-6 text-ink/75">
+                      <p className="font-semibold text-ink">{question.question}</p>
+                      <p className="mt-1 text-ink/65">{question.reason}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
+        ) : null}
+
+        {decision.blockers.length > 0 ? (
+          <div className="mt-5 rounded-md border border-red-200 bg-white/80 p-4">
+            <h3 className="text-sm font-semibold text-red-950">Why Boardsmith will not create build instructions yet</h3>
+            <ul className="mt-3 space-y-3">
+              {decision.blockers.map((blocker) => (
+                <li key={blocker.id} className="text-sm leading-6 text-red-950/85">
+                  <p className="font-semibold text-red-950">{blocker.title}</p>
+                  <p className="mt-1">{blocker.reason}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {decision.conceptBrief ? <ConceptBriefPanel brief={decision.conceptBrief} /> : null}
+
+        {!decision.supportedProjectType ? (
+          <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
+            Boardsmith can keep this as planning notes, but a full build packet needs a supported safe template before it should produce cut lists or build steps.
+          </p>
+        ) : null}
+
+        {isArchived ? (
+          <p className="mt-4 text-xs leading-5 text-ink/55">This archived project remains read-only. Restore it before changing details or generating another plan.</p>
+        ) : null}
+      </section>
+
+      {canAnswerClarificationQuestions ? (
+        <section id="answer-clarification-questions" className="no-print scroll-mt-6 rounded-lg border border-amber-200 bg-amber-50 p-5 shadow-soft">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-950/70">Answer readiness questions</p>
+              <h2 className="mt-1 text-lg font-semibold text-ink">Update Project Intake details</h2>
+              <p className="mt-2 text-sm leading-6 text-ink/70">
+                These open questions map to saved Project Intake fields. Save the details here; Boardsmith will re-check readiness without creating a
+                new plan version.
+              </p>
+            </div>
+            <span className="w-fit rounded-md bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-950">
+              Intake update
+            </span>
+          </div>
+          <ClarificationAnswerForm project={project} answerableQuestionIds={answerableQuestionIds} />
+        </section>
+      ) : null}
+    </>
+  );
+}
+
+function ClarificationAnswerForm({ project, answerableQuestionIds }: { project: Project; answerableQuestionIds: string[] }) {
+  const answerable = new Set(answerableQuestionIds);
+  const showDimensions = answerable.has("finished_width") || answerable.has("finished_height") || answerable.has("finished_depth");
+  const showMaterial = answerable.has("material_type") || answerable.has("material_thickness");
+  const showShelfLayout = answerable.has("shelf_layout") || answerable.has("shelf_count") || answerable.has("shelf_height_impossible");
+  const showMounting = answerable.has("mounting_support_method") || answerable.has("wall_fastener_context");
+  const showUseLoad = answerable.has("expected_load_or_use");
+  const showFinish = answerable.has("finish_exposure");
+  const showTools = answerable.has("tools_available");
+  const defaultLayout = project.shelf_layout ?? "multi_shelf_unit";
+
+  return (
+    <form action={`/projects/${project.id}/clarification`} method="post" className="mt-5 space-y-5">
+      {showDimensions ? (
+        <div className="grid gap-4 rounded-md border border-amber-200 bg-white p-4 sm:grid-cols-3">
+          {answerable.has("finished_width") ? (
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Finished width, inches</span>
+              <input name="width_inches" type="number" min="0.1" max="240" step="any" className="input" defaultValue={project.width_inches.toString()} />
+            </label>
+          ) : null}
+          {answerable.has("finished_height") ? (
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Finished height, inches</span>
+              <input name="height_inches" type="number" min="0.1" max="240" step="any" className="input" defaultValue={project.height_inches.toString()} />
+            </label>
+          ) : null}
+          {answerable.has("finished_depth") ? (
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Finished depth, inches</span>
+              <input name="depth_inches" type="number" min="0" max="240" step="any" className="input" defaultValue={project.depth_inches.toString()} />
+            </label>
+          ) : null}
         </div>
       ) : null}
 
-      {decision.conceptBrief ? <ConceptBriefPanel brief={decision.conceptBrief} /> : null}
-
-      {!decision.supportedProjectType ? (
-        <p className="mt-4 rounded-md bg-white/70 p-3 text-sm leading-6 text-ink/70">
-          Boardsmith can keep this as planning notes, but a full build packet needs a supported safe template before it should produce cut lists or build steps.
-        </p>
+      {showMaterial ? (
+        <div className="grid gap-4 rounded-md border border-amber-200 bg-white p-4 sm:grid-cols-2">
+          {answerable.has("material_type") ? (
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Material</span>
+              <input name="material_type" minLength={2} maxLength={120} className="input" defaultValue={project.material_type} />
+            </label>
+          ) : null}
+          {answerable.has("material_thickness") ? (
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Material thickness, inches</span>
+              <input
+                name="material_thickness_inches"
+                type="number"
+                min="0.1"
+                max="12"
+                step="any"
+                className="input"
+                defaultValue={project.material_thickness_inches.toString()}
+              />
+            </label>
+          ) : null}
+        </div>
       ) : null}
 
-      {isArchived ? (
-        <p className="mt-4 text-xs leading-5 text-ink/55">This archived project remains read-only. Restore it before changing details or generating another plan.</p>
+      {showShelfLayout ? (
+        <div className="grid gap-4 rounded-md border border-amber-200 bg-white p-4 sm:grid-cols-2">
+          {answerable.has("shelf_layout") || answerable.has("shelf_count") ? (
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Shelf layout</span>
+              <select name="shelf_layout" className="input" defaultValue={defaultLayout}>
+                {shelfLayoutOptions.map((layout) => (
+                  <option key={layout} value={layout}>
+                    {shelfLayoutLabels[layout]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          {answerable.has("shelf_count") ? (
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Number of shelves</span>
+              <input name="shelf_count" type="number" min="1" max="20" step="1" className="input" defaultValue={project.shelf_count?.toString() ?? ""} />
+            </label>
+          ) : null}
+          {answerable.has("shelf_height_impossible") ? (
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Total project height, inches</span>
+              <input name="height_inches" type="number" min="0.1" max="240" step="any" className="input" defaultValue={project.height_inches.toString()} />
+            </label>
+          ) : null}
+          {answerable.has("shelf_count") || answerable.has("shelf_height_impossible") ? (
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Shelf spacing, inches, optional</span>
+              <input
+                name="shelf_spacing_inches"
+                type="number"
+                min="0.1"
+                max="120"
+                step="any"
+                className="input"
+                defaultValue={project.shelf_spacing_inches?.toString() ?? ""}
+              />
+            </label>
+          ) : null}
+        </div>
       ) : null}
-    </section>
+
+      {showMounting ? (
+        <div className="grid gap-4 rounded-md border border-amber-200 bg-white p-4 sm:grid-cols-2">
+          {answerable.has("mounting_support_method") ? (
+            <>
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold text-ink">Mounting method</span>
+                <select name="mounting_method" className="input" defaultValue="not_sure">
+                  {mountingMethodOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {mountingMethodLabels[option]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold text-ink">Support/bracket count</span>
+                <select name="support_count" className="input" defaultValue="not_sure">
+                  {supportCountOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {supportCountLabels[option]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          ) : null}
+          {answerable.has("wall_fastener_context") ? (
+            <>
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold text-ink">Wall type</span>
+                <select name="wall_type" className="input" defaultValue="not_sure">
+                  {wallTypeOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {wallTypeLabels[option]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold text-ink">Stud access</span>
+                <select name="stud_access" className="input" defaultValue="not_sure">
+                  {studAccessOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {studAccessLabels[option]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block space-y-2 sm:col-span-2">
+                <span className="text-sm font-semibold text-ink">Wall conditions or obstructions</span>
+                <textarea name="wall_obstructions" rows={2} maxLength={300} className="input" placeholder="Tile, studs, plumbing, mirror, outlet, towel bar, or not sure." />
+              </label>
+            </>
+          ) : null}
+          {answerable.has("mounting_support_method") ? (
+            <label className="block space-y-2 sm:col-span-2">
+              <span className="text-sm font-semibold text-ink">Planned mounting height, optional</span>
+              <input name="planned_mounting_height" maxLength={160} className="input" placeholder="Around 60 in from floor, above toilet, or not sure." />
+            </label>
+          ) : null}
+        </div>
+      ) : null}
+
+      {showUseLoad ? (
+        <div className="space-y-4 rounded-md border border-amber-200 bg-white p-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">What it will hold</span>
+              <select name="shelf_load" className="input" defaultValue="not_sure">
+                {shelfLoadOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {shelfLoadLabels[option]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-ink">Install location</span>
+              <select name="install_location" className="input" defaultValue="other_not_sure">
+                {installLocationOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {installLocationLabels[option]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <fieldset>
+            <legend className="text-sm font-semibold text-ink">Higher-risk spots</legend>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {higherRiskSpotOptions.map((option) => (
+                <label key={option} className="flex items-center gap-2 rounded-md bg-shop/60 px-3 py-2 text-sm text-ink/75">
+                  <input name="higher_risk_spots" type="checkbox" value={option} className="h-4 w-4 accent-moss" />
+                  {higherRiskSpotLabels[option]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+      ) : null}
+
+      {showFinish ? (
+        <div className="grid gap-4 rounded-md border border-amber-200 bg-white p-4 sm:grid-cols-2">
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-ink">Moisture exposure</span>
+            <select name="moisture_exposure" className="input" defaultValue="normal_indoor">
+              {moistureExposureOptions.map((option) => (
+                <option key={option} value={option}>
+                  {moistureExposureLabels[option]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-ink">Cut plan</span>
+            <select name="cut_strategy" className="input" defaultValue="not_sure">
+              {cutStrategyOptions.map((option) => (
+                <option key={option} value={option}>
+                  {cutStrategyLabels[option]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-ink">Finish preference</span>
+            <input name="finish_preference" maxLength={240} className="input" placeholder="Water-resistant clear coat, paint, oil, or not sure." />
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-ink">Edge treatment</span>
+            <input name="edge_treatment" maxLength={240} className="input" placeholder="Rounded edges, eased edges, painted edges, or not sure." />
+          </label>
+        </div>
+      ) : null}
+
+      {showTools ? (
+        <div className="space-y-4 rounded-md border border-amber-200 bg-white p-4">
+          <p className="text-sm font-semibold text-ink">Available safe tools</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {clarificationToolGroups.map((group) => (
+              <fieldset key={group.label} className="rounded-md border border-sawdust p-3">
+                <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-ink/55">{group.label}</legend>
+                <div className="mt-2 space-y-2">
+                  {group.tools.map((tool) => (
+                    <label key={tool} className="flex items-center gap-2 text-sm text-ink/75">
+                      <input
+                        name="tools_available"
+                        type="checkbox"
+                        value={tool}
+                        className="h-4 w-4 accent-moss"
+                        defaultChecked={project.tools_available.includes(tool)}
+                      />
+                      {toolLabels[tool]}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <p className="text-xs leading-5 text-ink/60">Saving answers updates Project Intake only. Existing plan history remains unchanged.</p>
+      <button type="submit" className="rounded-md bg-moss px-4 py-2 text-sm font-semibold text-white hover:bg-moss/90">
+        Save clarification answers
+      </button>
+    </form>
   );
 }
 
@@ -1161,14 +1501,15 @@ function revisionCategorySummary(categories: string | undefined): string | null 
 
 function RevisionFailurePanel({ reason, categories }: { reason: RevisionFailureReason; categories?: string }) {
   const copy: Record<RevisionFailureReason, string> = {
-    empty: "Describe one change before creating a revised plan.",
+    empty: "Describe one change before submitting a revision.",
     too_long: "Keep the revision note to 500 characters or fewer.",
-    no_plan: "Generate a first plan before creating a revised version.",
-    archived: "Restore this project before creating a revised plan.",
+    no_plan: "Generate a first plan before submitting a revision.",
+    archived: "Restore this project before submitting a revision.",
     structured_change_required:
-      "This change affects saved project details. Update or duplicate the project intake first, then generate another plan version.",
-    safety_sensitive_change: "This request changes safety-critical planning assumptions. Review project readiness and saved intake details before generating another plan.",
-    ambiguous_revision: "Boardsmith could not tell whether this is a wording tweak or a structural change. Be more specific, or update the project intake first.",
+      "This change affects saved project details. Boardsmith could not patch Project Intake automatically. Update the intake fields directly, or duplicate the project if you want a separate branch.",
+    safety_sensitive_change: "This request changes safety-critical planning assumptions. Review Plan readiness and saved Project Intake before retrying.",
+    ambiguous_revision:
+      "Boardsmith could not tell whether this is a prose-only revision or a structured intake change. Say the new dimensions, materials, or shelf layout directly, or update Project Intake first.",
   };
   const categorySummary = revisionCategorySummary(categories);
 
@@ -1188,10 +1529,12 @@ function TweakPlanSection({ project, hasLatestPlan }: { project: Project; hasLat
         <div className="max-w-2xl">
           <h2 className="text-lg font-semibold text-ink">Tweak this plan</h2>
           <p className="mt-2 text-sm leading-6 text-ink/65">
-            Describe one change to the latest plan. Boardsmith saves a new plan version for review; this is a one-shot revision, not a chat thread.
+            Describe one change to the latest plan. Boardsmith patches Project Intake first for safe structured changes, or saves a new plan version for
+            prose-only revisions.
           </p>
           <p className="mt-2 text-sm leading-6 text-ink/65">
-            For new dimensions, materials, project type, or mounting changes, update or duplicate the project intake first.
+            Safe explicit dimensions, materials, and shelf-layout changes update Project Intake first. Project type, support, mounting, cut-list, or safety-sensitive
+            changes still need manual review.
           </p>
         </div>
         <span className="w-fit rounded-md bg-shop px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink/70">
