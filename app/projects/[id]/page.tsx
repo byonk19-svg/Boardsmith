@@ -61,6 +61,7 @@ import { BuildStepCards, BuildStepStatusSummary } from "./BuildStepCards";
 import { GeneratePlanForm } from "./GeneratePlanForm";
 import { PlanterBoxBuyingPlan } from "./PlanterBoxBuyingPlan";
 import { PlanterBoxCutDiagram } from "./PlanterBoxCutDiagram";
+import { PlanterBoxPlanReadiness } from "./PlanterBoxPlanReadiness";
 import { PlanActionChecklist } from "./PlanActionChecklist";
 import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
 import { ProjectHeroVisual } from "./ProjectHeroVisual";
@@ -2591,6 +2592,11 @@ function PlanView({
           {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
             <div className="mb-5">
               <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} />
+            </div>
+          ) : null}
+          {manifest.planterBoxPlanReadinessViewModel.status !== "unsupported" ? (
+            <div className="mb-5">
+              <PlanterBoxPlanReadiness viewModel={manifest.planterBoxPlanReadinessViewModel} />
             </div>
           ) : null}
           <PlanActionChecklist items={manifest.actionChecklist} />

@@ -8,7 +8,7 @@ Boardsmith is linked to Vercel, the required hosted environment variable names a
 
 No deployment was performed by Codex during this pass.
 
-The June 20, 2026 deeper planter packet planning follow-through landed locally and still needs a refreshed hosted smoke pass before it should be treated as hosted-current.
+The June 20, 2026 deeper planter packet planning follow-through landed locally, including planter-specific readiness actions, and still needs a refreshed planter detail/print hosted smoke pass before it should be treated as hosted-current. Generic hosted smoke for `/` and `/projects` passes through the protected hosted path.
 
 ## Hosting Provider Status
 
@@ -120,7 +120,7 @@ Remaining decisions before broader private sharing:
 1. Decide whether Vercel-level deployment protection plus Boardsmith `/access` is the intended ongoing private access model.
 2. Keep Supabase cloud migrations applied before relying on hosted writes.
 3. Rerun the hosted smoke checklist after any deployment, env-var change, migration, or access-gate change.
-4. Refresh hosted planter smoke after the June 20 planter-packet follow-through before treating that path as hosted-current.
+4. Configure a non-sensitive concrete planter detail path and shared expected text for `BOARDSMITH_HOSTED_SMOKE_PATHS` / `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT`, then refresh hosted planter detail/print smoke after the June 20 planter-packet follow-through before treating that path as hosted-current.
 
 Do not share the hosted URL publicly. Private sharing is reasonable only with intended users who can pass the chosen access layers.
 

@@ -1148,12 +1148,16 @@ describe("ProjectDetailPage project structure", () => {
     );
 
     expect(markup).toContain("Materials and Parts");
+    expect(markup).toContain("Plan Readiness / Next Actions");
+    expect(markup).toContain("Drainage and liner approach needs review");
+    expect(markup).toContain("Panel connections need manual review");
     expect(markup).toContain("Part A - Front panel");
     expect(markup).toContain("Part B - Back panel");
     expect(markup).toContain("Part C - Left side panel");
     expect(markup).toContain("Part D - Right side panel");
     expect(markup).toContain("Part E - Bottom panel");
     expect(markup).not.toContain("Shelf board to review");
+    expect(markup).not.toMatch(/vendor|price|cart|load rated|certified|CAD-ready|CNC-ready/i);
   });
 
   it("keeps notes and build log useful when no plan or saved record details exist", async () => {

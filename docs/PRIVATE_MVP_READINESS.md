@@ -8,7 +8,7 @@ Boardsmith is a private MVP woodworking planning app. It is ready for a small pr
 
 The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, hosted route smoke passes through the intended protected access path, authorized hosted archive/restore and `Tweak this plan` smoke have passed, and the post-push wall-shelf dogfood fix was verified on hosted. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
 
-The June 20, 2026 deeper planter packet planning follow-through landed locally and passed the usual test/lint/typecheck/build/browser-flow verification, but hosted planter smoke has not been refreshed yet.
+The June 20, 2026 deeper planter packet planning follow-through landed locally and passed the focused packet/detail/print tests. A follow-up on the same day added planter-specific readiness actions for drainage, liner, outdoor finish, stock-board selection, panel cuts, and connection review. Generic hosted smoke still passes through the protected hosted path, but hosted planter detail/print smoke has not been refreshed yet because no concrete non-sensitive planter detail route and shared sentinel text are configured for the hosted smoke helper.
 
 ## Final Private MVP Readiness Checkpoint
 
@@ -37,7 +37,7 @@ What is now verified:
 - Projects whose latest attempt failed while an older saved plan remains available now say the latest attempt failed instead of implying there is no usable saved plan.
 - Five separate wall shelves with individual board thickness now generate successfully on hosted and render Buying Plan instead of hitting `shelf_layout_invalid`.
 - Wall-shelf Buying Plan appears after Cut Checklist and before Materials and Parts on detail and print, groups modeled wood pieces by material, and keeps stock length as review/selection language instead of inventing a purchase.
-- Deeper planter packet planning now exists locally, including the planter-box packet follow-through added on June 20, 2026.
+- Deeper planter packet planning now exists locally, including deterministic planter part labels, cut layout, buying plan, hero visual, and planter-specific readiness actions added on June 20, 2026.
 - Browser print remains the supported private MVP output path.
 
 Remaining known limitations:
@@ -45,7 +45,7 @@ Remaining known limitations:
 - Generated plan quality can still vary. Connected shelf units and child-adjacent ledges may be blocked by generated-plan review; this is acceptable safety posture until repeated examples justify a narrow prompt/model slice.
 - Buying Plan is still conservative. It does not choose exact stock boards, optimize cuts, price materials, choose vendors, or produce a complete shopping list.
 - Hardware and fastener guidance remains split across Buying Plan, Materials and Parts, and review notes because exact bracket/anchor choices depend on wall structure, expected load, and real site review.
-- The deeper planter packet planning follow-through has not yet had a fresh hosted smoke pass.
+- The deeper planter packet planning follow-through has not yet had a fresh planter-specific hosted detail/print smoke pass. The current configured hosted smoke proves `/` and `/projects`, not a specific planter packet route.
 - The hosted access model still relies on private access layers, not production auth, per-user ownership, or RLS.
 - Browser print is usable but not a generated PDF/download/export system.
 - Boardsmith still does not provide engineering review, load ratings, wall-safety guarantees, child-safety certification, CAD/CNC output, public sharing, shopping, pricing, vendor, inventory, payments, or subscriptions.
@@ -53,7 +53,7 @@ Remaining known limitations:
 Recommended next 3 tasks:
 
 1. Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-2. Refresh hosted planter smoke before treating the June 20 planter follow-through as hosted-current.
+2. Configure a non-sensitive hosted planter detail route and shared expected text, then refresh hosted planter detail/print smoke before treating the June 20 planter follow-through as hosted-current.
 3. Collect repeated generation-quality friction from real supported projects before changing prompts.
 
 ## Private MVP Checkpoint
