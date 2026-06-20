@@ -51,6 +51,19 @@ describe("planter box part schedule view model", () => {
     expect(viewModel.reviewMessages.join(" ")).toMatch(/outdoor|drainage/i);
   });
 
+  it("keeps planter part labels deterministic when build-model pieces are out of order", () => {
+    const buildModel = {
+      ...planterBoxBuildModelFixture,
+      pieces: [...planterBoxBuildModelFixture.pieces].reverse(),
+    };
+    const viewModel = createPlanterBoxPartScheduleViewModel({ buildModel });
+
+    expect(viewModel.assignedParts.map((part) => part.printLabel)).toEqual(["Part A - Front panel", "Part E - Bottom panel"]);
+    expect(viewModel.assignedParts.map((part) => part.partLabel)).toEqual(["Part A", "Part E"]);
+    expect(viewModel.assignedParts).not.toContainEqual(expect.objectContaining({ printLabel: "Part A - Bottom panel" }));
+    expect(JSON.stringify(viewModel)).not.toMatch(/vendor|price|cart|load-rated|CAD-ready|CNC-ready/i);
+  });
+
   it("keeps missing dimensions review-only instead of implying cut-ready panels", () => {
     const buildModel = {
       ...planterBoxBuildModelFixture,

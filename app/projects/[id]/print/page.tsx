@@ -6,6 +6,8 @@ import type { PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest"
 import type { Project } from "@/lib/projects/types";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { BuildStepCards, BuildStepStatusSummary } from "../BuildStepCards";
+import { PlanterBoxBuyingPlan } from "../PlanterBoxBuyingPlan";
+import { PlanterBoxCutDiagram } from "../PlanterBoxCutDiagram";
 import { PlanActionChecklist } from "../PlanActionChecklist";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
 import { ProjectHeroVisual } from "../ProjectHeroVisual";
@@ -100,7 +102,11 @@ export default async function ProjectPrintPreviewPage({
         </PrintSection>
 
         <PrintSection title="Buying Plan">
-          <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} compact />
+          {manifest.wallShelfStockBoardViewModel.status !== "unsupported" ? (
+            <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} compact />
+          ) : (
+            <PlanterBoxBuyingPlan viewModel={manifest.planterBoxStockBoardViewModel} compact />
+          )}
         </PrintSection>
 
         <PrintSection title="Build Guide" printBreakBefore>
@@ -202,13 +208,17 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
 
   return (
     <div className="space-y-4">
-      <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} compact />
+      {manifest.wallShelfCutDiagramViewModel.status !== "unsupported" ? (
+        <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} compact />
+      ) : (
+        <PlanterBoxCutDiagram viewModel={manifest.planterBoxCutDiagramViewModel} compact />
+      )}
       <dl className="grid gap-3 text-sm sm:grid-cols-5 print:grid-cols-5">
         <PrintFact label="Total cut pieces" value={manifest.cutList.totalPieces.toString()} />
         <PrintFact label="Unique cuts" value={manifest.cutList.cutListRows.toString()} />
         <PrintFact label="Pieces with dimensions" value={manifest.cutList.piecesWithDimensions.toString()} />
         <PrintFact label="Dimension review" value={manifest.cutList.piecesNeedingReview.toString()} />
-        <PrintFact label="Plan warnings" value={manifest.wallShelfCutDiagramViewModel.warnings.length.toString()} />
+        <PrintFact label="Plan warnings" value={printPacketCutWarningCount(manifest).toString()} />
       </dl>
       <p className="text-xs text-ink/55 sm:hidden print:hidden">Scroll sideways to review all cut-list columns.</p>
       <div className="overflow-x-auto">
@@ -474,6 +484,18 @@ function printPacketPartRows(manifest: PrintablePlanManifest): PrintPacketPartRo
     dimensionsLabel: row.dimensions,
     materialLabel: row.materialLabel,
   }));
+}
+
+function printPacketCutWarningCount(manifest: PrintablePlanManifest): number {
+  if (manifest.wallShelfCutDiagramViewModel.status !== "unsupported") {
+    return manifest.wallShelfCutDiagramViewModel.warnings.length;
+  }
+
+  if (manifest.planterBoxCutDiagramViewModel.status !== "unsupported") {
+    return manifest.planterBoxCutDiagramViewModel.warnings.length;
+  }
+
+  return manifest.cutList?.warnings.length ?? 0;
 }
 
 function printCutRows(cutList: NonNullable<PrintablePlanManifest["cutList"]>): NonNullable<PrintablePlanManifest["cutList"]>["items"] {

@@ -4,7 +4,9 @@
 **Estimated Complexity**: High
 **Status**: Historical implementation plan. Several original gaps listed below have since been closed; use `docs/ARCHITECTURE.md`, `docs/VISION.md`, and current tests as the source of truth for live architecture. Remaining work should be interpreted from the implementation status sections, not from the original overview bullets.
 
-**June 19 follow-through**: the Project Intake Signals Adapter is now surfaced on project detail as a read-only audit summary, and hosted smoke can optionally assert expected route text with `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT`. These close the safe auditability and route/content-validation gaps without migrations, packages, browser framework changes, exports, auth changes, or public-product scope. The remaining larger private-MVP gap is template packet-depth parity beyond wall shelves, especially whether planter-box cut/readiness/stock/build-step adapters are worth adding after real dogfood friction.
+**June 19 follow-through**: the Project Intake Signals Adapter is now surfaced on project detail as a read-only audit summary, and hosted smoke can optionally assert expected route text with `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT`. These close the safe auditability and route/content-validation gaps without migrations, packages, browser framework changes, exports, auth changes, or public-product scope.
+
+**June 20 follow-through**: planter boxes now have the first bounded non-wall-shelf packet-depth slice: deterministic part identity, review-first cut-layout data, and review-first stock/material planning data wired through the printable manifest, detail page, and print page. This intentionally does not add planter-specific readiness, build-step, export, shopping, or full diagram families; those remain generic adapters until repeated dogfood friction justifies more template-specific modules.
 
 ## Overview
 
@@ -14,7 +16,7 @@ The current app is already close to the documented private-MVP architecture: str
 
 - Natural-language intake is now a first-class drafting flow for supported/concept/unsupported/blocked draft states.
 - Safe explicit width, depth, material, material-thickness, shelf-layout, shelf-count, and shelf-spacing revisions now update structured intake before regeneration; height, support/mounting, cut-list, ambiguous, and safety-sensitive changes remain manual or blocked.
-- The rich plan-packet pipeline is strongest for wall shelves and not yet broadly proven across other supported templates.
+- The rich plan-packet pipeline remains strongest for wall shelves; planter boxes now prove the first bounded copy of the part-identity plus cut/material layers for another supported template.
 - Unsupported woodworking-adjacent drafts can produce bounded concept guidance before save; saved project setup still requires a supported project type.
 - The visual plan packet still needs stronger model-driven consistency before it reaches the long-term vision.
 

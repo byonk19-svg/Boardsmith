@@ -58,6 +58,8 @@ import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
 import { BuildStepCards, BuildStepStatusSummary } from "./BuildStepCards";
 import { GeneratePlanForm } from "./GeneratePlanForm";
+import { PlanterBoxBuyingPlan } from "./PlanterBoxBuyingPlan";
+import { PlanterBoxCutDiagram } from "./PlanterBoxCutDiagram";
 import { PlanActionChecklist } from "./PlanActionChecklist";
 import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
 import { ProjectHeroVisual } from "./ProjectHeroVisual";
@@ -226,7 +228,7 @@ export default async function ProjectDetailPage({
                     source={buildModelSource}
                     materialReview={displayedManifest.materials}
                     cutListReview={displayedManifest.cutList}
-                    planWarningCount={displayedManifest.wallShelfCutDiagramViewModel.warnings.length}
+                    planWarningCount={packetCutWarningCount(displayedManifest)}
                   />
                 </>
               ) : null}
@@ -2600,10 +2602,14 @@ function PlanView({
 
         <PlanSheetSection id="cut-list-to-verify" title="Cut Checklist">
           <div className="mb-5">
-            <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} />
+            {manifest.wallShelfCutDiagramViewModel.status !== "unsupported" ? (
+              <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} />
+            ) : (
+              <PlanterBoxCutDiagram viewModel={manifest.planterBoxCutDiagramViewModel} />
+            )}
           </div>
           <div className="mb-5">
-            <CutListReviewSummaryView summary={manifest.cutList} planWarningCount={manifest.wallShelfCutDiagramViewModel.warnings.length} />
+            <CutListReviewSummaryView summary={manifest.cutList} planWarningCount={packetCutWarningCount(manifest)} />
           </div>
           {generatedCuts.length > 0 ? (
             <>
@@ -2639,7 +2645,11 @@ function PlanView({
         </PlanSheetSection>
 
         <PlanSheetSection title="Buying Plan">
-          <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} />
+          {manifest.wallShelfStockBoardViewModel.status !== "unsupported" ? (
+            <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} />
+          ) : (
+            <PlanterBoxBuyingPlan viewModel={manifest.planterBoxStockBoardViewModel} />
+          )}
         </PlanSheetSection>
 
         <PlanSheetSection title="Build Guide">
@@ -2778,6 +2788,18 @@ function packetPartRows(manifest: PrintablePlanManifest): PacketPartRow[] {
     dimensionsLabel: row.dimensions,
     materialLabel: row.materialLabel,
   }));
+}
+
+function packetCutWarningCount(manifest: PrintablePlanManifest): number {
+  if (manifest.wallShelfCutDiagramViewModel.status !== "unsupported") {
+    return manifest.wallShelfCutDiagramViewModel.warnings.length;
+  }
+
+  if (manifest.planterBoxCutDiagramViewModel.status !== "unsupported") {
+    return manifest.planterBoxCutDiagramViewModel.warnings.length;
+  }
+
+  return manifest.cutList?.warnings.length ?? 0;
 }
 
 function unresolvedCutDimensionItems(summary: CutListReviewSummary): UnresolvedCutDimensionItem[] {

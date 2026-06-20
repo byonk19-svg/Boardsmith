@@ -56,7 +56,7 @@ Current product capabilities include:
 - Project notes and build-log fields.
 - Archive/restore as private workspace organization.
 - Material Summary, Cut List Review, Plan Review, Export Readiness, action checklist, diagram helpers, build-step cards, and printable plan manifest.
-- Wall shelves have the most complete typed packet view-model path; the printable manifest also carries a conservative planter-box part-schedule view model.
+- Wall shelves have the most complete typed packet view-model path; the printable manifest also carries conservative planter-box part-schedule, cut-layout, and stock/material planning view models.
 - Browser print preview from the same structured plan manifest used by the detail page.
 
 ## Current Storage
@@ -127,6 +127,12 @@ Build Model
 -> Deterministic Renderers
 -> Plan Packet
 ```
+
+Current implementation status:
+
+- Wall shelves are the golden path for the full typed packet family: part identity, diagram view models, cut layout, buying plan, readiness, build-step view model, renderers, detail page, and print sheet.
+- Planter boxes now have a bounded typed packet slice: deterministic `Part A` through `Part E` panel identity, a review-first planter cut-layout view model, and a review-first stock/material planning view model.
+- Planter readiness, build-step cards, and connection diagrams intentionally continue through the generic checklist, build-step, and planning-diagram adapters until dogfood shows a repeated need for template-specific modules.
 
 Rules:
 

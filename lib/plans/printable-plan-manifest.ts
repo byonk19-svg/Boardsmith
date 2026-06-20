@@ -4,7 +4,9 @@ import { buildWallShelfDiagramModel, type WallShelfDiagramModel } from "@/lib/di
 import { summarizeCutListReview, type CutListReviewSummary } from "@/lib/plans/cut-list-review";
 import { summarizeExportReadiness, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
 import { summarizeMaterialReview, type MaterialReviewSummary } from "@/lib/plans/material-summary";
+import { createPlanterBoxCutDiagramViewModel, type PlanterBoxCutDiagramViewModel } from "@/lib/plans/planter-box-cut-diagram-view-model";
 import { createPlanterBoxPartScheduleViewModel, type PlanterBoxPartScheduleViewModel } from "@/lib/plans/planter-box-part-schedule-view-model";
+import { createPlanterBoxStockBoardViewModel, type PlanterBoxStockBoardViewModel } from "@/lib/plans/planter-box-stock-board-view-model";
 import { createPlanActionChecklist, type PlanActionChecklistItem } from "@/lib/plans/plan-action-checklist";
 import { createPlanDiagrams, type PlanningDiagramSummary } from "@/lib/plans/plan-diagrams";
 import { summarizeGeneratedPlanReview, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
@@ -70,7 +72,9 @@ export type PrintablePlanManifest = {
   materials: MaterialReviewSummary;
   cutList: CutListReviewSummary | null;
   planningDiagrams: PlanningDiagramSummary;
+  planterBoxCutDiagramViewModel: PlanterBoxCutDiagramViewModel;
   planterBoxPartScheduleViewModel: PlanterBoxPartScheduleViewModel;
+  planterBoxStockBoardViewModel: PlanterBoxStockBoardViewModel;
   wallShelfCutDiagramViewModel: WallShelfCutDiagramViewModel;
   wallShelfDiagramViewModel: WallShelfDiagramViewModel;
   wallShelfPartScheduleViewModel: WallShelfPartScheduleViewModel;
@@ -371,6 +375,11 @@ export function createPrintablePlanManifest({
   const materials = summarizeMaterialReview(plan, reviewBuildModel, { wallMountingReview: analyzeWallShelfMountingIntent(project).wallMounted });
   const cutList = plan ? summarizeCutListReview(plan, reviewBuildModel) : null;
   const planterBoxPartScheduleViewModel = createPlanterBoxPartScheduleViewModel({ buildModel: reviewBuildModel });
+  const planterBoxCutDiagramViewModel = createPlanterBoxCutDiagramViewModel({ buildModel: reviewBuildModel });
+  const planterBoxStockBoardViewModel = createPlanterBoxStockBoardViewModel({
+    buildModel: reviewBuildModel,
+    cutViewModel: planterBoxCutDiagramViewModel,
+  });
   const wallShelfPartScheduleViewModel = createWallShelfPartScheduleViewModel({ buildModel: reviewBuildModel });
   const wallShelfCutDiagramViewModel = createWallShelfCutDiagramViewModel({ project, buildModel: reviewBuildModel });
   const wallShelfDiagramViewModel = createWallShelfDiagramViewModel({ project, buildModel: reviewBuildModel });
@@ -435,7 +444,9 @@ export function createPrintablePlanManifest({
     materials,
     cutList,
     planningDiagrams: createPlanDiagrams(reviewBuildModel, { wallShelfViewModel: wallShelfDiagramViewModel }),
+    planterBoxCutDiagramViewModel,
     planterBoxPartScheduleViewModel,
+    planterBoxStockBoardViewModel,
     wallShelfCutDiagramViewModel,
     wallShelfDiagramViewModel,
     wallShelfPartScheduleViewModel,

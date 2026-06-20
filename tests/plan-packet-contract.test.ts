@@ -1,6 +1,8 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { BuildStepCards } from "@/app/projects/[id]/BuildStepCards";
+import { PlanterBoxBuyingPlan } from "@/app/projects/[id]/PlanterBoxBuyingPlan";
+import { PlanterBoxCutDiagram } from "@/app/projects/[id]/PlanterBoxCutDiagram";
 import { WallShelfBuyingPlan } from "@/app/projects/[id]/WallShelfBuyingPlan";
 import { WallShelfCutDiagram } from "@/app/projects/[id]/WallShelfCutDiagram";
 import { WallShelfDiagrams } from "@/app/projects/[id]/WallShelfDiagrams";
@@ -126,6 +128,30 @@ describe("plan packet contract", () => {
       "Part E - Bottom panel",
     ]);
     expect(manifest.planterBoxPartScheduleViewModel.reviewMessages).toContain("What drainage-hole layout and liner approach should be used?");
-    expect(JSON.stringify(manifest.planterBoxPartScheduleViewModel)).not.toMatch(/vendor|price|cart|load rated|certified|CAD-ready|CNC-ready/i);
+    expect(manifest.planterBoxCutDiagramViewModel.status).toBe("needs_review");
+    expect(manifest.planterBoxStockBoardViewModel.status).toBe("needs_review");
+    expect(manifest.planterBoxCutDiagramViewModel.pieceGroups.map((piece) => piece.printLabel)).toEqual(
+      manifest.planterBoxPartScheduleViewModel.assignedParts.map((part) => part.printLabel),
+    );
+    expect(manifest.planterBoxStockBoardViewModel.materialGroups.flatMap((group) => group.pieces.map((piece) => piece.printLabel))).toEqual(
+      manifest.planterBoxPartScheduleViewModel.assignedParts.map((part) => part.printLabel),
+    );
+    const renderedPacket = [
+      renderToStaticMarkup(React.createElement(PlanterBoxCutDiagram, { viewModel: manifest.planterBoxCutDiagramViewModel })),
+      renderToStaticMarkup(React.createElement(PlanterBoxBuyingPlan, { viewModel: manifest.planterBoxStockBoardViewModel })),
+      renderToStaticMarkup(React.createElement(BuildStepCards, { cards: manifest.buildStepCards })),
+    ].join(" ");
+
+    expect(renderedPacket).toContain("Planter box cut layout");
+    expect(renderedPacket).toContain("Planter Box Buying Plan");
+    expect(renderedPacket).toContain("Part E - Bottom panel");
+    expect(renderedPacket).not.toContain("Shelf board to review");
+    expect(
+      JSON.stringify({
+        cut: manifest.planterBoxCutDiagramViewModel,
+        buying: manifest.planterBoxStockBoardViewModel,
+        renderedPacket,
+      }),
+    ).not.toMatch(/vendor|price|cart|load rated|certified|CAD-ready|CNC-ready/i);
   });
 });
