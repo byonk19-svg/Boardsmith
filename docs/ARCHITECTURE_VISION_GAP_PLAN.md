@@ -6,7 +6,7 @@
 
 **June 19 follow-through**: the Project Intake Signals Adapter is now surfaced on project detail as a read-only audit summary, and hosted smoke can optionally assert expected route text with `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT`. These close the safe auditability and route/content-validation gaps without migrations, packages, browser framework changes, exports, auth changes, or public-product scope.
 
-**June 20 follow-through**: planter boxes now have the first bounded non-wall-shelf packet-depth slice: deterministic part identity, review-first cut-layout data, and review-first stock/material planning data wired through the printable manifest, detail page, and print page. This intentionally does not add planter-specific readiness, build-step, export, shopping, or full diagram families; those remain generic adapters until repeated dogfood friction justifies more template-specific modules.
+**June 20 follow-through**: planter boxes now have the first bounded non-wall-shelf packet-depth slice: deterministic part identity, review-first cut-layout data, review-first stock/material planning data, a planter-specific hero, and planter-specific readiness actions wired through the printable manifest, detail page, and print page. This intentionally does not add planter-specific build-step, export, shopping, or full diagram families; those remain generic adapters until repeated dogfood friction justifies more template-specific modules. A deletion-test review also found that a broad shared detail/print app-layer packet renderer would be shallow right now, so route-local rendering remains intentional while the shared seam stays at `PrintablePlanManifest` and `printable-plan-packet`.
 
 ## Overview
 

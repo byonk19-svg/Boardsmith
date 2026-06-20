@@ -131,8 +131,8 @@ Build Model
 Current implementation status:
 
 - Wall shelves are the golden path for the full typed packet family: part identity, diagram view models, cut layout, buying plan, readiness, build-step view model, renderers, detail page, and print sheet.
-- Planter boxes now have a bounded typed packet slice: deterministic `Part A` through `Part E` panel identity, a review-first planter cut-layout view model, and a review-first stock/material planning view model.
-- Planter readiness, build-step cards, and connection diagrams intentionally continue through the generic checklist, build-step, and planning-diagram adapters until dogfood shows a repeated need for template-specific modules.
+- Planter boxes now have a bounded typed packet slice: deterministic `Part A` through `Part E` panel identity, a review-first planter cut-layout view model, a review-first stock/material planning view model, and planter-specific readiness actions for drainage, liner, outdoor finish, stock-board selection, panel cuts, and connection review.
+- Planter build-step cards and connection diagrams intentionally continue through the generic checklist, build-step, and planning-diagram adapters until dogfood shows a repeated need for deeper template-specific modules.
 
 Rules:
 

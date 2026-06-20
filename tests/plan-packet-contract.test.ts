@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { BuildStepCards } from "@/app/projects/[id]/BuildStepCards";
 import { PlanterBoxBuyingPlan } from "@/app/projects/[id]/PlanterBoxBuyingPlan";
 import { PlanterBoxCutDiagram } from "@/app/projects/[id]/PlanterBoxCutDiagram";
+import { PlanterBoxPlanReadiness } from "@/app/projects/[id]/PlanterBoxPlanReadiness";
 import { WallShelfBuyingPlan } from "@/app/projects/[id]/WallShelfBuyingPlan";
 import { WallShelfCutDiagram } from "@/app/projects/[id]/WallShelfCutDiagram";
 import { WallShelfDiagrams } from "@/app/projects/[id]/WallShelfDiagrams";
@@ -153,6 +154,10 @@ describe("plan packet contract", () => {
       "Part E - Bottom panel",
     ]);
     expect(manifest.planterBoxPartScheduleViewModel.reviewMessages).toContain("What drainage-hole layout and liner approach should be used?");
+    expect(manifest.planterBoxPlanReadinessViewModel.status).toBe("needs_review");
+    expect(manifest.planterBoxPlanReadinessViewModel.actions.map((action) => action.id)).toEqual(
+      expect.arrayContaining(["planter_drainage_liner_review", "planter_outdoor_finish_review", "planter_connection_review"]),
+    );
     expect(manifest.planterBoxCutDiagramViewModel.status).toBe("needs_review");
     expect(manifest.planterBoxStockBoardViewModel.status).toBe("needs_review");
     expect(manifest.planterBoxCutDiagramViewModel.pieceGroups.map((piece) => piece.printLabel)).toEqual(
@@ -183,11 +188,13 @@ describe("plan packet contract", () => {
       ),
     ).toBe("Part A - Front panel");
     const renderedPacket = [
+      renderToStaticMarkup(React.createElement(PlanterBoxPlanReadiness, { viewModel: manifest.planterBoxPlanReadinessViewModel })),
       renderToStaticMarkup(React.createElement(PlanterBoxCutDiagram, { viewModel: manifest.planterBoxCutDiagramViewModel })),
       renderToStaticMarkup(React.createElement(PlanterBoxBuyingPlan, { viewModel: manifest.planterBoxStockBoardViewModel })),
       renderToStaticMarkup(React.createElement(BuildStepCards, { cards: manifest.buildStepCards })),
     ].join(" ");
 
+    expect(renderedPacket).toContain("Drainage and liner approach needs review");
     expect(renderedPacket).toContain("Planter box cut layout");
     expect(renderedPacket).toContain("Planter Box Buying Plan");
     expect(renderedPacket).toContain("Part E - Bottom panel");

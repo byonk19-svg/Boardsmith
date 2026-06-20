@@ -510,6 +510,8 @@ describe("ProjectPrintPreviewPage", () => {
     expect(markup).toContain("Front panel to Bottom panel with screw and Outdoor-rated screws");
     expect(markup).toContain("Back panel to Bottom panel with screw and Outdoor-rated screws");
     expect(markup).toContain("Verify before building");
+    expect(markup).toContain("Drainage and liner approach needs review");
+    expect(markup).toContain("Panel connections need manual review");
     expect(markup).toContain("Review unresolved questions.");
     expect(markup).toContain("Finish/humidity notes");
     expect(markup).toContain("Part A - Front panel");

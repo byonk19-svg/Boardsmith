@@ -9,6 +9,7 @@ import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { BuildStepCards, BuildStepStatusSummary } from "../BuildStepCards";
 import { PlanterBoxBuyingPlan } from "../PlanterBoxBuyingPlan";
 import { PlanterBoxCutDiagram } from "../PlanterBoxCutDiagram";
+import { PlanterBoxPlanReadiness } from "../PlanterBoxPlanReadiness";
 import { PlanActionChecklist } from "../PlanActionChecklist";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
 import { ProjectHeroVisual } from "../ProjectHeroVisual";
@@ -89,6 +90,11 @@ export default async function ProjectPrintPreviewPage({
           {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
             <div className="mb-4">
               <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact />
+            </div>
+          ) : null}
+          {manifest.planterBoxPlanReadinessViewModel.status !== "unsupported" ? (
+            <div className="mb-4">
+              <PlanterBoxPlanReadiness viewModel={manifest.planterBoxPlanReadinessViewModel} compact />
             </div>
           ) : null}
           <PlanActionChecklist items={mainChecklistItems(manifest)} compact />

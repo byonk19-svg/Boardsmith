@@ -4,7 +4,7 @@
 
 June 10, 2026
 
-This pass predates the June 20, 2026 deeper planter packet planning follow-through, which has local verification but no refreshed hosted smoke yet.
+This pass predates the June 20, 2026 deeper planter packet planning follow-through. The follow-through now has local focused packet/detail/print test coverage, including planter-specific readiness actions, but no refreshed planter-specific hosted detail/print smoke yet.
 
 ## Scope
 
