@@ -63,15 +63,6 @@ export default async function ProjectPrintPreviewPage({
           <PrintBuildSnapshot manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Check Before Building">
-          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
-            <div className="mb-4">
-              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact />
-            </div>
-          ) : null}
-          <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
-        </PrintSection>
-
         <PrintSection title="Hero Visual">
           <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} compact />
         </PrintSection>
@@ -91,16 +82,25 @@ export default async function ProjectPrintPreviewPage({
           )}
         </PrintSection>
 
+        <PrintSection title="Check Before Building">
+          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
+            <div className="mb-4">
+              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact />
+            </div>
+          ) : null}
+          <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
+        </PrintSection>
+
+        <PrintSection title="Materials and Parts">
+          <PrintMaterialsAndParts manifest={manifest} />
+        </PrintSection>
+
         <PrintSection title="Cut Checklist" printBreakBefore>
           <PrintCutChecklist manifest={manifest} />
         </PrintSection>
 
         <PrintSection title="Buying Plan">
           <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} compact />
-        </PrintSection>
-
-        <PrintSection title="Materials and Parts">
-          <PrintMaterialsAndParts manifest={manifest} />
         </PrintSection>
 
         <PrintSection title="Build Guide" printBreakBefore>

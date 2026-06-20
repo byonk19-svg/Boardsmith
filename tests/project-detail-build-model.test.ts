@@ -150,6 +150,7 @@ describe("ProjectDetailPage project structure", () => {
     const buildSnapshotIndex = markup.indexOf("Build Snapshot");
     const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
     const heroVisualIndex = markup.indexOf("Hero Visual");
+    const projectVisualsIndex = markup.indexOf("Project Visuals / Diagrams");
     const checkBeforeIndex = markup.indexOf("Check Before Building");
     const advancedDetailsIndex = markup.indexOf('id="advanced-project-details"');
     const reviewChecklistIndex = markup.indexOf("Generated plan review checklist");
@@ -163,9 +164,10 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(planSheetIndex).toBeGreaterThan(-1);
     expect(buildSnapshotIndex).toBeGreaterThan(planSheetIndex);
-    expect(checkBeforeIndex).toBeGreaterThan(buildSnapshotIndex);
+    expect(heroVisualIndex).toBeGreaterThan(buildSnapshotIndex);
+    expect(projectVisualsIndex).toBeGreaterThan(heroVisualIndex);
+    expect(checkBeforeIndex).toBeGreaterThan(projectVisualsIndex);
     expect(readinessIndex).toBeGreaterThan(checkBeforeIndex);
-    expect(heroVisualIndex).toBeGreaterThan(readinessIndex);
     expect(advancedDetailsIndex).toBeGreaterThan(heroVisualIndex);
     expect(reviewChecklistIndex).toBeGreaterThan(advancedDetailsIndex);
     expect(sectionNavIndex).toBeGreaterThan(reviewChecklistIndex);
@@ -496,12 +498,12 @@ describe("ProjectDetailPage project structure", () => {
 
     const corePacketOrder = [
       "Build Snapshot",
-      "Check Before Building",
       "Hero Visual",
       "Project Visuals / Diagrams",
+      "Check Before Building",
+      "Materials and Parts",
       "Cut Checklist",
       "Buying Plan",
-      "Materials and Parts",
       "Build Guide",
       "Reference Review Notes",
     ];
@@ -1304,16 +1306,17 @@ describe("ProjectDetailPage project structure", () => {
     const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
     const heightActionIndex = markup.indexOf("Total project height looks too small");
     const heroIndex = markup.indexOf("Hero Visual");
+    const projectVisualsIndex = markup.indexOf("Project Visuals / Diagrams");
     const cutIndex = markup.indexOf("Cut Checklist");
     const buildIndex = markup.indexOf("Build Guide");
     const checkIndex = markup.indexOf("Check Before Building");
 
     expect(readinessIndex).toBeGreaterThan(-1);
     expect(heightActionIndex).toBeGreaterThan(readinessIndex);
-    expect(checkIndex).toBeLessThan(heroIndex);
+    expect(heroIndex).toBeLessThan(projectVisualsIndex);
+    expect(projectVisualsIndex).toBeLessThan(checkIndex);
     expect(readinessIndex).toBeGreaterThan(checkIndex);
-    expect(readinessIndex).toBeLessThan(heroIndex);
-    expect(heroIndex).toBeLessThan(cutIndex);
+    expect(readinessIndex).toBeLessThan(cutIndex);
     expect(cutIndex).toBeLessThan(buildIndex);
     expect(markup).toContain("Enter the full top-to-bottom height of the shelf unit, such as 60 in.");
     expect(markup).toContain("Support/frame design needs review");

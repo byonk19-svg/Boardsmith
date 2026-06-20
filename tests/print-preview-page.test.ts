@@ -271,12 +271,12 @@ describe("ProjectPrintPreviewPage", () => {
 
     const sectionOrder = [
       "Build Snapshot",
-      "Check Before Building",
       "Hero Visual",
       "Project Visuals / Diagrams",
+      "Check Before Building",
+      "Materials and Parts",
       "Cut Checklist",
       "Buying Plan",
-      "Materials and Parts",
       "Build Guide",
       "Reference Review Notes",
     ];
@@ -396,8 +396,10 @@ describe("ProjectPrintPreviewPage", () => {
     );
 
     const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
+    expect(markup.indexOf("Hero Visual")).toBeLessThan(markup.indexOf("Project Visuals / Diagrams"));
+    expect(markup.indexOf("Project Visuals / Diagrams")).toBeLessThan(markup.indexOf("Check Before Building"));
     expect(readinessIndex).toBeGreaterThan(markup.indexOf("Check Before Building"));
-    expect(readinessIndex).toBeLessThan(markup.indexOf("Hero Visual"));
+    expect(readinessIndex).toBeLessThan(markup.indexOf("Cut Checklist"));
     expect(readinessIndex).toBeLessThan(markup.indexOf("Build Guide"));
     expect(readinessIndex).toBeLessThan(markup.indexOf("Reference Review Notes"));
     expect(markup).toContain("Resolve blockers before treating this as a build packet.");

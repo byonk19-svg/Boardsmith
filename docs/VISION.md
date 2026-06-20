@@ -82,10 +82,11 @@ Every finished Boardsmith plan should be organized around:
 - Check Before Building.
 - Materials and Parts.
 - Cut Checklist.
+- Buying Plan.
 - Build Guide.
 - Reference Review Notes.
 
-The digital project page and the print/PDF plan packet should use the same underlying plan content. The digital page may add controls for editing, tweaking, regeneration, history, comparison, notes, and advanced review details. The print/PDF plan packet should be the clean user-facing build artifact.
+The digital project page and the print/PDF plan packet should use the same underlying plan content. The current packet order is Build Snapshot, Hero Visual, Project Visuals / Diagrams, Check Before Building, Materials and Parts, Cut Checklist, Buying Plan, Build Guide, then Reference Review Notes. The digital page may add controls for editing, tweaking, regeneration, history, comparison, notes, and advanced review details. The print/PDF plan packet should be the clean user-facing build artifact.
 
 Current implementation uses browser print through a print route and printable plan manifest. It does not generate a PDF file today. Future print/PDF plan packet or image output should reuse the same structured content, not scrape the page or regenerate unvalidated prose.
 
@@ -133,11 +134,11 @@ The long-term user experience should be hybrid:
 
 The current structured form remains a good MVP foundation. Natural language should improve intake and revision flow without weakening validation or making unsupported projects look complete.
 
-Current implementation now supports the first part of this flow: the user can start with natural language from the dashboard or New Project page, and Boardsmith drafts editable intake fields from that idea while keeping structured fields as the saved source of truth. The draft step surfaces missing details, safety-sensitive parser notes, and whether the idea is a supported draft, concept-only, unsupported, or blocked for safety. Concept-only or unsupported drafts require explicit supported-template resolution before they can become saved project setup; safety-blocked drafts cannot be saved as build setups. On project detail, answerable readiness questions can now save clarification answers back to Project Intake without creating a plan version, including dimensions, material, shelf layout, tools, mounting context, expected use/load, and finish context. In the revision flow, safe explicit dimension, material, and shelf-layout changes patch structured intake before another plan is generated; safety-sensitive, cut-list, ambiguous, unparseable, unsupported, and approval-like support/mounting changes still require manual review.
+Current implementation now supports the first part of this flow: the user can start with natural language from the dashboard or New Project page, and Boardsmith drafts editable intake fields from that idea while keeping structured fields as the saved source of truth. The draft step surfaces missing details, safety-sensitive parser notes, and whether the idea is a supported draft, concept-only, unsupported, or blocked for safety. Concept-only or unsupported drafts require explicit supported-template resolution before they can become saved project setup; safety-blocked drafts cannot be saved as build setups. On project detail, answerable readiness questions can now save clarification answers back to Project Intake without creating a plan version, including dimensions, material, shelf layout, tools, mounting context, expected use/load, and finish context. In the revision flow, safe explicit width, depth, material, material-thickness, shelf-layout, shelf-count, and shelf-spacing changes patch structured intake before another plan is generated; safety-sensitive, cut-list, ambiguous, unparseable, unsupported, and approval-like support/mounting changes still require manual review.
 
 For ambiguous projects, Boardsmith should not force one interpretation too early. It should offer targeted questions or 2-3 mini concept cards before producing a full build packet.
 
-Current unsupported woodworking-adjacent ideas can render bounded concept-only guidance and mini options without full packet content. Long-term concept cards should include:
+Current unsupported woodworking-adjacent natural-language drafts can render bounded concept-only guidance and mini options before save, and the project detail page has a defensive concept-only rendering path for legacy or invalid stored records. The normal saved Project Intake Interface still requires a supported project type before it can become a build setup. Long-term concept cards should include:
 
 - A small hero sketch or visual.
 - Key dimensions.

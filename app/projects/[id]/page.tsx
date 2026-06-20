@@ -2493,15 +2493,6 @@ function PlanView({
       {unresolvedDimensionItems.length > 0 ? <UnresolvedCutDimensionsWarning items={unresolvedDimensionItems} /> : null}
 
       <div className="divide-y divide-sawdust">
-        <PlanSheetSection title="Check Before Building">
-          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
-            <div className="mb-5">
-              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} />
-            </div>
-          ) : null}
-          <PlanActionChecklist items={manifest.actionChecklist} />
-        </PlanSheetSection>
-
         <PlanSheetSection title="Hero Visual">
           <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} />
         </PlanSheetSection>
@@ -2512,6 +2503,21 @@ function PlanView({
           ) : (
             <PlanningDiagramsSection diagrams={manifest.planningDiagrams.diagrams} fallbackMessage={manifest.planningDiagrams.fallbackMessage} />
           )}
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Check Before Building">
+          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
+            <div className="mb-5">
+              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} />
+            </div>
+          ) : null}
+          <PlanActionChecklist items={manifest.actionChecklist} />
+        </PlanSheetSection>
+
+        <PlanSheetSection title="Materials and Parts">
+          <MaterialReviewSummaryView summary={manifest.materials} />
+          <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
+          <List items={partScheduleListItems(manifest)} />
         </PlanSheetSection>
 
         <PlanSheetSection id="cut-list-to-verify" title="Cut Checklist">
@@ -2556,12 +2562,6 @@ function PlanView({
 
         <PlanSheetSection title="Buying Plan">
           <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} />
-        </PlanSheetSection>
-
-        <PlanSheetSection title="Materials and Parts">
-          <MaterialReviewSummaryView summary={manifest.materials} />
-          <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
-          <List items={partScheduleListItems(manifest)} />
         </PlanSheetSection>
 
         <PlanSheetSection title="Build Guide">

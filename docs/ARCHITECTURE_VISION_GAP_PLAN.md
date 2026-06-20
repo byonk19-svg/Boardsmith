@@ -2,17 +2,18 @@
 
 **Generated**: June 19, 2026
 **Estimated Complexity**: High
+**Status**: Historical implementation plan. Several original gaps listed below have since been closed; use `docs/ARCHITECTURE.md`, `docs/VISION.md`, and current tests as the source of truth for live architecture. Remaining work should be interpreted from the implementation status sections, not from the original overview bullets.
 
 ## Overview
 
 This plan closes the main gaps between the current Boardsmith implementation and `docs/ARCHITECTURE.md` / `docs/VISION.md` without expanding into public-product, auth, export, image-upload, marketplace, or CAD scope.
 
-The current app is already close to the documented private-MVP architecture: structured intake, deterministic safety flags, Build Model draft generation, OpenAI structured plan output, Zod validation, generated-plan history, archive/restore lifecycle, and browser print are present. The largest remaining gaps are product-depth gaps:
+The current app is already close to the documented private-MVP architecture: structured intake, deterministic safety flags, Build Model draft generation, OpenAI structured plan output, Zod validation, generated-plan history, archive/restore lifecycle, and browser print are present. The largest remaining gaps are now product-depth gaps:
 
-- Natural-language intake is not yet a first-class drafting flow.
-- Structural revisions do not update structured intake or Build Model state before regeneration.
+- Natural-language intake is now a first-class drafting flow for supported/concept/unsupported/blocked draft states.
+- Safe explicit width, depth, material, material-thickness, shelf-layout, shelf-count, and shelf-spacing revisions now update structured intake before regeneration; height, support/mounting, cut-list, ambiguous, and safety-sensitive changes remain manual or blocked.
 - The rich plan-packet pipeline is strongest for wall shelves and not yet broadly proven across other supported templates.
-- Ambiguous or unsupported ideas are gated, but they do not yet produce useful concept options.
+- Unsupported woodworking-adjacent drafts can produce bounded concept guidance before save; saved project setup still requires a supported project type.
 - The visual plan packet still needs stronger model-driven consistency before it reaches the long-term vision.
 
 The implementation strategy is:

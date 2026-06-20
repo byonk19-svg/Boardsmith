@@ -1,4 +1,11 @@
 import { z } from "zod";
+import {
+  appendManagedSection,
+  formatManagedOptionLine,
+  formatManagedTextLine,
+  PLANNING_PREFERENCES_HEADING,
+  STRUCTURED_INTAKE_HEADING,
+} from "@/lib/projects/managed-intake-sections";
 
 export const projectTypes = [
   "door_hanger",
@@ -346,25 +353,19 @@ export function parseProjectFormData(formData: FormData): ProjectIntake {
     projectTypeValue === "simple_shelf" && typeof heightValue === "string" && heightValue.trim() === ""
       ? materialThicknessInches
       : getNumber("height_inches");
-  const appendLines = (baseValue: FormDataEntryValue | null, heading: string, lines: string[]) => {
-    const baseText = typeof baseValue === "string" ? baseValue.trim() : "";
-    const structuredText = lines.length > 0 ? `${heading}\n${lines.map((line) => `- ${line}`).join("\n")}` : "";
-    return [baseText, structuredText].filter(Boolean).join("\n\n");
-  };
   const optionLabel = <T extends string>(name: string, options: readonly T[], labels: Record<T, string>, label: string): string | undefined => {
     const value = formData.get(name);
     if (typeof value !== "string" || !options.includes(value as T)) return undefined;
-    return `${label}: ${labels[value as T]}`;
+    return formatManagedOptionLine(value as T, labels, label);
   };
   const textLine = (name: string, label: string, maxLength: number): string | undefined => {
     const value = formData.get(name);
     if (typeof value !== "string") return undefined;
-    const trimmed = value.trim().slice(0, maxLength);
-    return trimmed ? `${label}: ${trimmed}` : undefined;
+    return formatManagedTextLine(value, label, maxLength);
   };
-  const intendedUse = appendLines(
+  const intendedUse = appendManagedSection(
     formData.get("intended_use"),
-    "Structured intake",
+    STRUCTURED_INTAKE_HEADING,
     [
       optionLabel("mounting_method", mountingMethodOptions, mountingMethodLabels, "Mounting method"),
       optionLabel("wall_type", wallTypeOptions, wallTypeLabels, "Wall type"),
@@ -382,9 +383,9 @@ export function parseProjectFormData(formData: FormData): ProjectIntake {
       textLine("wall_obstructions", "Nearby wall conditions or obstructions", 300),
     ].filter((line): line is string => Boolean(line)),
   );
-  const styleNotes = appendLines(
+  const styleNotes = appendManagedSection(
     formData.get("style_notes"),
-    "Planning preferences",
+    PLANNING_PREFERENCES_HEADING,
     [
       optionLabel("board_size", boardSizeOptions, boardSizeLabels, "Board size from store"),
       optionLabel("cut_strategy", cutStrategyOptions, cutStrategyLabels, "Cut plan"),

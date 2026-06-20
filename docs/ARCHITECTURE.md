@@ -38,7 +38,7 @@ Current routes and modules support:
 - Project detail at `/projects/[id]`.
 - Browser print preview at `/projects/[id]/print`.
 - Settings and private access pages.
-- POST route handlers for draft, create, generate, revise, duplicate, archive, restore, notes, build log, and shelf-layout updates.
+- POST route handlers for draft, create, generate, revise, clarification answers, duplicate, archive, restore, notes, build log, and shelf-layout updates.
 
 Current product capabilities include:
 
@@ -51,7 +51,7 @@ Current product capabilities include:
 - Zod validation before saving generated plans.
 - Deterministic plan quality checks when a build model is available.
 - Versioned generated plan history with latest-plan marking.
-- Prose-only natural-language plan revision that saves a new generated-plan version; safe, explicit dimension/material/shelf-layout revision requests patch structured Project Intake first, while cut-list, support/mounting, ambiguous, and safety-sensitive requests are blocked or redirected before regeneration.
+- Prose-only natural-language plan revision that saves a new generated-plan version; safe, explicit width, depth, material, material-thickness, shelf-layout, shelf-count, and shelf-spacing revision requests patch structured Project Intake first, while height, cut-list, support/mounting, ambiguous, and safety-sensitive requests are blocked or redirected before regeneration.
 - Plan comparison between latest and prior versions.
 - Project notes and build-log fields.
 - Archive/restore as private workspace organization.
@@ -148,6 +148,7 @@ Current:
 - Plain-language ideas can draft conservative editable intake fields and parser review notes, but the saved project remains structured form data.
 - Natural-language draft status is preserved through the pre-create lifecycle: supported drafts can save normally, concept-only or unsupported drafts require explicit supported-template resolution before save, and safety-blocked drafts cannot be saved as build setups.
 - Project detail readiness questions now have a clarification-answer loop for answerable saved-intake fields. Dimension, material, shelf-layout, tool, mounting-context, load/use, and finish/context answers save back to the existing project record, replace managed `Structured intake` / `Planning preferences` lines when needed, and recompute the gate without creating a generated-plan version.
+- The managed intake text is treated as an explicit Adapter, not ad hoc prose: shared Modules serialize those sections on create/clarification and extract Project Intake Signals for downstream mounting, fastener, load/use, and finish/exposure decisions. Legacy prose remains a fallback until those fields become first-class persistence.
 - Zod validation blocks invalid project records.
 - Starter examples prefill editable form values.
 
@@ -255,7 +256,7 @@ Current:
 - Saving a generated plan marks it latest and preserves prior plan history.
 - `Tweak this plan` accepts prose-only natural-language revisions directly.
 - Explicit width, depth, material, material-thickness, shelf-layout, shelf-count, and shelf-spacing revision requests can patch structured Project Intake through a validated storage update before any new generated output appears.
-- Project detail clarification answers can save shelf height, tool availability, and guided support/mounting/load/finish context through existing intake fields and managed text sections. They do not auto-generate a plan.
+- Project detail clarification answers can save shelf height, tool availability, and guided support/mounting/load/finish context through existing intake fields and managed text sections. The Project Intake Signals Adapter reads those managed sections before falling back to legacy prose. Clarification answers do not auto-generate a plan.
 - Cut-list, ambiguous, safety-sensitive, unparseable, concept-only, unsupported, and child/electrical/load-certification questions remain manual or blocked because they do not yet have a safe first-class completion target.
 - Archived projects block revision until restored.
 

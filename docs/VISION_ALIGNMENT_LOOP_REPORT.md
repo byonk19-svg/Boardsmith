@@ -60,7 +60,7 @@ Date: 2026-06-13
   - `npm run typecheck`
   - `npm run build`
   - `git diff --check`
-- Result: passed. Runtime HTML check confirmed the print packet order `Build Snapshot -> Hero Visual -> Project Visuals`.
+- Result: passed. Runtime HTML check confirmed the print packet starts `Build Snapshot -> Hero Visual -> Project Visuals / Diagrams`.
 
 ## Iteration 2 - Planned
 
@@ -89,7 +89,7 @@ Date: 2026-06-13
 
 - Status: implemented.
 - Change summary:
-  - The digital generated-plan sheet now uses `Build Snapshot`, `Hero Visual`, `Project Visuals / Diagrams`, `Check Before Building`, `Materials and Parts`, `Cut Checklist`, `Build Guide`, and `Reference Review Notes`.
+  - The digital generated-plan sheet now uses `Build Snapshot`, `Hero Visual`, `Project Visuals / Diagrams`, `Check Before Building`, `Materials and Parts`, `Cut Checklist`, `Buying Plan`, `Build Guide`, and `Reference Review Notes`.
   - The project summary and planning-aid warning now live with the Build Snapshot header instead of a separate `Overview / Summary` section.
   - Later structured review details remain available, but `Modeled operations` no longer appears as a primary plan-packet section.
   - Existing `#cut-list-to-verify` and `#open-questions` anchors were preserved.
@@ -121,7 +121,7 @@ Date: 2026-06-13
 - Status: implemented.
 - Change summary:
   - Browser print now uses `Project Visuals / Diagrams` and `Reference Review Notes`, matching the core plan-packet vocabulary.
-  - Print section order remains `Build Snapshot -> Hero Visual -> Project Visuals / Diagrams -> Check Before Building -> Materials and Parts -> Cut Checklist -> Build Guide -> Reference Review Notes`.
+  - Print section order is `Build Snapshot -> Hero Visual -> Project Visuals / Diagrams -> Check Before Building -> Materials and Parts -> Cut Checklist -> Buying Plan -> Build Guide -> Reference Review Notes`.
 - Tests run:
   - `npm test -- tests/print-preview-page.test.ts`
 - Result: passed.

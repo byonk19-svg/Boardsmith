@@ -1,5 +1,12 @@
 import { createClarificationGateDecision, type ClarificationGateDecision } from "@/lib/projects/clarification-gate";
 import {
+  formatManagedOptionLine,
+  formatManagedTextLine,
+  mergeManagedSection,
+  PLANNING_PREFERENCES_HEADING,
+  STRUCTURED_INTAKE_HEADING,
+} from "@/lib/projects/managed-intake-sections";
+import {
   cutStrategyLabels,
   cutStrategyOptions,
   higherRiskSpotLabels,
@@ -70,23 +77,6 @@ function optionValues<T extends string>(formData: FormData, name: string, option
   return formData.getAll(name).filter((value): value is T => typeof value === "string" && options.includes(value as T));
 }
 
-function optionLine<T extends string>(value: T | undefined, labels: Record<T, string>, label: string): string | undefined {
-  return value ? `${label}: ${labels[value]}` : undefined;
-}
-
-function textLine(value: string | undefined, label: string): string | undefined {
-  return value ? `${label}: ${value}` : undefined;
-}
-
-function mergeManagedSection(existing: string, heading: string, lines: string[]): string {
-  const baseSections = existing
-    .split(/\n{2,}/)
-    .map((section) => section.trim())
-    .filter((section) => section.length > 0 && section !== heading && !section.startsWith(`${heading}\n`));
-  const managedSection = lines.length > 0 ? `${heading}\n${lines.map((line) => `- ${line}`).join("\n")}` : "";
-  return [...baseSections, managedSection].filter(Boolean).join("\n\n");
-}
-
 function stripUndefinedValues<T extends Record<string, unknown>>(input: T): T {
   return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as T;
 }
@@ -140,21 +130,21 @@ export function createClarificationAnswerUpdate(project: Project, formData: Form
   pushAnswered(answeredQuestionIds, "finish_exposure", moistureExposure ?? finishPreference ?? edgeTreatment);
 
   const intendedUseLines = [
-    optionLine(mountingMethod, mountingMethodLabels, "Mounting method"),
-    optionLine(wallType, wallTypeLabels, "Wall type"),
-    optionLine(studAccess, studAccessLabels, "Stud access"),
-    optionLine(shelfLoad, shelfLoadLabels, "What it will hold"),
-    optionLine(moistureExposure, moistureExposureLabels, "Moisture exposure"),
-    optionLine(installLocation, installLocationLabels, "Install location"),
-    textLine(plannedMountingHeight, "Planned mounting height"),
-    optionLine(supportCount, supportCountLabels, "Support/bracket count"),
+    formatManagedOptionLine(mountingMethod, mountingMethodLabels, "Mounting method"),
+    formatManagedOptionLine(wallType, wallTypeLabels, "Wall type"),
+    formatManagedOptionLine(studAccess, studAccessLabels, "Stud access"),
+    formatManagedOptionLine(shelfLoad, shelfLoadLabels, "What it will hold"),
+    formatManagedOptionLine(moistureExposure, moistureExposureLabels, "Moisture exposure"),
+    formatManagedOptionLine(installLocation, installLocationLabels, "Install location"),
+    formatManagedTextLine(plannedMountingHeight, "Planned mounting height", 160),
+    formatManagedOptionLine(supportCount, supportCountLabels, "Support/bracket count"),
     ...higherRiskSpots.map((value) => `Higher-risk spot: ${higherRiskSpotLabels[value]}`),
-    textLine(wallObstructions, "Nearby wall conditions or obstructions"),
+    formatManagedTextLine(wallObstructions, "Nearby wall conditions or obstructions", 300),
   ].filter((line): line is string => Boolean(line));
   const styleNoteLines = [
-    optionLine(cutStrategy, cutStrategyLabels, "Cut plan"),
-    textLine(finishPreference, "Finish preference"),
-    textLine(edgeTreatment, "Edge treatment"),
+    formatManagedOptionLine(cutStrategy, cutStrategyLabels, "Cut plan"),
+    formatManagedTextLine(finishPreference, "Finish preference", 240),
+    formatManagedTextLine(edgeTreatment, "Edge treatment", 240),
   ].filter((line): line is string => Boolean(line));
 
   const update = projectClarificationAnswerUpdateSchema.parse(
@@ -168,8 +158,8 @@ export function createClarificationAnswerUpdate(project: Project, formData: Form
       shelf_count: shelfCount,
       shelf_spacing_inches: shelfSpacingInches,
       tools_available: toolsAvailable.length > 0 ? toolsAvailable : undefined,
-      intended_use: intendedUseLines.length > 0 ? mergeManagedSection(project.intended_use, "Structured intake", intendedUseLines) : undefined,
-      style_notes: styleNoteLines.length > 0 ? mergeManagedSection(project.style_notes, "Planning preferences", styleNoteLines) : undefined,
+      intended_use: intendedUseLines.length > 0 ? mergeManagedSection(project.intended_use, STRUCTURED_INTAKE_HEADING, intendedUseLines) : undefined,
+      style_notes: styleNoteLines.length > 0 ? mergeManagedSection(project.style_notes, PLANNING_PREFERENCES_HEADING, styleNoteLines) : undefined,
     }),
   );
 
