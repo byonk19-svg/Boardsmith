@@ -4,6 +4,8 @@
 **Estimated Complexity**: High
 **Status**: Historical implementation plan. Several original gaps listed below have since been closed; use `docs/ARCHITECTURE.md`, `docs/VISION.md`, and current tests as the source of truth for live architecture. Remaining work should be interpreted from the implementation status sections, not from the original overview bullets.
 
+**June 19 follow-through**: the Project Intake Signals Adapter is now surfaced on project detail as a read-only audit summary, and hosted smoke can optionally assert expected route text with `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT`. These close the safe auditability and route/content-validation gaps without migrations, packages, browser framework changes, exports, auth changes, or public-product scope. The remaining larger private-MVP gap is template packet-depth parity beyond wall shelves, especially whether planter-box cut/readiness/stock/build-step adapters are worth adding after real dogfood friction.
+
 ## Overview
 
 This plan closes the main gaps between the current Boardsmith implementation and `docs/ARCHITECTURE.md` / `docs/VISION.md` without expanding into public-product, auth, export, image-upload, marketplace, or CAD scope.

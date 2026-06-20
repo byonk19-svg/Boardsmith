@@ -48,6 +48,17 @@ function parseSmokePaths(value) {
   return paths.length > 0 ? paths : defaultSmokePaths;
 }
 
+function parseExpectedText(value) {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split("||")
+    .map((text) => text.trim())
+    .filter(Boolean);
+}
+
 function sanitizePathForOutput(path) {
   return path.replace(/\/projects\/[^/?#]+/g, "/projects/[id]");
 }
@@ -188,7 +199,7 @@ async function fetchWithCookies(url, { method = "GET", headers = {}, body, cooki
   return { response, finalUrl: nextUrl, redirects };
 }
 
-function classifyRouteCheck({ response, finalUrl, bodyText, requestedPath, appAccessPasswordProvided }) {
+function classifyRouteCheck({ response, finalUrl, bodyText, requestedPath, appAccessPasswordProvided, expectedText, expectedTextForOutput }) {
   const finalUrlParts = new URL(finalUrl);
   const finalPath = sanitizePathForOutput(`${finalUrlParts.pathname}${finalUrlParts.search}`);
   const requestedPathLabel = sanitizePathForOutput(requestedPath);
@@ -198,6 +209,9 @@ function classifyRouteCheck({ response, finalUrl, bodyText, requestedPath, appAc
   const hostedAuthLogin = finalUrlParts.pathname === "/login";
   const vercelBlocked = response.status === 401;
   const boardsmithRendered = response.status >= 200 && response.status < 300 && !vercelBlocked && !boardsmithAccessGate && !hostedAuthLogin;
+  const missingExpectedText = boardsmithRendered
+    ? expectedText.flatMap((text, index) => (bodyText.includes(text) ? [] : [expectedTextForOutput[index] ?? "[expected-text-redacted]"]))
+    : [];
 
   return {
     path: requestedPathLabel,
@@ -208,6 +222,8 @@ function classifyRouteCheck({ response, finalUrl, bodyText, requestedPath, appAc
     hostedAuthLogin,
     ...(hostedAuthLogin ? { hostedAuthMechanism: detectHostedAuthMechanism(bodyText) } : {}),
     boardsmithRendered,
+    expectedTextRequired: expectedText.length > 0,
+    missingExpectedText,
     blockedReason: vercelBlocked
       ? "vercel_protection"
       : hostedAuthLogin
@@ -263,6 +279,8 @@ export async function runHostedSmokeCheck(env = process.env) {
   const headers = buildBypassHeaders(bypassSecret);
   const cookieJar = new Map();
   const paths = parseSmokePaths(env.BOARDSMITH_HOSTED_SMOKE_PATHS);
+  const expectedText = parseExpectedText(env.BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT);
+  const expectedTextForOutput = expectedText.map((text) => redactSensitiveText(text, { baseUrl, secrets: [bypassSecret, accessPassword] }));
   const warnings = [];
   let storageStateCookiesLoaded = 0;
 
@@ -342,6 +360,8 @@ export async function runHostedSmokeCheck(env = process.env) {
           bodyText,
           requestedPath: path,
           appAccessPasswordProvided: Boolean(accessPassword),
+          expectedText,
+          expectedTextForOutput,
         }),
       );
     }
@@ -350,10 +370,12 @@ export async function runHostedSmokeCheck(env = process.env) {
     const appGateBlocked = checks.some((check) => check.blockedReason === "boardsmith_access_password_missing");
     const hostedAuthBlocked = checks.some((check) => check.blockedReason === "hosted_auth_login_required");
     const serverFailed = checks.some((check) => check.statusCode >= 500);
-    const status = vercelBlocked || appGateBlocked || hostedAuthBlocked ? "blocked" : serverFailed ? "failed" : "passed";
+    const expectedTextMissing = checks.some((check) => check.missingExpectedText.length > 0);
+    const status = vercelBlocked || appGateBlocked || hostedAuthBlocked ? "blocked" : serverFailed || expectedTextMissing ? "failed" : "passed";
 
     return {
       status,
+      ...(expectedTextMissing ? { reason: "expected_text_missing" } : {}),
       checkedAt: new Date().toISOString(),
       target: "redacted",
       vercelBypassSecretProvided: true,

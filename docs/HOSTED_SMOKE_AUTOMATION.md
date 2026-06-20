@@ -51,6 +51,12 @@ Optional route list for the route-level helper:
 BOARDSMITH_HOSTED_SMOKE_PATHS=/,/projects
 ```
 
+Optional expected text for rendered route groups:
+
+```env
+BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT=Build Snapshot||Project Visuals / Diagrams
+```
+
 Optional local authenticated session state:
 
 ```env
@@ -70,6 +76,7 @@ Notes:
 - `VERCEL_AUTOMATION_BYPASS_SECRET` is the Vercel bypass secret. Do not print it.
 - `BOARDSMITH_ACCESS_PASSWORD` is the separate Boardsmith app-level access password. Do not print it.
 - If the app-level gate is disabled for a specific private environment, omit `BOARDSMITH_ACCESS_PASSWORD`; the helper will report whether it reaches app routes without it.
+- `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT` is optional `||`-separated sentinel copy that must appear on every rendered path. Use it for route groups with shared copy, such as generated project detail and print routes. Do not put secrets, hosted URLs, project refs, cookies, or user data in these sentinels.
 - `BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE` is an optional local path to an authenticated browser storage-state JSON file. `.auth/` is ignored by git. Do not commit this file or paste its contents anywhere.
 - `BOARDSMITH_HOSTED_SMOKE_EMAIL` and `BOARDSMITH_HOSTED_SMOKE_PASSWORD` are placeholders for a future browser/session harness only. Do not use personal credentials for repeatable automation. If the hosted login layer is email-link or OAuth-only, use an authorized local browser session for UI smoke instead of storing a personal password.
 
@@ -91,6 +98,7 @@ The helper:
 - posts to `/access/verify` only when `BOARDSMITH_ACCESS_PASSWORD` is provided
 - loads matching cookies from `BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE` when configured
 - checks `/` and `/projects` by default
+- optionally checks that every rendered route contains the `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT` sentinels
 - redacts the hosted URL, host, bypass secret, and app access password from error output
 - prints sanitized status only
 
@@ -112,6 +120,7 @@ Blocked results:
 - `hosted_auth_login_required`: Vercel protection was bypassed and the Boardsmith `/access` helper ran, but the hosted deployment routed to `/login`. This login layer is outside the current Boardsmith app code and requires an authorized hosted browser/session before project-detail UI smoke can run. The helper reports sanitized `hostedAuthMechanism` booleans such as whether an email input, password input, or OAuth text was present; it does not print login page content.
 - `missing_storage_state_file`: `BOARDSMITH_HOSTED_SMOKE_STORAGE_STATE` is configured, but the local session-state file is missing.
 - `invalid_storage_state_file`: the configured local session-state file is not readable as a Playwright-style storage-state JSON object with a `cookies` array.
+- `expected_text_missing`: a route rendered past Vercel, the app access gate, and hosted auth, but one or more configured `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT` sentinels was not present in the response body.
 - `invalid_hosted_smoke_url` or `request_error`: check local env values without printing them.
 
 If the output says `missing_required_env`, confirm `.env.hosted-smoke.local` exists in the repo root and contains the required values. Do not paste its values into chat, docs, commits, screenshots, or logs.

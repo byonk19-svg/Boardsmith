@@ -148,7 +148,7 @@ Current:
 - Plain-language ideas can draft conservative editable intake fields and parser review notes, but the saved project remains structured form data.
 - Natural-language draft status is preserved through the pre-create lifecycle: supported drafts can save normally, concept-only or unsupported drafts require explicit supported-template resolution before save, and safety-blocked drafts cannot be saved as build setups.
 - Project detail readiness questions now have a clarification-answer loop for answerable saved-intake fields. Dimension, material, shelf-layout, tool, mounting-context, load/use, and finish/context answers save back to the existing project record, replace managed `Structured intake` / `Planning preferences` lines when needed, and recompute the gate without creating a generated-plan version.
-- The managed intake text is treated as an explicit Adapter, not ad hoc prose: shared Modules serialize those sections on create/clarification and extract Project Intake Signals for downstream mounting, fastener, load/use, and finish/exposure decisions. Legacy prose remains a fallback until those fields become first-class persistence.
+- The managed intake text is treated as an explicit Adapter, not ad hoc prose: shared Modules serialize those sections on create/clarification and extract Project Intake Signals for downstream mounting, fastener, load/use, and finish/exposure decisions. The project detail page renders those parsed signals as an auditable read-only summary while keeping the raw intended-use and style-notes fields as source evidence. Legacy prose remains a fallback until those fields become first-class persistence.
 - Zod validation blocks invalid project records.
 - Starter examples prefill editable form values.
 
@@ -297,6 +297,7 @@ Target:
 - Diagram changes need view-model and render tests.
 - Print/PDF changes need screenshot or manual visual review where practical.
 - Safety and validation changes need regression tests.
+- Hosted smoke can assert optional expected route text through `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT` after Vercel/app/session access is satisfied; this is still a no-dependency route/content check, not a full browser harness.
 - Avoid broad refactors during focused feature work.
 - Do not add schema changes unless intentionally scoped.
 

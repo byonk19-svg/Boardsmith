@@ -989,6 +989,57 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup.indexOf("No generated plan yet")).toBeLessThan(markup.indexOf("Planning details before generation"));
   });
 
+  it("renders parsed project intake signals as an auditable detail-page summary", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      intended_use: [
+        "Decorative wall shelf for light objects.",
+        "",
+        "Structured intake",
+        "- Mounting method: Wall-mounted",
+        "- Wall type: Drywall over studs",
+        "- Stud access: Studs likely available",
+        "- What it will hold: Small plants and a framed photo",
+        "- Install location: Bathroom wall",
+        "- Support/bracket count: Two brackets",
+        "- Higher-risk spot: Bathroom moisture",
+        "- Moisture exposure: Occasional humidity",
+      ].join("\n"),
+      style_notes: [
+        "Simple painted shelf.",
+        "",
+        "Planning preferences",
+        "- Board size from store: 1x10 board",
+        "- Cut plan: Cut at home",
+        "- Finish preference: Water-resistant paint",
+        "- Edge treatment: Round over exposed edges",
+      ].join("\n"),
+    });
+    listGeneratedPlansMock.mockResolvedValue([]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Project Intake Signals");
+    expect(markup).toContain("Parsed from the saved structured intake");
+    expect(markup).toContain("Mounting and wall");
+    expect(markup).toContain("Mounting method:");
+    expect(markup).toContain("Wall-mounted");
+    expect(markup).toContain("Support and load");
+    expect(markup).toContain("Small plants and a framed photo");
+    expect(markup).toContain("Higher-risk spots:");
+    expect(markup).toContain("Bathroom moisture");
+    expect(markup).toContain("Material planning");
+    expect(markup).toContain("1x10 board");
+    expect(markup).toContain("Finish and exposure");
+    expect(markup).toContain("Water-resistant paint");
+  });
+
   it("renders unsupported woodworking-adjacent projects as concept-only guidance without packet sections", async () => {
     getProjectMock.mockResolvedValue({
       ...project,

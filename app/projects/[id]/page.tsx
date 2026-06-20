@@ -23,6 +23,7 @@ import {
   type ClarificationGateDecision,
   type ClarificationQuestionCategory,
 } from "@/lib/projects/clarification-gate";
+import { extractProjectIntakeSignals, type ProjectIntakeSignals } from "@/lib/projects/project-intake-signals";
 import { createProjectPlanningLifecycle, isProjectArchived } from "@/lib/projects/project-planning-lifecycle";
 import { getProjectDetailErrorMessage } from "@/lib/projects/project-detail-errors";
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
@@ -1590,10 +1591,33 @@ function TemplateGuidancePanel({ projectTypeLabel, assumptions, cautions }: { pr
 
 function ProjectIntakeCard({ project }: { project: Project }) {
   const dimensionRows = projectIntakeDimensionRows(project);
+  const signalGroups = projectIntakeSignalGroups(extractProjectIntakeSignals(project));
 
   return (
     <section id="project-intake" className="scroll-mt-6 rounded-lg border border-sawdust bg-white p-5">
       <h2 className="text-lg font-semibold text-ink">Project intake</h2>
+      {signalGroups.length > 0 ? (
+        <div className="mt-4 rounded-md border border-sawdust bg-shop p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-ink/55">Project Intake Signals</h3>
+          <p className="mt-2 text-sm leading-6 text-ink/65">
+            Parsed from the saved structured intake so mounting, support, load, and exposure assumptions are visible before generation.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {signalGroups.map((group) => (
+              <div key={group.title} className="rounded-md bg-white p-3">
+                <p className="text-sm font-semibold text-ink">{group.title}</p>
+                <ul className="mt-2 space-y-1 text-sm leading-6 text-ink/65">
+                  {group.items.map((item) => (
+                    <li key={`${group.title}-${item.label}`}>
+                      <span className="font-medium text-ink/75">{item.label}:</span> {item.value}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <dl className="mt-4 grid gap-3 text-sm">
         <Row label="Project type" value={projectTypeLabel(project.project_type)} />
         {dimensionRows.map((row) => (
@@ -1606,6 +1630,60 @@ function ProjectIntakeCard({ project }: { project: Project }) {
       </dl>
     </section>
   );
+}
+
+type ProjectIntakeSignalGroup = {
+  title: string;
+  items: { label: string; value: string }[];
+};
+
+function projectIntakeSignalGroups(signals: ProjectIntakeSignals): ProjectIntakeSignalGroup[] {
+  const groups: ProjectIntakeSignalGroup[] = [
+    {
+      title: "Mounting and wall",
+      items: compactSignalItems([
+        { label: "Mounting method", value: signals.mountingMethod },
+        { label: "Wall type", value: signals.wallType },
+        { label: "Stud access", value: signals.studAccess },
+        { label: "Install location", value: signals.installLocation },
+        { label: "Planned height", value: signals.plannedMountingHeight },
+        { label: "Wall conditions", value: signals.wallObstructions },
+      ]),
+    },
+    {
+      title: "Support and load",
+      items: compactSignalItems([
+        { label: "What it will hold", value: signals.shelfLoad },
+        { label: "Support count", value: signals.supportCount },
+        { label: "Higher-risk spots", value: signals.higherRiskSpots.join(", ") },
+      ]),
+    },
+    {
+      title: "Material planning",
+      items: compactSignalItems([
+        { label: "Board size", value: signals.boardSize },
+        { label: "Cut plan", value: signals.cutPlan },
+        { label: "Measurement confidence", value: signals.measurementConfidence },
+      ]),
+    },
+    {
+      title: "Finish and exposure",
+      items: compactSignalItems([
+        { label: "Moisture exposure", value: signals.moistureExposure },
+        { label: "Finish preference", value: signals.finishPreference },
+        { label: "Edge treatment", value: signals.edgeTreatment },
+      ]),
+    },
+  ];
+
+  return groups.filter((group) => group.items.length > 0);
+}
+
+function compactSignalItems(items: { label: string; value?: string }[]): { label: string; value: string }[] {
+  return items.flatMap((item) => {
+    const value = item.value?.trim();
+    return value ? [{ label: item.label, value }] : [];
+  });
 }
 
 function projectIntakeDimensionRows(project: Project): { label: string; value: string }[] {
