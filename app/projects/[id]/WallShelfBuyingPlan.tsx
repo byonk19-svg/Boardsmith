@@ -83,10 +83,7 @@ function BuyingMaterialGroup({ group, compact }: { group: WallShelfStockBoardMat
         <ul className="mt-2 space-y-2">
           {group.pieces.map((piece) => (
             <li key={piece.id} className="text-sm leading-6 text-ink/70">
-              <span className="font-semibold text-ink">
-                {piece.partLabel ? `${piece.partLabel} - ` : ""}
-                {piece.label} - {piece.quantityLabel}
-              </span>
+              <span className="font-semibold text-ink">{piece.printLabel} - {piece.quantityLabel}</span>
               : {piece.dimensionsLabel}
             </li>
           ))}
@@ -119,7 +116,7 @@ function StockBoardPlanningGraphic({ group }: { group: WallShelfStockBoardMateri
           <g key={piece.id}>
             <rect x={x} y="70" width="62" height="24" rx="4" fill={fill} stroke="#7a5b2e" strokeWidth="1.5" strokeDasharray={piece.needsReview ? "4 3" : undefined} />
             <text x={x + 31} y="86" textAnchor="middle" className="fill-ink text-[9px] font-semibold">
-              {piece.partLabel ?? piece.badgeLabel ?? "Part"}
+              {piece.partLabel ?? piece.badgeLabel ?? "Review"}
             </text>
             <text x={x + 31} y="106" textAnchor="middle" className="fill-ink text-[9px] font-semibold">
               {piece.quantityLabel}

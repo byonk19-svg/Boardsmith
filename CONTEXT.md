@@ -20,6 +20,10 @@ _Avoid_: Public beta, production launch, multi-user product
 The saved structured project description, including project type, dimensions, material, tools, intended use, constraints, and finish notes.
 _Avoid_: Prompt, chat message, order form
 
+**Project Intake Signals**:
+The internal Adapter output that reads managed Project Intake sections and legacy prose into deterministic mounting, wall, load/use, support, and finish/exposure signals without adding persistence columns.
+_Avoid_: Database schema, user-facing profile, safety approval
+
 **Project Planning Lifecycle**:
 The deterministic state rules that decide which planning actions are available for a project, why a command is blocked, and which review or repair path comes next.
 _Avoid_: UI copy source, workflow automation, user permissions system

@@ -5,7 +5,7 @@ import { BoardRect, Callout, DiagramNote, DiagramPanel, DiagramSvg, DimensionLin
 export function WallShelfDiagrams({ model, compact = false }: { model: WallShelfDiagramModel; compact?: boolean }) {
   const viewModel = model.viewModel;
 
-  if (viewModel.status !== "ready") {
+  if (viewModel.status === "unsupported" || (viewModel.status === "needs_review" && viewModel.renderLabels.fallbackMessage)) {
     return (
       <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
         <p className="font-semibold">Diagram needs more details.</p>
@@ -78,7 +78,7 @@ function ExplodedAssemblyView({ model, viewModel }: { model: WallShelfDiagramMod
   const modeledSupports = viewModel.visibleBoards.filter((piece) => piece.role === "support_frame");
   const placeholderSupports = viewModel.visibleBoards.filter((piece) => piece.role === "support_frame_placeholder");
   const shelfLabel = shelfPartLabel(model, viewModel);
-  const supportLabels = modeledSupports.length > 0 ? modeledSupports.map((piece) => piece.printLabel) : placeholderSupports.map((piece) => `${piece.label} - review only`);
+  const supportLabels = modeledSupports.length > 0 ? modeledSupports.map((piece) => piece.printLabel) : placeholderSupports.map((piece) => piece.printLabel);
   const shelfCount = Math.max(1, Math.min(viewModel.shelfCount ?? shelves.at(0)?.quantity ?? 1, 5));
   const connected = viewModel.layout === "connected_shelf_unit";
   const separate = viewModel.layout === "multiple_separate_shelves";
@@ -134,7 +134,7 @@ function trianglePoints(x1: number, y1: number, x2: number, y2: number, x3: numb
 }
 
 function shelfPartLabel(model: WallShelfDiagramModel, viewModel: WallShelfDiagramViewModel): string {
-  return viewModel.visibleBoards.find((piece) => piece.role === "shelf_board")?.printLabel ?? model.partSchedule.find((row) => /shelf/i.test(row.label))?.printLabel ?? "Part A - Shelf board";
+  return viewModel.visibleBoards.find((piece) => piece.role === "shelf_board")?.printLabel ?? model.partSchedule.find((row) => /shelf/i.test(row.label))?.printLabel ?? "Shelf board to review";
 }
 
 function FrontElevation({ model, viewModel }: { model: WallShelfDiagramModel; viewModel: WallShelfDiagramViewModel }) {
@@ -209,7 +209,7 @@ function PartSchedule({ model }: { model: WallShelfDiagramModel }) {
   return (
     <div className="space-y-3">
       {model.partSchedule.map((row) => {
-        const label = diagramPartLabel(row.label, row.quantity);
+        const label = row.printLabel;
         return (
         <div key={`${row.label}:${row.quantity.toString()}`} className="rounded-md border border-sawdust bg-shop/40 p-3">
           <svg className="mb-3 h-20 w-full rounded-md border border-sawdust bg-white" viewBox="0 0 420 96" role="img" aria-label={`${label} cut part planning graphic`}>
@@ -226,14 +226,7 @@ function PartSchedule({ model }: { model: WallShelfDiagramModel }) {
             </text>
           </svg>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <p className="text-sm font-semibold text-ink">
-              {row.partLabel ? (
-                <>
-                  <span className="mr-1.5 rounded-sm border border-sawdust bg-white px-1.5 py-0.5 text-xs text-ink/60">{row.partLabel}</span>{" "}
-                </>
-              ) : null}
-              {label}
-            </p>
+            <p className="text-sm font-semibold text-ink">{label}</p>
             <span className="w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-ink/70">Qty {row.quantity.toString()}</span>
           </div>
           <p className="mt-2 text-sm leading-6 text-ink/70">
@@ -245,12 +238,6 @@ function PartSchedule({ model }: { model: WallShelfDiagramModel }) {
       <DiagramNote>Cut count is based on the physical cut-list quantity shown in the generated plan.</DiagramNote>
     </div>
   );
-}
-
-function diagramPartLabel(label: string, quantity: number): string {
-  if (quantity <= 1) return label;
-  if (/^shelf board$/i.test(label.trim())) return "Shelf boards";
-  return label;
 }
 
 function MountingReview({ model }: { model: WallShelfDiagramModel }) {
@@ -302,7 +289,12 @@ function SupportFrameElevation({
 }) {
   const strokeDasharray = needsReview ? "5 4" : undefined;
   const fill = needsReview ? "#fff3c4" : "#c99a57";
-  const label = modeledSupports.length > 0 ? "modeled support/frame" : placeholderSupports.length > 0 ? "support/frame placeholder" : "support/frame to review";
+  const label =
+    modeledSupports.length > 0
+      ? modeledSupports.map((piece) => piece.printLabel).join(", ")
+      : placeholderSupports.length > 0
+        ? placeholderSupports.map((piece) => piece.printLabel).join(", ")
+        : "support/frame to review";
 
   return (
     <>
@@ -314,6 +306,5 @@ function SupportFrameElevation({
 }
 
 function supportPieceLabel(piece: WallShelfDiagramVisiblePiece): string {
-  if (piece.role === "support_frame_placeholder") return `${piece.label} - review only`;
   return piece.printLabel;
 }

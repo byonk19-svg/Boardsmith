@@ -145,7 +145,7 @@ describe("createWallShelfDiagramViewModel", () => {
       buildModel: buildModel(),
     });
 
-    expect(viewModel.status).toBe("ready");
+    expect(viewModel.status).toBe("needs_review");
     expect(viewModel.layout).toBe("connected_shelf_unit");
     expect(viewModel.shelfCount).toBe(5);
     expect(viewModel.dimensions.height).toMatchObject({ valueInches: 60, label: "Height 60 in", status: "known" });

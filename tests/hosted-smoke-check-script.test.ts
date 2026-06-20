@@ -37,6 +37,8 @@ type SmokeCheckResult = {
       hasOAuthText: boolean;
     };
     boardsmithRendered: boolean;
+    expectedTextRequired: boolean;
+    missingExpectedText: string[];
     blockedReason: string | null;
   }[];
 };
@@ -211,6 +213,8 @@ describe("hosted smoke check script", () => {
         boardsmithAccessGate: false,
         hostedAuthLogin: false,
         boardsmithRendered: true,
+        expectedTextRequired: false,
+        missingExpectedText: [],
         blockedReason: null,
       },
     ]);
@@ -259,6 +263,8 @@ describe("hosted smoke check script", () => {
           hasOAuthText: true,
         },
         boardsmithRendered: false,
+        expectedTextRequired: false,
+        missingExpectedText: [],
         blockedReason: "hosted_auth_login_required",
       },
     ]);
@@ -299,6 +305,8 @@ describe("hosted smoke check script", () => {
         boardsmithAccessGate: false,
         hostedAuthLogin: false,
         boardsmithRendered: true,
+        expectedTextRequired: false,
+        missingExpectedText: [],
         blockedReason: null,
       },
     ]);
@@ -308,6 +316,47 @@ describe("hosted smoke check script", () => {
     expect(stdout).not.toContain("session-cookie");
     expect(stdout).not.toContain(storageStatePath);
     expect(stdout).not.toContain(baseUrl);
+  });
+
+  it("fails rendered route checks when expected sentinel text is missing", async () => {
+    const { baseUrl } = await startSmokeServer();
+
+    const failure = await execFileAsync("node", ["scripts/hosted-smoke-check.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        BOARDSMITH_HOSTED_SMOKE_URL: baseUrl,
+        VERCEL_AUTOMATION_BYPASS_SECRET: "test-bypass-secret",
+        BOARDSMITH_ACCESS_PASSWORD: "test-access-password",
+        BOARDSMITH_HOSTED_SMOKE_PATHS: "/projects",
+        BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT: "Boardsmith projects||Build Snapshot||test-access-password",
+      },
+    }).catch((error: unknown) => error);
+
+    if (!failure || typeof failure !== "object" || !("stdout" in failure)) {
+      throw new Error("Expected hosted smoke check script to fail with stdout.");
+    }
+
+    const result = JSON.parse((failure as { stdout: string }).stdout) as SmokeCheckResult & { reason: string };
+    expect(result.status).toBe("failed");
+    expect(result.reason).toBe("expected_text_missing");
+    expect(result.checks).toEqual([
+      {
+        path: "/projects",
+        finalPath: "/projects",
+        statusCode: 200,
+        vercelBlocked: false,
+        boardsmithAccessGate: false,
+        hostedAuthLogin: false,
+        boardsmithRendered: true,
+        expectedTextRequired: true,
+        missingExpectedText: ["Build Snapshot", "[secret-redacted]"],
+        blockedReason: null,
+      },
+    ]);
+    expect((failure as { stdout: string }).stdout).not.toContain("test-bypass-secret");
+    expect((failure as { stdout: string }).stdout).not.toContain("test-access-password");
+    expect((failure as { stdout: string }).stdout).not.toContain(baseUrl);
   });
 
   it("fails safely when the configured storage-state file is missing", async () => {

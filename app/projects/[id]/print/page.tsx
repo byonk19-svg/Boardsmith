@@ -2,10 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cutListStatusLabel } from "@/lib/plans/cut-list-review";
 import { createGatedBuildPacketSnapshot, createGatedBuildPacketSnapshots, latestGatedBuildPacketSnapshot } from "@/lib/plans/gated-build-packet-snapshot";
+import { corePacketSectionTitles, createPrintablePlanPacketSummary, labelForPacketCutItem } from "@/lib/plans/printable-plan-packet";
 import type { PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { Project } from "@/lib/projects/types";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { BuildStepCards, BuildStepStatusSummary } from "../BuildStepCards";
+import { PlanterBoxBuyingPlan } from "../PlanterBoxBuyingPlan";
+import { PlanterBoxCutDiagram } from "../PlanterBoxCutDiagram";
 import { PlanActionChecklist } from "../PlanActionChecklist";
 import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
 import { ProjectHeroVisual } from "../ProjectHeroVisual";
@@ -59,24 +62,15 @@ export default async function ProjectPrintPreviewPage({
           <p className="mt-3 text-sm font-semibold text-caution">Planning aid: verify dimensions, materials, hardware, and safety notes before building.</p>
         </header>
 
-        <PrintSection title="Build Snapshot">
+        <PrintSection title={corePacketSectionTitles.buildSnapshot}>
           <PrintBuildSnapshot manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Check Before Building">
-          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
-            <div className="mb-4">
-              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact />
-            </div>
-          ) : null}
-          <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
-        </PrintSection>
-
-        <PrintSection title="Hero Visual">
+        <PrintSection title={corePacketSectionTitles.heroVisual}>
           <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} compact />
         </PrintSection>
 
-        <PrintSection title="Project Visuals / Diagrams">
+        <PrintSection title={corePacketSectionTitles.projectVisuals}>
           {manifest.wallShelfDiagram ? (
             <WallShelfDiagrams model={manifest.wallShelfDiagram} />
           ) : (
@@ -91,23 +85,36 @@ export default async function ProjectPrintPreviewPage({
           )}
         </PrintSection>
 
-        <PrintSection title="Cut Checklist" printBreakBefore>
-          <PrintCutChecklist manifest={manifest} />
+        <PrintSection title={corePacketSectionTitles.checkBeforeBuilding}>
+          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
+            <div className="mb-4">
+              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact />
+            </div>
+          ) : null}
+          <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
         </PrintSection>
 
-        <PrintSection title="Buying Plan">
-          <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} compact />
-        </PrintSection>
-
-        <PrintSection title="Materials and Parts">
+        <PrintSection title={corePacketSectionTitles.materialsAndParts}>
           <PrintMaterialsAndParts manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Build Guide" printBreakBefore>
+        <PrintSection title={corePacketSectionTitles.cutChecklist} printBreakBefore>
+          <PrintCutChecklist manifest={manifest} />
+        </PrintSection>
+
+        <PrintSection title={corePacketSectionTitles.buyingPlan}>
+          {manifest.wallShelfStockBoardViewModel.status !== "unsupported" ? (
+            <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} compact />
+          ) : (
+            <PlanterBoxBuyingPlan viewModel={manifest.planterBoxStockBoardViewModel} compact />
+          )}
+        </PrintSection>
+
+        <PrintSection title={corePacketSectionTitles.buildGuide} printBreakBefore>
           <PrintBuildGuide manifest={manifest} />
         </PrintSection>
 
-        <PrintSection title="Reference Review Notes" appendix printBreakBefore>
+        <PrintSection title={corePacketSectionTitles.referenceReviewNotes} appendix printBreakBefore>
           <PrintReviewDetails manifest={manifest} />
         </PrintSection>
 
@@ -131,7 +138,7 @@ function PrintPreviewEmptyState({ project }: { project: Project }) {
 
 function PrintBuildSnapshot({ manifest }: { manifest: PrintablePlanManifest }) {
   const primaryMaterial = manifest.materials.primaryMaterials.at(0);
-  const majorPieces = majorPieceLabels(manifest);
+  const majorPieces = createPrintablePlanPacketSummary(manifest).majorPieceLabels;
   const topAction = manifest.actionChecklist.find((item) => item.priority === "required") ?? manifest.actionChecklist[0];
   const reviewReminder = topAction.label;
 
@@ -152,9 +159,10 @@ function PrintBuildSnapshot({ manifest }: { manifest: PrintablePlanManifest }) {
 }
 
 function PrintMaterialsAndParts({ manifest }: { manifest: PrintablePlanManifest }) {
+  const packet = createPrintablePlanPacketSummary(manifest);
   const pieceItems =
-    manifest.wallShelfPartScheduleViewModel.rows.length > 0
-      ? manifest.wallShelfPartScheduleViewModel.rows
+    packet.partRows.length > 0
+      ? packet.partRows
       : (manifest.cutList?.items.filter((item) => item.sourceLabel === "Modeled piece").map((item) => ({
           id: item.id,
           printLabel: item.label,
@@ -199,16 +207,21 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
     return <p className="text-sm leading-6 text-ink/65">Generate and validate a plan to review cut-list details.</p>;
   }
   const cutRows = printCutRows(manifest.cutList);
+  const packet = createPrintablePlanPacketSummary(manifest);
 
   return (
     <div className="space-y-4">
-      <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} compact />
+      {manifest.wallShelfCutDiagramViewModel.status !== "unsupported" ? (
+        <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} compact />
+      ) : (
+        <PlanterBoxCutDiagram viewModel={manifest.planterBoxCutDiagramViewModel} compact />
+      )}
       <dl className="grid gap-3 text-sm sm:grid-cols-5 print:grid-cols-5">
         <PrintFact label="Total cut pieces" value={manifest.cutList.totalPieces.toString()} />
         <PrintFact label="Unique cuts" value={manifest.cutList.cutListRows.toString()} />
         <PrintFact label="Pieces with dimensions" value={manifest.cutList.piecesWithDimensions.toString()} />
         <PrintFact label="Dimension review" value={manifest.cutList.piecesNeedingReview.toString()} />
-        <PrintFact label="Plan warnings" value={manifest.wallShelfCutDiagramViewModel.warnings.length.toString()} />
+        <PrintFact label="Plan warnings" value={packet.cutWarningCount.toString()} />
       </dl>
       <p className="text-xs text-ink/55 sm:hidden print:hidden">Scroll sideways to review all cut-list columns.</p>
       <div className="overflow-x-auto">
@@ -229,7 +242,7 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
                 <td className="py-2 pr-3 text-ink/70">
                   <span aria-hidden="true" className="inline-block h-4 w-4 border border-ink/40" />
                 </td>
-                <td className="py-2 pr-3 font-semibold text-ink">{printPartLabelForCutItem(item, manifest)}</td>
+                <td className="py-2 pr-3 font-semibold text-ink">{labelForPacketCutItem(item, packet)}</td>
                 <td className="py-2 pr-3 text-ink/70">{item.quantityLabel}</td>
                 <td className="py-2 pr-3 text-ink/70">{item.dimensionsLabel}</td>
                 <td className="py-2 pr-3 text-ink/70">{item.materialLabel}</td>
@@ -239,7 +252,7 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
           </tbody>
         </table>
       </div>
-      <PrintList title="Cutting reminders" items={[...manifest.cutList.warnings, ...manifest.cutList.reviewNotes].slice(0, 6)} />
+      <PrintList title="Cutting reminders" items={[...packet.cutWarnings, ...manifest.cutList.reviewNotes].slice(0, 6)} />
     </div>
   );
 }
@@ -375,14 +388,6 @@ function numberWord(value: number): string {
   return words[value] ?? value.toString();
 }
 
-function majorPieceLabels(manifest: PrintablePlanManifest): string[] {
-  const partLabels = manifest.wallShelfPartScheduleViewModel.assignedParts.map((row) => row.printLabel);
-  if (partLabels.length > 0) return partLabels.slice(0, 3);
-
-  const modeledPieces = manifest.cutList?.items.filter((item) => item.sourceLabel === "Modeled piece") ?? [];
-  return [...new Set(modeledPieces.map((item) => item.label))].slice(0, 3);
-}
-
 function mainChecklistItems(manifest: PrintablePlanManifest) {
   const requiredItems = manifest.actionChecklist.filter((item) => item.priority === "required");
   const selected = requiredItems.length > 0 ? requiredItems.slice(0, 3) : manifest.actionChecklist.slice(0, 3);
@@ -406,32 +411,6 @@ function PrintList({ title, items, emptyCopy = "No items listed.", compact = fal
       )}
     </div>
   );
-}
-
-function normalizePartText(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-}
-
-function partQuantity(rowQuantityLabel: string): number | null {
-  const value = Number.parseInt(rowQuantityLabel.replace(/[^0-9]+/g, ""), 10);
-  return Number.isFinite(value) && value > 0 ? value : null;
-}
-
-function printPartLabelForCutItem(item: NonNullable<PrintablePlanManifest["cutList"]>["items"][number], manifest: PrintablePlanManifest): string {
-  const quantity = partQuantity(item.quantityLabel);
-  const match = manifest.wallShelfPartScheduleViewModel.assignedParts.find((row) => {
-    const rowName = normalizePartText(row.displayName).replace(/\bs$/, "");
-    const itemName = normalizePartText(item.label).replace(/\bs$/, "");
-    return (
-      normalizePartText(row.displayName) === normalizePartText(item.label) ||
-      (rowName === itemName &&
-        row.dimensionsLabel === item.dimensionsLabel &&
-        normalizePartText(row.materialLabel) === normalizePartText(item.materialLabel) &&
-        (!quantity || row.quantity === quantity))
-    );
-  });
-
-  return match?.printLabel ?? item.label;
 }
 
 function printCutRows(cutList: NonNullable<PrintablePlanManifest["cutList"]>): NonNullable<PrintablePlanManifest["cutList"]>["items"] {

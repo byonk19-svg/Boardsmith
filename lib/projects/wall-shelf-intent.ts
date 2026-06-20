@@ -1,3 +1,4 @@
+import { extractProjectIntakeSignals, type ProjectIntakeSignals } from "@/lib/projects/project-intake-signals";
 import type { Project, ProjectIntake } from "@/lib/projects/types";
 
 export type WallShelfMountingIntentKind = "explicit_wall_mounted" | "implicit_wall_mounted" | "explicit_non_mounted" | "unknown";
@@ -24,6 +25,18 @@ function projectText(project: WallShelfIntentProject): string {
   return normalize([project.title, project.style_notes, project.intended_use].filter(Boolean).join(" "));
 }
 
+function knownSignal(value: string | undefined): boolean {
+  return Boolean(value && !/\b(not sure|i m not sure|unknown|tbd)\b/.test(normalize(value)));
+}
+
+function notWallMountedSignal(signals: ProjectIntakeSignals): boolean {
+  return [signals.mountingMethod, signals.wallType, signals.studAccess].some((value) => normalize(value ?? "").includes("not wall mounted"));
+}
+
+function wallMountedSignal(signals: ProjectIntakeSignals): boolean {
+  return Boolean(signals.mountingMethod && knownSignal(signals.mountingMethod) && !notWallMountedSignal(signals));
+}
+
 function hasExplicitNonMountedText(text: string): boolean {
   return (
     /\b(no|not|without)\s+(?:wall\s+)?(?:mounting|mounted|mount|anchors?|studs?|brackets?|hanging)\b/.test(text) ||
@@ -36,20 +49,32 @@ function hasExplicitMountedText(text: string): boolean {
 }
 
 export function hasWallShelfSupportMethod(project: WallShelfIntentProject): boolean {
+  const signals = extractProjectIntakeSignals(project);
+  if (wallMountedSignal(signals)) return true;
+
   return /\b(brackets?|cleats?|standards?|side\s+supports?|vertical\s+supports?|support\s+method|frame|uprights?|rails?|studs?|anchors?)\b/.test(
     projectText(project),
   );
 }
 
 export function hasWallShelfFastenerContext(project: WallShelfIntentProject): boolean {
+  const signals = extractProjectIntakeSignals(project);
+  if (knownSignal(signals.wallType) || knownSignal(signals.studAccess) || knownSignal(signals.wallObstructions)) return true;
+
   return /\b(studs?|anchors?|fasteners?|screws?|drywall|plaster|tile|masonry|wall\s+type|wall\s+structure)\b/.test(projectText(project));
 }
 
 export function hasWallShelfExpectedUseContext(project: WallShelfIntentProject): boolean {
+  const signals = extractProjectIntakeSignals(project);
+  if (knownSignal(signals.shelfLoad) || knownSignal(signals.installLocation) || signals.higherRiskSpots.some(knownSignal)) return true;
+
   return /\b(light|decor|towels?|books?|plants?|display|load|weight|pantry|spice|storage|toiletries|nursery|hold|holding)\b/.test(projectText(project));
 }
 
 export function hasWallShelfFinishProtectionContext(project: WallShelfIntentProject): boolean {
+  const signals = extractProjectIntakeSignals(project);
+  if (knownSignal(signals.moistureExposure) || knownSignal(signals.finishPreference) || knownSignal(signals.edgeTreatment)) return true;
+
   return /\b(finish|paint|stain|seal|sealed|sealer|polyurethane|spar\s+urethane|varnish|exterior\s+screws?|stainless|galvanized|cedar|treated|weatherproof|waterproof|moisture[-\s]+resistant)\b/.test(
     projectText(project),
   );
@@ -61,8 +86,9 @@ export function isBathroomOrHumidityText(project: WallShelfIntentProject): boole
 
 export function analyzeWallShelfMountingIntent(project: WallShelfIntentProject): WallShelfMountingIntent {
   const text = projectText(project);
-  const nonMounted = hasExplicitNonMountedText(text);
-  const explicitMounted = hasExplicitMountedText(text);
+  const signals = extractProjectIntakeSignals(project);
+  const nonMounted = hasExplicitNonMountedText(text) || notWallMountedSignal(signals);
+  const explicitMounted = hasExplicitMountedText(text) || wallMountedSignal(signals);
   const simpleShelfTemplate = project.project_type === "simple_shelf";
   const kind: WallShelfMountingIntentKind = nonMounted
     ? "explicit_non_mounted"

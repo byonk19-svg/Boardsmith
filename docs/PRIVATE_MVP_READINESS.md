@@ -1,12 +1,14 @@
 # Boardsmith Private MVP Readiness
 
-Date: June 15, 2026
+Date: June 20, 2026
 
 ## Current Status
 
 Boardsmith is a private MVP woodworking planning app. It is ready for a small private MVP demo/use test with intended users who can pass the active hosted access layers. It is not ready for public sharing, production multi-user use, fabrication approval, or export/CAD workflows.
 
 The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, hosted route smoke passes through the intended protected access path, authorized hosted archive/restore and `Tweak this plan` smoke have passed, and the post-push wall-shelf dogfood fix was verified on hosted. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
+
+The June 20, 2026 deeper planter packet planning follow-through landed locally and passed the usual test/lint/typecheck/build/browser-flow verification, but hosted planter smoke has not been refreshed yet.
 
 ## Final Private MVP Readiness Checkpoint
 
@@ -35,6 +37,7 @@ What is now verified:
 - Projects whose latest attempt failed while an older saved plan remains available now say the latest attempt failed instead of implying there is no usable saved plan.
 - Five separate wall shelves with individual board thickness now generate successfully on hosted and render Buying Plan instead of hitting `shelf_layout_invalid`.
 - Wall-shelf Buying Plan appears after Cut Checklist and before Materials and Parts on detail and print, groups modeled wood pieces by material, and keeps stock length as review/selection language instead of inventing a purchase.
+- Deeper planter packet planning now exists locally, including the planter-box packet follow-through added on June 20, 2026.
 - Browser print remains the supported private MVP output path.
 
 Remaining known limitations:
@@ -42,6 +45,7 @@ Remaining known limitations:
 - Generated plan quality can still vary. Connected shelf units and child-adjacent ledges may be blocked by generated-plan review; this is acceptable safety posture until repeated examples justify a narrow prompt/model slice.
 - Buying Plan is still conservative. It does not choose exact stock boards, optimize cuts, price materials, choose vendors, or produce a complete shopping list.
 - Hardware and fastener guidance remains split across Buying Plan, Materials and Parts, and review notes because exact bracket/anchor choices depend on wall structure, expected load, and real site review.
+- The deeper planter packet planning follow-through has not yet had a fresh hosted smoke pass.
 - The hosted access model still relies on private access layers, not production auth, per-user ownership, or RLS.
 - Browser print is usable but not a generated PDF/download/export system.
 - Boardsmith still does not provide engineering review, load ratings, wall-safety guarantees, child-safety certification, CAD/CNC output, public sharing, shopping, pricing, vendor, inventory, payments, or subscriptions.
@@ -49,8 +53,8 @@ Remaining known limitations:
 Recommended next 3 tasks:
 
 1. Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-2. Collect repeated generation-quality friction from real supported projects before changing prompts.
-3. Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
+2. Refresh hosted planter smoke before treating the June 20 planter follow-through as hosted-current.
+3. Collect repeated generation-quality friction from real supported projects before changing prompts.
 
 ## Private MVP Checkpoint
 
@@ -386,7 +390,9 @@ Recommended next direction:
 ## What Works Now
 
 - Project creation from `/projects/new`.
-- Private workspace dashboard with project counts, latest update date, recent project shortcuts, empty state, and starter example links.
+- Plain-language idea drafting from the dashboard or `/projects/new` via `/projects/draft`, with editable setup fields, parser review notes, and supported/concept/unsupported/blocked draft status before save.
+- Natural-language concept-only or unsupported drafts no longer silently default into wall-shelf setup; they require explicit supported-template resolution before project creation, while safety-blocked drafts are refused at the create route.
+- Private workspace dashboard with project counts, latest update date, recent project shortcuts, empty state, idea-draft entry, and starter example links.
 - Project archive/restore foundation that hides archived projects from the default project list and dashboard while preserving project records and generated plans.
 - Hosted project intake accepts normal woodworking values like `12`, `8`, `4`, and material thickness `0.75`.
 - Supabase-backed project, generated-plan, notes, duplicate-project, and build-log persistence.
@@ -398,7 +404,9 @@ Recommended next direction:
 - Stored `build_model_json` on generated plan versions.
 - Plan history that preserves earlier versions.
 - Read-only plan comparison between the latest plan and an older saved version.
-- One-shot `Tweak this plan` active-project revision flow that saves revised output as a new generated-plan version, preserves the previous version in history, and redirects into revised-vs-prior comparison.
+- One-shot `Tweak this plan` active-project revision flow for prose-only changes that saves revised output as a new generated-plan version, preserves the previous version in history, and redirects into revised-vs-prior comparison.
+- Structural or safety-sensitive revision requests are classified and blocked or redirected before regeneration instead of silently saving a full new plan.
+- Project detail clarification answers can update answerable Project Intake fields and managed intake-context text without creating a generated-plan version.
 - Deterministic Plan Review status.
 - Deterministic Export Readiness status for future export work.
 - Material Summary grouped for review.
@@ -409,6 +417,8 @@ Recommended next direction:
 - Browser print-preview visual aids: project anatomy, three-view planning diagram, visual piece inventory, and connection planning aid.
 - Compact print action checklist, materials/piece rows, checklist-style cut list, and procedural build-step cards.
 - Deterministic browser-rendered planning diagrams for supported simple shelf, book ledge, and planter box plans.
+- Conservative planter-box part labels now flow through the printable manifest, project detail materials/parts section, and browser print materials/parts section.
+- Unsupported woodworking-adjacent ideas can render concept-only guidance and mini options without cut lists, build steps, or packet visuals.
 - Connection planning aids from existing build-model connection data.
 - Beginner-friendly build step cards from existing generated plan and build-model operation data.
 - Export architecture decision remains browser-print-first for the private MVP; app-generated PDF is not approved.
@@ -432,6 +442,7 @@ Recommended next direction:
 
 - Whether Vercel-level deployment protection, the Boardsmith `/access` gate, or both should be the long-term private hosted access model.
 - Hosted behavior after any future deployment, env-var change, migration, access-gate change, archive-related code change, or `Tweak this plan` code change until the hosted smoke checklist is rerun.
+- The new idea-drafting status lifecycle, concept-only guidance, planter-box part-label rendering, and revision-intent blocking paths have local automated coverage but have not yet had a fresh hosted smoke pass after this implementation.
 
 ## Non-Goals And Guardrails
 

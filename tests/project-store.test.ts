@@ -214,6 +214,54 @@ describe("project store lifecycle", () => {
     expect(reloaded?.safety_flags).not.toContain("Shelf count/layout missing");
   });
 
+  it("updates structured revision intake fields and refreshes deterministic safety flags", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const project = await store.createProject({
+      ...intake,
+      title: `Structured revision shelf ${crypto.randomUUID()}`,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: undefined,
+      shelf_spacing_inches: undefined,
+      intended_use: "Bathroom wall storage for towels.",
+    });
+
+    expect(project.safety_flags).toContain("Shelf count/layout missing");
+
+    const updated = await store.updateProjectStructuredRevision(project.id, {
+      width_inches: 30,
+      depth_inches: 8,
+      material_type: "Oak",
+      shelf_count: 3,
+      shelf_spacing_inches: 12,
+    });
+    const reloaded = await store.getProject(project.id);
+
+    expect(updated?.width_inches).toBe(30);
+    expect(updated?.depth_inches).toBe(8);
+    expect(updated?.material_type).toBe("Oak");
+    expect(updated?.updated_at).not.toBe(project.updated_at);
+    expect(reloaded?.width_inches).toBe(30);
+    expect(reloaded?.material_type).toBe("Oak");
+    expect(reloaded?.safety_flags).not.toContain("Shelf count/layout missing");
+  });
+
+  it("rejects invalid structured revision intake values before writing", async () => {
+    const store = await import("@/lib/storage/project-store");
+    const project = await store.createProject({
+      ...intake,
+      title: `Invalid structured revision shelf ${crypto.randomUUID()}`,
+    });
+
+    await expect(
+      store.updateProjectStructuredRevision(project.id, {
+        width_inches: 300,
+      }),
+    ).rejects.toThrow();
+
+    const reloaded = await store.getProject(project.id);
+    expect(reloaded?.width_inches).toBe(project.width_inches);
+  });
+
   it("saves a plain-text build log without affecting generated plans", async () => {
     const store = await import("@/lib/storage/project-store");
     const project = await store.createProject({
@@ -295,6 +343,9 @@ describe("project store lifecycle", () => {
       shelf_spacing_inches: 12,
       height_inches: 48,
     });
+    const structuredRevisionResult = await store.updateProjectStructuredRevision(project.id, {
+      width_inches: 30,
+    });
     const duplicateResult = await store.duplicateProject(project.id);
     const archiveAgainResult = await store.archiveProject(project.id);
     const reloaded = await store.getProject(project.id);
@@ -303,10 +354,12 @@ describe("project store lifecycle", () => {
     expect(notesResult).toBeNull();
     expect(buildLogResult).toBeNull();
     expect(shelfLayoutResult).toBeNull();
+    expect(structuredRevisionResult).toBeNull();
     expect(duplicateResult).toBeNull();
     expect(archiveAgainResult).toBeNull();
     expect(reloaded?.notes).toBe("");
     expect(reloaded?.build_completed).toBe(false);
+    expect(reloaded?.width_inches).toBe(project.width_inches);
     expect(reloaded?.shelf_layout).toBe(project.shelf_layout);
     expect(reloaded?.updated_at).toBe(archived?.updated_at);
   });

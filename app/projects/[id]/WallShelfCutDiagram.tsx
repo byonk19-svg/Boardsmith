@@ -72,14 +72,7 @@ function CutPieceCard({ piece, compact }: { piece: WallShelfCutPieceGroup; compa
       </svg>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-ink">
-            {piece.partLabel ? (
-              <>
-                <span className="mr-1.5 rounded-sm border border-sawdust bg-white px-1.5 py-0.5 text-xs text-ink/60">{piece.partLabel}</span>{" "}
-              </>
-            ) : null}
-            {piece.label}
-          </p>
+          <p className="text-sm font-semibold text-ink">{piece.printLabel}</p>
           <p className="mt-1 text-xs leading-5 text-ink/60">{piece.materialLabel}</p>
         </div>
         <span className="w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-ink/70">{piece.quantityLabel}</span>

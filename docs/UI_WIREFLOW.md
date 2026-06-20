@@ -48,7 +48,8 @@ Project detail
     Archive project -> POST /projects/[id]/archive
     Restore project -> POST /projects/[id]/restore
     Section jump links -> #project-intake, #plan-review, #printable-plan-sheet, #plan-history, #project-record
-    Create revised plan -> POST /projects/[id]/revise -> /projects/[id]?revised=1&compare_plan=...
+    Submit revision -> POST /projects/[id]/revise -> /projects/[id]?revised=1&compare_plan=... or structured_revision=updated
+    Save clarification answers -> POST /projects/[id]/clarification -> /projects/[id]?clarification_answers=updated#plan-readiness
     Compare older version -> /projects/[id]?compare_plan=:planId
     Save project notes -> POST /projects/[id]/notes
     Save build log -> POST /projects/[id]/build-log
@@ -339,7 +340,7 @@ Wireframe:
 | Plan Review | > Output readiness notes                |
 +------------------------------------------------------+
 | Tweak this plan                                      |
-| [revision text area] [Create revised plan]            |
+| [revision text area] [Submit revision]                |
 +------------------------------------------------------+
 | Plan comparison                                      |
 +------------------------------------------------------+
@@ -355,7 +356,8 @@ Wireframe:
 Review cut list -> #cut-list-to-verify
 Open questions -> #open-questions
 Print build sheet -> /projects/[id]/print
-Create revised plan -> POST /projects/[id]/revise
+Submit revision -> POST /projects/[id]/revise
+Save clarification answers -> POST /projects/[id]/clarification
 Compare -> /projects/[id]?compare_plan=:planId
 Generate another version -> POST /projects/[id]/generate
 ```

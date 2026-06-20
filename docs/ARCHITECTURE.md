@@ -34,14 +34,16 @@ Current routes and modules support:
 - Private dashboard at `/`.
 - Project list at `/projects`.
 - Project intake at `/projects/new`.
+- Plain-language intake drafting at `/projects/draft`, which pre-fills editable setup fields before project creation.
 - Project detail at `/projects/[id]`.
 - Browser print preview at `/projects/[id]/print`.
 - Settings and private access pages.
-- POST route handlers for create, generate, revise, duplicate, archive, restore, notes, build log, and shelf-layout updates.
+- POST route handlers for draft, create, generate, revise, clarification answers, duplicate, archive, restore, notes, build log, and shelf-layout updates.
 
 Current product capabilities include:
 
 - Structured project intake for supported beginner-friendly project types.
+- Deterministic plain-language idea drafting that writes conservative editable intake fields, missing-field hints, safety-sensitive parser notes, and supported/concept/unsupported/blocked draft status before save.
 - Deterministic safety-review flags.
 - Template hints by project type.
 - Boardsmith Build Model draft generation.
@@ -49,11 +51,12 @@ Current product capabilities include:
 - Zod validation before saving generated plans.
 - Deterministic plan quality checks when a build model is available.
 - Versioned generated plan history with latest-plan marking.
-- One-shot natural-language plan revision that saves a new generated-plan version.
+- Prose-only natural-language plan revision that saves a new generated-plan version; safe, explicit width, depth, material, material-thickness, shelf-layout, shelf-count, and shelf-spacing revision requests patch structured Project Intake first, while height, cut-list, support/mounting, ambiguous, and safety-sensitive requests are blocked or redirected before regeneration.
 - Plan comparison between latest and prior versions.
 - Project notes and build-log fields.
 - Archive/restore as private workspace organization.
 - Material Summary, Cut List Review, Plan Review, Export Readiness, action checklist, diagram helpers, build-step cards, and printable plan manifest.
+- Wall shelves have the most complete typed packet view-model path; the printable manifest also carries conservative planter-box part-schedule, cut-layout, and stock/material planning view models.
 - Browser print preview from the same structured plan manifest used by the detail page.
 
 ## Current Storage
@@ -125,6 +128,12 @@ Build Model
 -> Plan Packet
 ```
 
+Current implementation status:
+
+- Wall shelves are the golden path for the full typed packet family: part identity, diagram view models, cut layout, buying plan, readiness, build-step view model, renderers, detail page, and print sheet.
+- Planter boxes now have a bounded typed packet slice: deterministic `Part A` through `Part E` panel identity, a review-first planter cut-layout view model, and a review-first stock/material planning view model.
+- Planter readiness, build-step cards, and connection diagrams intentionally continue through the generic checklist, build-step, and planning-diagram adapters until dogfood shows a repeated need for template-specific modules.
+
 Rules:
 
 - Build Model remains the source of truth.
@@ -142,6 +151,10 @@ Rules:
 Current:
 
 - Structured form intake with project type, skill level, dimensions, material thickness, tools, style notes, intended use, and wall-shelf layout fields.
+- Plain-language ideas can draft conservative editable intake fields and parser review notes, but the saved project remains structured form data.
+- Natural-language draft status is preserved through the pre-create lifecycle: supported drafts can save normally, concept-only or unsupported drafts require explicit supported-template resolution before save, and safety-blocked drafts cannot be saved as build setups.
+- Project detail readiness questions now have a clarification-answer loop for answerable saved-intake fields. Dimension, material, shelf-layout, tool, mounting-context, load/use, and finish/context answers save back to the existing project record, replace managed `Structured intake` / `Planning preferences` lines when needed, and recompute the gate without creating a generated-plan version.
+- The managed intake text is treated as an explicit Adapter, not ad hoc prose: shared Modules serialize those sections on create/clarification and extract Project Intake Signals for downstream mounting, fastener, load/use, and finish/exposure decisions. The project detail page renders those parsed signals as an auditable read-only summary while keeping the raw intended-use and style-notes fields as source evidence. Legacy prose remains a fallback until those fields become first-class persistence.
 - Zod validation blocks invalid project records.
 - Starter examples prefill editable form values.
 
@@ -247,7 +260,10 @@ Current:
 
 - Generated plans are versioned.
 - Saving a generated plan marks it latest and preserves prior plan history.
-- `Tweak this plan` accepts one natural-language instruction and saves a complete revised plan as a new version.
+- `Tweak this plan` accepts prose-only natural-language revisions directly.
+- Explicit width, depth, material, material-thickness, shelf-layout, shelf-count, and shelf-spacing revision requests can patch structured Project Intake through a validated storage update before any new generated output appears.
+- Project detail clarification answers can save shelf height, tool availability, and guided support/mounting/load/finish context through existing intake fields and managed text sections. The Project Intake Signals Adapter reads those managed sections before falling back to legacy prose. Clarification answers do not auto-generate a plan.
+- Cut-list, ambiguous, safety-sensitive, unparseable, concept-only, unsupported, and child/electrical/load-certification questions remain manual or blocked because they do not yet have a safe first-class completion target.
 - Archived projects block revision until restored.
 
 Target:
@@ -287,6 +303,7 @@ Target:
 - Diagram changes need view-model and render tests.
 - Print/PDF changes need screenshot or manual visual review where practical.
 - Safety and validation changes need regression tests.
+- Hosted smoke can assert optional expected route text through `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT` after Vercel/app/session access is satisfied; this is still a no-dependency route/content check, not a full browser harness.
 - Avoid broad refactors during focused feature work.
 - Do not add schema changes unless intentionally scoped.
 

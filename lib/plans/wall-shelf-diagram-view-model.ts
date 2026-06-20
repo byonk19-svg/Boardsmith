@@ -321,7 +321,7 @@ export function createWallShelfDiagramViewModel(params: {
     invalidHeight: Boolean(invalidHeightIssue),
     missingShelfCount,
   });
-  const status: WallShelfDiagramViewStatus = unsupported ? "unsupported" : fallbackMessage ? "needs_review" : "ready";
+  const status: WallShelfDiagramViewStatus = unsupported ? "unsupported" : fallbackMessage || supportFrameReview.needsReview ? "needs_review" : "ready";
   const shelfCountLabel = shelfCount ? `${shelfCount.toString()} ${shelfCount === 1 ? "shelf" : "shelves"}` : "Shelf count needs review";
 
   return {

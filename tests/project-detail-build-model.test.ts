@@ -1,9 +1,12 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
+import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
+import { getTemplateHint } from "@/lib/templates/template-hints";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) =>
@@ -147,6 +150,7 @@ describe("ProjectDetailPage project structure", () => {
     const buildSnapshotIndex = markup.indexOf("Build Snapshot");
     const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
     const heroVisualIndex = markup.indexOf("Hero Visual");
+    const projectVisualsIndex = markup.indexOf("Project Visuals / Diagrams");
     const checkBeforeIndex = markup.indexOf("Check Before Building");
     const advancedDetailsIndex = markup.indexOf('id="advanced-project-details"');
     const reviewChecklistIndex = markup.indexOf("Generated plan review checklist");
@@ -160,9 +164,10 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(planSheetIndex).toBeGreaterThan(-1);
     expect(buildSnapshotIndex).toBeGreaterThan(planSheetIndex);
-    expect(checkBeforeIndex).toBeGreaterThan(buildSnapshotIndex);
+    expect(heroVisualIndex).toBeGreaterThan(buildSnapshotIndex);
+    expect(projectVisualsIndex).toBeGreaterThan(heroVisualIndex);
+    expect(checkBeforeIndex).toBeGreaterThan(projectVisualsIndex);
     expect(readinessIndex).toBeGreaterThan(checkBeforeIndex);
-    expect(heroVisualIndex).toBeGreaterThan(readinessIndex);
     expect(advancedDetailsIndex).toBeGreaterThan(heroVisualIndex);
     expect(reviewChecklistIndex).toBeGreaterThan(advancedDetailsIndex);
     expect(sectionNavIndex).toBeGreaterThan(reviewChecklistIndex);
@@ -207,6 +212,37 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("wall plane");
     expect(markup.match(/<g>/g)?.length).toBe(5);
     expect(markup).not.toContain("Major pieces");
+  });
+
+  it("renders a planter-box hero as an open-top planter instead of the generic block", async () => {
+    const { ProjectHeroVisual } = await import("@/app/projects/[id]/ProjectHeroVisual");
+
+    const markup = renderToStaticMarkup(
+      React.createElement(ProjectHeroVisual, {
+        visual: {
+          title: "Project anatomy",
+          kind: "planter_box",
+          widthLabel: "Width 24 in",
+          heightLabel: "Height 8 in",
+          depthLabel: "Depth 8 in",
+          materialThicknessLabel: "Material thickness 0.75 in",
+          materialLabel: "cedar board",
+          pieceLabels: ["Part A - Front panel", "Part B - Back panel", "Part E - Bottom panel"],
+          shelfCount: null,
+          hasWallContext: false,
+          supportLabel: null,
+          fallbackMessage: null,
+        },
+      }),
+    );
+
+    expect(markup).toContain("Deterministic planter-box planning hero visual");
+    expect(markup).toContain("Planter-box planning preview");
+    expect(markup).toContain("open-top planter box planning preview");
+    expect(markup).toContain("drainage, liner, finish, and outdoor exposure need review");
+    expect(markup).toContain("Part A - Front panel + Part B - Back panel");
+    expect(markup).not.toContain("Major pieces");
+    expect(markup).not.toContain("finished wall-shelf preview");
   });
 
   it("renders no-print project section navigation with links to existing latest-plan sections", async () => {
@@ -493,12 +529,12 @@ describe("ProjectDetailPage project structure", () => {
 
     const corePacketOrder = [
       "Build Snapshot",
-      "Check Before Building",
       "Hero Visual",
       "Project Visuals / Diagrams",
+      "Check Before Building",
+      "Materials and Parts",
       "Cut Checklist",
       "Buying Plan",
-      "Materials and Parts",
       "Build Guide",
       "Reference Review Notes",
     ];
@@ -510,18 +546,93 @@ describe("ProjectDetailPage project structure", () => {
 
     expect(markup).toContain("Tweak this plan");
     expect(markup).toContain("Describe one change to the latest plan.");
-    expect(markup).toContain("Boardsmith saves a new plan version for review; this is a one-shot revision, not a chat thread.");
-    expect(markup).toContain("Describe one change to make to the latest plan");
-    expect(markup).toContain("Boardsmith will save this as a new plan version.");
+    expect(markup).toContain("Boardsmith patches Project Intake first for safe structured changes");
+    expect(markup).toContain("or saves a new plan version for prose-only revisions.");
+    expect(markup).toContain("Safe explicit dimensions, materials, and shelf-layout changes update Project Intake first.");
+    expect(markup).toContain("Project type, support, mounting, cut-list, or safety-sensitive changes still need manual review.");
+    expect(markup).toContain("Describe one change");
+    expect(markup).toContain("Prose-only tweaks save a new plan version.");
+    expect(markup).toContain("Safe explicit intake changes update the saved project details first.");
     expect(markup).toContain("Revised plans still need manual review before cutting or building.");
     expect(markup).toContain('action="/projects/project_saved_bbm/revise"');
     expect(markup).toContain('name="revision_instruction"');
-    expect(markup).toContain("Create revised plan");
+    expect(markup).toContain("Submit revision");
+    expect(markup).not.toContain("For new dimensions, materials, project type, or mounting changes, update or duplicate the project intake first.");
+    expect(markup).not.toContain("Boardsmith will save this as a new plan version.");
     expect(markup).not.toContain("AI chat");
     const tweakStart = markup.indexOf('id="tweak-this-plan"');
     const tweakEnd = markup.indexOf("</section>", tweakStart);
     const tweakMarkup = markup.slice(tweakStart, tweakEnd);
     expect(tweakMarkup).not.toMatch(/background agent|professional approval|structural approval|certification|CAD-ready|CNC-ready|fabrication-ready/i);
+  });
+
+  it("renders structured revision blocking feedback without echoing raw instructions", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const structuredMarkup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({
+          revision_error: "structured_change_required",
+          revision_categories: "dimensions,materials or finish",
+        }),
+      }),
+    );
+    const safetyMarkup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({
+          revision_error: "safety_sensitive_change",
+          revision_categories: "safety-sensitive assumptions",
+        }),
+      }),
+    );
+    const ambiguousMarkup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({
+          revision_error: "ambiguous_revision",
+          revision_categories: "ambiguous structural change,Make it safe for heavy books",
+        }),
+      }),
+    );
+
+    expect(structuredMarkup).toContain("This change affects saved project details.");
+    expect(structuredMarkup).toContain("Boardsmith could not patch Project Intake automatically.");
+    expect(structuredMarkup).toContain("Update the intake fields directly");
+    expect(structuredMarkup).toContain("Detected change area: dimensions, materials or finish.");
+    expect(safetyMarkup).toContain("This request changes safety-critical planning assumptions.");
+    expect(safetyMarkup).toContain("Review Plan readiness and saved Project Intake");
+    expect(ambiguousMarkup).toContain("Boardsmith could not tell whether this is a prose-only revision or a structured intake change.");
+    expect(ambiguousMarkup).toContain("Say the new dimensions, materials, or shelf layout directly");
+    expect(ambiguousMarkup).toContain("Detected change area: ambiguous structural change.");
+    expect(ambiguousMarkup).not.toContain("Make it safe for heavy books");
+    expect(ambiguousMarkup).not.toContain("stack trace");
+    expect(ambiguousMarkup).toContain("No plan version was changed.");
+  });
+
+  it("renders applied structured revision feedback without echoing raw instructions", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({
+          structured_revision: "updated",
+          clarification_status: "needs_details",
+        }),
+      }),
+    );
+
+    expect(markup).toContain("Project intake updated from the requested structured change.");
+    expect(markup).toContain("No plan version was created yet.");
+    expect(markup).toContain("Some details still need review before generation.");
+    expect(markup).not.toContain("Make the shelf 30 inches wide");
+    expect(markup).not.toContain("stack trace");
   });
 
   it("shows a prominent warning before the plan when cut-list dimensions are missing or unresolved", async () => {
@@ -909,6 +1020,142 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup.indexOf("No generated plan yet")).toBeLessThan(markup.indexOf("Planning details before generation"));
   });
 
+  it("renders parsed project intake signals as an auditable detail-page summary", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      intended_use: [
+        "Decorative wall shelf for light objects.",
+        "",
+        "Structured intake",
+        "- Mounting method: Wall-mounted",
+        "- Wall type: Drywall over studs",
+        "- Stud access: Studs likely available",
+        "- What it will hold: Small plants and a framed photo",
+        "- Install location: Bathroom wall",
+        "- Support/bracket count: Two brackets",
+        "- Higher-risk spot: Bathroom moisture",
+        "- Moisture exposure: Occasional humidity",
+      ].join("\n"),
+      style_notes: [
+        "Simple painted shelf.",
+        "",
+        "Planning preferences",
+        "- Board size from store: 1x10 board",
+        "- Cut plan: Cut at home",
+        "- Finish preference: Water-resistant paint",
+        "- Edge treatment: Round over exposed edges",
+      ].join("\n"),
+    });
+    listGeneratedPlansMock.mockResolvedValue([]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Project Intake Signals");
+    expect(markup).toContain("Parsed from the saved structured intake");
+    expect(markup).toContain("Mounting and wall");
+    expect(markup).toContain("Mounting method:");
+    expect(markup).toContain("Wall-mounted");
+    expect(markup).toContain("Support and load");
+    expect(markup).toContain("Small plants and a framed photo");
+    expect(markup).toContain("Higher-risk spots:");
+    expect(markup).toContain("Bathroom moisture");
+    expect(markup).toContain("Material planning");
+    expect(markup).toContain("1x10 board");
+    expect(markup).toContain("Finish and exposure");
+    expect(markup).toContain("Water-resistant paint");
+  });
+
+  it("renders unsupported woodworking-adjacent projects as concept-only guidance without packet sections", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      id: "concept_only_bookcase",
+      title: "Built-in bookcase",
+      project_type: "bookcase",
+      width_inches: 48,
+      height_inches: 72,
+      depth_inches: 12,
+      material_thickness_inches: 0.75,
+      material_type: "pine board",
+      style_notes: "Living room storage wall.",
+      intended_use: "Large built-in bookcase for living room storage.",
+      safety_flags: [],
+      status: "draft",
+    } as unknown as Project);
+    listGeneratedPlansMock.mockResolvedValue([]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: "concept_only_bookcase" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Concept only");
+    expect(markup).toContain("Concept-only guidance");
+    expect(markup).toContain("Storage concept");
+    expect(markup).toContain("Convert to a supported wall shelf");
+    expect(markup).toContain("Keep as freestanding storage notes");
+    expect(markup).toContain("Confirmed dimensions only");
+    expect(markup).toContain("Width:");
+    expect(markup).toContain("48 in");
+    expect(markup).toContain("Keep concept-only");
+    expect(markup).not.toContain("Build Guide");
+    expect(markup).not.toContain("Cut Checklist");
+    expect(markup).not.toContain("Project Visuals / Diagrams");
+    expect(markup).not.toContain("Print build sheet");
+  });
+
+  it("renders planter-box packet part labels on the project detail page", async () => {
+    const planterProject: Project = {
+      ...project,
+      id: "planter_detail_project",
+      title: "Outdoor planter box",
+      project_type: "planter_box",
+      height_inches: 8,
+      depth_inches: 8,
+      material_type: "cedar board",
+      intended_use: "Outdoor herb planter box.",
+      safety_flags: ["Outdoor exposure review"],
+    };
+    const buildModel = createBuildModelDraft(planterProject, getTemplateHint(planterProject.project_type), calculateSafetyReviewFlags(planterProject));
+    getProjectMock.mockResolvedValue(planterProject);
+    listGeneratedPlansMock.mockResolvedValue([
+      {
+        ...planRecord,
+        project_id: planterProject.id,
+        build_model_json: buildModel,
+        plan_json: {
+          ...planRecord.plan_json,
+          project_type: "planter_box",
+          project_summary: "A cautious planter box plan with drainage and outdoor exposure review.",
+        },
+      },
+    ]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: planterProject.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Materials and Parts");
+    expect(markup).toContain("Part A - Front panel");
+    expect(markup).toContain("Part B - Back panel");
+    expect(markup).toContain("Part C - Left side panel");
+    expect(markup).toContain("Part D - Right side panel");
+    expect(markup).toContain("Part E - Bottom panel");
+    expect(markup).not.toContain("Shelf board to review");
+  });
+
   it("keeps notes and build log useful when no plan or saved record details exist", async () => {
     getProjectMock.mockResolvedValue({
       ...project,
@@ -981,6 +1228,59 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Print build sheet");
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
     expect(markup).not.toContain("No generated plan yet.");
+  });
+
+  it("shows a shelf-layout answer loop from the clarification gate when saved intake is missing shelf count", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Multiple shelf wall hanging",
+      height_inches: 60,
+      depth_inches: 6,
+      shelf_layout: "multi_shelf_unit",
+      shelf_count: undefined,
+      intended_use: "Bathroom wall storage for towels.",
+    });
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(markup).toContain("Plan readiness");
+    expect(markup).toContain("How many shelves or shelf openings should the plan include?");
+    expect(markup).toContain('id="answer-clarification-questions"');
+    expect(markup).toContain("Answer readiness questions");
+    expect(markup).toContain("Update Project Intake details");
+    expect(markup).toContain("These open questions map to saved Project Intake fields.");
+    expect(markup).toContain('action="/projects/project_saved_bbm/clarification"');
+    expect(markup).toContain('name="shelf_layout"');
+    expect(markup).toContain('name="shelf_count"');
+    expect(markup).toContain("Save clarification answers");
+    expect(markup).not.toContain("No generated plan yet.");
+  });
+
+  it("renders saved clarification answer feedback without implying a generated plan version", async () => {
+    getProjectMock.mockResolvedValue(project);
+    listGeneratedPlansMock.mockResolvedValue([planRecord]);
+    const { default: ProjectDetailPage } = await import("@/app/projects/[id]/page");
+
+    const markup = renderToStaticMarkup(
+      await ProjectDetailPage({
+        params: Promise.resolve({ id: project.id }),
+        searchParams: Promise.resolve({
+          clarification_answers: "updated",
+          clarification_status: "ready_for_full_plan",
+        }),
+      }),
+    );
+
+    expect(markup).toContain("Clarification answers saved to Project Intake.");
+    expect(markup).toContain("No plan version was created.");
+    expect(markup).toContain("The saved intake now has enough detail for the full-plan path.");
   });
 
   it("shows a direct shelf-layout repair form when generation is blocked by missing shelf count", async () => {
@@ -1088,19 +1388,24 @@ describe("ProjectDetailPage project structure", () => {
     const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
     const heightActionIndex = markup.indexOf("Total project height looks too small");
     const heroIndex = markup.indexOf("Hero Visual");
+    const projectVisualsIndex = markup.indexOf("Project Visuals / Diagrams");
     const cutIndex = markup.indexOf("Cut Checklist");
     const buildIndex = markup.indexOf("Build Guide");
     const checkIndex = markup.indexOf("Check Before Building");
 
     expect(readinessIndex).toBeGreaterThan(-1);
     expect(heightActionIndex).toBeGreaterThan(readinessIndex);
-    expect(checkIndex).toBeLessThan(heroIndex);
+    expect(heroIndex).toBeLessThan(projectVisualsIndex);
+    expect(projectVisualsIndex).toBeLessThan(checkIndex);
     expect(readinessIndex).toBeGreaterThan(checkIndex);
-    expect(readinessIndex).toBeLessThan(heroIndex);
-    expect(heroIndex).toBeLessThan(cutIndex);
+    expect(readinessIndex).toBeLessThan(cutIndex);
     expect(cutIndex).toBeLessThan(buildIndex);
     expect(markup).toContain("Enter the full top-to-bottom height of the shelf unit, such as 60 in.");
     expect(markup).toContain("Support/frame design needs review");
+    const answerStart = markup.indexOf('id="answer-clarification-questions"');
+    const answerEnd = markup.indexOf("Recommended next step", answerStart);
+    const answerMarkup = markup.slice(answerStart, answerEnd);
+    expect(answerMarkup.match(/name="height_inches"/g)).toHaveLength(1);
     expect(markup).not.toMatch(/freestanding|non-mounted/i);
   });
 

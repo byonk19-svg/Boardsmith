@@ -6,6 +6,7 @@ import {
   decodeProjectIntakeDraft,
   encodeProjectIntakeDraft,
   maxProjectIntakeDraftCookieValueLength,
+  projectIntakeDraftCookieName,
   type ProjectIntakeDraft,
 } from "@/lib/projects/intake-draft";
 import type { Project } from "@/lib/projects/types";
@@ -123,11 +124,68 @@ describe("project form routes", () => {
     return body;
   }
 
+  function naturalLanguageDraft(overrides: Partial<ProjectIntakeDraft> = {}): ProjectIntakeDraft {
+    return {
+      title: "Project idea",
+      project_type: "",
+      skill_level: "beginner",
+      width_inches: "84",
+      height_inches: "96",
+      depth_inches: "12",
+      material_thickness_inches: "0.75",
+      material_type: "0.75 inch plywood",
+      shelf_layout: "",
+      shelf_count: "",
+      shelf_spacing_inches: "",
+      board_size: "",
+      measurement_confidence: "close_estimate",
+      mounting_method: "",
+      wall_type: "",
+      stud_access: "",
+      shelf_load: "",
+      moisture_exposure: "",
+      higher_risk_spots: [],
+      install_location: "",
+      planned_mounting_height: "",
+      support_count: "",
+      wall_obstructions: "",
+      cut_strategy: "",
+      finish_preference: "",
+      edge_treatment: "",
+      tools_available: ["drill", "safety_glasses", "sander"],
+      style_notes: "Drafted from a plain-language idea. Review every field before saving.",
+      intended_use: "Built-in bookcase cabinets around a fireplace.",
+      draft_source: "natural_language",
+      draft_status: "concept_only",
+      draft_missing_fields: ["project_type"],
+      draft_blocked_reasons: [],
+      draft_review_notes: ["Project type could not be inferred confidently."],
+      ...overrides,
+    };
+  }
+
+  function cookieStoreForDraft(draft: ProjectIntakeDraft) {
+    return {
+      get: vi.fn((name: string) => (name === projectIntakeDraftCookieName ? { value: encodeProjectIntakeDraft(draft) } : undefined)),
+    };
+  }
+
   it("uses an explicit POST route for new project creation", async () => {
     const markup = renderToStaticMarkup(await NewProjectPage({}));
 
     expect(markup).toContain('action="/projects/create"');
     expect(markup).toContain('method="post"');
+  });
+
+  it("uses an explicit POST route for drafting setup fields from a plain-language idea", async () => {
+    const markup = renderToStaticMarkup(await NewProjectPage({}));
+
+    expect(markup).toContain("Draft from an idea");
+    expect(markup).toContain('action="/projects/draft"');
+    expect(markup).toContain('name="idea_text"');
+    expect(markup).toContain("Draft setup fields");
+    expect(markup).toContain("does not generate a");
+    expect(markup.indexOf('action="/projects/draft"')).toBeLessThan(markup.indexOf('action="/projects/create"'));
   });
 
   it("accepts ordinary woodworking dimensions in browser number controls", async () => {
@@ -213,7 +271,7 @@ describe("project form routes", () => {
     expect(markup).toContain("Save incomplete setup");
     expect(markup).toContain("Save and review project");
     expect(markup.match(/Use example/g)?.length).toBe(5);
-    expect(markup.indexOf("<summary")).toBeLessThan(markup.indexOf("<form"));
+    expect(markup.indexOf("<summary")).toBeLessThan(markup.indexOf('action="/projects/create"'));
     expect(markup.indexOf('id="project-basics"')).toBeGreaterThan(markup.indexOf("<form"));
     expect(markup).toContain('href="/projects/new?example=plant_display_board"');
     expect(markup).toContain('href="/projects/new?example=lamp_riser"');
@@ -268,6 +326,19 @@ describe("project form routes", () => {
 
     expect(markup).toContain("Project intake needs a little more detail.");
     expect(markup).toContain("Check the required fields, dimensions, material, and at least one safe tool before trying again.");
+  });
+
+  it("shows friendly project idea draft error copy", async () => {
+    const markup = renderToStaticMarkup(
+      await NewProjectPage({
+        searchParams: Promise.resolve({ error: "invalid_idea" }),
+      }),
+    );
+
+    expect(markup).toContain("Project idea needs a few more words.");
+    expect(markup).toContain("Add the rough object, size, material, and where it will be used");
+    expect(markup).toContain('action="/projects/draft"');
+    expect(markup).toContain('action="/projects/create"');
   });
 
   it("shows a calm unknown-starter state without blocking manual intake", async () => {
@@ -355,6 +426,140 @@ describe("project form routes", () => {
     expect(markup).toContain('checked="" value="pencil"');
   });
 
+  it("repopulates safe intake fields after drafting from a plain-language idea", async () => {
+    const draft: ProjectIntakeDraft = {
+      title: "Bathroom wall shelf",
+      project_type: "simple_shelf",
+      skill_level: "beginner",
+      width_inches: "24",
+      height_inches: "6",
+      depth_inches: "8",
+      material_thickness_inches: "0.75",
+      material_type: "0.75 inch pine board",
+      shelf_layout: "single_shelf",
+      shelf_count: "1",
+      shelf_spacing_inches: "",
+      board_size: "one_by_eight",
+      measurement_confidence: "close_estimate",
+      mounting_method: "not_sure",
+      wall_type: "not_sure",
+      stud_access: "yes",
+      shelf_load: "towels",
+      moisture_exposure: "bathroom_humid",
+      higher_risk_spots: ["near_water_shower_or_tub"],
+      install_location: "",
+      planned_mounting_height: "",
+      support_count: "",
+      wall_obstructions: "",
+      cut_strategy: "",
+      finish_preference: "Painted finish.",
+      edge_treatment: "",
+      tools_available: ["drill", "safety_glasses", "sander"],
+      style_notes: "Drafted from a plain-language idea. Review every field before saving.",
+      intended_use: "Bathroom wall shelf, 24 x 8 x 6 inches, 3/4 inch pine board.",
+      draft_source: "natural_language",
+      draft_missing_fields: ["mounting_details"],
+      draft_blocked_reasons: [],
+      draft_review_notes: ["Mounting, wall type, and stud access still need confirmation."],
+    };
+    headerMocks.cookies.mockResolvedValueOnce({
+      get: vi.fn(() => ({ value: encodeProjectIntakeDraft(draft) })),
+    });
+
+    const markup = renderToStaticMarkup(
+      await NewProjectPage({
+        searchParams: Promise.resolve({ draft: "idea" }),
+      }),
+    );
+
+    expect(markup).toContain("Idea drafted into setup fields - review before saving.");
+    expect(markup).toContain('value="Bathroom wall shelf"');
+    expect(markup).toContain('value="24"');
+    expect(markup).toContain('value="6"');
+    expect(markup).toContain('value="8"');
+    expect(markup).toContain('value="0.75"');
+    expect(markup).toContain('value="0.75 inch pine board"');
+    expect(markup).toContain('<option value="one_by_eight" selected="">1x8 board</option>');
+    expect(markup).toContain('<option value="yes" selected="">Yes, studs can be used</option>');
+    expect(markup).toContain('<option value="towels" selected="">Towels</option>');
+    expect(markup).toContain('checked="" value="near_water_shower_or_tub"');
+    expect(markup).toContain('checked="" value="drill"');
+    expect(markup).toContain('checked="" value="safety_glasses"');
+    expect(markup).toContain('checked="" value="sander"');
+    expect(markup).toContain("Draft review before saving");
+    expect(markup).toContain("Missing detail: Mounting details");
+    expect(markup).toContain("Mounting, wall type, and stud access still need confirmation.");
+  });
+
+  it("does not silently select wall shelf when an idea draft preserved an unsupported project type", async () => {
+    const draft: ProjectIntakeDraft = {
+      title: "Bookcase concept",
+      project_type: "",
+      skill_level: "beginner",
+      width_inches: "84",
+      height_inches: "96",
+      depth_inches: "12",
+      material_thickness_inches: "0.75",
+      material_type: "0.75 inch plywood",
+      shelf_layout: "",
+      shelf_count: "",
+      shelf_spacing_inches: "",
+      board_size: "",
+      measurement_confidence: "close_estimate",
+      mounting_method: "",
+      wall_type: "",
+      stud_access: "",
+      shelf_load: "",
+      moisture_exposure: "",
+      higher_risk_spots: [],
+      install_location: "",
+      planned_mounting_height: "",
+      support_count: "",
+      wall_obstructions: "",
+      cut_strategy: "",
+      finish_preference: "",
+      edge_treatment: "",
+      tools_available: ["drill", "safety_glasses", "sander"],
+      style_notes: "Drafted from a plain-language idea. Review every field before saving.\nProject type could not be inferred confidently.",
+      intended_use: "Built-in bookcase cabinets around a fireplace, 84 x 12 x 96 inches, 3/4 inch plywood, drill and sander available.",
+      draft_source: "natural_language",
+      draft_status: "concept_only",
+      draft_missing_fields: ["project_type"],
+      draft_blocked_reasons: [],
+      draft_review_notes: [
+        "This looks woodworking-adjacent, but it is not a supported build-packet template yet. Choose a supported project type or keep it as concept review.",
+        "Project type could not be inferred confidently.",
+      ],
+    };
+    headerMocks.cookies.mockResolvedValueOnce({
+      get: vi.fn(() => ({ value: encodeProjectIntakeDraft(draft) })),
+    });
+
+    const markup = renderToStaticMarkup(
+      await NewProjectPage({
+        searchParams: Promise.resolve({ draft: "idea" }),
+      }),
+    );
+
+    expect(markup).toContain("Draft review before saving");
+    expect(markup).toContain("Concept-only idea - not a supported build packet yet.");
+    expect(markup).toContain("Concept-only draft: choose a supported project type before saving a build setup.");
+    expect(markup).toContain("Missing detail: Project type");
+    expect(markup).toContain("This looks woodworking-adjacent, but it is not a supported build-packet template yet.");
+    expect(markup).toContain("Project type could not be inferred confidently.");
+    expect(markup).toContain('<option value="" selected="">Choose a supported project type</option>');
+    expect(markup).toContain('<option value="" selected="">Choose layout after template</option>');
+    expect(markup).toContain('name="draft_resolution"');
+    expect(markup).toContain("I am intentionally choosing a supported template.");
+    expect(markup).toContain("Known size details");
+    expect(markup).toContain("What will it hold?");
+    expect(markup).not.toContain("Shelf size");
+    expect(markup).not.toContain("For wall shelves, note nearby outlets");
+    expect(markup).not.toContain('<option value="simple_shelf" selected="">Wall shelf</option>');
+    expect(markup).not.toContain('<option value="single_shelf" selected="">Single shelf</option>');
+    expect(markup).not.toContain('placeholder="1" value="1"');
+  });
+
   it("keeps invalid project creation errors user-facing", async () => {
     const { POST } = await import("@/app/projects/create/route");
     const body = validProjectFormData({
@@ -375,6 +580,182 @@ describe("project form routes", () => {
     expect(location).toContain("/projects/new?error=invalid_intake");
     expect(location).not.toContain("invalid_tool");
     expect(location).not.toContain("Invalid%20option");
+  });
+
+  it("does not save a concept-only draft unless the user explicitly resolves it to a supported template", async () => {
+    const { POST } = await import("@/app/projects/create/route");
+    const body = validProjectFormData({
+      title: "Bookcase concept",
+      draft_source: "natural_language",
+      draft_status: "concept_only",
+      project_type: "simple_shelf",
+      intended_use: "Built-in bookcase cabinets around a fireplace.",
+    });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/create", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    const location = response.headers.get("location") ?? "";
+    const draftCookie = response.headers.get("set-cookie") ?? "";
+    const encodedDraft = /boardsmith_project_intake_draft=([^;]+)/.exec(draftCookie)?.[1];
+    const decodedDraft = decodeProjectIntakeDraft(encodedDraft);
+
+    expect(response.status).toBe(303);
+    expect(location).toContain("/projects/new?draft=idea&error=unresolved_idea");
+    expect(decodedDraft.draft_source).toBe("natural_language");
+    expect(decodedDraft.draft_status).toBe("concept_only");
+    expect(createProject).not.toHaveBeenCalled();
+  });
+
+  it("uses the draft cookie to block a concept-only draft when hidden fields are tampered away", async () => {
+    const trustedDraft = naturalLanguageDraft({
+      title: "Bookcase concept",
+      draft_status: "concept_only",
+      draft_review_notes: [
+        "This looks woodworking-adjacent, but it is not a supported build-packet template yet. Choose a supported project type or keep it as concept review.",
+      ],
+    });
+    headerMocks.cookies.mockResolvedValueOnce(cookieStoreForDraft(trustedDraft));
+    const { POST } = await import("@/app/projects/create/route");
+    const body = validProjectFormData({
+      title: "Bookcase concept",
+      project_type: "simple_shelf",
+      intended_use: "Built-in bookcase cabinets around a fireplace.",
+    });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/create", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    const location = response.headers.get("location") ?? "";
+    const draftCookie = response.headers.get("set-cookie") ?? "";
+    const encodedDraft = /boardsmith_project_intake_draft=([^;]+)/.exec(draftCookie)?.[1];
+    const decodedDraft = decodeProjectIntakeDraft(encodedDraft);
+
+    expect(response.status).toBe(303);
+    expect(location).toContain("/projects/new?draft=idea&error=unresolved_idea");
+    expect(decodedDraft.draft_source).toBe("natural_language");
+    expect(decodedDraft.draft_status).toBe("concept_only");
+    expect(createProject).not.toHaveBeenCalled();
+  });
+
+  it("does not save a blocked safety draft even if a supported template is posted", async () => {
+    const { POST } = await import("@/app/projects/create/route");
+    const body = validProjectFormData({
+      title: "Nursery loft bed",
+      draft_source: "natural_language",
+      draft_status: "blocked_for_safety",
+      draft_resolution: "supported_template_selected",
+      project_type: "simple_shelf",
+      intended_use: "Child loft bed platform with ladder and storage stairs for a nursery.",
+    });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/create", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    const location = response.headers.get("location") ?? "";
+
+    expect(response.status).toBe(303);
+    expect(location).toContain("/projects/new?draft=idea&error=blocked_idea");
+    expect(createProject).not.toHaveBeenCalled();
+  });
+
+  it("uses the draft cookie to block a safety draft when hidden fields claim it is supported", async () => {
+    const trustedDraft = naturalLanguageDraft({
+      title: "Nursery loft bed",
+      draft_status: "blocked_for_safety",
+      draft_blocked_reasons: ["child_sleep_or_entrapment", "load_bearing_or_climbable"],
+      draft_review_notes: ["This idea includes safety-sensitive terms that may block plan generation."],
+      intended_use: "Child loft bed platform with ladder and storage stairs for a nursery.",
+    });
+    headerMocks.cookies.mockResolvedValueOnce(cookieStoreForDraft(trustedDraft));
+    const { POST } = await import("@/app/projects/create/route");
+    const body = validProjectFormData({
+      title: "Nursery loft bed",
+      draft_source: "natural_language",
+      draft_status: "supported_draft",
+      draft_resolution: "supported_template_selected",
+      project_type: "simple_shelf",
+      intended_use: "Child loft bed platform with ladder and storage stairs for a nursery.",
+    });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/create", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    const location = response.headers.get("location") ?? "";
+    const draftCookie = response.headers.get("set-cookie") ?? "";
+    const encodedDraft = /boardsmith_project_intake_draft=([^;]+)/.exec(draftCookie)?.[1];
+    const decodedDraft = decodeProjectIntakeDraft(encodedDraft);
+
+    expect(response.status).toBe(303);
+    expect(location).toContain("/projects/new?draft=idea&error=blocked_idea");
+    expect(decodedDraft.draft_source).toBe("natural_language");
+    expect(decodedDraft.draft_status).toBe("blocked_for_safety");
+    expect(createProject).not.toHaveBeenCalled();
+  });
+
+  it("saves a concept-only draft only after explicit supported-template resolution", async () => {
+    vi.mocked(createProject).mockResolvedValueOnce({
+      id: "resolved_concept_project",
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+      title: "Resolved shelf concept",
+      project_type: "simple_shelf",
+      skill_level: "beginner",
+      status: "draft",
+      width_inches: 36,
+      height_inches: 0.75,
+      depth_inches: 10,
+      material_thickness_inches: 0.75,
+      material_type: "pine board",
+      tools_available: ["tape_measure", "pencil", "drill"],
+      style_notes: "Converted to supported shelf setup.",
+      intended_use: "A small supported shelf, not the whole bookcase.",
+      safety_review_required: false,
+      safety_flags: [],
+      notes: "",
+      build_completed: false,
+      build_completed_at: "",
+      build_actual_material: "",
+      build_plan_changes: "",
+      build_lessons_learned: "",
+      ...activeProjectArchiveFields,
+    });
+    const { POST } = await import("@/app/projects/create/route");
+    const body = validProjectFormData({
+      title: "Resolved shelf concept",
+      draft_source: "natural_language",
+      draft_status: "concept_only",
+      draft_resolution: "supported_template_selected",
+      project_type: "simple_shelf",
+      intended_use: "A small supported shelf, not the whole bookcase.",
+    });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/create", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toContain("/projects/resolved_concept_project");
+    expect(createProject).toHaveBeenCalledTimes(1);
   });
 
   it("stores a short-lived intake draft when invalid intake redirects", async () => {
@@ -405,6 +786,148 @@ describe("project form routes", () => {
     expect(decodedDraft.tools_available).toEqual(["tape_measure", "pencil", "drill"]);
     expect(draftCookie).not.toContain("Zod");
     expect(decodedDraft.tools_available).not.toContain("invalid_tool");
+  });
+
+  it("stores a short-lived editable intake draft from a plain-language idea", async () => {
+    const { POST } = await import("@/app/projects/draft/route");
+    const body = new URLSearchParams({
+      idea_text:
+        "Bathroom wall shelf, 24 x 8 x 6 inches, 3/4 inch pine board, drill and sander available, towels only, mount into studs if possible, painted finish.",
+    });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/draft", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    const location = response.headers.get("location") ?? "";
+    const draftCookie = response.headers.get("set-cookie") ?? "";
+    const encodedDraft = /boardsmith_project_intake_draft=([^;]+)/.exec(draftCookie)?.[1];
+    const decodedDraft = decodeProjectIntakeDraft(encodedDraft);
+
+    expect(response.status).toBe(303);
+    expect(location).toContain("/projects/new?draft=idea");
+    expect(draftCookie).toContain("Path=/projects");
+    expect(decodedDraft.title).toBe("Bathroom wall shelf");
+    expect(decodedDraft.project_type).toBe("simple_shelf");
+    expect(decodedDraft.width_inches).toBe("24");
+    expect(decodedDraft.depth_inches).toBe("8");
+    expect(decodedDraft.material_type).toBe("0.75 inch pine board");
+    expect(decodedDraft.tools_available).toEqual(["drill", "safety_glasses", "sander"]);
+    expect(decodedDraft.draft_source).toBe("natural_language");
+    expect(decodedDraft.draft_status).toBe("supported_draft");
+    expect(decodedDraft.draft_missing_fields).toEqual([]);
+    expect(decodedDraft.draft_review_notes).toContain("Mounting, wall type, and stud access still need confirmation.");
+    expect(createProject).not.toHaveBeenCalled();
+  });
+
+  it("stores concept-only draft metadata for future-template plain-language ideas", async () => {
+    const { POST } = await import("@/app/projects/draft/route");
+    const body = new URLSearchParams({
+      idea_text:
+        "Built-in bookcase cabinets around a fireplace, 84 x 12 x 96 inches, 3/4 inch plywood, drill and sander available.",
+    });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/draft", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    const draftCookie = response.headers.get("set-cookie") ?? "";
+    const encodedDraft = /boardsmith_project_intake_draft=([^;]+)/.exec(draftCookie)?.[1];
+    const decodedDraft = decodeProjectIntakeDraft(encodedDraft);
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toContain("/projects/new?draft=idea");
+    expect(decodedDraft.title).toBe("Bookcase concept");
+    expect(decodedDraft.project_type).toBe("");
+    expect(decodedDraft.draft_source).toBe("natural_language");
+    expect(decodedDraft.draft_status).toBe("concept_only");
+    expect(decodedDraft.draft_missing_fields).toContain("project_type");
+    expect(decodedDraft.draft_review_notes).toContain(
+      "This looks woodworking-adjacent, but it is not a supported build-packet template yet. Choose a supported project type or keep it as concept review.",
+    );
+    expect(createProject).not.toHaveBeenCalled();
+  });
+
+  it("stores safety-sensitive draft metadata for long blocked plain-language ideas", async () => {
+    const { POST } = await import("@/app/projects/draft/route");
+    const body = new URLSearchParams({
+      idea_text: "Child loft bed platform with ladder and storage stairs for a nursery, 72 x 36 x 60 inches, pine boards, drill available.",
+    });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/draft", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    const draftCookie = response.headers.get("set-cookie") ?? "";
+    const encodedDraft = /boardsmith_project_intake_draft=([^;]+)/.exec(draftCookie)?.[1];
+    const decodedDraft = decodeProjectIntakeDraft(encodedDraft);
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toContain("/projects/new?draft=idea");
+    expect(decodedDraft.draft_source).toBe("natural_language");
+    expect(decodedDraft.draft_status).toBe("blocked_for_safety");
+    expect(decodedDraft.draft_blocked_reasons).toEqual(["child_sleep_or_entrapment", "load_bearing_or_climbable"]);
+    expect(decodedDraft.draft_review_notes).toContain("This idea includes safety-sensitive terms that may block plan generation.");
+    expect(decodedDraft.intended_use).not.toContain("Zod");
+    expect(createProject).not.toHaveBeenCalled();
+  });
+
+  it("preserves concept-only built-in ideas in the draft cookie instead of coercing them into wall shelves", async () => {
+    const { POST } = await import("@/app/projects/draft/route");
+    const body = new URLSearchParams({
+      idea_text: "Built-in bookcase cabinets around a fireplace, 84 x 12 x 96 inches, 3/4 inch plywood, drill and sander available.",
+    });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/draft", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    const draftCookie = response.headers.get("set-cookie") ?? "";
+    const encodedDraft = /boardsmith_project_intake_draft=([^;]+)/.exec(draftCookie)?.[1];
+    const decodedDraft = decodeProjectIntakeDraft(encodedDraft);
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toContain("/projects/new?draft=idea");
+    expect(decodedDraft.project_type).toBe("");
+    expect(decodedDraft.shelf_layout).toBe("");
+    expect(decodedDraft.draft_status).toBe("concept_only");
+    expect(decodedDraft.tools_available).toEqual(["drill", "safety_glasses", "sander"]);
+    expect(decodedDraft.draft_missing_fields).toContain("project_type");
+    expect(decodedDraft.draft_review_notes).toContain("Project type could not be inferred confidently.");
+    expect(decodedDraft.draft_review_notes).not.toContain("Mounting, wall type, and stud access still need confirmation.");
+    expect(createProject).not.toHaveBeenCalled();
+  });
+
+  it("redirects short idea drafts without echoing the submitted text", async () => {
+    const { POST } = await import("@/app/projects/draft/route");
+    const body = new URLSearchParams({ idea_text: "shelf" });
+
+    const response = await POST(
+      new Request("http://boardsmith.test/projects/draft", {
+        method: "POST",
+        body,
+      }),
+    );
+
+    const location = response.headers.get("location") ?? "";
+
+    expect(response.status).toBe(303);
+    expect(location).toContain("/projects/new?error=invalid_idea");
+    expect(location).not.toContain("shelf");
+    expect(response.headers.get("set-cookie")).toBeNull();
+    expect(createProject).not.toHaveBeenCalled();
   });
 
   it("bounds large invalid-intake drafts so the recovery cookie survives browser limits", () => {

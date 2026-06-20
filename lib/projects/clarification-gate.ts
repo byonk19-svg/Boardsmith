@@ -1,5 +1,6 @@
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { findShelfLayoutIssues } from "@/lib/projects/shelf-layout-validation";
+import { createConceptBrief, type ConceptBrief } from "@/lib/projects/concept-brief";
 import { projectTypes, type ProjectIntake, type ProjectType } from "@/lib/projects/types";
 import { analyzeWallShelfMountingIntent, isBathroomOrHumidityText } from "@/lib/projects/wall-shelf-intent";
 import { calculateSafetyReviewFlags, type SafetyReviewFlag } from "@/lib/safety/safety-review";
@@ -50,6 +51,7 @@ export type ClarificationGateDecision = {
   reviewFlags: SafetyReviewFlag[];
   questions: ClarificationQuestion[];
   blockers: ClarificationBlocker[];
+  conceptBrief: ConceptBrief | null;
 };
 
 const supportedProjectTypeSet = new Set<string>(projectTypes);
@@ -351,6 +353,7 @@ export function createClarificationGateDecision(project: ClarificationGateInput)
       reviewFlags,
       questions: [],
       blockers,
+      conceptBrief: null,
     };
   }
 
@@ -366,6 +369,7 @@ export function createClarificationGateDecision(project: ClarificationGateInput)
       reviewFlags: [],
       questions: [],
       blockers,
+      conceptBrief: status === "concept_only" ? createConceptBrief(project) : null,
     };
   }
 
@@ -389,5 +393,6 @@ export function createClarificationGateDecision(project: ClarificationGateInput)
     reviewFlags,
     questions,
     blockers,
+    conceptBrief: null,
   };
 }

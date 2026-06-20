@@ -12,7 +12,13 @@ export function ProjectHeroVisual({
 }) {
   const svgHeightClass = compact ? "h-72 print:h-56" : "h-[26rem] print:h-64";
   const shouldRenderShelfProject = visual.kind === "simple_shelf";
-  const heroAriaLabel = shouldRenderShelfProject ? "Deterministic finished wall-shelf hero visual" : "Build-model hero visual";
+  const shouldRenderPlanterBox = visual.kind === "planter_box";
+  const heroAriaLabel = shouldRenderShelfProject
+    ? "Deterministic finished wall-shelf hero visual"
+    : shouldRenderPlanterBox
+      ? "Deterministic planter-box planning hero visual"
+      : "Build-model hero visual";
+  const previewLabel = shouldRenderShelfProject ? "Finished wall-shelf preview" : shouldRenderPlanterBox ? "Planter-box planning preview" : null;
 
   return (
     <div className="break-inside-avoid rounded-lg border border-sawdust bg-[#fbf8f1] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] print:break-inside-avoid print:bg-white print:shadow-none">
@@ -20,7 +26,7 @@ export function ProjectHeroVisual({
         <div>
           <p className="text-sm font-semibold text-ink">Main project visual from structured plan data.</p>
           <p className="mt-1 text-xs leading-5 text-ink/60">Build-model hero visual - planning aid only.</p>
-          {shouldRenderShelfProject ? <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink/45">Finished wall-shelf preview</p> : null}
+          {previewLabel ? <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink/45">{previewLabel}</p> : null}
         </div>
         <span className="w-fit rounded-md border border-sawdust bg-white px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-ink/55">
           {visual.materialLabel}
@@ -33,7 +39,13 @@ export function ProjectHeroVisual({
         <>
           <svg className={`mt-3 w-full rounded-md border border-sawdust bg-white shadow-[0_18px_45px_rgba(71,98,74,0.08)] ${svgHeightClass} print:shadow-none`} viewBox="0 0 680 340" role="img" aria-label={heroAriaLabel}>
             <rect x="28" y="24" width="624" height="292" rx="10" fill="#fffaf0" stroke="#d7c7a1" />
-            {shouldRenderShelfProject ? <ShelfProjectVisual visual={visual} viewModel={wallShelfViewModel} /> : <GenericProjectVisual visual={visual} />}
+            {shouldRenderShelfProject ? (
+              <ShelfProjectVisual visual={visual} viewModel={wallShelfViewModel} />
+            ) : shouldRenderPlanterBox ? (
+              <PlanterBoxProjectVisual visual={visual} />
+            ) : (
+              <GenericProjectVisual visual={visual} />
+            )}
           </svg>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {visual.pieceLabels.map((label) => (
@@ -65,6 +77,39 @@ function GenericProjectVisual({ visual }: { visual: ProjectAnatomyVisual }) {
       </text>
       <text x="382" y="188" textAnchor="middle" className="fill-ink text-[17px] font-semibold">
         {visual.pieceLabels.slice(0, 2).join(" + ") || "Major pieces"}
+      </text>
+    </>
+  );
+}
+
+function PlanterBoxProjectVisual({ visual }: { visual: ProjectAnatomyVisual }) {
+  return (
+    <>
+      <rect x="50" y="54" width="574" height="230" rx="8" fill="#f7efe0" stroke="#d7c7a1" />
+      <ellipse cx="370" cy="288" rx="190" ry="18" fill="#000000" opacity="0.08" />
+      <polygon points="190,96 464,96 540,144 266,144" fill="#d9b77f" stroke="#7a5b2e" strokeWidth="2" />
+      <polygon points="190,96 266,144 266,234 190,184" fill="#b9803c" stroke="#7a5b2e" strokeWidth="2" />
+      <polygon points="266,144 540,144 540,234 266,234" fill="#c99a57" stroke="#7a5b2e" strokeWidth="2" />
+      <polygon points="218,118 464,118 514,150 268,150" fill="#8b6f3f" opacity="0.22" />
+      <line x1="268" y1="150" x2="268" y2="226" stroke="#7a5b2e" strokeWidth="2" opacity="0.55" />
+      <line x1="514" y1="150" x2="514" y2="226" stroke="#7a5b2e" strokeWidth="2" opacity="0.55" />
+      <line x1="326" y1="144" x2="326" y2="234" stroke="#7a5b2e" strokeWidth="1.5" opacity="0.35" />
+      <line x1="428" y1="144" x2="428" y2="234" stroke="#7a5b2e" strokeWidth="1.5" opacity="0.35" />
+      <circle cx="336" cy="244" r="3.5" fill="#47624a" opacity="0.8" />
+      <circle cx="382" cy="248" r="3.5" fill="#47624a" opacity="0.8" />
+      <circle cx="428" cy="244" r="3.5" fill="#47624a" opacity="0.8" />
+      <DimensionLabels visual={visual} widthY={76} heightX={154} heightTop={96} heightBottom={234} depthStartX={492} depthStartY={96} depthEndX={560} depthEndY={140} />
+      <text x="382" y="42" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
+        open-top planter box planning preview
+      </text>
+      <text x="384" y="260" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
+        drainage, liner, finish, and outdoor exposure need review
+      </text>
+      <text x="384" y="190" textAnchor="middle" className="fill-ink text-[17px] font-semibold">
+        {visual.pieceLabels.slice(0, 2).join(" + ") || "Planter panels"}
+      </text>
+      <text x="382" y="306" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
+        {visual.materialThicknessLabel}
       </text>
     </>
   );

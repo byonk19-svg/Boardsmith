@@ -51,6 +51,32 @@ describe("createClarificationGateDecision", () => {
     );
   });
 
+  it("uses managed intake signals to clear answered mounting, load, and finish questions", () => {
+    const decision = createClarificationGateDecision(
+      project({
+        title: "Single bathroom shelf",
+        height_inches: 0.75,
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        style_notes: "Planning preferences\n- Finish preference: Moisture-resistant paint.",
+        intended_use: [
+          "Bathroom shelf.",
+          "Structured intake",
+          "- Mounting method: Visible L brackets",
+          "- Wall type: Drywall with wood studs",
+          "- Stud access: Yes, studs can be used",
+          "- What it will hold: Towels",
+          "- Moisture exposure: Bathroom/humid room",
+        ].join("\n"),
+      }),
+    );
+
+    expect(decision.status).toBe("ready_for_full_plan");
+    expect(decision.questions.map((question) => question.id)).not.toEqual(
+      expect.arrayContaining(["mounting_support_method", "wall_fastener_context", "expected_load_or_use", "finish_exposure"]),
+    );
+  });
+
   it("does not add wall mounting questions for explicit freestanding shelf-like risers", () => {
     const decision = createClarificationGateDecision(
       project({
@@ -244,6 +270,9 @@ describe("createClarificationGateDecision", () => {
     expect(decision.statusLabel).toBe("Concept only");
     expect(decision.supportedProjectType).toBe(false);
     expect(decision.canGenerateFullPlan).toBe(false);
+    expect(decision.conceptBrief?.category).toBe("Storage concept");
+    expect(decision.conceptBrief?.options.map((option) => option.title)).toContain("Convert to a supported wall shelf");
+    expect(JSON.stringify(decision.conceptBrief?.options)).not.toMatch(/load rated|certified|vendor|price|cart|CAD-ready|CNC-ready|cut to|fasten with/i);
   });
 
   it("marks unrelated unsupported ideas as unsupported", () => {
@@ -259,5 +288,6 @@ describe("createClarificationGateDecision", () => {
     expect(decision.status).toBe("unsupported");
     expect(decision.statusLabel).toBe("Unsupported");
     expect(decision.canGenerateFullPlan).toBe(false);
+    expect(decision.conceptBrief).toBeNull();
   });
 });
