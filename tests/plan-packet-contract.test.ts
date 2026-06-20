@@ -8,6 +8,7 @@ import { WallShelfCutDiagram } from "@/app/projects/[id]/WallShelfCutDiagram";
 import { WallShelfDiagrams } from "@/app/projects/[id]/WallShelfDiagrams";
 import { WallShelfPlanReadiness } from "@/app/projects/[id]/WallShelfPlanReadiness";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
+import { corePacketSectionOrder, createPrintablePlanPacketSummary, labelForPacketCutItem, packetPartScheduleListItems } from "@/lib/plans/printable-plan-packet";
 import { createPrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getTemplateHint } from "@/lib/templates/template-hints";
@@ -43,6 +44,20 @@ function renderWallShelfPacketSurfaces(manifest: ReturnType<typeof wallShelfMani
 }
 
 describe("plan packet contract", () => {
+  it("keeps the shared detail and print packet section order explicit", () => {
+    expect([...corePacketSectionOrder]).toEqual([
+      "Build Snapshot",
+      "Hero Visual",
+      "Project Visuals / Diagrams",
+      "Check Before Building",
+      "Materials and Parts",
+      "Cut Checklist",
+      "Buying Plan",
+      "Build Guide",
+      "Reference Review Notes",
+    ]);
+  });
+
   it("uses the same deterministic wall-shelf part labels across packet surfaces", () => {
     const manifest = wallShelfManifest("connected_modeled_support");
     const expectedLabels = ["Part A - Shelf boards", "Part B - Side supports"];
@@ -54,6 +69,16 @@ describe("plan packet contract", () => {
     expect(manifest.wallShelfPartScheduleViewModel.assignedParts.map((part) => part.printLabel)).toEqual(expectedLabels);
     expect(manifest.wallShelfCutDiagramViewModel.pieceGroups.map((piece) => piece.printLabel)).toEqual(expectedLabels);
     expect(manifest.wallShelfStockBoardViewModel.materialGroups.flatMap((group) => group.pieces.map((piece) => piece.printLabel))).toEqual(expectedLabels);
+    const packet = createPrintablePlanPacketSummary(manifest);
+
+    expect(packet.family).toBe("wall_shelf");
+    expect(packet.assignedParts.map((part) => part.printLabel)).toEqual(expectedLabels);
+    expect(packet.partRows.map((part) => part.printLabel)).toEqual(expectedLabels);
+    expect(packet.cutWarningCount).toBe(manifest.wallShelfCutDiagramViewModel.warnings.length);
+    expect(packetPartScheduleListItems(manifest, packet)).toEqual([
+      "Part A - Shelf boards: Qty 5, 24 in x 8 in x 0.75 in",
+      "Part B - Side supports: Qty 2, 60 in x 8 in x 0.75 in",
+    ]);
 
     for (const label of expectedLabels) {
       expect(JSON.stringify(manifest.wallShelfBuildStepViewModel.stepCards)).toContain(label);
@@ -136,6 +161,27 @@ describe("plan packet contract", () => {
     expect(manifest.planterBoxStockBoardViewModel.materialGroups.flatMap((group) => group.pieces.map((piece) => piece.printLabel))).toEqual(
       manifest.planterBoxPartScheduleViewModel.assignedParts.map((part) => part.printLabel),
     );
+    const packet = createPrintablePlanPacketSummary(manifest);
+
+    expect(packet.family).toBe("planter_box");
+    expect(packet.assignedParts.map((part) => part.printLabel)).toEqual(manifest.planterBoxPartScheduleViewModel.assignedParts.map((part) => part.printLabel));
+    expect(packet.cutWarningCount).toBe(manifest.planterBoxCutDiagramViewModel.warnings.length);
+    expect(packetPartScheduleListItems(manifest, packet)[0]).toBe("Part A - Front panel: 1x, 24 x 8 x 0.75 in");
+    expect(
+      labelForPacketCutItem(
+        {
+          id: "generated_front_panel",
+          label: "Front panel",
+          quantityLabel: "1x",
+          dimensionsLabel: "24 x 8 x 0.75 in",
+          materialLabel: "cedar board",
+          sourceLabel: "Generated cut",
+          status: "ready_to_review",
+          messages: [],
+        },
+        packet,
+      ),
+    ).toBe("Part A - Front panel");
     const renderedPacket = [
       renderToStaticMarkup(React.createElement(PlanterBoxCutDiagram, { viewModel: manifest.planterBoxCutDiagramViewModel })),
       renderToStaticMarkup(React.createElement(PlanterBoxBuyingPlan, { viewModel: manifest.planterBoxStockBoardViewModel })),

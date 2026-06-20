@@ -214,6 +214,37 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).not.toContain("Major pieces");
   });
 
+  it("renders a planter-box hero as an open-top planter instead of the generic block", async () => {
+    const { ProjectHeroVisual } = await import("@/app/projects/[id]/ProjectHeroVisual");
+
+    const markup = renderToStaticMarkup(
+      React.createElement(ProjectHeroVisual, {
+        visual: {
+          title: "Project anatomy",
+          kind: "planter_box",
+          widthLabel: "Width 24 in",
+          heightLabel: "Height 8 in",
+          depthLabel: "Depth 8 in",
+          materialThicknessLabel: "Material thickness 0.75 in",
+          materialLabel: "cedar board",
+          pieceLabels: ["Part A - Front panel", "Part B - Back panel", "Part E - Bottom panel"],
+          shelfCount: null,
+          hasWallContext: false,
+          supportLabel: null,
+          fallbackMessage: null,
+        },
+      }),
+    );
+
+    expect(markup).toContain("Deterministic planter-box planning hero visual");
+    expect(markup).toContain("Planter-box planning preview");
+    expect(markup).toContain("open-top planter box planning preview");
+    expect(markup).toContain("drainage, liner, finish, and outdoor exposure need review");
+    expect(markup).toContain("Part A - Front panel + Part B - Back panel");
+    expect(markup).not.toContain("Major pieces");
+    expect(markup).not.toContain("finished wall-shelf preview");
+  });
+
   it("renders no-print project section navigation with links to existing latest-plan sections", async () => {
     getProjectMock.mockResolvedValue(project);
     listGeneratedPlansMock.mockResolvedValue([planRecord]);

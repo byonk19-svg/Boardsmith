@@ -4,6 +4,8 @@
 
 June 10, 2026
 
+This pass predates the June 20, 2026 deeper planter packet planning follow-through, which has local verification but no refreshed hosted smoke yet.
+
 ## Scope
 
 This pass used the private hosted app through the existing protected hosted smoke path after authenticated route smoke, hosted `Tweak this plan` active-flow smoke, archived revision-blocking smoke, and project-detail navigation smoke had already passed.

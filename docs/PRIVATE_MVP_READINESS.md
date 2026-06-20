@@ -1,12 +1,14 @@
 # Boardsmith Private MVP Readiness
 
-Date: June 15, 2026
+Date: June 20, 2026
 
 ## Current Status
 
 Boardsmith is a private MVP woodworking planning app. It is ready for a small private MVP demo/use test with intended users who can pass the active hosted access layers. It is not ready for public sharing, production multi-user use, fabrication approval, or export/CAD workflows.
 
 The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, hosted route smoke passes through the intended protected access path, authorized hosted archive/restore and `Tweak this plan` smoke have passed, and the post-push wall-shelf dogfood fix was verified on hosted. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
+
+The June 20, 2026 deeper planter packet planning follow-through landed locally and passed the usual test/lint/typecheck/build/browser-flow verification, but hosted planter smoke has not been refreshed yet.
 
 ## Final Private MVP Readiness Checkpoint
 
@@ -35,6 +37,7 @@ What is now verified:
 - Projects whose latest attempt failed while an older saved plan remains available now say the latest attempt failed instead of implying there is no usable saved plan.
 - Five separate wall shelves with individual board thickness now generate successfully on hosted and render Buying Plan instead of hitting `shelf_layout_invalid`.
 - Wall-shelf Buying Plan appears after Cut Checklist and before Materials and Parts on detail and print, groups modeled wood pieces by material, and keeps stock length as review/selection language instead of inventing a purchase.
+- Deeper planter packet planning now exists locally, including the planter-box packet follow-through added on June 20, 2026.
 - Browser print remains the supported private MVP output path.
 
 Remaining known limitations:
@@ -42,6 +45,7 @@ Remaining known limitations:
 - Generated plan quality can still vary. Connected shelf units and child-adjacent ledges may be blocked by generated-plan review; this is acceptable safety posture until repeated examples justify a narrow prompt/model slice.
 - Buying Plan is still conservative. It does not choose exact stock boards, optimize cuts, price materials, choose vendors, or produce a complete shopping list.
 - Hardware and fastener guidance remains split across Buying Plan, Materials and Parts, and review notes because exact bracket/anchor choices depend on wall structure, expected load, and real site review.
+- The deeper planter packet planning follow-through has not yet had a fresh hosted smoke pass.
 - The hosted access model still relies on private access layers, not production auth, per-user ownership, or RLS.
 - Browser print is usable but not a generated PDF/download/export system.
 - Boardsmith still does not provide engineering review, load ratings, wall-safety guarantees, child-safety certification, CAD/CNC output, public sharing, shopping, pricing, vendor, inventory, payments, or subscriptions.
@@ -49,8 +53,8 @@ Remaining known limitations:
 Recommended next 3 tasks:
 
 1. Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-2. Collect repeated generation-quality friction from real supported projects before changing prompts.
-3. Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
+2. Refresh hosted planter smoke before treating the June 20 planter follow-through as hosted-current.
+3. Collect repeated generation-quality friction from real supported projects before changing prompts.
 
 ## Private MVP Checkpoint
 

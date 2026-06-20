@@ -13,6 +13,7 @@ import {
 } from "@/lib/plans/gated-build-packet-snapshot";
 import { type MaterialReviewItem, type MaterialReviewSummary } from "@/lib/plans/material-summary";
 import { createPlanHistoryComparison, type PlanComparisonChange, type PlanHistoryComparison } from "@/lib/plans/plan-comparison";
+import { corePacketSectionTitles, createPrintablePlanPacketSummary, labelForPacketCutItem, packetPartScheduleListItems } from "@/lib/plans/printable-plan-packet";
 import { type GeneratedPlanReviewStatus, type GeneratedPlanReviewSummary } from "@/lib/plans/plan-quality";
 import type { PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
@@ -228,7 +229,7 @@ export default async function ProjectDetailPage({
                     source={buildModelSource}
                     materialReview={displayedManifest.materials}
                     cutListReview={displayedManifest.cutList}
-                    planWarningCount={packetCutWarningCount(displayedManifest)}
+                    planWarningCount={createPrintablePlanPacketSummary(displayedManifest).cutWarningCount}
                   />
                 </>
               ) : null}
@@ -2537,6 +2538,7 @@ function PlanView({
   if (!generatedPlan || !manifest.cutList) return null;
   const generatedCuts = manifest.cutList.items.filter((item) => item.sourceLabel === "Generated cut");
   const unresolvedDimensionItems = unresolvedCutDimensionItems(manifest.cutList);
+  const packet = createPrintablePlanPacketSummary(manifest);
 
   return (
     <article id="printable-plan-sheet" className="scroll-mt-6 rounded-lg border border-sawdust bg-white p-6 shadow-soft print:border-0 print:p-0 print:shadow-none">
@@ -2555,7 +2557,7 @@ function PlanView({
           </div>
         </div>
 
-        <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-ink/55">Build Snapshot</h3>
+        <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-ink/55">{corePacketSectionTitles.buildSnapshot}</h3>
         <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-4">
           <PlanFact label="Time" value={generatedPlan.estimatedTime} />
           <PlanFact label="Difficulty" value={generatedPlan.estimatedDifficulty} />
@@ -2573,11 +2575,11 @@ function PlanView({
       {unresolvedDimensionItems.length > 0 ? <UnresolvedCutDimensionsWarning items={unresolvedDimensionItems} /> : null}
 
       <div className="divide-y divide-sawdust">
-        <PlanSheetSection title="Hero Visual">
+        <PlanSheetSection title={corePacketSectionTitles.heroVisual}>
           <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Project Visuals / Diagrams">
+        <PlanSheetSection title={corePacketSectionTitles.projectVisuals}>
           {manifest.wallShelfDiagram ? (
             <WallShelfDiagrams model={manifest.wallShelfDiagram} />
           ) : (
@@ -2585,7 +2587,7 @@ function PlanView({
           )}
         </PlanSheetSection>
 
-        <PlanSheetSection title="Check Before Building">
+        <PlanSheetSection title={corePacketSectionTitles.checkBeforeBuilding}>
           {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
             <div className="mb-5">
               <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} />
@@ -2594,13 +2596,13 @@ function PlanView({
           <PlanActionChecklist items={manifest.actionChecklist} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Materials and Parts">
+        <PlanSheetSection title={corePacketSectionTitles.materialsAndParts}>
           <MaterialReviewSummaryView summary={manifest.materials} />
           <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
-          <List items={partScheduleListItems(manifest)} />
+          <List items={packetPartScheduleListItems(manifest, packet)} />
         </PlanSheetSection>
 
-        <PlanSheetSection id="cut-list-to-verify" title="Cut Checklist">
+        <PlanSheetSection id="cut-list-to-verify" title={corePacketSectionTitles.cutChecklist}>
           <div className="mb-5">
             {manifest.wallShelfCutDiagramViewModel.status !== "unsupported" ? (
               <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} />
@@ -2609,7 +2611,7 @@ function PlanView({
             )}
           </div>
           <div className="mb-5">
-            <CutListReviewSummaryView summary={manifest.cutList} planWarningCount={packetCutWarningCount(manifest)} />
+            <CutListReviewSummaryView summary={manifest.cutList} planWarningCount={packet.cutWarningCount} />
           </div>
           {generatedCuts.length > 0 ? (
             <>
@@ -2628,7 +2630,7 @@ function PlanView({
                   <tbody className="divide-y divide-sawdust">
                     {generatedCuts.map((item) => (
                       <tr key={item.id}>
-                        <td className="py-3 pr-3 font-semibold text-ink">{partLabelForCutItem(item, manifest)}</td>
+                        <td className="py-3 pr-3 font-semibold text-ink">{labelForPacketCutItem(item, packet)}</td>
                         <td className="py-3 pr-3 text-ink/70">{item.quantityLabel}</td>
                         <td className="py-3 pr-3 text-ink/70">{item.dimensionsLabel}</td>
                         <td className="py-3 pr-3 text-ink/70">{item.materialLabel}</td>
@@ -2644,7 +2646,7 @@ function PlanView({
           )}
         </PlanSheetSection>
 
-        <PlanSheetSection title="Buying Plan">
+        <PlanSheetSection title={corePacketSectionTitles.buyingPlan}>
           {manifest.wallShelfStockBoardViewModel.status !== "unsupported" ? (
             <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} />
           ) : (
@@ -2652,14 +2654,14 @@ function PlanView({
           )}
         </PlanSheetSection>
 
-        <PlanSheetSection title="Build Guide">
+        <PlanSheetSection title={corePacketSectionTitles.buildGuide}>
           <div className="mb-4">
             <BuildStepStatusSummary viewModel={manifest.wallShelfBuildStepViewModel} />
           </div>
           <BuildStepCards cards={manifest.buildStepCards} />
         </PlanSheetSection>
 
-        <PlanSheetSection title="Reference Review Notes">
+        <PlanSheetSection title={corePacketSectionTitles.referenceReviewNotes}>
           <h4 className="text-sm font-semibold text-ink">Generated plan summary</h4>
           {generatedPlan.summary ? (
             <p className="mt-2 text-sm leading-6 text-ink/70">{generatedPlan.summary}</p>
@@ -2713,94 +2715,6 @@ function PlanView({
 }
 
 type UnresolvedCutDimensionItem = Pick<CutListReviewSummary["items"][number], "id" | "label" | "dimensionsLabel" | "messages">;
-
-type PacketPartRow = {
-  displayName: string;
-  printLabel: string;
-  quantity: number;
-  quantityLabel: string;
-  dimensionsLabel: string;
-  materialLabel: string;
-};
-
-function normalizePartText(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-}
-
-function partQuantity(rowQuantityLabel: string): number | null {
-  const value = Number.parseInt(rowQuantityLabel.replace(/[^0-9]+/g, ""), 10);
-  return Number.isFinite(value) && value > 0 ? value : null;
-}
-
-function partLabelForCutItem(item: CutListReviewSummary["items"][number], manifest: PrintablePlanManifest): string {
-  const quantity = partQuantity(item.quantityLabel);
-  const match = packetAssignedParts(manifest).find((row) => {
-    const rowNames = [row.displayName, row.printLabel].map(normalizePartText);
-    return (
-      rowNames.includes(normalizePartText(item.label)) ||
-      (normalizePartText(row.displayName).replace(/\bs$/, "") === normalizePartText(item.label).replace(/\bs$/, "") &&
-        row.dimensionsLabel === item.dimensionsLabel &&
-        normalizePartText(row.materialLabel) === normalizePartText(item.materialLabel) &&
-        (!quantity || row.quantity === quantity))
-    );
-  });
-
-  return match?.printLabel ?? item.label;
-}
-
-function partScheduleListItems(manifest: PrintablePlanManifest): string[] {
-  const rows = packetPartRows(manifest);
-
-  if (rows.length === 0) {
-    return manifest.cutList?.items
-      .filter((item) => item.sourceLabel === "Modeled piece")
-      .map((item) => `${item.quantityLabel}x ${item.label}: ${item.dimensionsLabel}`) ?? [];
-  }
-
-  return rows.map((row) => `${row.printLabel}: ${row.quantityLabel}, ${row.dimensionsLabel}`);
-}
-
-function packetAssignedParts(manifest: PrintablePlanManifest): PacketPartRow[] {
-  if (manifest.wallShelfPartScheduleViewModel.assignedParts.length > 0) {
-    return manifest.wallShelfPartScheduleViewModel.assignedParts;
-  }
-
-  return manifest.planterBoxPartScheduleViewModel.assignedParts.map((row) => ({
-    displayName: row.pieceLabel,
-    printLabel: row.printLabel,
-    quantity: row.quantity,
-    quantityLabel: `${row.quantity.toString()}x`,
-    dimensionsLabel: row.dimensions,
-    materialLabel: row.materialLabel,
-  }));
-}
-
-function packetPartRows(manifest: PrintablePlanManifest): PacketPartRow[] {
-  if (manifest.wallShelfPartScheduleViewModel.rows.length > 0) {
-    return manifest.wallShelfPartScheduleViewModel.rows;
-  }
-
-  return manifest.planterBoxPartScheduleViewModel.rows.map((row) => ({
-    displayName: row.pieceLabel,
-    printLabel: row.printLabel,
-    quantity: row.quantity,
-    quantityLabel: `${row.quantity.toString()}x`,
-    dimensionsLabel: row.dimensions,
-    materialLabel: row.materialLabel,
-  }));
-}
-
-function packetCutWarningCount(manifest: PrintablePlanManifest): number {
-  if (manifest.wallShelfCutDiagramViewModel.status !== "unsupported") {
-    return manifest.wallShelfCutDiagramViewModel.warnings.length;
-  }
-
-  if (manifest.planterBoxCutDiagramViewModel.status !== "unsupported") {
-    return manifest.planterBoxCutDiagramViewModel.warnings.length;
-  }
-
-  return manifest.cutList?.warnings.length ?? 0;
-}
 
 function unresolvedCutDimensionItems(summary: CutListReviewSummary): UnresolvedCutDimensionItem[] {
   return summary.items.filter((item) => {
