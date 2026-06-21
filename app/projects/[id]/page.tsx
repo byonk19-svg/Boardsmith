@@ -57,19 +57,16 @@ import {
 } from "@/lib/projects/types";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
 import { getTemplateHint } from "@/lib/templates/template-hints";
-import { BuildStepCards, BuildStepStatusSummary } from "./BuildStepCards";
 import { GeneratePlanForm } from "./GeneratePlanForm";
-import { PlanterBoxBuyingPlan } from "./PlanterBoxBuyingPlan";
-import { PlanterBoxCutDiagram } from "./PlanterBoxCutDiagram";
-import { PlanterBoxPlanReadiness } from "./PlanterBoxPlanReadiness";
-import { PlanActionChecklist } from "./PlanActionChecklist";
-import { PlanningDiagramsSection } from "./PlanningDiagramsSection";
-import { ProjectHeroVisual } from "./ProjectHeroVisual";
+import {
+  PlanPacketBuildGuide,
+  PlanPacketBuyingPlan,
+  PlanPacketCutDiagram,
+  PlanPacketHeroVisual,
+  PlanPacketProjectVisuals,
+  PlanPacketReadinessSection,
+} from "./PlanPacketSections";
 import { TweakPlanForm } from "./TweakPlanForm";
-import { WallShelfBuyingPlan } from "./WallShelfBuyingPlan";
-import { WallShelfCutDiagram } from "./WallShelfCutDiagram";
-import { WallShelfDiagrams } from "./WallShelfDiagrams";
-import { WallShelfPlanReadiness } from "./WallShelfPlanReadiness";
 
 export const dynamic = "force-dynamic";
 
@@ -2577,29 +2574,15 @@ function PlanView({
 
       <div className="divide-y divide-sawdust">
         <PlanSheetSection title={corePacketSectionTitles.heroVisual}>
-          <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} />
+          <PlanPacketHeroVisual manifest={manifest} />
         </PlanSheetSection>
 
         <PlanSheetSection title={corePacketSectionTitles.projectVisuals}>
-          {manifest.wallShelfDiagram ? (
-            <WallShelfDiagrams model={manifest.wallShelfDiagram} />
-          ) : (
-            <PlanningDiagramsSection diagrams={manifest.planningDiagrams.diagrams} fallbackMessage={manifest.planningDiagrams.fallbackMessage} />
-          )}
+          <PlanPacketProjectVisuals manifest={manifest} />
         </PlanSheetSection>
 
         <PlanSheetSection title={corePacketSectionTitles.checkBeforeBuilding}>
-          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
-            <div className="mb-5">
-              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} />
-            </div>
-          ) : null}
-          {manifest.planterBoxPlanReadinessViewModel.status !== "unsupported" ? (
-            <div className="mb-5">
-              <PlanterBoxPlanReadiness viewModel={manifest.planterBoxPlanReadinessViewModel} />
-            </div>
-          ) : null}
-          <PlanActionChecklist items={manifest.actionChecklist} />
+          <PlanPacketReadinessSection manifest={manifest} />
         </PlanSheetSection>
 
         <PlanSheetSection title={corePacketSectionTitles.materialsAndParts}>
@@ -2610,11 +2593,7 @@ function PlanView({
 
         <PlanSheetSection id="cut-list-to-verify" title={corePacketSectionTitles.cutChecklist}>
           <div className="mb-5">
-            {manifest.wallShelfCutDiagramViewModel.status !== "unsupported" ? (
-              <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} />
-            ) : (
-              <PlanterBoxCutDiagram viewModel={manifest.planterBoxCutDiagramViewModel} />
-            )}
+            <PlanPacketCutDiagram manifest={manifest} />
           </div>
           <div className="mb-5">
             <CutListReviewSummaryView summary={manifest.cutList} planWarningCount={packet.cutWarningCount} />
@@ -2653,18 +2632,11 @@ function PlanView({
         </PlanSheetSection>
 
         <PlanSheetSection title={corePacketSectionTitles.buyingPlan}>
-          {manifest.wallShelfStockBoardViewModel.status !== "unsupported" ? (
-            <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} />
-          ) : (
-            <PlanterBoxBuyingPlan viewModel={manifest.planterBoxStockBoardViewModel} />
-          )}
+          <PlanPacketBuyingPlan manifest={manifest} />
         </PlanSheetSection>
 
         <PlanSheetSection title={corePacketSectionTitles.buildGuide}>
-          <div className="mb-4">
-            <BuildStepStatusSummary viewModel={manifest.wallShelfBuildStepViewModel} />
-          </div>
-          <BuildStepCards cards={manifest.buildStepCards} />
+          <PlanPacketBuildGuide manifest={manifest} />
         </PlanSheetSection>
 
         <PlanSheetSection title={corePacketSectionTitles.referenceReviewNotes}>

@@ -1,9 +1,16 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { BuildStepCards } from "@/app/projects/[id]/BuildStepCards";
 import { PlanterBoxBuyingPlan } from "@/app/projects/[id]/PlanterBoxBuyingPlan";
 import { PlanterBoxCutDiagram } from "@/app/projects/[id]/PlanterBoxCutDiagram";
 import { PlanterBoxPlanReadiness } from "@/app/projects/[id]/PlanterBoxPlanReadiness";
+import {
+  PlanPacketBuildGuide,
+  PlanPacketBuyingPlan,
+  PlanPacketCutDiagram,
+  PlanPacketHeroVisual,
+  PlanPacketProjectVisuals,
+  PlanPacketReadinessSection,
+} from "@/app/projects/[id]/PlanPacketSections";
 import { WallShelfBuyingPlan } from "@/app/projects/[id]/WallShelfBuyingPlan";
 import { WallShelfCutDiagram } from "@/app/projects/[id]/WallShelfCutDiagram";
 import { WallShelfDiagrams } from "@/app/projects/[id]/WallShelfDiagrams";
@@ -40,7 +47,18 @@ function renderWallShelfPacketSurfaces(manifest: ReturnType<typeof wallShelfMani
     manifest.wallShelfDiagram ? renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model: manifest.wallShelfDiagram })) : "",
     renderToStaticMarkup(React.createElement(WallShelfCutDiagram, { viewModel: manifest.wallShelfCutDiagramViewModel })),
     renderToStaticMarkup(React.createElement(WallShelfBuyingPlan, { viewModel: manifest.wallShelfStockBoardViewModel })),
-    renderToStaticMarkup(React.createElement(BuildStepCards, { cards: manifest.buildStepCards })),
+    renderToStaticMarkup(React.createElement(PlanPacketBuildGuide, { manifest })),
+  ].join(" ");
+}
+
+function renderSharedTemplatePacketSections(manifest: ReturnType<typeof createPrintablePlanManifest>): string {
+  return [
+    renderToStaticMarkup(React.createElement(PlanPacketHeroVisual, { manifest })),
+    renderToStaticMarkup(React.createElement(PlanPacketProjectVisuals, { manifest })),
+    renderToStaticMarkup(React.createElement(PlanPacketReadinessSection, { manifest })),
+    renderToStaticMarkup(React.createElement(PlanPacketCutDiagram, { manifest })),
+    renderToStaticMarkup(React.createElement(PlanPacketBuyingPlan, { manifest })),
+    renderToStaticMarkup(React.createElement(PlanPacketBuildGuide, { manifest })),
   ].join(" ");
 }
 
@@ -57,6 +75,41 @@ describe("plan packet contract", () => {
       "Build Guide",
       "Reference Review Notes",
     ]);
+  });
+
+  it("keeps template packet section switching behind one shared route module", () => {
+    const wallManifest = wallShelfManifest("connected_modeled_support");
+    const planterProject = {
+      ...createWallShelfFixtureProject("single"),
+      id: "planter_shared_sections",
+      title: "Small planter box",
+      project_type: "planter_box" as const,
+      width_inches: 24,
+      height_inches: 8,
+      depth_inches: 8,
+      material_thickness_inches: 0.75,
+      material_type: "cedar board",
+      intended_use: "Outdoor herb planter.",
+    };
+    const planterBuildModel = createBuildModelDraft(planterProject, getTemplateHint(planterProject.project_type), calculateSafetyReviewFlags(planterProject));
+    const planterManifest = createPrintablePlanManifest({
+      project: planterProject,
+      planRecord: null,
+      buildModel: planterBuildModel,
+      buildModelSource: "derived",
+    });
+
+    const wallMarkup = renderSharedTemplatePacketSections(wallManifest);
+    const planterMarkup = renderSharedTemplatePacketSections(planterManifest);
+
+    expect(wallMarkup).toContain("Part A - Shelf boards");
+    expect(wallMarkup).toContain("Buying Plan");
+    expect(wallMarkup).not.toContain("Planter Box Buying Plan");
+    expect(planterMarkup).toContain("Drainage and liner approach needs review");
+    expect(planterMarkup).toContain("Planter box cut layout");
+    expect(planterMarkup).toContain("Planter Box Buying Plan");
+    expect(planterMarkup).not.toContain("Shelf board to review");
+    expect(`${wallMarkup} ${planterMarkup}`).not.toMatch(/add to cart|load rated|certified|CAD-ready|CNC-ready/i);
   });
 
   it("uses the same deterministic wall-shelf part labels across packet surfaces", () => {
@@ -191,7 +244,7 @@ describe("plan packet contract", () => {
       renderToStaticMarkup(React.createElement(PlanterBoxPlanReadiness, { viewModel: manifest.planterBoxPlanReadinessViewModel })),
       renderToStaticMarkup(React.createElement(PlanterBoxCutDiagram, { viewModel: manifest.planterBoxCutDiagramViewModel })),
       renderToStaticMarkup(React.createElement(PlanterBoxBuyingPlan, { viewModel: manifest.planterBoxStockBoardViewModel })),
-      renderToStaticMarkup(React.createElement(BuildStepCards, { cards: manifest.buildStepCards })),
+      renderToStaticMarkup(React.createElement(PlanPacketBuildGuide, { manifest })),
     ].join(" ");
 
     expect(renderedPacket).toContain("Drainage and liner approach needs review");
