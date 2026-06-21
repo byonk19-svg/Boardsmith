@@ -6,9 +6,9 @@ Date: June 20, 2026
 
 Boardsmith is linked to Vercel, the required hosted environment variable names are present for Preview and Production, and a user-supplied manual hosted smoke passed from an authorized Vercel browser session after the project-intake validation fix.
 
-No deployment was performed by Codex during this pass.
+No production deployment was performed by Codex during this pass.
 
-The June 20, 2026 deeper planter packet planning follow-through landed locally, including planter-specific readiness actions, and still needs a refreshed planter detail/print hosted smoke pass before it should be treated as hosted-current. Generic hosted smoke for `/` and `/projects` passes through the protected hosted path.
+The June 20, 2026 deeper planter packet planning follow-through landed locally, including planter-specific readiness actions. A planter-specific hosted route/content smoke pass on June 20, 2026 reached the sanitized `/projects/[id]` and `/projects/[id]/print` routes through the protected hosted path and found the shared readiness sentinels. Generic hosted smoke for `/` and `/projects` also passes through the protected hosted path.
 
 ## Hosting Provider Status
 
@@ -120,7 +120,7 @@ Remaining decisions before broader private sharing:
 1. Decide whether Vercel-level deployment protection plus Boardsmith `/access` is the intended ongoing private access model.
 2. Keep Supabase cloud migrations applied before relying on hosted writes.
 3. Rerun the hosted smoke checklist after any deployment, env-var change, migration, or access-gate change.
-4. Configure a non-sensitive concrete planter detail path and shared expected text for `BOARDSMITH_HOSTED_SMOKE_PATHS` / `BOARDSMITH_HOSTED_SMOKE_EXPECT_TEXT`, then refresh hosted planter detail/print smoke after the June 20 planter-packet follow-through before treating that path as hosted-current.
+4. Keep the non-sensitive planter detail/print smoke path configured locally and rerun it after future hosted deployments or route/content changes that affect project detail, print, manifest, readiness, or planter packet rendering.
 
 Do not share the hosted URL publicly. Private sharing is reasonable only with intended users who can pass the chosen access layers.
 

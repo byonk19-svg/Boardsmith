@@ -8,7 +8,7 @@ Boardsmith is a private MVP woodworking planning app. It is ready for a small pr
 
 The current hosted posture is private-MVP ready: Vercel is linked, required hosted environment variable names are present, hosted route smoke passes through the intended protected access path, authorized hosted archive/restore and `Tweak this plan` smoke have passed, and the post-push wall-shelf dogfood fix was verified on hosted. Do not share the hosted URL publicly. Share only with intended private users who can pass the active Vercel and/or Boardsmith access layers.
 
-The June 20, 2026 deeper planter packet planning follow-through landed locally and passed the focused packet/detail/print tests. A follow-up on the same day added planter-specific readiness actions for drainage, liner, outdoor finish, stock-board selection, panel cuts, and connection review. Generic hosted smoke still passes through the protected hosted path, but hosted planter detail/print smoke has not been refreshed yet because no concrete non-sensitive planter detail route and shared sentinel text are configured for the hosted smoke helper.
+The June 20, 2026 deeper planter packet planning follow-through landed locally and passed the focused packet/detail/print tests. A follow-up on the same day added planter-specific readiness actions for drainage, liner, outdoor finish, stock-board selection, panel cuts, and connection review. On June 20, 2026, planter-specific hosted detail and print route/content smoke also passed through the protected hosted path using sanitized `/projects/[id]` and `/projects/[id]/print` output plus shared readiness sentinels for `Plan Readiness / Next Actions`, `Drainage and liner approach needs review`, and `Panel connections need manual review`. No hosted URL, secret, cookie, request header, project ID, row data, screenshot, or sensitive log was recorded.
 
 ## Final Private MVP Readiness Checkpoint
 
@@ -45,7 +45,7 @@ Remaining known limitations:
 - Generated plan quality can still vary. Connected shelf units and child-adjacent ledges may be blocked by generated-plan review; this is acceptable safety posture until repeated examples justify a narrow prompt/model slice.
 - Buying Plan is still conservative. It does not choose exact stock boards, optimize cuts, price materials, choose vendors, or produce a complete shopping list.
 - Hardware and fastener guidance remains split across Buying Plan, Materials and Parts, and review notes because exact bracket/anchor choices depend on wall structure, expected load, and real site review.
-- The deeper planter packet planning follow-through has not yet had a fresh planter-specific hosted detail/print smoke pass. The current configured hosted smoke proves `/` and `/projects`, not a specific planter packet route.
+- The current planter-specific hosted smoke is route/content evidence only. It proves the sanitized planter detail and print routes render the expected readiness copy, but it does not create a new hosted planter project or judge generated-plan quality.
 - The hosted access model still relies on private access layers, not production auth, per-user ownership, or RLS.
 - Browser print is usable but not a generated PDF/download/export system.
 - Boardsmith still does not provide engineering review, load ratings, wall-safety guarantees, child-safety certification, CAD/CNC output, public sharing, shopping, pricing, vendor, inventory, payments, or subscriptions.
@@ -53,8 +53,8 @@ Remaining known limitations:
 Recommended next 3 tasks:
 
 1. Keep using the wall-shelf Buying Plan manually; only expand behavior if stock-length selection or hardware grouping remains repeatedly annoying.
-2. Configure a non-sensitive hosted planter detail route and shared expected text, then refresh hosted planter detail/print smoke before treating the June 20 planter follow-through as hosted-current.
-3. Collect repeated generation-quality friction from real supported projects before changing prompts.
+2. Collect repeated generation-quality friction from real supported projects before changing prompts.
+3. Rerun hosted smoke after any future deployment, env-var, access-gate, project-detail, print, generation, or `Tweak this plan` change.
 
 ## Private MVP Checkpoint
 
