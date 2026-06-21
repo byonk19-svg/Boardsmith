@@ -1154,6 +1154,16 @@
 - [x] Cover the new semantics with clarification-gate, build-model, generated-plan, readiness, material-summary, print, route, and rendered-diagram tests.
 - [x] Keep the pass deterministic and safety-bounded with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 90I - Architecture Review Follow-Through
+
+- [x] Re-audit the private-MVP implementation against `docs/ARCHITECTURE.md` and `docs/VISION.md`.
+- [x] Keep `PrintablePlanManifest` and `printable-plan-packet` as the source-of-truth modules for generated packet data.
+- [x] Extract the repeated detail/Browser Print Plan template packet dispatch into `app/projects/[id]/PlanPacketSections.tsx`.
+- [x] Keep route-specific digital detail summaries, print snapshot/table behavior, print review details, and shop notes local instead of creating a broad shared renderer.
+- [x] Add contract coverage that renders the shared packet module for both wall-shelf and planter-box manifests.
+- [x] Record the June 20 planter hosted detail/print route/content smoke traceability without storing hosted URLs, project IDs, cookies, headers, screenshots, row data, session files, or secrets.
+- [x] Keep fresh generated-plan dogfood as the remaining evidence gap; do not tune prompts, schema, auth, exports, public sharing, marketplace, shopping, pricing, vendor, inventory, CAD, CNC, or app-generated PDF from speculation.
+
 ## Recommended Next Tasks
 
 1. [ ] Keep using the wall-shelf Visual Plan Packet and Buying Plan manually; only expand behavior if stock-length selection, hardware grouping, or visual review remains repeatedly annoying.

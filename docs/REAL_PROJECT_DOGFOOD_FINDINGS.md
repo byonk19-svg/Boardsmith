@@ -6,6 +6,18 @@ June 10, 2026
 
 This pass predates the June 20, 2026 deeper planter packet planning follow-through. The follow-through now has local focused packet/detail/print test coverage, including planter-specific readiness actions, plus a sanitized planter-specific hosted detail/print route smoke pass. It has not yet had a new live generated-plan dogfood pass from a fresh planter project.
 
+## Pending Fresh Planter Dogfood Evidence
+
+The remaining planter gap is evidence, not speculative implementation work. Close it only with a fresh clearly labeled non-critical project that starts from a realistic planter prompt and reaches generated-plan detail plus Browser Print Plan review.
+
+Capture these points without recording hosted URLs, project IDs, row data, cookies, request headers, screenshots, session files, or secrets:
+
+- Whether the first generated planter plan validates and saves.
+- Whether the generated plan preserves planter-specific drainage, liner, outdoor exposure, finish, stock-board, panel-cut, and connection review language.
+- Whether detail and Browser Print Plan both show the planter packet sections and no export/CAD/CNC/shopping/vendor/price/cart/load-rating/approval claims.
+- Whether any failure is repeated enough to justify prompt/schema/template work instead of one-off project wording.
+- Whether browser print remains enough for private MVP planter review.
+
 ## Scope
 
 This pass used the private hosted app through the existing protected hosted smoke path after authenticated route smoke, hosted `Tweak this plan` active-flow smoke, archived revision-blocking smoke, and project-detail navigation smoke had already passed.

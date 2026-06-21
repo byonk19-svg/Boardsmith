@@ -6,17 +6,14 @@ import { corePacketSectionTitles, createPrintablePlanPacketSummary, labelForPack
 import type { PrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import type { Project } from "@/lib/projects/types";
 import { getProject, listGeneratedPlans } from "@/lib/storage/project-store";
-import { BuildStepCards, BuildStepStatusSummary } from "../BuildStepCards";
-import { PlanterBoxBuyingPlan } from "../PlanterBoxBuyingPlan";
-import { PlanterBoxCutDiagram } from "../PlanterBoxCutDiagram";
-import { PlanterBoxPlanReadiness } from "../PlanterBoxPlanReadiness";
-import { PlanActionChecklist } from "../PlanActionChecklist";
-import { PlanningDiagramsSection } from "../PlanningDiagramsSection";
-import { ProjectHeroVisual } from "../ProjectHeroVisual";
-import { WallShelfBuyingPlan } from "../WallShelfBuyingPlan";
-import { WallShelfCutDiagram } from "../WallShelfCutDiagram";
-import { WallShelfDiagrams } from "../WallShelfDiagrams";
-import { WallShelfPlanReadiness } from "../WallShelfPlanReadiness";
+import {
+  PlanPacketBuildGuide,
+  PlanPacketBuyingPlan,
+  PlanPacketCutDiagram,
+  PlanPacketHeroVisual,
+  PlanPacketProjectVisuals,
+  PlanPacketReadinessSection,
+} from "../PlanPacketSections";
 import { PrintDialogButton } from "./PrintDialogButton";
 
 export const dynamic = "force-dynamic";
@@ -68,36 +65,15 @@ export default async function ProjectPrintPreviewPage({
         </PrintSection>
 
         <PrintSection title={corePacketSectionTitles.heroVisual}>
-          <ProjectHeroVisual visual={manifest.planningDiagrams.projectAnatomy} wallShelfViewModel={manifest.wallShelfDiagramViewModel} compact />
+          <PlanPacketHeroVisual manifest={manifest} compact />
         </PrintSection>
 
         <PrintSection title={corePacketSectionTitles.projectVisuals}>
-          {manifest.wallShelfDiagram ? (
-            <WallShelfDiagrams model={manifest.wallShelfDiagram} />
-          ) : (
-            <PlanningDiagramsSection
-              diagrams={manifest.planningDiagrams.diagrams}
-              fallbackMessage={manifest.planningDiagrams.fallbackMessage}
-              projectAnatomy={manifest.planningDiagrams.projectAnatomy}
-              threeView={manifest.planningDiagrams.threeView}
-              visualPieceInventory={manifest.planningDiagrams.visualPieceInventory}
-              featured
-            />
-          )}
+          <PlanPacketProjectVisuals manifest={manifest} featured />
         </PrintSection>
 
         <PrintSection title={corePacketSectionTitles.checkBeforeBuilding}>
-          {manifest.wallShelfPlanReadinessViewModel.status !== "unsupported" ? (
-            <div className="mb-4">
-              <WallShelfPlanReadiness viewModel={manifest.wallShelfPlanReadinessViewModel} compact />
-            </div>
-          ) : null}
-          {manifest.planterBoxPlanReadinessViewModel.status !== "unsupported" ? (
-            <div className="mb-4">
-              <PlanterBoxPlanReadiness viewModel={manifest.planterBoxPlanReadinessViewModel} compact />
-            </div>
-          ) : null}
-          <PlanActionChecklist items={mainChecklistItems(manifest)} compact />
+          <PlanPacketReadinessSection manifest={manifest} checklistItems={mainChecklistItems(manifest)} compact />
         </PrintSection>
 
         <PrintSection title={corePacketSectionTitles.materialsAndParts}>
@@ -109,11 +85,7 @@ export default async function ProjectPrintPreviewPage({
         </PrintSection>
 
         <PrintSection title={corePacketSectionTitles.buyingPlan}>
-          {manifest.wallShelfStockBoardViewModel.status !== "unsupported" ? (
-            <WallShelfBuyingPlan viewModel={manifest.wallShelfStockBoardViewModel} compact />
-          ) : (
-            <PlanterBoxBuyingPlan viewModel={manifest.planterBoxStockBoardViewModel} compact />
-          )}
+          <PlanPacketBuyingPlan manifest={manifest} compact />
         </PrintSection>
 
         <PrintSection title={corePacketSectionTitles.buildGuide} printBreakBefore>
@@ -217,11 +189,7 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
 
   return (
     <div className="space-y-4">
-      {manifest.wallShelfCutDiagramViewModel.status !== "unsupported" ? (
-        <WallShelfCutDiagram viewModel={manifest.wallShelfCutDiagramViewModel} compact />
-      ) : (
-        <PlanterBoxCutDiagram viewModel={manifest.planterBoxCutDiagramViewModel} compact />
-      )}
+      <PlanPacketCutDiagram manifest={manifest} compact />
       <dl className="grid gap-3 text-sm sm:grid-cols-5 print:grid-cols-5">
         <PrintFact label="Total cut pieces" value={manifest.cutList.totalPieces.toString()} />
         <PrintFact label="Unique cuts" value={manifest.cutList.cutListRows.toString()} />
@@ -264,12 +232,7 @@ function PrintCutChecklist({ manifest }: { manifest: PrintablePlanManifest }) {
 }
 
 function PrintBuildGuide({ manifest }: { manifest: PrintablePlanManifest }) {
-  return (
-    <div className="space-y-4">
-      <BuildStepStatusSummary viewModel={manifest.wallShelfBuildStepViewModel} compact />
-      <BuildStepCards cards={manifest.buildStepCards} compact />
-    </div>
-  );
+  return <PlanPacketBuildGuide manifest={manifest} compact />;
 }
 
 function PrintReviewDetails({ manifest }: { manifest: PrintablePlanManifest }) {
