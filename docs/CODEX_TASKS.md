@@ -1164,9 +1164,18 @@
 - [x] Record the June 20 planter hosted detail/print route/content smoke traceability without storing hosted URLs, project IDs, cookies, headers, screenshots, row data, session files, or secrets.
 - [x] Keep fresh generated-plan dogfood as the remaining evidence gap; do not tune prompts, schema, auth, exports, public sharing, marketplace, shopping, pricing, vendor, inventory, CAD, CNC, or app-generated PDF from speculation.
 
+## Task 90J - Hosted Friction Follow-Through
+
+- [x] Run a fresh clearly labeled hosted planter generated-plan dogfood pass without recording hosted URLs, project IDs, cookies, headers, screenshots, row data, session files, or secrets.
+- [x] Run a fresh hosted friction signal pass across low-risk wall-shelf and planter scenarios.
+- [x] Keep planter build-step/connection depth parked because the fresh pass did not expose a repeated planter failure.
+- [x] Add a narrow wall-shelf Buying Plan decision checklist for stock-board selection, support/frame review, hardware/site review, and exposure-sensitive finish review.
+- [x] Render the decisions through the existing Buying Plan component so detail and Browser Print Plan stay aligned.
+- [x] Preserve conservative boundaries: no exact stock-board purchase, optimized cut selection, vendor, price, cart, inventory, load rating, export, CAD, CNC, auth, package, migration, or schema change.
+
 ## Recommended Next Tasks
 
-1. [ ] Keep using the wall-shelf Visual Plan Packet and Buying Plan manually; only expand behavior if stock-length selection, hardware grouping, or visual review remains repeatedly annoying.
+1. [ ] Keep using the wall-shelf Visual Plan Packet and Buying Plan manually; only expand behavior if the explicit buying decisions or visual review remain repeatedly annoying.
 2. [ ] Choose any next implementation lane only from repeated manual dogfood friction or an explicitly selected next template.
 3. [ ] If a next template is selected, start with a PRD/issue split like wall shelves instead of broad visual expansion.
 4. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.

@@ -4,19 +4,51 @@
 
 June 10, 2026
 
-This pass predates the June 20, 2026 deeper planter packet planning follow-through. The follow-through now has local focused packet/detail/print test coverage, including planter-specific readiness actions, plus a sanitized planter-specific hosted detail/print route smoke pass. It has not yet had a new live generated-plan dogfood pass from a fresh planter project.
+This pass predates the June 20, 2026 deeper planter packet planning follow-through. The follow-through now has local focused packet/detail/print test coverage, including planter-specific readiness actions, plus a sanitized planter-specific hosted detail/print route smoke pass. A fresh live hosted generated-plan dogfood pass for a clearly labeled non-critical planter project was completed on June 21, 2026.
 
-## Pending Fresh Planter Dogfood Evidence
+## Fresh Hosted Planter Generated-Plan Dogfood
 
-The remaining planter gap is evidence, not speculative implementation work. Close it only with a fresh clearly labeled non-critical project that starts from a realistic planter prompt and reaches generated-plan detail plus Browser Print Plan review.
+Date: June 21, 2026
 
-Capture these points without recording hosted URLs, project IDs, row data, cookies, request headers, screenshots, session files, or secrets:
+Scope: one fresh clearly labeled non-critical hosted planter project using realistic outdoor herb-planter details. The hosted URL, project ID, project title, row data, cookies, request headers, screenshots, session-file content, and sensitive logs are intentionally not recorded.
 
-- Whether the first generated planter plan validates and saves.
-- Whether the generated plan preserves planter-specific drainage, liner, outdoor exposure, finish, stock-board, panel-cut, and connection review language.
-- Whether detail and Browser Print Plan both show the planter packet sections and no export/CAD/CNC/shopping/vendor/price/cart/load-rating/approval claims.
-- Whether any failure is repeated enough to justify prompt/schema/template work instead of one-off project wording.
-- Whether browser print remains enough for private MVP planter review.
+Coverage:
+
+- Created one clearly labeled non-critical hosted planter project.
+- Generated the first planter plan successfully; the generated plan validated and saved.
+- Opened generated-plan detail and Browser Print Plan routes through the protected hosted path.
+- Confirmed both routes rendered the planter packet sections, including planter hero/cut layout and Planter Box Buying Plan.
+- Confirmed rendered copy preserved drainage, liner, outdoor exposure, finish, stock-board, panel-cut, and connection review language.
+- Confirmed no positive export/CAD/CNC/shopping/vendor/price/cart/load-rating/approval claims appeared; no-PDF/no-CAD/browser-print and planning-aid disclaimers remained present.
+
+Result:
+
+The fresh hosted planter generated-plan path is good enough for private MVP dogfood. Browser print remains enough for planter review. This single pass did not expose a repeated failure mode, so no prompt, schema, template, export, shopping, CAD, CNC, or broader app change is justified from this evidence.
+
+## Fresh Hosted Friction Signal Pass
+
+Date: June 21, 2026
+
+Scope: three fresh clearly labeled non-critical hosted dogfood projects plus one retry on a low-risk wall-shelf project from the same pass. The hosted URL, project IDs, project titles, row data, cookies, request headers, screenshots, session-file content, and sensitive logs are intentionally not recorded.
+
+Coverage:
+
+- Two low-risk wall-shelf projects generated and saved successfully, then rendered detail and Browser Print Plan.
+- Both successful wall-shelf packets rendered Buying Plan, Materials and Parts, stock-board/stock-length review language, and hardware/fastener/bracket/stud review language.
+- One bathroom/above-toilet wall-shelf project stayed without a saved generated plan after generation review blocked it. This is conservative safety posture for humid wall-mounted work, not a reason to weaken review.
+- One planter connection/build-step project generated and saved successfully, then rendered detail and Browser Print Plan.
+- The planter packet included Build Guide, connection planning aid, panel-specific labels, drainage, liner, outdoor exposure, finish, screw/fastener, and manual connection review language.
+- No positive export/CAD/CNC/shopping/vendor/price/cart/load-rating/approval claims appeared in the rendered dogfood packets.
+
+Friction signal:
+
+- Stock-board/stock-length selection remains the repeated wall-shelf Buying Plan gap in successful packets.
+- Hardware and fastener review remains split across Buying Plan, Materials and Parts, and review notes. This is safer than pretending to choose exact brackets or anchors, but it is still the main place where a real buying trip may feel incomplete.
+- Planter build-step and connection depth did not show a repeated failure in this pass. It still uses generic adapters in places, but the rendered output preserved panel labels and review-first connection language well enough for private MVP dogfood.
+
+Result:
+
+This pass justified only a narrow wall-shelf Buying Plan clarity follow-through: make stock-board selection, support/frame review, hardware/site review, and finish/exposure review visible as explicit pre-purchase decisions. It still does not justify exact stock-board selection, optimized cuts, vendors, pricing, carts, load ratings, exports, CAD, CNC, or broader shopping behavior.
 
 ## Scope
 

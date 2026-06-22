@@ -37,11 +37,19 @@ export type WallShelfStockBoardMaterialGroup = {
   reviewReasons: string[];
 };
 
+export type WallShelfBuyingDecision = {
+  id: "stock_board_selection" | "hardware_site_review" | "support_frame_review" | "finish_exposure_review";
+  label: string;
+  detail: string;
+  statusLabel: "Select before buying" | "Review before buying" | "Resolve before buying";
+};
+
 export type WallShelfStockBoardViewModel = {
   projectType: string;
   status: WallShelfStockBoardStatus;
   materialGroups: WallShelfStockBoardMaterialGroup[];
   totalPieces: number;
+  buyingDecisions: WallShelfBuyingDecision[];
   reviewReasons: string[];
   buyingNotes: string[];
   badges: string[];
@@ -214,11 +222,13 @@ function reviewReasonsFor(params: {
   const layoutIssues = findShelfLayoutIssues(params.project);
   const connectedShelfUnit = params.project.shelf_layout === "multi_shelf_unit" && Boolean(params.project.shelf_count && params.project.shelf_count > 1);
   const supportModeled = params.cutViewModel.pieceGroups.some((piece) => piece.role === "support_frame" && !piece.needsReview);
-  const supportNeedsReview =
-    (connectedShelfUnit && !supportModeled) ||
-    hasConnectedShelfSupportPlaceholder(params.buildModel) ||
-    params.cutViewModel.pieceGroups.some((piece) => piece.role === "support_frame_placeholder") ||
-    layoutIssues.some((issue) => issue.code === "connected_shelf_support_incomplete");
+  const supportNeedsReview = supportNeedsReviewFor({
+    buildModel: params.buildModel,
+    cutViewModel: params.cutViewModel,
+    connectedShelfUnit,
+    supportModeled,
+    layoutIssueCodes: layoutIssues.map((issue) => issue.code),
+  });
 
   return uniqueStrings([
     ...layoutIssues.map((issue) => issue.label),
@@ -227,6 +237,105 @@ function reviewReasonsFor(params: {
     ...params.cutViewModel.missingDimensions.map((message) => `Resolve cut dimension before buying: ${message}.`),
     ...(supportNeedsReview ? ["Support/frame pieces may add material; confirm support/frame design before treating this buying plan as complete."] : []),
   ]);
+}
+
+function supportNeedsReviewFor(params: {
+  buildModel: BoardsmithBuildModel;
+  cutViewModel: WallShelfCutDiagramViewModel;
+  connectedShelfUnit: boolean;
+  supportModeled: boolean;
+  layoutIssueCodes: string[];
+}): boolean {
+  return (
+    (params.connectedShelfUnit && !params.supportModeled) ||
+    hasConnectedShelfSupportPlaceholder(params.buildModel) ||
+    params.cutViewModel.pieceGroups.some((piece) => piece.role === "support_frame_placeholder") ||
+    params.layoutIssueCodes.includes("connected_shelf_support_incomplete")
+  );
+}
+
+function hardwareDecisionLabel(project: WallShelfStockBoardProjectInput): string {
+  if (project.shelf_layout === "multiple_separate_shelves") return "Per-shelf hardware/site review";
+  if (project.shelf_layout === "multi_shelf_unit") return "Support and wall-fastener review";
+  return "Mounting hardware/site review";
+}
+
+function hardwareDecisionDetail(buildModel: BoardsmithBuildModel): string {
+  const hardwareLabels = uniqueStrings(buildModel.hardware.map((item) => item.label));
+  const siteReview = "Confirm suitability for the wall structure, support method, expected load, fasteners, and site conditions before buying.";
+
+  if (hardwareLabels.length === 0) {
+    return `No bracket, cleat, anchor, or fastener is selected yet. ${siteReview}`;
+  }
+
+  return `Build Model hardware to review: ${hardwareLabels.join(", ")}. ${siteReview}`;
+}
+
+function hasFinishExposureReview(project: WallShelfStockBoardProjectInput): boolean {
+  return /\b(bathroom|humid|humidity|moisture|wet|outdoor|outside|laundry|kitchen|sink|toilet|shower)\b/i.test(
+    [project.title, project.intended_use, project.style_notes, project.material_type].join(" "),
+  );
+}
+
+function stockBoardDecisionDetail(materialGroups: WallShelfStockBoardMaterialGroup[]): string {
+  const materials = uniqueStrings(materialGroups.map((group) => group.displayName));
+  const materialText = materials.length > 0 ? ` for ${materials.join(", ")}` : "";
+  return `Choose actual stock board length and board condition${materialText} after confirming the final cut layout. This is not a store-board pick and does not arrange cuts on a full board.`;
+}
+
+function buyingDecisionsFor(params: {
+  project: WallShelfStockBoardProjectInput;
+  buildModel: BoardsmithBuildModel;
+  cutViewModel: WallShelfCutDiagramViewModel;
+  materialGroups: WallShelfStockBoardMaterialGroup[];
+}): WallShelfBuyingDecision[] {
+  if (params.materialGroups.length === 0) return [];
+
+  const layoutIssues = findShelfLayoutIssues(params.project);
+  const connectedShelfUnit = params.project.shelf_layout === "multi_shelf_unit" && Boolean(params.project.shelf_count && params.project.shelf_count > 1);
+  const supportModeled = params.cutViewModel.pieceGroups.some((piece) => piece.role === "support_frame" && !piece.needsReview);
+  const supportNeedsReview = supportNeedsReviewFor({
+    buildModel: params.buildModel,
+    cutViewModel: params.cutViewModel,
+    connectedShelfUnit,
+    supportModeled,
+    layoutIssueCodes: layoutIssues.map((issue) => issue.code),
+  });
+
+  return [
+    {
+      id: "stock_board_selection",
+      label: "Stock board selection",
+      detail: stockBoardDecisionDetail(params.materialGroups),
+      statusLabel: "Select before buying",
+    },
+    ...(supportNeedsReview
+      ? [
+          {
+            id: "support_frame_review" as const,
+            label: "Support/frame may change the list",
+            detail: "Confirm side supports, frame, cleat, bracket, or another support method before treating the material list as complete.",
+            statusLabel: "Resolve before buying" as const,
+          },
+        ]
+      : []),
+    {
+      id: "hardware_site_review",
+      label: hardwareDecisionLabel(params.project),
+      detail: hardwareDecisionDetail(params.buildModel),
+      statusLabel: "Review before buying",
+    },
+    ...(hasFinishExposureReview(params.project)
+      ? [
+          {
+            id: "finish_exposure_review" as const,
+            label: "Finish/exposure review",
+            detail: "Confirm finish, humidity or outdoor exposure, material suitability, and corrosion-resistant hardware needs before buying. Boardsmith does not verify waterproofing or durability.",
+            statusLabel: "Review before buying" as const,
+          },
+        ]
+      : []),
+  ];
 }
 
 function summaryFor(status: WallShelfStockBoardStatus, materialGroups: WallShelfStockBoardMaterialGroup[], reviewReasons: string[]): string {
@@ -270,6 +379,7 @@ export function createWallShelfStockBoardViewModel(params: {
   const cutViewModel = params.cutViewModel ?? createWallShelfCutDiagramViewModel({ project, buildModel });
   const materialGroups = unsupported ? [] : materialGroupsFor({ buildModel, cutViewModel });
   const reviewReasons = unsupported ? [] : reviewReasonsFor({ project, buildModel, cutViewModel, materialGroups });
+  const buyingDecisions = unsupported ? [] : buyingDecisionsFor({ project, buildModel, cutViewModel, materialGroups });
   const totalPieces = materialGroups.reduce((total, group) => total + group.totalPieces, 0);
   const status: WallShelfStockBoardStatus = unsupported ? "unsupported" : materialGroups.length === 0 || reviewReasons.length > 0 ? "needs_review" : "ready";
 
@@ -278,6 +388,7 @@ export function createWallShelfStockBoardViewModel(params: {
     status,
     materialGroups,
     totalPieces,
+    buyingDecisions,
     reviewReasons,
     buyingNotes: uniqueStrings([
       "Use this as a material planning aid, not a shopping cart or optimized cut plan.",

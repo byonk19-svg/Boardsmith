@@ -163,6 +163,18 @@ describe("createWallShelfStockBoardViewModel", () => {
       totalPiecesLabel: "1 piece",
       pieces: [expect.objectContaining({ label: "Shelf board", quantity: 1, dimensionsLabel: "12 in x 6 in x 0.75 in" })],
     });
+    const stockBoardDecision = viewModel.buyingDecisions.find((decision) => decision.id === "stock_board_selection");
+    const hardwareDecision = viewModel.buyingDecisions.find((decision) => decision.id === "hardware_site_review");
+
+    expect(stockBoardDecision).toMatchObject({
+      label: "Stock board selection",
+      statusLabel: "Select before buying",
+    });
+    expect(hardwareDecision).toMatchObject({
+      label: "Mounting hardware/site review",
+      statusLabel: "Review before buying",
+    });
+    expect(hardwareDecision?.detail).toContain("Wall brackets");
     expect(viewModel.buyingNotes.join(" ")).toContain("Choose stock length after confirming available boards");
     expect(JSON.stringify(viewModel)).not.toMatch(/\bbuy one\b|home depot|pricing|inventory|1x10x8/i);
   });
@@ -244,6 +256,12 @@ describe("createWallShelfStockBoardViewModel", () => {
     expect(viewModel.status).toBe("needs_review");
     expect(viewModel.renderLabels.summary).toBe("Buying plan needs review before purchasing material.");
     expect(viewModel.reviewReasons).toContain("Impossible or missing shelf layout dimensions");
+    expect(viewModel.buyingDecisions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "support_frame_review", statusLabel: "Resolve before buying" }),
+        expect.objectContaining({ id: "finish_exposure_review", label: "Finish/exposure review" }),
+      ]),
+    );
     expect(JSON.stringify(viewModel)).not.toContain("Height 0.1 in");
   });
 
@@ -276,6 +294,11 @@ describe("createWallShelfStockBoardViewModel", () => {
 
     expect(markup).toContain("Buying Plan");
     expect(markup).toContain("Buying plan needs review before purchasing material.");
+    expect(markup).toContain("Buying decisions before purchase");
+    expect(markup).toContain("Stock board selection");
+    expect(markup).toContain("Support/frame may change the list");
+    expect(markup).toContain("Support and wall-fastener review");
+    expect(markup).toContain("Build Model hardware to review");
     expect(markup).toContain("stock-board planning visual: Part A - Shelf boards");
     expect(markup).toContain("stock length to select");
     expect(markup).toContain("not optimized");
