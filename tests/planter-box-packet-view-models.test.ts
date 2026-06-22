@@ -46,6 +46,27 @@ describe("planter box packet view models", () => {
     expect(JSON.stringify(viewModel)).not.toMatch(/vendor|price|cart|load-rated|CAD-ready|CNC-ready/i);
   });
 
+  it("replaces generic planter connections with review-only assembly guidance", () => {
+    const buildModel = planterBuildModel();
+    const connectionText = JSON.stringify(buildModel.connections);
+
+    expect(buildModel.connections.map((connection) => connection.id)).toEqual(
+      expect.arrayContaining([
+        "front_panel_to_bottom_panel",
+        "back_panel_to_bottom_panel",
+        "left_side_panel_to_front_back_bottom",
+        "right_side_panel_to_front_back_bottom",
+      ]),
+    );
+    expect(connectionText).not.toContain("Generic planter-box connection placeholder");
+    expect(connectionText).toMatch(/front, back, and bottom panels/);
+    expect(connectionText).toMatch(/outdoor-suitable fasteners/i);
+    expect(connectionText).toMatch(/pilot holes/i);
+    expect(connectionText).toMatch(/clamp the planter square/i);
+    expect(connectionText).toMatch(/drainage, liner, and water\/soil exposure/i);
+    expect(connectionText).not.toMatch(/load-bearing guarantee|certified/i);
+  });
+
   it("groups planter panels into a material planning packet without shopping claims", () => {
     const buildModel = planterBuildModel();
     const cutViewModel = createPlanterBoxCutDiagramViewModel({ buildModel });
@@ -62,6 +83,9 @@ describe("planter box packet view models", () => {
     ]);
     expect(viewModel.reviewReasons.join(" ")).toMatch(/drainage|liner|outdoor|soil and water/i);
     expect(viewModel.buyingNotes.join(" ")).toContain("not a retail checkout list or optimized cut plan");
+    expect(viewModel.buyingNotes.join(" ")).toMatch(/assembled boards, slats, or courses/i);
+    expect(viewModel.materialGroups[0]?.buyingNotes.join(" ")).toMatch(/actual stock board width is smaller than the modeled panel height or bottom depth/i);
+    expect(viewModel.materialGroups[0]?.buyingNotes.join(" ")).toMatch(/does not calculate course counts or optimize cuts/i);
     expect(JSON.stringify(viewModel)).not.toMatch(/vendor|price|cart|load-rated|CAD-ready|CNC-ready/i);
   });
 

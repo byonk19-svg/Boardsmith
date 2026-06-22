@@ -8,6 +8,8 @@ node_modules/
 supabase/.temp/
 coverage/
 dist/
+playwright-report/
+test-results/
 *.tsbuildinfo
 
 .vercel

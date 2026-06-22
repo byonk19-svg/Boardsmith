@@ -104,6 +104,18 @@ export function getGenerationFailureFeedback(reason: GenerationFailureReason, sa
     suggestions.push("For wall-mounted projects, verify studs or anchors, fasteners, wall structure, and expected load before trying again.");
   }
 
+  if (safetyFlags.some((flag) => /heavy|load|shelf|storage|books?/i.test(flag))) {
+    suggestions.push("For heavier shelf use, spell out the support method, bracket or support count, wall type, stud access, and what the shelf will hold.");
+  }
+
+  if (safetyFlags.some((flag) => /raised|legged|legs?|support frame|uprights?|planter/i.test(flag))) {
+    suggestions.push("For raised planter ideas, simplify to a ground-level planter box or describe the leg/support design as a separate manual-review item.");
+  }
+
+  if (safetyFlags.some((flag) => /electric|electrical|lighted|lighting|led|wire|wiring|battery|neon/i.test(flag))) {
+    suggestions.push("For lighting or electrical wording, explicitly exclude wiring from the woodworking plan or treat it as a separate reviewed component.");
+  }
+
   if (safetyFlags.some((flag) => /child|baby|kid|toddler/i.test(flag))) {
     suggestions.push("For child-adjacent projects, describe edge treatment, finish choice, supervision needs, mounting height, and inspection plans.");
   }

@@ -84,6 +84,38 @@ describe("calculateSafetyReviewFlags", () => {
     expect(flags.map((flag) => flag.code)).not.toContain("electrical_or_lighted");
   });
 
+  it("does not treat explicit electrical exclusions as electrical scope", () => {
+    const excludedExamples = ["avoid electrical near this wall", "no electrical work or wiring", "without wiring or LED features"];
+
+    for (const intended_use of excludedExamples) {
+      const flags = calculateSafetyReviewFlags({
+        ...baseProject,
+        intended_use,
+      });
+
+      expect(flags.map((flag) => flag.code)).not.toContain("electrical_or_lighted");
+    }
+  });
+
+  it("still flags actual lighting or wiring intent", () => {
+    const electricalExamples = [
+      "add an LED strip under the shelf",
+      "wire a small light",
+      "battery light mounted inside",
+      "route around an electrical outlet",
+      "no wiring, but add battery lights",
+    ];
+
+    for (const intended_use of electricalExamples) {
+      const flags = calculateSafetyReviewFlags({
+        ...baseProject,
+        intended_use,
+      });
+
+      expect(flags.map((flag) => flag.code)).toContain("electrical_or_lighted");
+    }
+  });
+
   it("flags missing material thickness and unclear dimensions", () => {
     const flags = calculateSafetyReviewFlags({
       ...baseProject,

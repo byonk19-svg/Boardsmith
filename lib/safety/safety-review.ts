@@ -12,8 +12,30 @@ export type SafetyReviewFlag = {
 const textMatches = (project: Pick<ProjectIntake, "title" | "style_notes" | "intended_use">, terms: RegExp) =>
   terms.test(`${project.title} ${project.style_notes} ${project.intended_use}`.toLowerCase());
 
+function projectText(project: Pick<ProjectIntake, "title" | "style_notes" | "intended_use">): string {
+  return `${project.title} ${project.style_notes} ${project.intended_use}`.toLowerCase();
+}
+
 function needsWallMountingReview(project: Pick<ProjectIntake, "title" | "project_type" | "style_notes" | "intended_use">): boolean {
   return analyzeWallShelfMountingIntent(project).wallMounted;
+}
+
+function hasElectricalOrLightedIntent(project: Pick<ProjectIntake, "title" | "style_notes" | "intended_use">): boolean {
+  const text = projectText(project);
+  const textWithoutExplicitExclusions = text
+    .replace(
+      /\b(avoid|exclude|without|no|not)\b[^.,;:\n]*(?:electric|electrical|lighting|lighted|led|wire|wiring|battery|neon)[^.,;:\n]*/g,
+      " ",
+    )
+    .replace(/\b(avoid|exclude|without|no|not)\s+(?:any\s+)?(?:electric|electrical|lighting|lighted|led|wire|wiring|battery|neon)(?:\s+work|\s+scope|\s+components?|\s+features?)?\b/g, " ")
+    .replace(
+      /\b(?:electric|electrical|lighting|lighted|led|wire|wiring|battery|neon)\s+(?:work|scope|components?|features?)?\s*(?:is|are)?\s*(?:excluded|avoided|not included)\b/g,
+      " ",
+    );
+
+  return /\b(electric|electrical|lighted|lighting|led|wire|wiring|battery|neon)\b|\blight\s*(strip|fixture|sign|box|bulb|socket)\b/.test(
+    textWithoutExplicitExclusions,
+  );
 }
 
 export function calculateSafetyReviewFlags(
@@ -98,7 +120,7 @@ export function calculateSafetyReviewFlags(
     });
   }
 
-  if (textMatches(project, /\b(electric|electrical|lighted|lighting|led|wire|wiring|battery|neon)\b|\blight\s*(strip|fixture|sign|box|bulb|socket)\b/)) {
+  if (hasElectricalOrLightedIntent(project)) {
     add({
       code: "electrical_or_lighted",
       label: "Electrical/lighted review",

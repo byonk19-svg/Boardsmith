@@ -121,6 +121,8 @@ function groupBuyingNotes(group: MaterialGroupAccumulator): string[] {
 
   return uniqueStrings([
     `Planter panels from this material: ${pieceSummary.join("; ")}.`,
+    "Modeled planter panels are panel envelopes; if actual stock board width is smaller than the modeled panel height or bottom depth, plan assembled boards, slats, or courses before buying.",
+    "Compare panel dimensions with actual stock board width before purchase; this packet does not calculate course counts or optimize cuts.",
     "Choose stock board size after confirming actual board width, thickness, length, condition, and outdoor suitability.",
     "This is a planning aid only and does not choose a retailer, checkout item, optimized layout, or exact stock length.",
     ...group.buyingNotes,
@@ -222,6 +224,7 @@ export function createPlanterBoxStockBoardViewModel(params: {
     reviewReasons,
     buyingNotes: uniqueStrings([
       "Use this as a material planning aid, not a retail checkout list or optimized cut plan.",
+      "Modeled planter panels may need assembled boards, slats, or courses when actual stock board width is smaller than the panel height or bottom depth.",
       "Choose stock length after confirming available boards and the final planter panel layout.",
       "Outdoor planter use requires material, fastener, finish, drainage, and liner review before purchase.",
       ...materialGroups.flatMap((group) => group.buyingNotes),

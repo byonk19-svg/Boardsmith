@@ -1,4 +1,4 @@
-import type { BoardsmithBuildModel, BuildModelMaterial } from "@/lib/build-model/build-model-schema";
+import type { BoardsmithBuildModel, BuildModelHardware, BuildModelMaterial } from "@/lib/build-model/build-model-schema";
 import type { WallShelfCutDiagramViewModel, WallShelfCutPieceGroup } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import { createWallShelfCutDiagramViewModel } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder } from "@/lib/projects/shelf-layout-validation";
@@ -87,6 +87,13 @@ type MaterialGroupAccumulator = {
   buyingNotes: string[];
 };
 
+type ShelfBoardMinimumPlanningFact = {
+  materialName: string;
+  shelfBoardCount: number;
+  minimumUsableLengthInches: number | null;
+  totalLinearInches: number | null;
+};
+
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
 }
@@ -113,6 +120,22 @@ function formatThickness(material: BuildModelMaterial | null): WallShelfStockBoa
   };
 }
 
+function formatInches(value: number): string {
+  return `${Number.isInteger(value) ? value.toString() : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")} in`;
+}
+
+function formatQuantity(value: number): string {
+  return Number.isInteger(value) ? value.toString() : value.toFixed(1).replace(/\.0$/, "");
+}
+
+function hasModeledHardwareQuantity(item: BuildModelHardware): item is BuildModelHardware & { quantity: number } {
+  return item.quantity !== null;
+}
+
+function isCountedSupportHardware(item: BuildModelHardware): item is BuildModelHardware & { quantity: number } {
+  return hasModeledHardwareQuantity(item) && (item.hardwareType === "bracket" || /\b(bracket|cleat|support|standard)\b/i.test(item.label));
+}
+
 function pieceFromCutGroup(piece: WallShelfCutPieceGroup): WallShelfStockBoardPiece {
   return {
     id: piece.id,
@@ -126,6 +149,50 @@ function pieceFromCutGroup(piece: WallShelfCutPieceGroup): WallShelfStockBoardPi
     needsReview: piece.needsReview,
     reviewReasons: piece.reviewReasons,
   };
+}
+
+function shelfBoardMinimumPlanningFacts(params: {
+  buildModel: BoardsmithBuildModel;
+  cutViewModel: WallShelfCutDiagramViewModel;
+}): ShelfBoardMinimumPlanningFact[] {
+  const groups = new Map<
+    string,
+    {
+      materialName: string;
+      shelfBoardCount: number;
+      minimumUsableLengthInches: number | null;
+      totalLinearInches: number | null;
+    }
+  >();
+
+  for (const piece of params.cutViewModel.pieceGroups) {
+    if (piece.role !== "shelf_board") continue;
+
+    const material = materialForPiece(piece, params.buildModel);
+    const materialName = material?.label ?? piece.materialLabel;
+    const key = material?.id ?? idPart(materialName);
+    const length = piece.dimensions.length.valueInches;
+    const existing = groups.get(key);
+    const totalLinearInches = length ? length * piece.quantity : null;
+
+    if (existing) {
+      existing.shelfBoardCount += piece.quantity;
+      existing.minimumUsableLengthInches =
+        length && existing.minimumUsableLengthInches ? Math.max(existing.minimumUsableLengthInches, length) : existing.minimumUsableLengthInches ?? length ?? null;
+      existing.totalLinearInches =
+        existing.totalLinearInches !== null && totalLinearInches !== null ? existing.totalLinearInches + totalLinearInches : null;
+      continue;
+    }
+
+    groups.set(key, {
+      materialName,
+      shelfBoardCount: piece.quantity,
+      minimumUsableLengthInches: length,
+      totalLinearInches,
+    });
+  }
+
+  return [...groups.values()];
 }
 
 function materialForPiece(piece: WallShelfCutPieceGroup, buildModel: BoardsmithBuildModel): BuildModelMaterial | null {
@@ -260,15 +327,36 @@ function hardwareDecisionLabel(project: WallShelfStockBoardProjectInput): string
   return "Mounting hardware/site review";
 }
 
-function hardwareDecisionDetail(buildModel: BoardsmithBuildModel): string {
+function supportAndBracketCountLabels(params: {
+  buildModel: BoardsmithBuildModel;
+  cutViewModel: WallShelfCutDiagramViewModel;
+}): string[] {
+  return uniqueStrings([
+    ...params.buildModel.hardware
+      .filter(isCountedSupportHardware)
+      .map((item) => `${formatQuantity(item.quantity)} ${item.label}`),
+    ...params.cutViewModel.pieceGroups
+      .filter((piece) => piece.role === "support_frame" && !piece.needsReview && piece.quantity > 0)
+      .map((piece) => `${piece.quantity.toString()} ${piece.label}`),
+  ]);
+}
+
+function hardwareDecisionDetail(params: {
+  buildModel: BoardsmithBuildModel;
+  cutViewModel: WallShelfCutDiagramViewModel;
+}): string {
+  const { buildModel, cutViewModel } = params;
   const hardwareLabels = uniqueStrings(buildModel.hardware.map((item) => item.label));
-  const siteReview = "Confirm suitability for the wall structure, support method, expected load, fasteners, and site conditions before buying.";
+  const countLabels = supportAndBracketCountLabels({ buildModel, cutViewModel });
+  const countText = countLabels.length > 0 ? ` Modeled support/bracket count: ${countLabels.join("; ")}.` : "";
+  const siteReview =
+    "Confirm studs/anchors, wall structure, support method, fasteners, expected load, and site conditions before buying. Boardsmith does not provide load ratings or engineering sign-off.";
 
   if (hardwareLabels.length === 0) {
-    return `No bracket, cleat, anchor, or fastener is selected yet. ${siteReview}`;
+    return `No bracket, cleat, anchor, or fastener is selected yet.${countText} ${siteReview}`;
   }
 
-  return `Build Model hardware to review: ${hardwareLabels.join(", ")}. ${siteReview}`;
+  return `Build Model hardware to review: ${hardwareLabels.join(", ")}.${countText} ${siteReview}`;
 }
 
 function hasFinishExposureReview(project: WallShelfStockBoardProjectInput): boolean {
@@ -277,10 +365,27 @@ function hasFinishExposureReview(project: WallShelfStockBoardProjectInput): bool
   );
 }
 
-function stockBoardDecisionDetail(materialGroups: WallShelfStockBoardMaterialGroup[]): string {
+function minimumPlanningFactText(fact: ShelfBoardMinimumPlanningFact): string {
+  const boardLabel = `${fact.shelfBoardCount.toString()} shelf ${fact.shelfBoardCount === 1 ? "board" : "boards"}`;
+  const minimumLengthText = fact.minimumUsableLengthInches
+    ? ` with at least ${formatInches(fact.minimumUsableLengthInches)} usable length each`
+    : " with usable length still needing review";
+  const totalText = fact.totalLinearInches ? ` (${formatInches(fact.totalLinearInches)} total shelf-board length before waste, defects, and final layout)` : "";
+
+  return `${fact.materialName}: ${boardLabel}${minimumLengthText}${totalText}`;
+}
+
+function stockBoardDecisionDetail(params: {
+  materialGroups: WallShelfStockBoardMaterialGroup[];
+  minimumPlanningFacts: ShelfBoardMinimumPlanningFact[];
+}): string {
+  const { materialGroups, minimumPlanningFacts } = params;
   const materials = uniqueStrings(materialGroups.map((group) => group.displayName));
   const materialText = materials.length > 0 ? ` for ${materials.join(", ")}` : "";
-  return `Choose actual stock board length and board condition${materialText} after confirming the final cut layout. This is not a store-board pick and does not arrange cuts on a full board.`;
+  const minimumFactText =
+    minimumPlanningFacts.length > 0 ? `Minimum planning fact${minimumPlanningFacts.length === 1 ? "" : "s"}: ${minimumPlanningFacts.map(minimumPlanningFactText).join("; ")}. ` : "";
+
+  return `${minimumFactText}Confirm actual retail board length, defects, straightness, and final cut layout${materialText} before purchase. Boardsmith does not optimize full boards or choose a store item.`;
 }
 
 function buyingDecisionsFor(params: {
@@ -294,6 +399,10 @@ function buyingDecisionsFor(params: {
   const layoutIssues = findShelfLayoutIssues(params.project);
   const connectedShelfUnit = params.project.shelf_layout === "multi_shelf_unit" && Boolean(params.project.shelf_count && params.project.shelf_count > 1);
   const supportModeled = params.cutViewModel.pieceGroups.some((piece) => piece.role === "support_frame" && !piece.needsReview);
+  const minimumPlanningFacts = shelfBoardMinimumPlanningFacts({
+    buildModel: params.buildModel,
+    cutViewModel: params.cutViewModel,
+  });
   const supportNeedsReview = supportNeedsReviewFor({
     buildModel: params.buildModel,
     cutViewModel: params.cutViewModel,
@@ -306,7 +415,7 @@ function buyingDecisionsFor(params: {
     {
       id: "stock_board_selection",
       label: "Stock board selection",
-      detail: stockBoardDecisionDetail(params.materialGroups),
+      detail: stockBoardDecisionDetail({ materialGroups: params.materialGroups, minimumPlanningFacts }),
       statusLabel: "Select before buying",
     },
     ...(supportNeedsReview
@@ -322,7 +431,7 @@ function buyingDecisionsFor(params: {
     {
       id: "hardware_site_review",
       label: hardwareDecisionLabel(params.project),
-      detail: hardwareDecisionDetail(params.buildModel),
+      detail: hardwareDecisionDetail({ buildModel: params.buildModel, cutViewModel: params.cutViewModel }),
       statusLabel: "Review before buying",
     },
     ...(hasFinishExposureReview(params.project)

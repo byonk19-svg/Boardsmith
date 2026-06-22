@@ -89,6 +89,37 @@ describe("Project Planning Lifecycle", () => {
     expect(evaluateGenerationCommand(project)).toEqual({ allowed: true });
   });
 
+  it("blocks raised planter support concepts through the clarification gate before generation", () => {
+    expect(
+      evaluateGenerationCommand({
+        ...project,
+        project_type: "planter_box",
+        title: "Raised herb planter",
+        width_inches: 36,
+        height_inches: 18,
+        depth_inches: 14,
+        material_type: "cedar 1x6",
+        shelf_layout: undefined,
+        shelf_count: undefined,
+        style_notes: "Raised planter box with legs and a support frame.",
+        intended_use: "Outdoor herb planter standing off the ground.",
+      }),
+    ).toEqual({ allowed: false, reason: "clarification_gate" });
+  });
+
+  it("blocks heavy garage shelf generation until support count and wall fastener details are explicit", () => {
+    expect(
+      evaluateGenerationCommand({
+        ...project,
+        title: "Garage utility shelf",
+        width_inches: 48,
+        depth_inches: 14,
+        style_notes: "Wall mounted shelf with visible L brackets.",
+        intended_use: "Garage shelf for storage bins and tools. Avoid electrical on this wall.",
+      }),
+    ).toEqual({ allowed: false, reason: "clarification_gate" });
+  });
+
   it("keeps revision and generic writes behind the same archive decision", () => {
     const archived = { ...project, archived_at: "2026-06-08T12:00:00.000Z" };
 

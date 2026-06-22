@@ -152,8 +152,11 @@ function buildModel(overrides: Partial<BoardsmithBuildModel> = {}): BoardsmithBu
 describe("createWallShelfStockBoardViewModel", () => {
   it("creates a ready single wall shelf buying plan without claiming an exact board purchase", () => {
     const viewModel = createWallShelfStockBoardViewModel({
-      project: { ...baseProject, shelf_layout: "single_shelf", shelf_count: 1, height_inches: 0.75 },
-      buildModel: buildModel({ pieces: [shelfPiece({ label: "Shelf board", quantity: 1 })] }),
+      project: { ...baseProject, shelf_layout: "single_shelf", shelf_count: 1, width_inches: 36, height_inches: 0.75 },
+      buildModel: buildModel({
+        dimensions: { ...simpleShelfBuildModelFixture.dimensions, widthInches: 36, heightInches: 0.75 },
+        pieces: [shelfPiece({ label: "Shelf board", quantity: 1, dimensions: { lengthInches: 36 } })],
+      }),
     });
 
     expect(viewModel.status).toBe("ready");
@@ -161,7 +164,7 @@ describe("createWallShelfStockBoardViewModel", () => {
     expect(viewModel.materialGroups[0]).toMatchObject({
       displayName: "3/4 in pine board",
       totalPiecesLabel: "1 piece",
-      pieces: [expect.objectContaining({ label: "Shelf board", quantity: 1, dimensionsLabel: "12 in x 6 in x 0.75 in" })],
+      pieces: [expect.objectContaining({ label: "Shelf board", quantity: 1, dimensionsLabel: "36 in x 6 in x 0.75 in" })],
     });
     const stockBoardDecision = viewModel.buyingDecisions.find((decision) => decision.id === "stock_board_selection");
     const hardwareDecision = viewModel.buyingDecisions.find((decision) => decision.id === "hardware_site_review");
@@ -170,11 +173,18 @@ describe("createWallShelfStockBoardViewModel", () => {
       label: "Stock board selection",
       statusLabel: "Select before buying",
     });
+    expect(stockBoardDecision?.detail).toContain("Minimum planning fact");
+    expect(stockBoardDecision?.detail).toContain("1 shelf board");
+    expect(stockBoardDecision?.detail).toContain("at least 36 in usable length");
+    expect(stockBoardDecision?.detail).toContain("does not optimize full boards or choose a store item");
     expect(hardwareDecision).toMatchObject({
       label: "Mounting hardware/site review",
       statusLabel: "Review before buying",
     });
     expect(hardwareDecision?.detail).toContain("Wall brackets");
+    expect(hardwareDecision?.detail).toContain("Modeled support/bracket count: 2 Wall brackets");
+    expect(hardwareDecision?.detail).toContain("studs/anchors");
+    expect(hardwareDecision?.detail).toContain("does not provide load ratings");
     expect(viewModel.buyingNotes.join(" ")).toContain("Choose stock length after confirming available boards");
     expect(JSON.stringify(viewModel)).not.toMatch(/\bbuy one\b|home depot|pricing|inventory|1x10x8/i);
   });

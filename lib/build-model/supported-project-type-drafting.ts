@@ -666,6 +666,20 @@ function createPlanterBoxParts({ project, materialId, templateHint }: SupportedP
   const width = positiveOrNull(project.width_inches);
   const height = positiveOrNull(project.height_inches);
   const depth = positiveOrNull(project.depth_inches);
+  const panelLayoutNotes = [
+    "Modeled planter panels are panel envelopes; actual stock boards may need to be assembled from multiple boards, slats, or courses when stock board width is smaller than the modeled panel height or bottom depth.",
+    "Review actual board width, board movement, drainage gaps, liner choice, and water/soil exposure before treating any modeled panel as a single board.",
+  ];
+  const connectionSafetyNotes = [
+    "Soil and water add weight; review placement and do not treat this as load-capacity approval.",
+    "Use outdoor-suitable fasteners and review water/soil exposure before use.",
+    "Drill pilot holes near board ends and review splitting risk before fastening.",
+  ];
+  const connectionAssemblyNotes = [
+    "Dry-fit and clamp the planter square before fastening; check front, back, side, and bottom alignment before driving screws.",
+    "Confirm screw length, spacing, and edge distance against actual material thickness and board layout.",
+    "Keep drainage, liner, and water/soil exposure review separate from this connection planning aid.",
+  ];
   const screws = createBuildModelHardware({
     id: "outdoor_screws",
     label: "Outdoor-rated screws",
@@ -681,11 +695,11 @@ function createPlanterBoxParts({ project, materialId, templateHint }: SupportedP
 
   return {
     pieces: [
-      makeBuildModelPiece({ id: "front_panel", label: "Front panel", pieceType: "board", materialId, lengthInches: width, widthInches: height, thicknessInches: thickness, grainDirection: "length" }),
-      makeBuildModelPiece({ id: "back_panel", label: "Back panel", pieceType: "board", materialId, lengthInches: width, widthInches: height, thicknessInches: thickness, grainDirection: "length" }),
-      makeBuildModelPiece({ id: "left_side_panel", label: "Left side panel", pieceType: "board", materialId, lengthInches: depth, widthInches: height, thicknessInches: thickness, grainDirection: "length" }),
-      makeBuildModelPiece({ id: "right_side_panel", label: "Right side panel", pieceType: "board", materialId, lengthInches: depth, widthInches: height, thicknessInches: thickness, grainDirection: "length" }),
-      makeBuildModelPiece({ id: "bottom_panel", label: "Bottom panel", pieceType: "board", materialId, lengthInches: width, widthInches: depth, thicknessInches: thickness, grainDirection: "length", notes: ["Drainage is required for planter use."] }),
+      makeBuildModelPiece({ id: "front_panel", label: "Front panel", pieceType: "board", materialId, lengthInches: width, widthInches: height, thicknessInches: thickness, grainDirection: "length", notes: panelLayoutNotes }),
+      makeBuildModelPiece({ id: "back_panel", label: "Back panel", pieceType: "board", materialId, lengthInches: width, widthInches: height, thicknessInches: thickness, grainDirection: "length", notes: panelLayoutNotes }),
+      makeBuildModelPiece({ id: "left_side_panel", label: "Left side panel", pieceType: "board", materialId, lengthInches: depth, widthInches: height, thicknessInches: thickness, grainDirection: "length", notes: panelLayoutNotes }),
+      makeBuildModelPiece({ id: "right_side_panel", label: "Right side panel", pieceType: "board", materialId, lengthInches: depth, widthInches: height, thicknessInches: thickness, grainDirection: "length", notes: panelLayoutNotes }),
+      makeBuildModelPiece({ id: "bottom_panel", label: "Bottom panel", pieceType: "board", materialId, lengthInches: width, widthInches: depth, thicknessInches: thickness, grainDirection: "length", notes: ["Drainage is required for planter use.", ...panelLayoutNotes] }),
     ],
     hardware: [screws, finish],
     connections: [
@@ -697,8 +711,8 @@ function createPlanterBoxParts({ project, materialId, templateHint }: SupportedP
         hardwareIds: [screws.id],
         locationDescription: "Lower front edge",
         strengthCritical: false,
-        safetyNotes: ["Soil and water add weight; review placement before use."],
-        notes: ["Generic planter-box connection placeholder."],
+        safetyNotes: connectionSafetyNotes,
+        notes: ["Review front panel fastening to the bottom panel after the side panels are dry-fit.", ...connectionAssemblyNotes],
       },
       {
         id: "back_panel_to_bottom_panel",
@@ -708,8 +722,30 @@ function createPlanterBoxParts({ project, materialId, templateHint }: SupportedP
         hardwareIds: [screws.id],
         locationDescription: "Lower back edge",
         strengthCritical: false,
-        safetyNotes: ["Use outdoor-suitable fasteners."],
-        notes: ["Generic planter-box connection placeholder."],
+        safetyNotes: connectionSafetyNotes,
+        notes: ["Review back panel fastening to the bottom panel after the side panels are dry-fit.", ...connectionAssemblyNotes],
+      },
+      {
+        id: "left_side_panel_to_front_back_bottom",
+        fromPieceId: "left_side_panel",
+        toPieceId: "bottom_panel",
+        connectionType: "screw",
+        hardwareIds: [screws.id],
+        locationDescription: "Left side edges at front, back, and bottom panels",
+        strengthCritical: false,
+        safetyNotes: connectionSafetyNotes,
+        notes: ["Review how the left side panel fastens to the front, back, and bottom panels before committing to screw locations.", ...connectionAssemblyNotes],
+      },
+      {
+        id: "right_side_panel_to_front_back_bottom",
+        fromPieceId: "right_side_panel",
+        toPieceId: "bottom_panel",
+        connectionType: "screw",
+        hardwareIds: [screws.id],
+        locationDescription: "Right side edges at front, back, and bottom panels",
+        strengthCritical: false,
+        safetyNotes: connectionSafetyNotes,
+        notes: ["Review how the right side panel fastens to the front, back, and bottom panels before committing to screw locations.", ...connectionAssemblyNotes],
       },
     ],
     operations: [

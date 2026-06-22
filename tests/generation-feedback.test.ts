@@ -31,6 +31,22 @@ describe("getGenerationFailureFeedback", () => {
     );
   });
 
+  it("adds specific next actions for heavy shelves, raised planters, and electrical wording", () => {
+    const feedback = getGenerationFailureFeedback("review_blocked", [
+      "Heavy shelving review",
+      "Raised planter support review",
+      "Electrical/lighted review",
+    ]);
+
+    expect(feedback.suggestions).toEqual(
+      expect.arrayContaining([
+        "For heavier shelf use, spell out the support method, bracket or support count, wall type, stud access, and what the shelf will hold.",
+        "For raised planter ideas, simplify to a ground-level planter box or describe the leg/support design as a separate manual-review item.",
+        "For lighting or electrical wording, explicitly exclude wiring from the woodworking plan or treat it as a separate reviewed component.",
+      ]),
+    );
+  });
+
   it("preserves helpful missing OpenAI key guidance without exposing internals", () => {
     const feedback = getGenerationFailureFeedback("missing_openai_key", []);
 

@@ -28,6 +28,60 @@ SAFETY RULES:
 - Include stud/anchor cautions for wall-mounted work.
 <!-- END AUTONOMY DIRECTIVE -->
 
+## Browser QA instructions
+
+Use Playwright MCP to test the app like a realistic first-time user.
+Use regular Playwright tests for repeatable regression coverage.
+
+Primary goal:
+Find repeated UX/product-planning friction in Boardsmith, especially around:
+- board length/count decisions
+- bracket/fastener guidance
+- buying plan usefulness
+- checklist clarity
+- build-step clarity
+- connection/joinery confusion for planter ideas
+
+Do not make code changes during the exploratory pass.
+First produce findings, then make narrow implementation passes only after repeated issues are confirmed.
+
+Use realistic project scenarios. Prefer concrete dimensions, constraints, and user goals.
+
+For every scenario, record:
+1. Scenario name
+2. User goal
+3. Steps taken
+4. Point where a real user would hesitate
+5. Exact page/feature involved
+6. What information was missing or too vague
+7. Whether the issue repeated in another scenario
+8. Severity: low, medium, high
+9. Suggested narrow implementation pass
+
+Do not treat one-off confusion as a product problem. Only escalate issues that repeat across scenarios or block project completion.
+
+Do not use real payments, real purchases, real accounts, or destructive actions.
+Use staging, localhost, or non-critical test data only.
+
+At the end, produce:
+- UX friction report
+- repeated-annoyance summary
+- recommended implementation passes
+- candidate Playwright regression tests
+
+### Playwright MCP setup
+
+Codex autonomous browser exploration should use Playwright MCP with an isolated browser profile. If no local Codex config is already present, prefer documenting this setup instead of committing developer-specific config:
+
+```toml
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest", "--isolated"]
+tool_timeout_sec = 120
+```
+
+Use `npm run test:e2e` for repeatable smoke/regression coverage before relying on exploratory MCP findings.
+
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 

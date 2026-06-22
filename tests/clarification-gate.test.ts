@@ -192,6 +192,40 @@ describe("createClarificationGateDecision", () => {
     expect(decision.questions.find((question) => question.id === "finish_exposure")?.category).toBe("finish_exposure");
   });
 
+  it("keeps garage utility shelves out of ready state until heavy storage details are explicit", () => {
+    const decision = createClarificationGateDecision(
+      project({
+        title: "Garage utility shelf",
+        width_inches: 48,
+        depth_inches: 14,
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        style_notes: "Wall mounted shelf with visible L brackets.",
+        intended_use: "Garage shelf for storage bins and tools. Avoid electrical on this wall.",
+      }),
+    );
+
+    expect(decision.status).toBe("needs_details");
+    expect(decision.reviewFlags.map((flag) => flag.code)).toEqual(expect.arrayContaining(["wall_mounting", "heavy_shelving"]));
+    expect(decision.reviewFlags.map((flag) => flag.code)).not.toContain("electrical_or_lighted");
+    expect(decision.questions.map((question) => question.id)).toEqual(
+      expect.arrayContaining(["wall_fastener_context", "heavy_shelf_support_count"]),
+    );
+  });
+
+  it("does not ask for electrical scope when wall notes explicitly exclude electrical work", () => {
+    const decision = createClarificationGateDecision(
+      project({
+        title: "Desk shelf near outlet",
+        style_notes: "Wall mounted with visible L brackets screwed into studs.",
+        intended_use: "Shelf above a desk; avoid electrical work and do not include wiring.",
+      }),
+    );
+
+    expect(decision.reviewFlags.map((flag) => flag.code)).not.toContain("electrical_or_lighted");
+    expect(decision.questions.map((question) => question.id)).not.toContain("electrical_scope");
+  });
+
   it("does not ask for finish exposure details when protective finish and fasteners are specified", () => {
     const decision = createClarificationGateDecision(
       project({
@@ -206,6 +240,28 @@ describe("createClarificationGateDecision", () => {
     );
 
     expect(decision.questions.map((question) => question.id)).not.toContain("finish_exposure");
+  });
+
+  it("keeps raised planter support ideas out of ready state with a specific support-scope question", () => {
+    const decision = createClarificationGateDecision(
+      project({
+        title: "Raised herb planter",
+        project_type: "planter_box",
+        width_inches: 36,
+        height_inches: 18,
+        depth_inches: 14,
+        material_type: "cedar 1x6",
+        style_notes: "Raised planter box with legs and a support frame.",
+        intended_use: "Outdoor herb planter standing off the ground.",
+      }),
+    );
+
+    expect(decision.status).toBe("needs_details");
+    expect(decision.canGenerateFullPlan).toBe(false);
+    expect(decision.questions.map((question) => question.id)).toContain("raised_planter_support_scope");
+    expect(decision.questions.find((question) => question.id === "raised_planter_support_scope")?.reason).toContain(
+      "outside the current rectangular planter-box template",
+    );
   });
 
   it("asks child-adjacent and electrical clarification questions without making approval claims", () => {

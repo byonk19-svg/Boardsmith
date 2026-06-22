@@ -1,6 +1,7 @@
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { findShelfLayoutIssues } from "@/lib/projects/shelf-layout-validation";
 import { createConceptBrief, type ConceptBrief } from "@/lib/projects/concept-brief";
+import { extractProjectIntakeSignals } from "@/lib/projects/project-intake-signals";
 import { projectTypes, type ProjectIntake, type ProjectType } from "@/lib/projects/types";
 import { analyzeWallShelfMountingIntent, isBathroomOrHumidityText } from "@/lib/projects/wall-shelf-intent";
 import { calculateSafetyReviewFlags, type SafetyReviewFlag } from "@/lib/safety/safety-review";
@@ -76,6 +77,30 @@ function hasFinishProtectionContext(project: ClarificationGateInput): boolean {
 
 function isWoodworkingAdjacent(project: ClarificationGateInput): boolean {
   return /\b(shelf|shelves|bookcase|bookshelf|cabinet|table|desk|bench|chair|stool|planter|box|sign|hanger|cutout|wood|plywood|board|lumber|storage|rack)\b/.test(projectText(project));
+}
+
+function hasSupportCountContext(project: ClarificationGateInput): boolean {
+  const signals = extractProjectIntakeSignals(project);
+  if (signals.supportCount && !/\b(not sure|not applicable)\b/i.test(signals.supportCount)) return true;
+
+  return /\b(?:two|three|four|five|six|2|3|4|5|6)\s+(?:brackets?|supports?|cleats?)\b/.test(projectText(project));
+}
+
+function needsHeavyShelfSupportCountContext(project: ClarificationGateInput): boolean {
+  const signals = extractProjectIntakeSignals(project);
+  const text = projectText(project);
+  const selectedHeavyLoad = Boolean(signals.shelfLoad && /\b(books?|heavy|items?)\b/i.test(signals.shelfLoad));
+  const markedHeavySpot = signals.higherRiskSpots.some((value) => /\bheavy|breakable/i.test(value));
+  const heavyText = /\b(heavy|books?|storage\s+bins?|tools?|load|weight)\b/.test(text);
+
+  return selectedHeavyLoad || markedHeavySpot || heavyText || project.depth_inches >= 12;
+}
+
+function hasRaisedPlanterSupportIntent(project: ClarificationGateInput): boolean {
+  return (
+    project.project_type === "planter_box" &&
+    /\b(raised|elevated|legged|legs?|stand|standing|support\s+frame|uprights?|off\s+the\s+ground)\b/.test(projectText(project))
+  );
 }
 
 function safetyBlockers(project: ClarificationGateInput): ClarificationBlocker[] {
@@ -259,6 +284,22 @@ function shelfQuestions(project: ClarificationGateInput, reviewFlags: SafetyRevi
     });
   }
 
+  if (
+    mountingIntent.wallMounted &&
+    reviewFlags.some((flag) => flag.code === "heavy_shelving") &&
+    needsHeavyShelfSupportCountContext(project) &&
+    !hasSupportCountContext(project)
+  ) {
+    addUniqueQuestion(questions, {
+      id: "heavy_shelf_support_count",
+      category: "mounting",
+      question: "How many brackets or supports should be reviewed for the heavier shelf use?",
+      reason:
+        "Heavier shelf use needs a visible support-count decision before the buying plan can feel actionable. Boardsmith still cannot verify load capacity.",
+      requiredForFullPlan: true,
+    });
+  }
+
   if (isBathroomOrHumidityText(project) && !mountingIntent.finishProtectionSpecified) {
     addUniqueQuestion(questions, {
       id: "finish_exposure",
@@ -275,6 +316,17 @@ function shelfQuestions(project: ClarificationGateInput, reviewFlags: SafetyRevi
 function safetyQuestions(project: ClarificationGateInput, reviewFlags: SafetyReviewFlag[]): ClarificationQuestion[] {
   const questions: ClarificationQuestion[] = [];
   const flagCodes = new Set(reviewFlags.map((flag) => flag.code));
+
+  if (hasRaisedPlanterSupportIntent(project)) {
+    addUniqueQuestion(questions, {
+      id: "raised_planter_support_scope",
+      category: "support_frame",
+      question: "Should this stay a ground-level planter box, or does the raised leg/support design need separate manual review?",
+      reason:
+        "Raised or legged planter supports are outside the current rectangular planter-box template and can change connections, stability, hardware, and build order.",
+      requiredForFullPlan: true,
+    });
+  }
 
   if (flagCodes.has("child_or_baby_use")) {
     addUniqueQuestion(questions, {

@@ -159,6 +159,61 @@ describe("generate plan route feedback", () => {
     expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
   });
 
+  it("gates heavy garage shelf projects before generation when support-count and fastener details are missing", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Garage utility shelf",
+      width_inches: 48,
+      depth_inches: 14,
+      shelf_layout: "single_shelf",
+      shelf_count: 1,
+      style_notes: "Wall mounted shelf with visible L brackets.",
+      intended_use: "Garage shelf for storage bins and tools. Avoid electrical on this wall.",
+    });
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/blocked_generation_project?generation_error=clarification_gate#plan-readiness",
+    );
+    expect(generateStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
+  });
+
+  it("gates raised planter support concepts before generation", async () => {
+    getProjectMock.mockResolvedValue({
+      ...project,
+      title: "Raised herb planter",
+      project_type: "planter_box",
+      width_inches: 36,
+      height_inches: 18,
+      depth_inches: 14,
+      material_type: "cedar 1x6",
+      shelf_layout: undefined,
+      shelf_count: undefined,
+      style_notes: "Raised planter box with legs and a support frame.",
+      intended_use: "Outdoor herb planter standing off the ground.",
+    });
+    const { POST } = await import("@/app/projects/[id]/generate/route");
+
+    const response = await POST(new Request("http://localhost/projects/blocked_generation_project/generate", { method: "POST" }), {
+      params: Promise.resolve({ id: project.id }),
+    });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(
+      "http://localhost/projects/blocked_generation_project?generation_error=clarification_gate#plan-readiness",
+    );
+    expect(generateStructuredProjectPlanMock).not.toHaveBeenCalled();
+    expect(saveGeneratedPlanMock).not.toHaveBeenCalled();
+    expect(markProjectGenerationFailedMock).toHaveBeenCalledWith(project.id);
+  });
+
   it("gates blocked-for-safety projects before shelf repair or generation", async () => {
     getProjectMock.mockResolvedValue({
       ...project,
