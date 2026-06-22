@@ -1183,9 +1183,18 @@
 - [x] Record that the configured hosted URL did not include the branch-only wall-shelf explicit buying-decision UI yet, so wall-shelf buying-trip usefulness still needs a post-merge/deploy or branch-preview check.
 - [x] Keep the pass evidence-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 90L - Post-Merge Wall-Shelf Buying-Trip Pass
+
+- [x] Merge and deploy the wall-shelf buying-decision follow-through to the configured protected hosted path.
+- [x] Run one fresh clearly labeled non-critical hosted wall-shelf generation pass without recording hosted URLs, project IDs, cookies, headers, screenshots, row data, session files, or secrets.
+- [x] Confirm generated-plan detail and Browser Print Plan both render Buying Plan and `Buying decisions before purchase`.
+- [x] Confirm the deployed checklist includes stock-board selection, mounting hardware/site review, and stock-length selection language without choosing exact products.
+- [x] Confirm the only shopping-cart wording is the explicit guardrail that the packet is not a shopping cart or optimized cut plan.
+- [x] Keep the pass evidence-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
-1. [ ] After the buying-decision branch is merged/deployed, rerun a small wall-shelf buying-trip pass and only expand behavior if the explicit buying decisions or visual review remain repeatedly annoying.
+1. [ ] Keep using wall-shelf Buying Plans manually and only expand behavior if the explicit buying decisions or visual review remain repeatedly annoying.
 2. [ ] Choose any next implementation lane only from repeated manual dogfood friction or an explicitly selected next template.
 3. [ ] If a next template is selected, start with a PRD/issue split like wall shelves instead of broad visual expansion.
 4. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.

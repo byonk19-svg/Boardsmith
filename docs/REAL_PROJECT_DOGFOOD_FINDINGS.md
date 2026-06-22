@@ -4,7 +4,7 @@
 
 June 10, 2026
 
-This pass predates the June 20, 2026 deeper planter packet planning follow-through. The follow-through now has local focused packet/detail/print test coverage, including planter-specific readiness actions, plus a sanitized planter-specific hosted detail/print route smoke pass. A fresh live hosted generated-plan dogfood pass for a clearly labeled non-critical planter project was completed on June 21, 2026.
+This pass predates the June 20, 2026 deeper planter packet planning follow-through. The follow-through now has local focused packet/detail/print test coverage, including planter-specific readiness actions, plus a sanitized planter-specific hosted detail/print route smoke pass. A fresh live hosted generated-plan dogfood pass for a clearly labeled non-critical planter project was completed on June 21, 2026. A post-merge hosted wall-shelf buying-trip pass was completed on June 22, 2026 after the explicit buying-decision checklist reached the deployed protected path.
 
 ## Fresh Hosted Planter Generated-Plan Dogfood
 
@@ -74,6 +74,31 @@ Friction signal:
 Result:
 
 No new product code change is justified from this pass. The next useful wall-shelf buying-trip signal should be collected only after `codex/wall-shelf-buying-decisions` is merged/deployed or a branch preview URL for that commit is used. After that, rerun a small wall-shelf buying-trip pass and judge whether the explicit buying decisions are still insufficient.
+
+## Post-Merge Hosted Wall-Shelf Buying-Trip Pass
+
+Date: June 22, 2026
+
+Scope: one fresh clearly labeled non-critical hosted wall-shelf project after the buying-decision branch was merged to `main` and deployed to the configured protected hosted path. The hosted URL, project ID, project title, row data, cookies, request headers, screenshots, session-file content, and sensitive logs are intentionally not recorded.
+
+Coverage:
+
+- Created one low-risk wall-shelf project through the hosted protected path.
+- Generated the first plan successfully; the generated plan validated and saved.
+- Opened generated-plan detail and Browser Print Plan routes through the protected hosted path.
+- Confirmed both routes rendered Buying Plan and `Buying decisions before purchase`.
+- Confirmed the decision checklist rendered stock-board selection, mounting hardware/site review, and stock-length selection language instead of inventing an exact purchase.
+- Confirmed the only shopping-cart language was the explicit guardrail that the packet is not a shopping cart or optimized cut plan.
+
+Friction signal:
+
+- The deployed checklist closes the earlier branch-only hosted caveat.
+- This single post-merge pass did not show repeated wall-shelf buying-trip friction after the explicit decision checklist was present.
+- No planter connection/build-step issue was evaluated in this pass because the requested follow-up was wall-shelf buying-trip focused.
+
+Result:
+
+No product code change is justified from this post-merge pass. Keep using wall-shelf Buying Plans manually and only expand behavior if repeated real buying/building use shows that the explicit buying decisions are still insufficient.
 
 ## Scope
 
