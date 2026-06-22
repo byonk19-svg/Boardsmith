@@ -50,6 +50,31 @@ Result:
 
 This pass justified only a narrow wall-shelf Buying Plan clarity follow-through: make stock-board selection, support/frame review, hardware/site review, and finish/exposure review visible as explicit pre-purchase decisions. It still does not justify exact stock-board selection, optimized cuts, vendors, pricing, carts, load ratings, exports, CAD, CNC, or broader shopping behavior.
 
+## Fresh Hosted Private-Use Signal Pass
+
+Date: June 22, 2026
+
+Scope: five fresh clearly labeled non-critical hosted dogfood projects: three wall-shelf variants and two planter-box variants. The hosted URL, project IDs, project titles, row data, cookies, request headers, screenshots, session-file content, and sensitive logs are intentionally not recorded.
+
+Coverage:
+
+- Hosted route/content smoke passed through the protected path before the pass.
+- Three wall-shelf projects were created, generated, and rendered through detail plus Browser Print Plan: one single open-wall shelf, one two-shelf pantry/spice scenario, and one connected light-display shelf unit.
+- Two planter-box projects were created, generated, and rendered through detail plus Browser Print Plan: one covered outdoor cedar herb planter and one small indoor windowsill planter shell.
+- No generated-plan block occurred across the five supported non-critical projects.
+- Both planter packets rendered Planter Box Buying Plan, drainage/liner review, panel-connection review, Build Guide, and panel/part labels.
+- The currently configured hosted URL did not render the branch-only wall-shelf `Buying decisions before purchase` section. The branch code and focused packet tests do render it, so this is deployment-state evidence rather than proof that the explicit buying-decision checklist failed in use.
+
+Friction signal:
+
+- Wall-shelf explicit buying-decision usefulness could not be judged on the configured hosted URL because the hosted deployment did not include the branch-only decision checklist yet.
+- Planter connection/build-step confusion did not repeat in this pass. Both planter packets preserved connection review and panel labels well enough for private MVP review.
+- Generation blocks did not repeat across similar supported wall-shelf and planter projects in this pass.
+
+Result:
+
+No new product code change is justified from this pass. The next useful wall-shelf buying-trip signal should be collected only after `codex/wall-shelf-buying-decisions` is merged/deployed or a branch preview URL for that commit is used. After that, rerun a small wall-shelf buying-trip pass and judge whether the explicit buying decisions are still insufficient.
+
 ## Scope
 
 This pass used the private hosted app through the existing protected hosted smoke path after authenticated route smoke, hosted `Tweak this plan` active-flow smoke, archived revision-blocking smoke, and project-detail navigation smoke had already passed.
