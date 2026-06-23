@@ -110,7 +110,7 @@ function BuildStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact:
   if (!shouldRenderMiniDiagram(card)) return null;
   if (isPlanterStepCard(card)) return <PlanterStepMiniDiagram card={card} compact={compact} />;
 
-  const phase = stepDiagramPhase(card);
+  const phase = card.visualIntent ?? stepDiagramPhase(card);
   const reviewNeeded = Boolean(card.reviewBlockers?.length) || /review|blocked|do not|confirm wall mounting/i.test(`${card.title} ${card.instructions}`);
   const pieceLabels = card.relatedPieceLabels.length > 0 ? card.relatedPieceLabels : ["Modeled pieces"];
   const visiblePieces = pieceLabels.slice(0, compact ? 2 : 3);
@@ -145,6 +145,9 @@ function BuildStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact:
           <text x="48" y="96" className="fill-ink text-[10px] font-semibold">
             wall
           </text>
+          <text x="170" y="96" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+            dry fit layout
+          </text>
         </>
       ) : null}
       {phase === "support" ? (
@@ -163,6 +166,9 @@ function BuildStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact:
             <rect x="280" y="28" width="20" height="58" rx="4" fill={boardFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={boardStroke} />
             <line x1="120" y1="42" x2="276" y2="42" stroke="#7a5b2e" strokeWidth="2" strokeDasharray={reviewNeeded ? "5 4" : undefined} />
             <line x1="120" y1="72" x2="276" y2="72" stroke="#7a5b2e" strokeWidth="2" strokeDasharray={reviewNeeded ? "5 4" : undefined} />
+            <text x="198" y="96" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+              support/frame review
+            </text>
           </>
         )
       ) : null}
@@ -212,7 +218,7 @@ function BuildStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact:
 }
 
 function PlanterStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact: boolean }) {
-  const phase = stepDiagramPhase(card);
+  const phase = card.visualIntent ?? stepDiagramPhase(card);
   const reviewNeeded = Boolean(card.reviewBlockers?.length) || /review|confirm|do not/i.test(`${card.title} ${card.instructions}`);
   const visiblePieces = card.relatedPieceLabels.slice(0, compact ? 2 : 3);
   const ariaLabel = `Step ${card.stepNumber.toString()} planter mini diagram: ${card.title}; ${card.relatedPieceLabels.join(", ")}${reviewNeeded ? "; review first" : ""}`;
@@ -289,7 +295,7 @@ function isPlanterStepCard(card: BuildStepCard): boolean {
   return card.id.startsWith("planter_") || /\b(Front panel|Back panel|Left side panel|Right side panel|Bottom panel)\b/.test(card.relatedPieceLabels.join(" "));
 }
 
-function stepDiagramPhase(card: BuildStepCard): "cut" | "drill" | "layout" | "support" | "mount" | "finish" | "review" {
+function stepDiagramPhase(card: BuildStepCard): NonNullable<BuildStepCard["visualIntent"]> {
   const text = `${card.id} ${card.title} ${card.phaseLabel}`.toLowerCase();
   if (text.includes("cut")) return "cut";
   if (/drill|drainage/.test(text)) return "drill";

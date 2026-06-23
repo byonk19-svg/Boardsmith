@@ -1201,6 +1201,17 @@
 - [x] Add local Playwright packet smoke coverage for a seeded generated-plan detail route and Browser Print Plan route.
 - [x] Keep the pass inside private-MVP boundaries: no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 90N - Visual Packet Regression Follow-Through
+
+- [x] Complete the deterministic visuals testing follow-through from `.omx/plans/boardsmith-visuals-comprehensive-testing-plan.md`.
+- [x] Keep the current hero-label slice bounded to structured wall-shelf and planter packet data.
+- [x] Render connected wall-shelf review states with a deterministic Hero Visual SVG instead of a paragraph-only fallback when the diagram view model has visible structured boards.
+- [x] Add explicit build-step `visualIntent` data so mini diagrams follow deterministic step intent before falling back to title/phase heuristics.
+- [x] Strengthen wall-shelf part-label contract coverage across part schedule, diagram view model, cut diagram, buying plan, build guide, packet summary, detail packet, and Browser Print Plan surfaces.
+- [x] Extend local Playwright packet smoke to cover planter, single wall shelf, multiple separate wall shelves, and connected wall-shelf review through detail and print routes.
+- [x] Add browser assertions for packet-section order, nonblank SVGs, visible part/review labels, and forbidden vendor/cart/pricing/load/CAD/CNC/fabrication claims.
+- [x] Keep the pass inside private-MVP boundaries: no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, AI-image build truth, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
 1. [ ] Keep using wall-shelf Buying Plans manually and only expand behavior if the explicit buying decisions or visual review remain repeatedly annoying.

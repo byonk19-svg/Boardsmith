@@ -169,6 +169,7 @@ describe("createWallShelfBuildStepViewModel", () => {
       "Finish and final safety check",
     ]);
     expect(steps.stepCards[1]?.dimensionReferences).toContain("Part A - Shelf board: Qty 1, 12 in x 6 in x 0.75 in");
+    expect(steps.stepCards.map((step) => step.visualIntent)).toEqual(["review", "cut", "layout", "finish", "mount", "finish"]);
     expect(steps.stepCards.map((step) => `${step.title} ${step.instructions}`).join(" ")).not.toMatch(/freestanding|non-mounted|support\/frame details before assembly/i);
   });
 
@@ -222,8 +223,10 @@ describe("createWallShelfBuildStepViewModel", () => {
     const blockedAssemblyStep = steps.stepCards.find((step) => step.title === "Do not assemble connected unit yet");
 
     expect(supportReviewStep?.phaseLabel).toBe("Inspect / review");
+    expect(supportReviewStep?.visualIntent).toBe("support");
     expect(supportReviewStep?.reviewBlockers).toContain("Confirm support/frame design before assembly.");
     expect(blockedAssemblyStep?.phaseLabel).toBe("Inspect / review");
+    expect(blockedAssemblyStep?.visualIntent).toBe("support");
   });
 
   it("blocks an invalid 5-shelf height from rendering a trusted full build guide", () => {
@@ -291,6 +294,7 @@ describe("createWallShelfBuildStepViewModel", () => {
     const markup = renderToStaticMarkup(React.createElement(BuildStepCards, { cards: manifest.buildStepCards, compact: true }));
 
     expect(markup).toContain("step mini diagram");
+    expect(markup).toContain("support/frame review");
     expect(markup).toContain("Step 1 mini diagram");
     expect(markup).toContain("Part A - Shelf boards");
     expect(markup).toContain("review first");

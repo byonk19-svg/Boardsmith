@@ -43,6 +43,7 @@ function wallShelfManifest(state: WallShelfFixtureState) {
 
 function renderWallShelfPacketSurfaces(manifest: ReturnType<typeof wallShelfManifest>): string {
   return [
+    renderToStaticMarkup(React.createElement(PlanPacketHeroVisual, { manifest })),
     renderToStaticMarkup(React.createElement(WallShelfPlanReadiness, { viewModel: manifest.wallShelfPlanReadinessViewModel })),
     manifest.wallShelfDiagram ? renderToStaticMarkup(React.createElement(WallShelfDiagrams, { model: manifest.wallShelfDiagram })) : "",
     renderToStaticMarkup(React.createElement(WallShelfCutDiagram, { viewModel: manifest.wallShelfCutDiagramViewModel })),
@@ -60,6 +61,36 @@ function renderSharedTemplatePacketSections(manifest: ReturnType<typeof createPr
     renderToStaticMarkup(React.createElement(PlanPacketBuyingPlan, { manifest })),
     renderToStaticMarkup(React.createElement(PlanPacketBuildGuide, { manifest })),
   ].join(" ");
+}
+
+function uniqueLabels(labels: string[]): string[] {
+  return [...new Set(labels.filter((label) => /^Part [A-Z] - /u.test(label)))];
+}
+
+function wallShelfContractLabels(manifest: ReturnType<typeof wallShelfManifest>) {
+  const packet = createPrintablePlanPacketSummary(manifest);
+
+  return {
+    assignedParts: uniqueLabels(manifest.wallShelfPartScheduleViewModel.assignedParts.map((part) => part.printLabel)),
+    diagramVisibleBoards: uniqueLabels(manifest.wallShelfDiagramViewModel.visibleBoards.map((piece) => piece.printLabel)),
+    cutPieces: uniqueLabels(manifest.wallShelfCutDiagramViewModel.pieceGroups.map((piece) => piece.printLabel)),
+    buyingPieces: uniqueLabels(manifest.wallShelfStockBoardViewModel.materialGroups.flatMap((group) => group.pieces.map((piece) => piece.printLabel))),
+    buildStepPieces: uniqueLabels(manifest.wallShelfBuildStepViewModel.stepCards.flatMap((step) => step.relatedPieceLabels)),
+    packetAssignedParts: uniqueLabels(packet.assignedParts.map((part) => part.printLabel)),
+    packetRows: uniqueLabels(packet.partRows.map((part) => part.printLabel)),
+  };
+}
+
+function expectWallShelfContractLabels(manifest: ReturnType<typeof wallShelfManifest>, expectedLabels: string[]) {
+  const labels = wallShelfContractLabels(manifest);
+
+  expect(labels.assignedParts).toEqual(expectedLabels);
+  expect(labels.diagramVisibleBoards).toEqual(expectedLabels);
+  expect(labels.cutPieces).toEqual(expectedLabels);
+  expect(labels.buyingPieces).toEqual(expectedLabels);
+  expect(labels.packetAssignedParts).toEqual(expectedLabels);
+  expect(labels.packetRows).toEqual(expectedLabels);
+  expect(labels.buildStepPieces).toEqual(expect.arrayContaining(expectedLabels));
 }
 
 describe("plan packet contract", () => {
@@ -119,12 +150,10 @@ describe("plan packet contract", () => {
     const expectedLabels = ["Part A - Shelf boards", "Part B - Side supports"];
     const renderedPacket = renderWallShelfPacketSurfaces(manifest);
 
+    expectWallShelfContractLabels(manifest, expectedLabels);
     expect(manifest.wallShelfPlanReadinessViewModel.status).toBe("needs_review");
     expect(manifest.wallShelfPlanReadinessViewModel.actions.map((action) => action.id)).not.toContain("support_frame_design");
     expect(manifest.wallShelfPlanReadinessViewModel.actions.map((action) => action.id)).toContain("mounting_support_method");
-    expect(manifest.wallShelfPartScheduleViewModel.assignedParts.map((part) => part.printLabel)).toEqual(expectedLabels);
-    expect(manifest.wallShelfCutDiagramViewModel.pieceGroups.map((piece) => piece.printLabel)).toEqual(expectedLabels);
-    expect(manifest.wallShelfStockBoardViewModel.materialGroups.flatMap((group) => group.pieces.map((piece) => piece.printLabel))).toEqual(expectedLabels);
     const packet = createPrintablePlanPacketSummary(manifest);
 
     expect(packet.family).toBe("wall_shelf");
@@ -142,6 +171,19 @@ describe("plan packet contract", () => {
     }
   });
 
+  it("keeps single and separate wall-shelf labels stable across packet surfaces", () => {
+    const singleManifest = wallShelfManifest("single");
+    const separateManifest = wallShelfManifest("separate");
+    const singleMarkup = renderWallShelfPacketSurfaces(singleManifest);
+    const separateMarkup = renderWallShelfPacketSurfaces(separateManifest);
+
+    expectWallShelfContractLabels(singleManifest, ["Part A - Shelf board"]);
+    expectWallShelfContractLabels(separateManifest, ["Part A - Shelf boards"]);
+    expect(singleMarkup).toContain("Part A - Shelf board");
+    expect(separateMarkup).toContain("Part A - Shelf boards");
+    expect(`${singleMarkup} ${separateMarkup}`).not.toMatch(/Part B - Side support|CAD-ready|CNC-ready|fabrication-ready|load rated|certified/i);
+  });
+
   it("keeps unresolved connected shelf supports review-only instead of inventing build-ready parts", () => {
     const manifest = wallShelfManifest("connected_unresolved_support");
     const renderedPacket = renderWallShelfPacketSurfaces(manifest);
@@ -153,6 +195,10 @@ describe("plan packet contract", () => {
     expect(manifest.wallShelfPartScheduleViewModel.assignedParts).toEqual([
       expect.objectContaining({ partLabel: "Part A", printLabel: "Part A - Shelf boards" }),
     ]);
+    expect(wallShelfContractLabels(manifest).assignedParts).toEqual(["Part A - Shelf boards"]);
+    expect(wallShelfContractLabels(manifest).diagramVisibleBoards).toEqual(["Part A - Shelf boards"]);
+    expect(wallShelfContractLabels(manifest).cutPieces).toEqual(["Part A - Shelf boards"]);
+    expect(wallShelfContractLabels(manifest).buyingPieces).toEqual(["Part A - Shelf boards"]);
     expect(manifest.wallShelfPartScheduleViewModel.rows).not.toContainEqual(expect.objectContaining({ partLabel: "Part B" }));
     expect(renderedPacket).toContain("Support/frame review");
     expect(renderedPacket).toContain("Do not assemble connected unit yet");

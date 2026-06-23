@@ -100,6 +100,25 @@ Result:
 
 No product code change is justified from this post-merge pass. Keep using wall-shelf Buying Plans manually and only expand behavior if repeated real buying/building use shows that the explicit buying decisions are still insufficient.
 
+## Local Visual Packet Browser Regression Pass
+
+Date: June 23, 2026
+
+Scope: local deterministic visual-packet regression pass for the private-MVP wall-shelf and planter packet surfaces. This pass used seeded local JSON fallback records only. No hosted data, hosted routes, Supabase cloud rows, OpenAI calls, migrations, packages, exports, screenshots, or permanent project records were created.
+
+Coverage:
+
+- Rendered seeded planter, single wall-shelf, multiple separate wall-shelf, and connected wall-shelf review packets through project detail and Browser Print Plan routes.
+- Confirmed the browser-rendered packet order remained Hero Visual, Project Visuals / Diagrams, Cut Checklist, Buying Plan, then Build Guide inside the packet container.
+- Confirmed visual packet routes rendered nonblank SVG graphics with accessible `role="img"` labels.
+- Confirmed deterministic part labels stayed visible in the browser packet, including `Part A - Shelf board(s)`, `Part E - Bottom panel`, and connected-unit `Support/frame review` language.
+- Confirmed the connected-unit review case now keeps a deterministic Hero Visual SVG visible while preserving review-first support/frame copy.
+- Confirmed no vendor, price, cart, checkout, load-rated, certified, CAD-ready, CNC-ready, or fabrication-ready claims appeared in the smoke path.
+
+Result:
+
+The local visual packet browser regression pass closes the main visuals testing gap for this lane. It does not justify new product features or visual expansion. Continue to let repeated private use choose the next implementation lane.
+
 ## Scope
 
 This pass used the private hosted app through the existing protected hosted smoke path after authenticated route smoke, hosted `Tweak this plan` active-flow smoke, archived revision-blocking smoke, and project-detail navigation smoke had already passed.

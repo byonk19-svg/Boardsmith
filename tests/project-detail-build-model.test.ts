@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import { simpleShelfBuildModelFixture } from "@/lib/build-model/build-model-fixtures";
+import type { WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
 import type { GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
@@ -194,7 +195,7 @@ describe("ProjectDetailPage project structure", () => {
           depthLabel: "Depth 6 in",
           materialThicknessLabel: "Material thickness 0.75 in",
           materialLabel: "3/4 in pine board",
-          pieceLabels: ["Shelf boards"],
+          pieceLabels: ["Part A - Shelf boards"],
           shelfCount: 5,
           hasWallContext: true,
           supportLabel: "Wall/support details to verify",
@@ -207,6 +208,7 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Finished wall-shelf preview");
     expect(markup).toContain("finished wall-shelf preview");
     expect(markup).toContain('x="592" y="42" text-anchor="end"');
+    expect(markup).toContain("Part A - Shelf boards");
     expect(markup).toContain("5 shelves - Material thickness 0.75 in");
     expect(markup).toContain("Wall/support details to verify");
     expect(markup).toContain("wall plane");
@@ -241,8 +243,96 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("open-top planter box planning preview");
     expect(markup).toContain("drainage, liner, finish, and outdoor exposure need review");
     expect(markup).toContain("Part A - Front panel + Part B - Back panel");
+    expect(markup).toContain("Part E - Bottom panel");
     expect(markup).not.toContain("Major pieces");
     expect(markup).not.toContain("finished wall-shelf preview");
+  });
+
+  it("renders a review-state connected wall-shelf hero from the diagram view model", async () => {
+    const { ProjectHeroVisual } = await import("@/app/projects/[id]/ProjectHeroVisual");
+    const wallShelfViewModel: WallShelfDiagramViewModel = {
+      projectType: "simple_shelf",
+      status: "needs_review",
+      layout: "connected_shelf_unit",
+      shelfCount: 5,
+      dimensions: {
+        width: { valueInches: 24, label: "Width 24 in", status: "known", reviewReason: null },
+        depth: { valueInches: 8, label: "Depth 8 in", status: "known", reviewReason: null },
+        height: { valueInches: 60, label: "Height 60 in", status: "known", reviewReason: null },
+        boardThickness: { valueInches: 0.75, label: "Material thickness 0.75 in", status: "known", reviewReason: null },
+      },
+      visibleBoards: [
+        {
+          id: "shelf_boards",
+          partLabel: "Part A",
+          badgeLabel: "A",
+          printLabel: "Part A - Shelf boards",
+          label: "Shelf boards",
+          quantity: 5,
+          role: "shelf_board",
+          dimensionsLabel: "24 in x 8 in x 0.75 in",
+          materialLabel: "3/4 in pine board",
+          needsReview: false,
+          warnings: [],
+        },
+        {
+          id: "side_support_frame_placeholder",
+          partLabel: null,
+          badgeLabel: null,
+          printLabel: "Side support/frame placeholders - review only",
+          label: "Side support/frame placeholders",
+          quantity: 2,
+          role: "support_frame_placeholder",
+          dimensionsLabel: "60 in x 8 in x 0.75 in",
+          materialLabel: "3/4 in pine board",
+          needsReview: true,
+          warnings: ["Support/frame design needs review"],
+        },
+      ],
+      supportFrameReview: {
+        required: true,
+        needsReview: true,
+        label: "Support/frame design needs review",
+        reasons: ["Connected shelf units need modeled side supports, frame, cleat, brackets, or another support method before the packet is complete."],
+      },
+      missingDimensions: [],
+      warnings: ["Support/frame design needs review"],
+      badges: ["Needs review", "Support/frame review", "Connected shelf unit"],
+      renderLabels: {
+        title: "Wall shelf diagram",
+        shelfCountLabel: "5 shelves",
+        supportLabel: "Support/frame design needs review",
+        fallbackMessage: null,
+      },
+    };
+
+    const markup = renderToStaticMarkup(
+      React.createElement(ProjectHeroVisual, {
+        visual: {
+          title: "Project anatomy",
+          kind: "simple_shelf",
+          widthLabel: "Width 24 in",
+          heightLabel: "Height 60 in",
+          depthLabel: "Depth 8 in",
+          materialThicknessLabel: "Material thickness 0.75 in",
+          materialLabel: "3/4 in pine board",
+          pieceLabels: ["Part A - Shelf boards"],
+          shelfCount: 5,
+          hasWallContext: true,
+          supportLabel: "Wall/support details to verify",
+          fallbackMessage: "Project anatomy is not available yet. Review the cut list and build guide before building.",
+        },
+        wallShelfViewModel,
+      }),
+    );
+
+    expect(markup).toContain("Deterministic finished wall-shelf hero visual");
+    expect(markup).toContain("Part A - Shelf boards");
+    expect(markup).toContain("Side support/frame placeholders - review only");
+    expect(markup).toContain("Support/frame review");
+    expect(markup).toContain("Project anatomy is not available yet. Review the cut list and build guide before building.");
+    expect(markup).not.toContain("<p class=\"mt-3 rounded-md border border-sawdust bg-white p-3 text-sm leading-6 text-ink/70\">Project anatomy");
+    expect(markup).not.toMatch(/CAD-ready|CNC-ready|fabrication-ready|load rated|certified/i);
   });
 
   it("renders no-print project section navigation with links to existing latest-plan sections", async () => {

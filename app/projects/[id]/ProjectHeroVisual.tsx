@@ -13,6 +13,8 @@ export function ProjectHeroVisual({
   const svgHeightClass = compact ? "h-72 print:h-56" : "h-[26rem] print:h-64";
   const shouldRenderShelfProject = visual.kind === "simple_shelf";
   const shouldRenderPlanterBox = visual.kind === "planter_box";
+  const canRenderStructuredHero =
+    !visual.fallbackMessage || (shouldRenderShelfProject && Boolean(wallShelfViewModel?.visibleBoards.length)) || (shouldRenderPlanterBox && visual.pieceLabels.length > 0);
   const heroAriaLabel = shouldRenderShelfProject
     ? "Deterministic finished wall-shelf hero visual"
     : shouldRenderPlanterBox
@@ -33,7 +35,7 @@ export function ProjectHeroVisual({
         </span>
       </div>
 
-      {visual.fallbackMessage ? (
+      {!canRenderStructuredHero ? (
         <p className="mt-3 rounded-md border border-sawdust bg-white p-3 text-sm leading-6 text-ink/70">{visual.fallbackMessage}</p>
       ) : (
         <>
@@ -47,6 +49,11 @@ export function ProjectHeroVisual({
               <GenericProjectVisual visual={visual} />
             )}
           </svg>
+          {visual.fallbackMessage ? (
+            <p className="mt-2 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs font-semibold leading-5 text-amber-950">
+              {visual.fallbackMessage}
+            </p>
+          ) : null}
           <div className="mt-2 flex flex-wrap gap-1.5">
             {visual.pieceLabels.map((label) => (
               <span key={label} className="rounded-md border border-sawdust bg-white px-2.5 py-1 text-xs font-semibold text-ink/70">
@@ -83,6 +90,10 @@ function GenericProjectVisual({ visual }: { visual: ProjectAnatomyVisual }) {
 }
 
 function PlanterBoxProjectVisual({ visual }: { visual: ProjectAnatomyVisual }) {
+  const frontPanelLabel = visual.pieceLabels.find((label) => /front/i.test(label)) ?? indexedLabel(visual.pieceLabels, 0, "Front panel");
+  const backPanelLabel = visual.pieceLabels.find((label) => /back/i.test(label)) ?? indexedLabel(visual.pieceLabels, 1, "Back panel");
+  const bottomPanelLabel = visual.pieceLabels.find((label) => /bottom/i.test(label)) ?? indexedLabel(visual.pieceLabels, 2, "Bottom panel");
+
   return (
     <>
       <rect x="50" y="54" width="574" height="230" rx="8" fill="#f7efe0" stroke="#d7c7a1" />
@@ -106,7 +117,10 @@ function PlanterBoxProjectVisual({ visual }: { visual: ProjectAnatomyVisual }) {
         drainage, liner, finish, and outdoor exposure need review
       </text>
       <text x="384" y="190" textAnchor="middle" className="fill-ink text-[17px] font-semibold">
-        {visual.pieceLabels.slice(0, 2).join(" + ") || "Planter panels"}
+        {frontPanelLabel} + {backPanelLabel}
+      </text>
+      <text x="384" y="216" textAnchor="middle" className="fill-ink text-[12px] font-semibold">
+        {bottomPanelLabel}
       </text>
       <text x="382" y="306" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
         {visual.materialThicknessLabel}
@@ -133,6 +147,13 @@ function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisua
   const depthLabel = viewModel?.dimensions.depth.label ?? visual.depthLabel;
   const thicknessLabel = viewModel?.dimensions.boardThickness.label ?? visual.materialThicknessLabel;
   const heightLabel = rawShelfCount === 1 ? compactThicknessLabel(thicknessLabel) : (viewModel?.dimensions.height.label ?? visual.heightLabel);
+  const shelfPartLabel = visual.pieceLabels.find((label) => /shelf/i.test(label)) ?? indexedLabel(visual.pieceLabels, 0, "Shelf board");
+  const supportPartLabel =
+    viewModel?.visibleBoards.find((piece) => piece.role === "support_frame")?.printLabel ??
+    viewModel?.visibleBoards.find((piece) => piece.role === "support_frame_placeholder")?.printLabel ??
+    null;
+  const shelfLabelInsideBoard = visibleShelfCount <= 2 ? shelfPartLabel : null;
+  const summaryY = visual.supportLabel ? 296 : 306;
 
   return (
     <>
@@ -153,7 +174,7 @@ function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisua
 
       {shelves.map((_, index) => {
         const y = topShelfY + index * shelfGap;
-        return <ShelfBoard key={index} y={y} showBracket={visual.hasWallContext} />;
+        return <ShelfBoard key={index} y={y} showBracket={visual.hasWallContext} label={index === 0 ? shelfLabelInsideBoard : null} />;
       })}
       {showSupportFrame ? (
         <ShelfSupportFrame
@@ -161,6 +182,7 @@ function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisua
           needsReview={supportFrameNeedsReview}
           topY={topShelfY - 10}
           bottomY={bottomShelfY + 44}
+          label={supportPartLabel}
         />
       ) : null}
 
@@ -183,11 +205,14 @@ function ShelfProjectVisual({ visual, viewModel }: { visual: ProjectAnatomyVisua
         {depthLabel}
       </text>
 
-      <text x="368" y="300" textAnchor="middle" className="fill-ink text-[13px] font-semibold">
+      <text x="368" y={summaryY} textAnchor="middle" className="fill-ink text-[13px] font-semibold">
+        {shelfPartLabel}
+      </text>
+      <text x="368" y={summaryY + 16} textAnchor="middle" className="fill-ink text-[12px] font-semibold">
         {shelfLabel} - {thicknessLabel}
       </text>
       {visual.supportLabel ? (
-        <text x="210" y="318" className="fill-ink text-[12px] font-semibold">
+        <text x="210" y="330" className="fill-ink text-[12px] font-semibold">
           {visual.supportLabel}
         </text>
       ) : null}
@@ -199,33 +224,39 @@ function compactThicknessLabel(label: string): string {
   return label.replace(/^Material thickness/i, "Thickness");
 }
 
+function indexedLabel(labels: string[], index: number, fallback: string): string {
+  return labels.length > index ? labels[index] : fallback;
+}
+
 function ShelfSupportFrame({
   pieces,
   needsReview,
   topY,
   bottomY,
+  label,
 }: {
   pieces: WallShelfDiagramVisiblePiece[];
   needsReview: boolean;
   topY: number;
   bottomY: number;
+  label: string | null;
 }) {
   const fill = needsReview ? "#fff3c4" : "#c99a57";
   const strokeDasharray = needsReview ? "6 4" : undefined;
-  const label = pieces.some((piece) => piece.role === "support_frame") ? "modeled support/frame" : "support/frame review";
+  const supportLabel = label ?? (pieces.some((piece) => piece.role === "support_frame") ? "modeled support/frame" : "support/frame review");
 
   return (
     <>
       <rect x="226" y={topY} width="12" height={bottomY - topY} rx="4" fill={fill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={strokeDasharray} />
       <rect x="506" y={topY} width="12" height={bottomY - topY} rx="4" fill={fill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={strokeDasharray} />
       <text x="372" y={bottomY + 16} textAnchor="middle" className="fill-ink text-[12px] font-semibold">
-        {label}
+        {supportLabel}
       </text>
     </>
   );
 }
 
-function ShelfBoard({ y, showBracket }: { y: number; showBracket: boolean }) {
+function ShelfBoard({ y, showBracket, label }: { y: number; showBracket: boolean; label: string | null }) {
   const frontY = y + 24;
   const thickness = 10;
   const yText = y.toString();
@@ -242,6 +273,11 @@ function ShelfBoard({ y, showBracket }: { y: number; showBracket: boolean }) {
       <polygon points={`214,${yText} 474,${yText} 522,${frontYText} 262,${frontYText}`} fill="#d9b77f" stroke="#7a5b2e" strokeWidth="2" />
       <polygon points={`214,${yText} 262,${frontYText} 262,${frontThicknessYText} 214,${topThicknessYText}`} fill="#b9803c" stroke="#7a5b2e" strokeWidth="2" />
       <polygon points={`262,${frontYText} 522,${frontYText} 522,${frontThicknessYText} 262,${frontThicknessYText}`} fill="#c99a57" stroke="#7a5b2e" strokeWidth="2" />
+      {label ? (
+        <text x="392" y={frontY + 18} textAnchor="middle" className="fill-ink text-[13px] font-semibold">
+          {label}
+        </text>
+      ) : null}
       {showBracket ? (
         <>
           <polygon points={`214,${topBracketYText} 190,${lowerBracketYText} 214,${lowerBracketYText}`} fill="#efe7d8" stroke="#47624a" strokeWidth="2" />

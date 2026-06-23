@@ -1,5 +1,5 @@
 import type { BoardsmithBuildModel, BuildModelOperation } from "@/lib/build-model/build-model-schema";
-import type { BuildStepCard, BuildStepPhaseLabel } from "@/lib/plans/build-step-cards";
+import type { BuildStepCard, BuildStepPhaseLabel, BuildStepVisualIntent } from "@/lib/plans/build-step-cards";
 import type { WallShelfCutDiagramViewModel, WallShelfCutPieceGroup } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import type { WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
 import type { Project } from "@/lib/projects/types";
@@ -162,6 +162,7 @@ function card(params: {
   warnings?: string[];
   reviewBlockers?: string[];
   printLabel?: string;
+  visualIntent?: BuildStepVisualIntent;
 }): WallShelfBuildStepCard {
   return {
     id: params.id,
@@ -179,6 +180,7 @@ function card(params: {
     warnings: params.warnings ?? [],
     reviewBlockers: params.reviewBlockers ?? [],
     printLabel: params.printLabel ?? params.title,
+    visualIntent: params.visualIntent,
   };
 }
 
@@ -225,6 +227,7 @@ function buildCards(params: {
       warnings: uniqueStrings([...diagramViewModel.warnings, ...cutViewModel.warnings]).slice(0, 8),
       safetyNote: "Boardsmith cannot verify load capacity, wall safety, anchors, studs, or site conditions.",
       printLabel: "Review before building",
+      visualIntent: "review",
     }),
     card({
       id: "cut_shelf_boards",
@@ -245,6 +248,7 @@ function buildCards(params: {
       warnings: cutViewModel.warnings.filter((message) => /cut|dimension|missing|height|finish|humidity/i.test(message)),
       safetyNote: "Measure twice before cutting and stop if any dimension is missing or suspect.",
       printLabel: "Cut shelf boards",
+      visualIntent: "cut",
     }),
   ];
 
@@ -270,6 +274,7 @@ function buildCards(params: {
         warnings: diagramViewModel.supportFrameReview.reasons,
         safetyNote: supportModeled ? "Verify support/frame fit before loading or mounting." : "Do not treat shelf boards alone as a complete connected shelf unit.",
         printLabel: supportModeled ? "Prepare support/frame pieces" : "Support/frame review",
+        visualIntent: "support",
       }),
     );
   }
@@ -293,6 +298,7 @@ function buildCards(params: {
       ],
       reviewBlockers: connected && !supportModeled ? ["Resolve support/frame design before dry fitting the connected unit."] : [],
       printLabel: "Dry fit layout",
+      visualIntent: "layout",
     }),
     card({
       id: "sand_prep_pieces",
@@ -307,6 +313,7 @@ function buildCards(params: {
       relatedPieceLabels: operationPartLabels(cutViewModel, sandOperation).length > 0 ? operationPartLabels(cutViewModel, sandOperation) : allPieceLabels,
       safetyNote: "Wear appropriate PPE and control dust.",
       printLabel: "Sand/prep pieces",
+      visualIntent: "finish",
     }),
   );
 
@@ -327,6 +334,7 @@ function buildCards(params: {
         reviewBlockers: supportModeled ? [] : ["Add support/frame details before this plan is build-ready."],
         safetyNote: "Do not load or mount until support, fasteners, wall structure, and expected use are reviewed.",
         printLabel: supportModeled ? "Assemble connected unit" : "Assembly blocked",
+        visualIntent: supportModeled ? "layout" : "support",
       }),
     );
   }
@@ -349,6 +357,7 @@ function buildCards(params: {
       warnings: buildModel.unresolvedQuestions.filter((question) => /wall|bracket|fastener|load|support|frame/i.test(question)),
       safetyNote: "Manual mounting review is required; Boardsmith cannot verify wall safety or load capacity.",
       printLabel: "Confirm mounting/support",
+      visualIntent: "mount",
     }),
     card({
       id: "finish_final_review",
@@ -362,6 +371,7 @@ function buildCards(params: {
       warnings: buildModel.safety.flags.map((flag) => flag.message),
       safetyNote: "Use your own judgment before loading, mounting, or placing objects on the shelf.",
       printLabel: "Finish/final check",
+      visualIntent: "finish",
     }),
   );
 
