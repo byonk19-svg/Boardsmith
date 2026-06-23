@@ -14,6 +14,15 @@ export type BuildStepPhaseLabel =
   | "Inspect / review"
   | "Build step";
 
+export type BuildStepVisualIntent =
+  | "review"
+  | "cut"
+  | "drill"
+  | "layout"
+  | "support"
+  | "mount"
+  | "finish";
+
 export type BuildStepCard = {
   id: string;
   stepNumber: number;
@@ -30,6 +39,7 @@ export type BuildStepCard = {
   warnings?: string[];
   reviewBlockers?: string[];
   printLabel?: string;
+  visualIntent?: BuildStepVisualIntent;
 };
 
 type GeneratedBuildStep = GeneratedPlan["assembly_steps"][number];
@@ -163,7 +173,27 @@ function connectedSupportReviewCard(step: GeneratedBuildStep, operation: BuildMo
     safetyNote: "Do not treat shelf boards alone as a complete connected shelf unit.",
     relatedOperationTitle: operation?.title ?? "Confirm support/frame design before assembly",
     relatedPieceLabels: pieceLabels,
+    visualIntent: "support",
   };
+}
+
+function visualIntentFor(params: {
+  step: GeneratedBuildStep;
+  operation: BuildModelOperation | null;
+  phaseLabel: BuildStepPhaseLabel;
+}): BuildStepVisualIntent {
+  const { step, operation, phaseLabel } = params;
+  const text = normalize(`${step.title} ${step.instructions} ${operation?.title ?? ""} ${operation?.description ?? ""}`);
+
+  if (operation?.operationType === "cut" || phaseLabel === "Cut") return "cut";
+  if (operation?.operationType === "drill" || phaseLabel === "Drill") return "drill";
+  if (operation?.operationType === "mount" || /\b(mount|wall|anchor|bracket|stud)\b/.test(text)) return "mount";
+  if (/\b(support|frame|cleat)\b/.test(text)) return "support";
+  if (operation && ["paint", "stain", "seal", "sand"].includes(operation.operationType)) return "finish";
+  if (["Finish", "Sand"].includes(phaseLabel)) return "finish";
+  if (phaseLabel === "Fasten") return "review";
+  if (/\b(dry fit|layout|fit together|assemble)\b/.test(text)) return "layout";
+  return "review";
 }
 
 export function createBuildStepCards(
@@ -181,17 +211,20 @@ export function createBuildStepCards(
       return connectedSupportReviewCard(step, operation, pieceLabels);
     }
 
+    const phaseLabel = operation ? operationPhase(operation) : phaseFromText(step);
+
     return {
       id: `step_${step.step_number.toString()}`,
       stepNumber: step.step_number,
       title: step.title,
       instructions: step.instructions,
-      phaseLabel: operation ? operationPhase(operation) : phaseFromText(step),
+      phaseLabel,
       tools: uniqueStrings(step.tools_used.length > 0 ? step.tools_used : (operation?.toolNames ?? [])).map(formatToolLabel),
       estimatedTimeLabel: formatEstimatedTime(step.estimated_time_minutes ?? operation?.estimatedMinutes ?? null),
       safetyNote: conciseSafetyNote(step, operation),
       relatedOperationTitle: operation?.title ?? null,
       relatedPieceLabels: pieceLabels,
+      visualIntent: visualIntentFor({ step, operation, phaseLabel }),
     };
   });
 }

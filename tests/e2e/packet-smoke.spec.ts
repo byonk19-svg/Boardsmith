@@ -1,18 +1,27 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
 import type { GeneratedPlan, GeneratedProjectPlanRecord } from "@/lib/plans/plan-schema";
 import type { Project } from "@/lib/projects/types";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
 import { getTemplateHint } from "@/lib/templates/template-hints";
-import { activeProjectArchiveFields, emptyProjectBuildLog } from "../project-test-helpers";
+import {
+  activeProjectArchiveFields,
+  createWallShelfFixtureBuildModel,
+  createWallShelfFixturePlanRecord,
+  createWallShelfFixtureProject,
+  emptyProjectBuildLog,
+  type WallShelfFixtureState,
+} from "../project-test-helpers";
 
 const e2eDataFile = process.env.BOARDSMITH_DATA_FILE ?? ".data/playwright-e2e.json";
 const projectId = "e2e-planter-packet";
 const planId = "e2e-planter-packet-plan";
 const wallShelfProjectId = "e2e-wall-shelf-buying-minimum";
 const wallShelfPlanId = "e2e-wall-shelf-buying-minimum-plan";
+const separateShelfProjectId = "e2e-separate-wall-shelves";
+const connectedShelfProjectId = "e2e-connected-wall-shelf-review";
 
 const generatedPlan: GeneratedPlan = {
   project_summary: "A cautious rectangular planter box planning packet with panel, drainage, liner, finish, and outdoor fastener review.",
@@ -228,16 +237,40 @@ test.beforeEach(async () => {
     confidence_level: wallShelfGeneratedPlan.confidence_level,
     is_latest: true,
   };
+  const separateShelfProject = createWallShelfE2EProject("separate", separateShelfProjectId, "E2E separate wall shelves");
+  const connectedShelfProject = createWallShelfE2EProject("connected_unresolved_support", connectedShelfProjectId, "E2E connected shelf review");
+  const separateShelfPlanRecord = createWallShelfFixturePlanRecord("separate", {
+    id: `${separateShelfProjectId}-plan`,
+    project_id: separateShelfProject.id,
+    build_model_json: createWallShelfFixtureBuildModel("separate"),
+  });
+  const connectedShelfPlanRecord = createWallShelfFixturePlanRecord("connected_unresolved_support", {
+    id: `${connectedShelfProjectId}-plan`,
+    project_id: connectedShelfProject.id,
+    build_model_json: createWallShelfFixtureBuildModel("connected_unresolved_support"),
+  });
 
   await rm(e2eDataFile, { force: true });
   await mkdir(path.dirname(e2eDataFile), { recursive: true });
-  await writeFile(e2eDataFile, `${JSON.stringify({ projects: [project, wallShelfProject], plans: [planRecord, wallShelfPlanRecord] }, null, 2)}\n`, "utf8");
+  await writeFile(
+    e2eDataFile,
+    `${JSON.stringify(
+      {
+        projects: [project, wallShelfProject, separateShelfProject, connectedShelfProject],
+        plans: [planRecord, wallShelfPlanRecord, separateShelfPlanRecord, connectedShelfPlanRecord],
+      },
+      null,
+      2,
+    )}\n`,
+    "utf8",
+  );
 });
 
 test("renders seeded planter packet on detail and browser print routes", async ({ page }) => {
   await page.goto(`/projects/${projectId}`);
 
   await expect(page.getByRole("heading", { name: "E2E non-critical planter packet" })).toBeVisible();
+  await expectVisualPacket(page, /Deterministic planter-box planning hero visual/i, ["Part E - Bottom panel"]);
   await expect(page.getByText("Planter Box Buying Plan")).toBeVisible();
   await expect(page.getByText("Build Guide").first()).toBeVisible();
   await expect(page.getByText("Dry fit planter box and confirm panel connections")).toBeVisible();
@@ -246,6 +279,7 @@ test("renders seeded planter packet on detail and browser print routes", async (
   await page.goto(`/projects/${projectId}/print`);
 
   await expect(page.getByText("Print build sheet").first()).toBeVisible();
+  await expectVisualPacket(page, /Deterministic planter-box planning hero visual/i, ["Part E - Bottom panel"]);
   await expect(page.getByText("Planter Box Buying Plan")).toBeVisible();
   await expect(page.getByText("Dry fit planter box and confirm panel connections")).toBeVisible();
   await expect(page.getByText("Boardsmith does not generate PDF, CAD, CNC, or export/download files.")).toBeVisible();
@@ -258,6 +292,7 @@ test("renders wall shelf store-trip minimum on detail and browser print routes",
   await page.goto(`/projects/${wallShelfProjectId}`);
 
   await expect(page.getByRole("heading", { name: "E2E wall shelf buying minimum" })).toBeVisible();
+  await expectVisualPacket(page, /Deterministic finished wall-shelf hero visual/i, ["Part A - Shelf board"]);
   await expect(page.getByText("Store-trip minimum").first()).toBeVisible();
   await expect(page.getByText("Plan for 1 shelf board.").first()).toBeVisible();
   await expect(page.getByText("Each board needs at least 42 in usable length.").first()).toBeVisible();
@@ -268,6 +303,7 @@ test("renders wall shelf store-trip minimum on detail and browser print routes",
   await page.goto(`/projects/${wallShelfProjectId}/print`);
 
   await expect(page.getByText("Print build sheet").first()).toBeVisible();
+  await expectVisualPacket(page, /Deterministic finished wall-shelf hero visual/i, ["Part A - Shelf board"]);
   await expect(page.getByText("Store-trip minimum")).toBeVisible();
   await expect(page.getByText("Plan for 1 shelf board.")).toBeVisible();
   await expect(page.getByText("Each board needs at least 42 in usable length.")).toBeVisible();
@@ -279,3 +315,86 @@ test("renders wall shelf store-trip minimum on detail and browser print routes",
   const bodyText = await page.locator("body").innerText();
   expect(bodyText).not.toMatch(/add to cart|checkout|vendor|price|load rated|certified|CAD-ready|CNC-ready/i);
 });
+
+test("renders multi-shelf and connected-unit visual packets on detail and browser print routes", async ({ page }) => {
+  await page.goto(`/projects/${separateShelfProjectId}`);
+
+  await expect(page.getByRole("heading", { name: "E2E separate wall shelves" })).toBeVisible();
+  await expectVisualPacket(page, /Deterministic finished wall-shelf hero visual/i, ["Part A - Shelf boards"]);
+  await expect(page.getByText("separate wall shelf assemblies").first()).toBeVisible();
+  await expect(page.getByText("connected shelf unit assembly")).toHaveCount(0);
+
+  await page.goto(`/projects/${separateShelfProjectId}/print`);
+
+  await expect(page.getByText("Print build sheet").first()).toBeVisible();
+  await expectVisualPacket(page, /Deterministic finished wall-shelf hero visual/i, ["Part A - Shelf boards"]);
+
+  await page.goto(`/projects/${connectedShelfProjectId}`);
+
+  await expect(page.getByRole("heading", { name: "E2E connected shelf review" })).toBeVisible();
+  await expectVisualPacket(page, /Deterministic finished wall-shelf hero visual/i, ["Part A - Shelf boards", "Support/frame review"]);
+  await expect(page.getByText("Support/frame review").first()).toBeVisible();
+  await expect(page.getByText("Do not assemble connected unit yet").first()).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/projects/${connectedShelfProjectId}/print`);
+
+  await expect(page.getByText("Print build sheet").first()).toBeVisible();
+  await expectVisualPacket(page, /Deterministic finished wall-shelf hero visual/i, ["Part A - Shelf boards", "Support/frame review"]);
+
+  const bodyText = await page.locator("body").innerText();
+  expect(bodyText).not.toMatch(/add to cart|checkout|vendor|price|load rated|certified|CAD-ready|CNC-ready|fabrication-ready/i);
+});
+
+function createWallShelfE2EProject(state: WallShelfFixtureState, id: string, title: string): Project {
+  return createWallShelfFixtureProject(state, {
+    id,
+    title,
+    intended_use:
+      state === "connected_unresolved_support"
+        ? "Connected wall shelf unit for light towels; side supports, frame, brackets, and mounting still need review."
+        : "Separate wall shelves for light decor; wall mounting still needs review.",
+  });
+}
+
+async function expectVisualPacket(page: Page, heroName: RegExp, expectedLabels: string[]) {
+  const packetRoot = await packetRootLocator(page);
+  const packetText = await packetRoot.innerText();
+  expect(packetText.indexOf("Hero Visual")).toBeGreaterThan(-1);
+  expect(packetText.indexOf("Project Visuals / Diagrams")).toBeGreaterThan(packetText.indexOf("Hero Visual"));
+  expect(packetText.indexOf("Cut Checklist")).toBeGreaterThan(packetText.indexOf("Project Visuals / Diagrams"));
+  expect(packetText.indexOf("Buying Plan")).toBeGreaterThan(packetText.indexOf("Cut Checklist"));
+  expect(packetText.indexOf("Build Guide")).toBeGreaterThan(packetText.indexOf("Buying Plan"));
+
+  for (const label of expectedLabels) {
+    expect(packetText).toContain(label);
+  }
+
+  await expectNonBlankSvg(packetRoot.getByRole("img", { name: heroName }).first());
+  const svgCount = await packetRoot.locator('svg[role="img"]').count();
+  expect(svgCount).toBeGreaterThanOrEqual(4);
+}
+
+async function packetRootLocator(page: Page): Promise<Locator> {
+  const detailRoot = page.locator("#printable-plan-sheet");
+  if ((await detailRoot.count()) > 0) return detailRoot;
+  return page.locator("main article");
+}
+
+async function expectNonBlankSvg(svg: Locator) {
+  await expect(svg).toBeVisible();
+  const summary = await svg.evaluate((element) => {
+    const svgElement = element as SVGSVGElement;
+    return {
+      role: svgElement.getAttribute("role"),
+      viewBox: svgElement.getAttribute("viewBox"),
+      graphicNodes: svgElement.querySelectorAll("path,rect,polygon,line,circle,ellipse,text").length,
+      textLength: svgElement.textContent.trim().length,
+    };
+  });
+
+  expect(summary.role).toBe("img");
+  expect(summary.viewBox).toMatch(/\d+\s+\d+\s+\d+\s+\d+/);
+  expect(summary.graphicNodes).toBeGreaterThan(5);
+  expect(summary.textLength).toBeGreaterThan(0);
+}

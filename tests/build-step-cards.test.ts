@@ -43,6 +43,7 @@ describe("createBuildStepCards", () => {
       safetyNote: "Do not rely on Boardsmith for load ratings.",
       relatedOperationTitle: "Inspect mounting location",
       relatedPieceLabels: ["Shelf board"],
+      visualIntent: "mount",
     });
   });
 
@@ -88,6 +89,7 @@ describe("createBuildStepCards", () => {
     );
 
     expect(cards[0]?.phaseLabel).toBe("Cut");
+    expect(cards[0]?.visualIntent).toBe("cut");
     expect(cards[0]?.estimatedTimeLabel).toBe("15 min");
     expect(cards[0]?.safetyNote).toBe("Do not mount or load shelf until hardware and wall structure are reviewed.");
   });
@@ -108,6 +110,7 @@ describe("createBuildStepCards", () => {
     );
 
     expect(cards[0]?.phaseLabel).toBe("Build step");
+    expect(cards[0]?.visualIntent).toBe("review");
     expect(cards[0]?.relatedOperationTitle).toBeNull();
     expect(cards[0]?.relatedPieceLabels).toEqual([]);
     expect(cards[0]?.estimatedTimeLabel).toBeNull();
@@ -149,6 +152,7 @@ describe("createBuildStepCards", () => {
     );
 
     expect(cards[0]?.phaseLabel).toBe("Fasten");
+    expect(cards[0]?.visualIntent).toBe("review");
     expect(cards[0]?.relatedOperationTitle).toBeNull();
   });
 
@@ -222,10 +226,13 @@ describe("createBuildStepCards", () => {
     );
 
     expect(cards[0]?.phaseLabel).toBe("Cut");
+    expect(cards[0]?.visualIntent).toBe("cut");
     expect(cards[0]?.relatedPieceLabels).toEqual(["Front panel", "Back panel", "Left side panel", "Right side panel", "Bottom panel"]);
     expect(cards[1]?.phaseLabel).toBe("Drill");
+    expect(cards[1]?.visualIntent).toBe("drill");
     expect(cards[1]?.relatedPieceLabels).toEqual(["Bottom panel"]);
     expect(cards[2]?.phaseLabel).toBe("Finish");
+    expect(cards[2]?.visualIntent).toBe("finish");
     expect(cards[2]?.relatedPieceLabels).toEqual(["Front panel", "Back panel", "Left side panel", "Right side panel", "Bottom panel"]);
   });
 
@@ -263,6 +270,7 @@ describe("createBuildStepCards", () => {
       title: "Confirm support/frame design before assembly",
       phaseLabel: "Inspect / review",
       safetyNote: "Do not treat shelf boards alone as a complete connected shelf unit.",
+      visualIntent: "support",
     });
     expect(`${cards[0]?.title} ${cards[0]?.instructions}`).not.toMatch(/freestanding/i);
   });
