@@ -268,6 +268,43 @@ describe("createBuildModelDraft", () => {
     expect(draft.hardware.find((item) => item.id === "wall_brackets")?.notes.join(" ")).toContain("assumes 2 brackets per shelf");
   });
 
+  it("uses structured wall-shelf mounting method and support count for review hardware", () => {
+    const draft = draftFor(
+      project({
+        title: "Garage utility shelf",
+        project_type: "simple_shelf",
+        width_inches: 48,
+        height_inches: 0.75,
+        depth_inches: 14,
+        material_thickness_inches: 0.75,
+        material_type: "pine board",
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        intended_use: [
+          "Garage shelf for storage bins and tools.",
+          "Structured intake",
+          "- Mounting method: Visible L brackets",
+          "- Wall type: Drywall, studs unknown",
+          "- Stud access: Not sure",
+          "- What it will hold: Books/heavy items",
+          "- Support/bracket count: 3",
+        ].join("\n"),
+      }),
+    );
+
+    expect(draft.hardware.find((item) => item.id === "wall_brackets")).toEqual(
+      expect.objectContaining({
+        label: "Visible L bracket placeholders",
+        quantity: 3,
+      }),
+    );
+    expect(draft.hardware.find((item) => item.id === "wall_brackets")?.notes.join(" ")).toContain("Selected mounting method: Visible L brackets.");
+    expect(draft.hardware.find((item) => item.id === "wall_brackets")?.notes.join(" ")).toContain("Intake support/bracket count: 3.");
+    expect(draft.hardware.find((item) => item.id === "wall_brackets")?.notes.join(" ")).toContain("no load rating is provided");
+    expect(draft.assumptions.join(" ")).toContain("Selected mounting method: Visible L brackets.");
+    expect(draft.assumptions.join(" ")).not.toContain("Mounting/support method is unresolved");
+  });
+
   it("keeps connected shelf unit support hardware as quantity-to-review", () => {
     const draft = draftFor(
       project({

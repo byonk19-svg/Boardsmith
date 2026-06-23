@@ -91,7 +91,7 @@ function stockBoardAction(severity: WallShelfPlanReadinessSeverity): WallShelfPl
 function mountingSupportAction(severity: WallShelfPlanReadinessSeverity = "review"): WallShelfPlanReadinessAction {
   return {
     id: "mounting_support_method",
-    title: "Mounting/support method unresolved",
+    title: "Mounting/support needs review",
     explanation: "Wall shelves need manual review of brackets, cleats, anchors, studs, fasteners, expected load, and wall type.",
     suggestedAction: "Confirm support method before mounting.",
     relatedSection: "mounting",

@@ -3,6 +3,7 @@ import type { WallShelfCutDiagramViewModel, WallShelfCutPieceGroup } from "@/lib
 import { createWallShelfCutDiagramViewModel } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder } from "@/lib/projects/shelf-layout-validation";
 import type { Project } from "@/lib/projects/types";
+import { createWallShelfSupportGuidance } from "@/lib/projects/wall-shelf-support-guidance";
 
 export type WallShelfStockBoardStatus = "ready" | "needs_review" | "unsupported";
 export type WallShelfStockBoardDimensionStatus = "known" | "missing";
@@ -44,11 +45,20 @@ export type WallShelfBuyingDecision = {
   statusLabel: "Select before buying" | "Review before buying" | "Resolve before buying";
 };
 
+export type WallShelfStoreTripMinimum = {
+  id: string;
+  materialName: string;
+  boardCountLabel: string;
+  usableLengthLabel: string;
+  caveat: string;
+};
+
 export type WallShelfStockBoardViewModel = {
   projectType: string;
   status: WallShelfStockBoardStatus;
   materialGroups: WallShelfStockBoardMaterialGroup[];
   totalPieces: number;
+  storeTripMinimums: WallShelfStoreTripMinimum[];
   buyingDecisions: WallShelfBuyingDecision[];
   reviewReasons: string[];
   buyingNotes: string[];
@@ -342,21 +352,24 @@ function supportAndBracketCountLabels(params: {
 }
 
 function hardwareDecisionDetail(params: {
+  project: WallShelfStockBoardProjectInput;
   buildModel: BoardsmithBuildModel;
   cutViewModel: WallShelfCutDiagramViewModel;
 }): string {
-  const { buildModel, cutViewModel } = params;
+  const { project, buildModel, cutViewModel } = params;
+  const supportGuidance = createWallShelfSupportGuidance(project);
   const hardwareLabels = uniqueStrings(buildModel.hardware.map((item) => item.label));
   const countLabels = supportAndBracketCountLabels({ buildModel, cutViewModel });
+  const signalText = uniqueStrings([supportGuidance.mountingMethodSentence ?? "", supportGuidance.supportCountSentence ?? ""]).join(" ");
   const countText = countLabels.length > 0 ? ` Modeled support/bracket count: ${countLabels.join("; ")}.` : "";
   const siteReview =
-    "Confirm studs/anchors, wall structure, support method, fasteners, expected load, and site conditions before buying. Boardsmith does not provide load ratings or engineering sign-off.";
+    "Confirm actual brackets, cleats or supports, studs/anchors, wall structure, fasteners, expected load, and site conditions before buying or installing. Boardsmith does not provide load ratings or engineering sign-off.";
 
   if (hardwareLabels.length === 0) {
-    return `No bracket, cleat, anchor, or fastener is selected yet.${countText} ${siteReview}`;
+    return `${signalText ? `${signalText} ` : ""}No bracket, cleat, anchor, or fastener is selected yet.${countText} ${siteReview}`;
   }
 
-  return `Build Model hardware to review: ${hardwareLabels.join(", ")}.${countText} ${siteReview}`;
+  return `${signalText ? `${signalText} ` : ""}Build Model hardware to review: ${hardwareLabels.join(", ")}.${countText} ${siteReview}`;
 }
 
 function hasFinishExposureReview(project: WallShelfStockBoardProjectInput): boolean {
@@ -373,6 +386,18 @@ function minimumPlanningFactText(fact: ShelfBoardMinimumPlanningFact): string {
   const totalText = fact.totalLinearInches ? ` (${formatInches(fact.totalLinearInches)} total shelf-board length before waste, defects, and final layout)` : "";
 
   return `${fact.materialName}: ${boardLabel}${minimumLengthText}${totalText}`;
+}
+
+function storeTripMinimumsFor(facts: ShelfBoardMinimumPlanningFact[]): WallShelfStoreTripMinimum[] {
+  return facts.map((fact) => ({
+    id: idPart(fact.materialName),
+    materialName: fact.materialName,
+    boardCountLabel: `Plan for ${fact.shelfBoardCount.toString()} shelf ${fact.shelfBoardCount === 1 ? "board" : "boards"}.`,
+    usableLengthLabel: fact.minimumUsableLengthInches
+      ? `Each board needs at least ${formatInches(fact.minimumUsableLengthInches)} usable length.`
+      : "Each board's usable length still needs review.",
+    caveat: "Exact retail stock length still depends on available boards, defects, waste, and final layout.",
+  }));
 }
 
 function stockBoardDecisionDetail(params: {
@@ -431,7 +456,7 @@ function buyingDecisionsFor(params: {
     {
       id: "hardware_site_review",
       label: hardwareDecisionLabel(params.project),
-      detail: hardwareDecisionDetail({ buildModel: params.buildModel, cutViewModel: params.cutViewModel }),
+      detail: hardwareDecisionDetail({ project: params.project, buildModel: params.buildModel, cutViewModel: params.cutViewModel }),
       statusLabel: "Review before buying",
     },
     ...(hasFinishExposureReview(params.project)
@@ -488,6 +513,8 @@ export function createWallShelfStockBoardViewModel(params: {
   const cutViewModel = params.cutViewModel ?? createWallShelfCutDiagramViewModel({ project, buildModel });
   const materialGroups = unsupported ? [] : materialGroupsFor({ buildModel, cutViewModel });
   const reviewReasons = unsupported ? [] : reviewReasonsFor({ project, buildModel, cutViewModel, materialGroups });
+  const minimumPlanningFacts = unsupported ? [] : shelfBoardMinimumPlanningFacts({ buildModel, cutViewModel });
+  const storeTripMinimums = storeTripMinimumsFor(minimumPlanningFacts);
   const buyingDecisions = unsupported ? [] : buyingDecisionsFor({ project, buildModel, cutViewModel, materialGroups });
   const totalPieces = materialGroups.reduce((total, group) => total + group.totalPieces, 0);
   const status: WallShelfStockBoardStatus = unsupported ? "unsupported" : materialGroups.length === 0 || reviewReasons.length > 0 ? "needs_review" : "ready";
@@ -497,6 +524,7 @@ export function createWallShelfStockBoardViewModel(params: {
     status,
     materialGroups,
     totalPieces,
+    storeTripMinimums,
     buyingDecisions,
     reviewReasons,
     buyingNotes: uniqueStrings([

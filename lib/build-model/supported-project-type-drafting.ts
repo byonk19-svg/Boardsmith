@@ -1,6 +1,7 @@
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { findShelfLayoutIssues, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
 import type { ProjectType, ToolOption } from "@/lib/projects/types";
+import { createWallShelfSupportGuidance } from "@/lib/projects/wall-shelf-support-guidance";
 import { isBathroomOrHumidityText } from "@/lib/projects/wall-shelf-intent";
 import type { TemplateHint } from "@/lib/templates/template-hints";
 import {
@@ -24,6 +25,10 @@ type SupportedProjectTypeDraftAdapter = {
   projectType: ProjectType;
   createParts: (context: SupportedProjectTypeDraftContext) => BuildModelDraftParts;
 };
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
 
 function isBookLedge(project: BuildModelDraftProject): boolean {
   return textIncludes(project, /\b(book\s*ledge|book\s*rail|toddler\s+book|nursery\s+book|children'?s\s+book)\b/);
@@ -464,22 +469,30 @@ function createSimpleShelfParts(context: SupportedProjectTypeDraftContext): Buil
   const supportFrameLengthInches = hasImpossibleShelfHeight(project) ? null : project.height_inches;
   const mountingStepNumber = connectedShelfUnit ? 4 : 3;
   const finishStepNumber = wallMounted ? (connectedShelfUnit ? 5 : 4) : connectedShelfUnit ? 4 : 3;
+  const supportGuidance = createWallShelfSupportGuidance(project, connectedShelfUnit ? "Support method to review" : "Wall bracket placeholders");
+  const explicitSupportCount = supportGuidance.supportCountQuantity;
+  const bracketQuantity = connectedShelfUnit ? null : explicitSupportCount ?? (multipleSeparateWallShelves ? shelfQuantity * 2 : 2);
+  const bracketLabel = connectedShelfUnit ? "Support method to review" : supportGuidance.hardwareLabel;
+  const bracketNotes = uniqueStrings([
+    ...(supportGuidance.mountingMethodSentence ? [supportGuidance.mountingMethodSentence] : []),
+    ...(supportGuidance.supportCountSentence ? [supportGuidance.supportCountSentence] : []),
+    multipleSeparateWallShelves && explicitSupportCount === null
+      ? `Cautious placeholder only: assumes 2 brackets per shelf, so ${shelfQuantity.toString()} shelves means ${(shelfQuantity * 2).toString()} brackets before final review.`
+      : "",
+    connectedShelfUnit
+      ? "Connected shelf units need verified side supports, frame, cleat, brackets, or another support method before hardware quantity can be trusted."
+      : "Bracket, cleat, or support selection affects safe use but no load rating is provided.",
+    "Final hardware quantity depends on bracket type, expected load, wall structure, and support design.",
+  ]);
   const hardwareItems = [
     ...(wallMounted
       ? [
           createBuildModelHardware({
             id: "wall_brackets",
-            label: connectedShelfUnit ? "Support method to review" : "Wall bracket placeholders",
+            label: bracketLabel,
             hardwareType: "bracket",
-            quantity: multipleSeparateWallShelves ? shelfQuantity * 2 : connectedShelfUnit ? null : 2,
-            notes: [
-              multipleSeparateWallShelves
-                ? `Cautious placeholder only: assumes 2 brackets per shelf, so ${shelfQuantity.toString()} shelves means ${(shelfQuantity * 2).toString()} brackets before final review.`
-                : connectedShelfUnit
-                  ? "Connected shelf units need verified side supports, frame, cleat, brackets, or another support method before hardware quantity can be trusted."
-                  : "Bracket selection affects safe use but no load rating is provided.",
-              "Final hardware quantity depends on bracket type, expected load, wall structure, and support design.",
-            ],
+            quantity: bracketQuantity,
+            notes: bracketNotes,
           }),
           createBuildModelHardware({
             id: "wall_anchors",
@@ -630,7 +643,11 @@ function createSimpleShelfParts(context: SupportedProjectTypeDraftContext): Buil
     assumptions: [
       ...(wallMounted ? templateHint.assumptions : []),
       ...(!wallMounted && !connectedShelfUnit ? ["Project is treated as non-wall-mounted only because the intake explicitly excludes wall mounting."] : []),
-      ...(wallMounted && !connectedShelfUnit ? ["Mounting/support method is unresolved and must be reviewed before installation."] : []),
+      ...(wallMounted && !connectedShelfUnit && (!supportGuidance.mountingMethod || /not sure/i.test(supportGuidance.mountingMethod))
+        ? ["Mounting/support method is unresolved and must be reviewed before installation."]
+        : []),
+      ...(supportGuidance.mountingMethodSentence && wallMounted ? [supportGuidance.mountingMethodSentence] : []),
+      ...(supportGuidance.supportCountSentence && wallMounted ? [supportGuidance.supportCountSentence] : []),
       ...(shelfQuantity > 1 ? [`The intake describes ${shelfQuantity.toString()} shelves; spacing and support details still need review.`] : []),
       ...(wallMounted && multipleSeparateWallShelves
         ? [`Bracket placeholder uses 2 per shelf for planning only: ${(shelfQuantity * 2).toString()} brackets for ${shelfQuantity.toString()} shelves.`]
@@ -750,8 +767,18 @@ function createPlanterBoxParts({ project, materialId, templateHint }: SupportedP
     ],
     operations: [
       createBuildModelOperation({
-        id: "drill_drainage_holes",
+        id: "cut_planter_panels",
         sequenceNumber: 1,
+        operationType: "cut",
+        title: "Cut planter panels",
+        description: "Confirm stock-board layout, then cut front, back, side, and bottom panels from the selected material.",
+        pieceIds: ["front_panel", "back_panel", "left_side_panel", "right_side_panel", "bottom_panel"],
+        toolNames: cutTools(project),
+        safetyNotes: ["Measure every panel before cutting and stop if stock-board width changes the panel plan."],
+      }),
+      createBuildModelOperation({
+        id: "drill_drainage_holes",
+        sequenceNumber: 2,
         operationType: "drill",
         title: "Drill drainage holes",
         description: "Plan drainage holes in the bottom panel before final assembly.",
@@ -760,14 +787,44 @@ function createPlanterBoxParts({ project, materialId, templateHint }: SupportedP
         safetyNotes: ["Clamp work before drilling and wear eye protection."],
       }),
       createBuildModelOperation({
+        id: "dry_fit_planter_panels",
+        sequenceNumber: 3,
+        operationType: "inspect",
+        title: "Dry fit planter panels",
+        description: "Dry-fit the front, back, side, and bottom panels square before choosing final fastener locations.",
+        pieceIds: ["front_panel", "back_panel", "left_side_panel", "right_side_panel", "bottom_panel"],
+        toolNames: reviewTools(project),
+        safetyNotes: ["Confirm fit, square, pilot holes, and edge distance before fastening."],
+      }),
+      createBuildModelOperation({
+        id: "fasten_planter_panels",
+        sequenceNumber: 4,
+        operationType: "inspect",
+        title: "Review planter panel fastening",
+        description: "Review screw length, spacing, pilot holes, edge distance, and outdoor suitability before fastening the panels.",
+        pieceIds: ["front_panel", "back_panel", "left_side_panel", "right_side_panel", "bottom_panel"],
+        toolNames: reviewTools(project),
+        safetyNotes: connectionSafetyNotes,
+      }),
+      createBuildModelOperation({
         id: "apply_exterior_finish",
-        sequenceNumber: 2,
+        sequenceNumber: 5,
         operationType: "seal",
         title: "Apply exterior finish",
         description: "Apply an outdoor-appropriate finish or liner after reviewing plant safety and product instructions.",
         pieceIds: ["front_panel", "back_panel", "left_side_panel", "right_side_panel", "bottom_panel"],
         toolNames: ["paint brush"],
         safetyNotes: ["Use finishes in a ventilated area and follow product labels."],
+      }),
+      createBuildModelOperation({
+        id: "review_drainage_finish_and_connections",
+        sequenceNumber: 6,
+        operationType: "inspect",
+        title: "Review planter before use",
+        description: "Review drainage, liner, finish cure, fasteners, panel fit, and placement before adding soil or water.",
+        pieceIds: ["front_panel", "back_panel", "left_side_panel", "right_side_panel", "bottom_panel"],
+        toolNames: reviewTools(project),
+        safetyNotes: ["Soil and water add weight; review placement and do not treat this as load-capacity approval."],
       }),
     ],
     assumptions: templateHint.assumptions,

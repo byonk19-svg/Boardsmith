@@ -6,6 +6,9 @@ const e2eDataFile = process.env.BOARDSMITH_DATA_FILE ?? ".data/playwright-e2e.js
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  // E2E specs share the configured local JSON data file, so keep browser specs serial
+  // until each worker can safely get its own isolated persistence file.
+  workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {

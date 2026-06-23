@@ -4,6 +4,7 @@ import type { WallShelfCutDiagramViewModel, WallShelfCutPieceGroup } from "@/lib
 import type { WallShelfDiagramViewModel } from "@/lib/plans/wall-shelf-diagram-view-model";
 import type { Project } from "@/lib/projects/types";
 import { formatToolLabel, type ToolOption } from "@/lib/projects/types";
+import { createWallShelfSupportGuidance, type WallShelfSupportGuidance } from "@/lib/projects/wall-shelf-support-guidance";
 
 export type WallShelfBuildStepStatus = "ready" | "needs_review" | "unsupported";
 
@@ -31,7 +32,16 @@ export type WallShelfBuildStepViewModel = {
 
 type WallShelfBuildStepProjectInput = Pick<
   Project,
-  "project_type" | "tools_available" | "shelf_layout" | "shelf_count" | "width_inches" | "height_inches" | "depth_inches" | "material_thickness_inches"
+  | "project_type"
+  | "tools_available"
+  | "shelf_layout"
+  | "shelf_count"
+  | "width_inches"
+  | "height_inches"
+  | "depth_inches"
+  | "material_thickness_inches"
+  | "style_notes"
+  | "intended_use"
 >;
 
 function uniqueStrings(values: string[]): string[] {
@@ -100,6 +110,15 @@ function supportPlaceholderGroups(cutViewModel: WallShelfCutDiagramViewModel): W
 
 function supportFrameModeled(cutViewModel: WallShelfCutDiagramViewModel): boolean {
   return supportGroups(cutViewModel).some((piece) => !piece.needsReview);
+}
+
+function supportGuidanceText(guidance: WallShelfSupportGuidance): string {
+  return uniqueStrings([guidance.mountingMethodSentence ?? "", guidance.supportCountSentence ?? ""]).join(" ");
+}
+
+function reviewSupportInstruction(baseInstruction: string, guidance: WallShelfSupportGuidance): string {
+  const guidanceText = supportGuidanceText(guidance);
+  return guidanceText ? `${baseInstruction} ${guidanceText} Keep these as review inputs, not safety approval.` : baseInstruction;
 }
 
 function isConnectedLayout(project: WallShelfBuildStepProjectInput, diagramViewModel: WallShelfDiagramViewModel): boolean {
@@ -180,6 +199,7 @@ function buildCards(params: {
   const shelves = shelfGroups(cutViewModel);
   const supports = supportGroups(cutViewModel);
   const supportPlaceholders = supportPlaceholderGroups(cutViewModel);
+  const supportGuidance = createWallShelfSupportGuidance(project);
   const shelfReferences = shelves.map(dimensionReferenceFor);
   const supportReferences = [...supports, ...supportPlaceholders].map(dimensionReferenceFor);
   const shelfLabels = shelves.map((piece) => piece.printLabel);
@@ -195,7 +215,7 @@ function buildCards(params: {
       purpose: "Make the plan safe to use before any cutting or assembly starts.",
       instructions: hasBlockingReview
         ? "Resolve the listed review items before treating these steps as a complete build sequence."
-        : "Confirm shelf width, depth, board thickness, and the support method against the actual space and material.",
+        : reviewSupportInstruction("Confirm shelf width, depth, board thickness, and the support method against the actual space and material.", supportGuidance),
       phaseLabel: "Inspect / review",
       tools: toolsFor(project, mountingOperation, selectedTools(project, ["tape_measure", "pencil"], "measurement tools to confirm")),
       relatedOperationTitle: mountingOperation?.title ?? null,
@@ -317,7 +337,10 @@ function buildCards(params: {
       stepNumber: cards.length + 1,
       title: "Confirm wall mounting/support method before installation",
       purpose: "Keep wall attachment and support choices explicit and manually reviewed.",
-      instructions: "Choose a verified support method, locate studs or appropriate anchors, and confirm fasteners before drilling or installation.",
+      instructions: reviewSupportInstruction(
+        "Use the selected mounting/support plan as a review starting point, then locate studs or appropriate anchors and confirm fasteners before drilling or installation.",
+        supportGuidance,
+      ),
       phaseLabel: "Inspect / review",
       tools: toolsFor(project, mountingOperation, selectedTools(project, ["tape_measure", "pencil", "drill"], "mounting review tools to confirm")),
       estimatedTimeLabel: estimateFor(mountingOperation),

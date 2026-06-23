@@ -1192,15 +1192,24 @@
 - [x] Confirm the only shopping-cart wording is the explicit guardrail that the packet is not a shopping cart or optimized cut plan.
 - [x] Keep the pass evidence-only with no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
 
+## Task 90M - Architecture/Vision Gap Follow-Through
+
+- [x] Add a bounded deterministic planter-box Build Guide view model from Build Model panels, operations, stock-board review, and connection review.
+- [x] Add planter Build Model operations for panel cutting, drainage drilling, dry-fit review, fastening review, exterior finish/liner review, and final planter review.
+- [x] Wire the planter Build Guide through `PrintablePlanManifest`, shared detail packet sections, and Browser Print Plan without making the packet build-ready.
+- [x] Preserve wall-shelf Buying Plan behavior because the post-merge hosted pass did not justify product changes.
+- [x] Add local Playwright packet smoke coverage for a seeded generated-plan detail route and Browser Print Plan route.
+- [x] Keep the pass inside private-MVP boundaries: no schema change, package change, migration, hosted Supabase change, auth change, export/CAD/CNC work, app-generated PDF, image upload, public sharing, marketplace, shopping, pricing, vendor, inventory, natural-language UI, or new project type.
+
 ## Recommended Next Tasks
 
 1. [ ] Keep using wall-shelf Buying Plans manually and only expand behavior if the explicit buying decisions or visual review remain repeatedly annoying.
 2. [ ] Choose any next implementation lane only from repeated manual dogfood friction or an explicitly selected next template.
 3. [ ] If a next template is selected, start with a PRD/issue split like wall shelves instead of broad visual expansion.
 4. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
-5. [ ] Defer Playwright smoke automation and authenticated Supabase RLS until package/auth work is explicitly selected.
+5. [ ] Keep local Playwright smoke in the standard validation path for browser-facing lanes; defer only hosted/authenticated browser automation expansion until that lane is explicitly selected.
 
 ## Remaining Hardening
 
 - [ ] Add authenticated Supabase RLS when auth is intentionally introduced.
-- [ ] Add Playwright smoke tests once runtime workflows stabilize.
+- [ ] Extend the current Playwright suite beyond home/readiness/packet smoke only when a new browser-visible route or lifecycle risk justifies it.

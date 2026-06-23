@@ -106,10 +106,13 @@ export function PlanPacketBuildGuide({
   manifest: PrintablePlanManifest;
   compact?: boolean;
 }) {
+  const buildStepStatusViewModel =
+    manifest.wallShelfBuildStepViewModel.status !== "unsupported" ? manifest.wallShelfBuildStepViewModel : manifest.planterBoxBuildStepViewModel;
+
   return (
     <div className={compact ? "space-y-4" : ""}>
       <div className={compact ? "" : "mb-4"}>
-        <BuildStepStatusSummary viewModel={manifest.wallShelfBuildStepViewModel} compact={compact} />
+        <BuildStepStatusSummary viewModel={buildStepStatusViewModel} compact={compact} />
       </div>
       <BuildStepCards cards={manifest.buildStepCards} compact={compact} />
     </div>

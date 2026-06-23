@@ -166,6 +166,15 @@ describe("createWallShelfStockBoardViewModel", () => {
       totalPiecesLabel: "1 piece",
       pieces: [expect.objectContaining({ label: "Shelf board", quantity: 1, dimensionsLabel: "36 in x 6 in x 0.75 in" })],
     });
+    expect(viewModel.storeTripMinimums).toEqual([
+      {
+        id: "3_4_in_pine_board",
+        materialName: "3/4 in pine board",
+        boardCountLabel: "Plan for 1 shelf board.",
+        usableLengthLabel: "Each board needs at least 36 in usable length.",
+        caveat: "Exact retail stock length still depends on available boards, defects, waste, and final layout.",
+      },
+    ]);
     const stockBoardDecision = viewModel.buyingDecisions.find((decision) => decision.id === "stock_board_selection");
     const hardwareDecision = viewModel.buyingDecisions.find((decision) => decision.id === "hardware_site_review");
 
@@ -187,6 +196,42 @@ describe("createWallShelfStockBoardViewModel", () => {
     expect(hardwareDecision?.detail).toContain("does not provide load ratings");
     expect(viewModel.buyingNotes.join(" ")).toContain("Choose stock length after confirming available boards");
     expect(JSON.stringify(viewModel)).not.toMatch(/\bbuy one\b|home depot|pricing|inventory|1x10x8/i);
+  });
+
+  it("reflects selected mounting method and support count in hardware buying review copy", () => {
+    const viewModel = createWallShelfStockBoardViewModel({
+      project: {
+        ...baseProject,
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        width_inches: 48,
+        height_inches: 0.75,
+        intended_use: [
+          "Garage shelf for storage bins and tools.",
+          "Structured intake",
+          "- Mounting method: Visible L brackets",
+          "- Wall type: Drywall, studs unknown",
+          "- Stud access: Not sure",
+          "- What it will hold: Books/heavy items",
+          "- Support/bracket count: 3",
+        ].join("\n"),
+      },
+      buildModel: buildModel({
+        dimensions: { ...simpleShelfBuildModelFixture.dimensions, widthInches: 48, heightInches: 0.75 },
+        pieces: [shelfPiece({ label: "Shelf board", quantity: 1, dimensions: { lengthInches: 48 } })],
+        hardware: simpleShelfBuildModelFixture.hardware.map((item) =>
+          item.id === "wall_brackets" ? { ...item, label: "Visible L bracket placeholders", quantity: 3 } : item,
+        ),
+      }),
+    });
+    const hardwareDecision = viewModel.buyingDecisions.find((decision) => decision.id === "hardware_site_review");
+
+    expect(hardwareDecision?.detail).toContain("Selected mounting method: Visible L brackets.");
+    expect(hardwareDecision?.detail).toContain("Intake support/bracket count: 3.");
+    expect(hardwareDecision?.detail).toContain("Modeled support/bracket count: 3 Visible L bracket placeholders.");
+    expect(hardwareDecision?.detail).toContain("before buying or installing");
+    expect(hardwareDecision?.detail).toContain("does not provide load ratings or engineering sign-off");
+    expect(hardwareDecision?.detail).not.toMatch(/vendor|price|pricing|checkout|cart|certified|load-rated/i);
   });
 
   it("groups a valid 5-shelf wall shelf under one material when support pieces are modeled", () => {
@@ -214,6 +259,12 @@ describe("createWallShelfStockBoardViewModel", () => {
         expect.objectContaining({ label: "Side supports", quantity: 2 }),
       ]),
     );
+    expect(viewModel.storeTripMinimums).toEqual([
+      expect.objectContaining({
+        boardCountLabel: "Plan for 5 shelf boards.",
+        usableLengthLabel: "Each board needs at least 12 in usable length.",
+      }),
+    ]);
   });
 
   it("dedupes duplicate shelf board pieces into one clean buying-plan group", () => {
@@ -304,6 +355,10 @@ describe("createWallShelfStockBoardViewModel", () => {
 
     expect(markup).toContain("Buying Plan");
     expect(markup).toContain("Buying plan needs review before purchasing material.");
+    expect(markup).toContain("Store-trip minimum");
+    expect(markup).toContain("Plan for 5 shelf boards.");
+    expect(markup).toContain("Each board needs at least 12 in usable length.");
+    expect(markup).toContain("Exact retail stock length still depends on available boards, defects, waste, and final layout.");
     expect(markup).toContain("Buying decisions before purchase");
     expect(markup).toContain("Stock board selection");
     expect(markup).toContain("Support/frame may change the list");
@@ -333,6 +388,6 @@ describe("createWallShelfStockBoardViewModel", () => {
     expect(markup).toContain("thickness needs review");
     expect(markup).toContain("review");
     expect(markup).toContain("Stock length still needs selection from available boards.");
-    expect(markup).not.toMatch(/\bbuy one\b|vendor|price|pricing|inventory|optimized cut/i);
+    expect(markup).not.toMatch(/\bbuy one\b|vendor|price|pricing|inventory|checkout|cart|load-rated|certified|CAD-ready|CNC-ready|optimized cut/i);
   });
 });

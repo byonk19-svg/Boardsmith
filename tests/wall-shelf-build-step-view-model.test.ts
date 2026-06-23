@@ -172,6 +172,46 @@ describe("createWallShelfBuildStepViewModel", () => {
     expect(steps.stepCards.map((step) => `${step.title} ${step.instructions}`).join(" ")).not.toMatch(/freestanding|non-mounted|support\/frame details before assembly/i);
   });
 
+  it("reflects selected mounting method and support count in build-guide review steps", () => {
+    const model = buildModel({
+      pieces: [shelfPiece({ quantity: 1, dimensions: { lengthInches: 48, widthInches: 14 } })],
+      hardware: simpleShelfBuildModelFixture.hardware.map((item) =>
+        item.id === "wall_brackets" ? { ...item, label: "Visible L bracket placeholders", quantity: 3 } : item,
+      ),
+    });
+    const steps = viewModel(
+      {
+        ...baseProject,
+        title: "Garage utility shelf",
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        width_inches: 48,
+        height_inches: 0.75,
+        depth_inches: 14,
+        intended_use: [
+          "Garage shelf for storage bins and tools.",
+          "Structured intake",
+          "- Mounting method: Visible L brackets",
+          "- Wall type: Drywall, studs unknown",
+          "- Stud access: Not sure",
+          "- What it will hold: Books/heavy items",
+          "- Support/bracket count: 3",
+        ].join("\n"),
+      },
+      model,
+    );
+    const reviewStep = steps.stepCards.find((step) => step.id === "review_dimensions_support");
+    const mountingStep = steps.stepCards.find((step) => step.id === "confirm_mounting_support");
+
+    expect(reviewStep?.instructions).toContain("Selected mounting method: Visible L brackets.");
+    expect(reviewStep?.instructions).toContain("Intake support/bracket count: 3.");
+    expect(reviewStep?.instructions).toContain("not safety approval");
+    expect(mountingStep?.instructions).toContain("Use the selected mounting/support plan as a review starting point");
+    expect(mountingStep?.instructions).toContain("Selected mounting method: Visible L brackets.");
+    expect(mountingStep?.instructions).toContain("Intake support/bracket count: 3.");
+    expect(JSON.stringify(steps)).not.toMatch(/vendor|price|pricing|checkout|cart|certified|load-rated|engineering approval/i);
+  });
+
   it("marks a valid 5-shelf connected unit with unresolved support/frame as needs_review", () => {
     const steps = viewModel(baseProject, buildModel());
 
@@ -256,7 +296,7 @@ describe("createWallShelfBuildStepViewModel", () => {
     expect(markup).toContain("review first");
     expect(markup).toContain("Add support/frame details");
     expect(markup).toContain("Do not assemble connected unit yet");
-    expect(markup).toContain("Choose a verified support method");
+    expect(markup).toContain("Use the selected mounting/support plan as a review starting point");
     expect(markup).not.toMatch(/freestanding|non-mounted|CAD-ready|CNC-ready|fabrication-ready|approved/i);
   });
 });

@@ -179,7 +179,7 @@ describe("createBuildStepCards", () => {
     expect(cards[0]?.relatedPieceLabels).toEqual(["Bottom shelf board", "Back rail", "Front lip"]);
   });
 
-  it("labels planter drainage and finish steps from modeled operations", () => {
+  it("labels planter cut, drainage, and finish steps from modeled operations", () => {
     const planterModel = createBuildModelDraft({
       ...baseDraftProject,
       title: "Outdoor herb planter",
@@ -193,6 +193,15 @@ describe("createBuildStepCards", () => {
       [
         {
           ...baseStep,
+          title: "Cut planter panels",
+          instructions: "Cut the front, back, side, and bottom panels after checking the stock board.",
+          tools_used: ["jigsaw", "pencil"],
+          safety_note: "Measure every panel before cutting.",
+          estimated_time_minutes: 30,
+        },
+        {
+          ...baseStep,
+          step_number: 2,
           title: "Drill drainage holes",
           instructions: "Mark and drill drainage holes in the bottom panel before assembly.",
           tools_used: ["drill", "pencil"],
@@ -201,7 +210,7 @@ describe("createBuildStepCards", () => {
         },
         {
           ...baseStep,
-          step_number: 2,
+          step_number: 5,
           title: "Apply exterior finish",
           instructions: "Apply an outdoor finish only after reviewing product labels.",
           tools_used: ["paint brush"],
@@ -212,10 +221,12 @@ describe("createBuildStepCards", () => {
       planterModel,
     );
 
-    expect(cards[0]?.phaseLabel).toBe("Drill");
-    expect(cards[0]?.relatedPieceLabels).toEqual(["Bottom panel"]);
-    expect(cards[1]?.phaseLabel).toBe("Finish");
-    expect(cards[1]?.relatedPieceLabels).toEqual(["Front panel", "Back panel", "Left side panel", "Right side panel", "Bottom panel"]);
+    expect(cards[0]?.phaseLabel).toBe("Cut");
+    expect(cards[0]?.relatedPieceLabels).toEqual(["Front panel", "Back panel", "Left side panel", "Right side panel", "Bottom panel"]);
+    expect(cards[1]?.phaseLabel).toBe("Drill");
+    expect(cards[1]?.relatedPieceLabels).toEqual(["Bottom panel"]);
+    expect(cards[2]?.phaseLabel).toBe("Finish");
+    expect(cards[2]?.relatedPieceLabels).toEqual(["Front panel", "Back panel", "Left side panel", "Right side panel", "Bottom panel"]);
   });
 
   it("formats longer estimates for compact card metadata", () => {
