@@ -3,6 +3,7 @@ import type { WallShelfCutDiagramViewModel, WallShelfCutPieceGroup } from "@/lib
 import { createWallShelfCutDiagramViewModel } from "@/lib/plans/wall-shelf-cut-diagram-view-model";
 import { findShelfLayoutIssues, hasConnectedShelfSupportPlaceholder } from "@/lib/projects/shelf-layout-validation";
 import type { Project } from "@/lib/projects/types";
+import { createWallShelfSupportGuidance } from "@/lib/projects/wall-shelf-support-guidance";
 
 export type WallShelfStockBoardStatus = "ready" | "needs_review" | "unsupported";
 export type WallShelfStockBoardDimensionStatus = "known" | "missing";
@@ -351,21 +352,24 @@ function supportAndBracketCountLabels(params: {
 }
 
 function hardwareDecisionDetail(params: {
+  project: WallShelfStockBoardProjectInput;
   buildModel: BoardsmithBuildModel;
   cutViewModel: WallShelfCutDiagramViewModel;
 }): string {
-  const { buildModel, cutViewModel } = params;
+  const { project, buildModel, cutViewModel } = params;
+  const supportGuidance = createWallShelfSupportGuidance(project);
   const hardwareLabels = uniqueStrings(buildModel.hardware.map((item) => item.label));
   const countLabels = supportAndBracketCountLabels({ buildModel, cutViewModel });
+  const signalText = uniqueStrings([supportGuidance.mountingMethodSentence ?? "", supportGuidance.supportCountSentence ?? ""]).join(" ");
   const countText = countLabels.length > 0 ? ` Modeled support/bracket count: ${countLabels.join("; ")}.` : "";
   const siteReview =
-    "Confirm studs/anchors, wall structure, support method, fasteners, expected load, and site conditions before buying. Boardsmith does not provide load ratings or engineering sign-off.";
+    "Confirm actual brackets, cleats or supports, studs/anchors, wall structure, fasteners, expected load, and site conditions before buying or installing. Boardsmith does not provide load ratings or engineering sign-off.";
 
   if (hardwareLabels.length === 0) {
-    return `No bracket, cleat, anchor, or fastener is selected yet.${countText} ${siteReview}`;
+    return `${signalText ? `${signalText} ` : ""}No bracket, cleat, anchor, or fastener is selected yet.${countText} ${siteReview}`;
   }
 
-  return `Build Model hardware to review: ${hardwareLabels.join(", ")}.${countText} ${siteReview}`;
+  return `${signalText ? `${signalText} ` : ""}Build Model hardware to review: ${hardwareLabels.join(", ")}.${countText} ${siteReview}`;
 }
 
 function hasFinishExposureReview(project: WallShelfStockBoardProjectInput): boolean {
@@ -452,7 +456,7 @@ function buyingDecisionsFor(params: {
     {
       id: "hardware_site_review",
       label: hardwareDecisionLabel(params.project),
-      detail: hardwareDecisionDetail({ buildModel: params.buildModel, cutViewModel: params.cutViewModel }),
+      detail: hardwareDecisionDetail({ project: params.project, buildModel: params.buildModel, cutViewModel: params.cutViewModel }),
       statusLabel: "Review before buying",
     },
     ...(hasFinishExposureReview(params.project)

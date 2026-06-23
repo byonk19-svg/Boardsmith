@@ -1,6 +1,7 @@
 import { analyzeShelfLayoutIntent } from "@/lib/projects/shelf-layout-intent";
 import { findShelfLayoutIssues, hasImpossibleShelfHeight } from "@/lib/projects/shelf-layout-validation";
 import type { ProjectType, ToolOption } from "@/lib/projects/types";
+import { createWallShelfSupportGuidance } from "@/lib/projects/wall-shelf-support-guidance";
 import { isBathroomOrHumidityText } from "@/lib/projects/wall-shelf-intent";
 import type { TemplateHint } from "@/lib/templates/template-hints";
 import {
@@ -24,6 +25,10 @@ type SupportedProjectTypeDraftAdapter = {
   projectType: ProjectType;
   createParts: (context: SupportedProjectTypeDraftContext) => BuildModelDraftParts;
 };
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
 
 function isBookLedge(project: BuildModelDraftProject): boolean {
   return textIncludes(project, /\b(book\s*ledge|book\s*rail|toddler\s+book|nursery\s+book|children'?s\s+book)\b/);
@@ -464,22 +469,30 @@ function createSimpleShelfParts(context: SupportedProjectTypeDraftContext): Buil
   const supportFrameLengthInches = hasImpossibleShelfHeight(project) ? null : project.height_inches;
   const mountingStepNumber = connectedShelfUnit ? 4 : 3;
   const finishStepNumber = wallMounted ? (connectedShelfUnit ? 5 : 4) : connectedShelfUnit ? 4 : 3;
+  const supportGuidance = createWallShelfSupportGuidance(project, connectedShelfUnit ? "Support method to review" : "Wall bracket placeholders");
+  const explicitSupportCount = supportGuidance.supportCountQuantity;
+  const bracketQuantity = connectedShelfUnit ? null : explicitSupportCount ?? (multipleSeparateWallShelves ? shelfQuantity * 2 : 2);
+  const bracketLabel = connectedShelfUnit ? "Support method to review" : supportGuidance.hardwareLabel;
+  const bracketNotes = uniqueStrings([
+    ...(supportGuidance.mountingMethodSentence ? [supportGuidance.mountingMethodSentence] : []),
+    ...(supportGuidance.supportCountSentence ? [supportGuidance.supportCountSentence] : []),
+    multipleSeparateWallShelves && explicitSupportCount === null
+      ? `Cautious placeholder only: assumes 2 brackets per shelf, so ${shelfQuantity.toString()} shelves means ${(shelfQuantity * 2).toString()} brackets before final review.`
+      : "",
+    connectedShelfUnit
+      ? "Connected shelf units need verified side supports, frame, cleat, brackets, or another support method before hardware quantity can be trusted."
+      : "Bracket, cleat, or support selection affects safe use but no load rating is provided.",
+    "Final hardware quantity depends on bracket type, expected load, wall structure, and support design.",
+  ]);
   const hardwareItems = [
     ...(wallMounted
       ? [
           createBuildModelHardware({
             id: "wall_brackets",
-            label: connectedShelfUnit ? "Support method to review" : "Wall bracket placeholders",
+            label: bracketLabel,
             hardwareType: "bracket",
-            quantity: multipleSeparateWallShelves ? shelfQuantity * 2 : connectedShelfUnit ? null : 2,
-            notes: [
-              multipleSeparateWallShelves
-                ? `Cautious placeholder only: assumes 2 brackets per shelf, so ${shelfQuantity.toString()} shelves means ${(shelfQuantity * 2).toString()} brackets before final review.`
-                : connectedShelfUnit
-                  ? "Connected shelf units need verified side supports, frame, cleat, brackets, or another support method before hardware quantity can be trusted."
-                  : "Bracket selection affects safe use but no load rating is provided.",
-              "Final hardware quantity depends on bracket type, expected load, wall structure, and support design.",
-            ],
+            quantity: bracketQuantity,
+            notes: bracketNotes,
           }),
           createBuildModelHardware({
             id: "wall_anchors",
@@ -630,7 +643,11 @@ function createSimpleShelfParts(context: SupportedProjectTypeDraftContext): Buil
     assumptions: [
       ...(wallMounted ? templateHint.assumptions : []),
       ...(!wallMounted && !connectedShelfUnit ? ["Project is treated as non-wall-mounted only because the intake explicitly excludes wall mounting."] : []),
-      ...(wallMounted && !connectedShelfUnit ? ["Mounting/support method is unresolved and must be reviewed before installation."] : []),
+      ...(wallMounted && !connectedShelfUnit && (!supportGuidance.mountingMethod || /not sure/i.test(supportGuidance.mountingMethod))
+        ? ["Mounting/support method is unresolved and must be reviewed before installation."]
+        : []),
+      ...(supportGuidance.mountingMethodSentence && wallMounted ? [supportGuidance.mountingMethodSentence] : []),
+      ...(supportGuidance.supportCountSentence && wallMounted ? [supportGuidance.supportCountSentence] : []),
       ...(shelfQuantity > 1 ? [`The intake describes ${shelfQuantity.toString()} shelves; spacing and support details still need review.`] : []),
       ...(wallMounted && multipleSeparateWallShelves
         ? [`Bracket placeholder uses 2 per shelf for planning only: ${(shelfQuantity * 2).toString()} brackets for ${shelfQuantity.toString()} shelves.`]

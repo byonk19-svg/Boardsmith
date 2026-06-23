@@ -198,6 +198,42 @@ describe("createWallShelfStockBoardViewModel", () => {
     expect(JSON.stringify(viewModel)).not.toMatch(/\bbuy one\b|home depot|pricing|inventory|1x10x8/i);
   });
 
+  it("reflects selected mounting method and support count in hardware buying review copy", () => {
+    const viewModel = createWallShelfStockBoardViewModel({
+      project: {
+        ...baseProject,
+        shelf_layout: "single_shelf",
+        shelf_count: 1,
+        width_inches: 48,
+        height_inches: 0.75,
+        intended_use: [
+          "Garage shelf for storage bins and tools.",
+          "Structured intake",
+          "- Mounting method: Visible L brackets",
+          "- Wall type: Drywall, studs unknown",
+          "- Stud access: Not sure",
+          "- What it will hold: Books/heavy items",
+          "- Support/bracket count: 3",
+        ].join("\n"),
+      },
+      buildModel: buildModel({
+        dimensions: { ...simpleShelfBuildModelFixture.dimensions, widthInches: 48, heightInches: 0.75 },
+        pieces: [shelfPiece({ label: "Shelf board", quantity: 1, dimensions: { lengthInches: 48 } })],
+        hardware: simpleShelfBuildModelFixture.hardware.map((item) =>
+          item.id === "wall_brackets" ? { ...item, label: "Visible L bracket placeholders", quantity: 3 } : item,
+        ),
+      }),
+    });
+    const hardwareDecision = viewModel.buyingDecisions.find((decision) => decision.id === "hardware_site_review");
+
+    expect(hardwareDecision?.detail).toContain("Selected mounting method: Visible L brackets.");
+    expect(hardwareDecision?.detail).toContain("Intake support/bracket count: 3.");
+    expect(hardwareDecision?.detail).toContain("Modeled support/bracket count: 3 Visible L bracket placeholders.");
+    expect(hardwareDecision?.detail).toContain("before buying or installing");
+    expect(hardwareDecision?.detail).toContain("does not provide load ratings or engineering sign-off");
+    expect(hardwareDecision?.detail).not.toMatch(/vendor|price|pricing|checkout|cart|certified|load-rated/i);
+  });
+
   it("groups a valid 5-shelf wall shelf under one material when support pieces are modeled", () => {
     const viewModel = createWallShelfStockBoardViewModel({
       project: baseProject,

@@ -172,7 +172,15 @@ function createWallShelfProject(): Project {
     shelf_spacing_inches: undefined,
     tools_available: ["tape_measure", "pencil", "drill", "stud_finder", "level", "miter_saw", "sander"],
     style_notes: "Simple wall shelf above a desk.",
-    intended_use: "Wall shelf for books and small decor above a desk; visible brackets and wall fasteners need review.",
+    intended_use: [
+      "Wall shelf for books and small decor above a desk; visible brackets and wall fasteners need review.",
+      "Structured intake",
+      "- Mounting method: Visible L brackets",
+      "- Wall type: Drywall with wood studs",
+      "- Stud access: Yes, studs can be used",
+      "- What it will hold: Light decor only",
+      "- Support/bracket count: 3",
+    ].join("\n"),
     safety_review_required: true,
     safety_flags: ["Wall mounting needs review"],
     notes: "",
@@ -253,6 +261,9 @@ test("renders wall shelf store-trip minimum on detail and browser print routes",
   await expect(page.getByText("Store-trip minimum").first()).toBeVisible();
   await expect(page.getByText("Plan for 1 shelf board.").first()).toBeVisible();
   await expect(page.getByText("Each board needs at least 42 in usable length.").first()).toBeVisible();
+  await expect(page.getByText("Selected mounting method: Visible L brackets.").first()).toBeVisible();
+  await expect(page.getByText("Intake support/bracket count: 3.").first()).toBeVisible();
+  await expect(page.getByText("Modeled support/bracket count: 3 Visible L bracket placeholders.").first()).toBeVisible();
 
   await page.goto(`/projects/${wallShelfProjectId}/print`);
 
@@ -261,6 +272,9 @@ test("renders wall shelf store-trip minimum on detail and browser print routes",
   await expect(page.getByText("Plan for 1 shelf board.")).toBeVisible();
   await expect(page.getByText("Each board needs at least 42 in usable length.")).toBeVisible();
   await expect(page.getByText("Exact retail stock length still depends on available boards, defects, waste, and final layout.")).toBeVisible();
+  await expect(page.getByText("Selected mounting method: Visible L brackets.").first()).toBeVisible();
+  await expect(page.getByText("Intake support/bracket count: 3.").first()).toBeVisible();
+  await expect(page.getByText("Modeled support/bracket count: 3 Visible L bracket placeholders.").first()).toBeVisible();
 
   const bodyText = await page.locator("body").innerText();
   expect(bodyText).not.toMatch(/add to cart|checkout|vendor|price|load rated|certified|CAD-ready|CNC-ready/i);
