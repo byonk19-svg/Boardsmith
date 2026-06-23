@@ -44,11 +44,20 @@ export type WallShelfBuyingDecision = {
   statusLabel: "Select before buying" | "Review before buying" | "Resolve before buying";
 };
 
+export type WallShelfStoreTripMinimum = {
+  id: string;
+  materialName: string;
+  boardCountLabel: string;
+  usableLengthLabel: string;
+  caveat: string;
+};
+
 export type WallShelfStockBoardViewModel = {
   projectType: string;
   status: WallShelfStockBoardStatus;
   materialGroups: WallShelfStockBoardMaterialGroup[];
   totalPieces: number;
+  storeTripMinimums: WallShelfStoreTripMinimum[];
   buyingDecisions: WallShelfBuyingDecision[];
   reviewReasons: string[];
   buyingNotes: string[];
@@ -375,6 +384,18 @@ function minimumPlanningFactText(fact: ShelfBoardMinimumPlanningFact): string {
   return `${fact.materialName}: ${boardLabel}${minimumLengthText}${totalText}`;
 }
 
+function storeTripMinimumsFor(facts: ShelfBoardMinimumPlanningFact[]): WallShelfStoreTripMinimum[] {
+  return facts.map((fact) => ({
+    id: idPart(fact.materialName),
+    materialName: fact.materialName,
+    boardCountLabel: `Plan for ${fact.shelfBoardCount.toString()} shelf ${fact.shelfBoardCount === 1 ? "board" : "boards"}.`,
+    usableLengthLabel: fact.minimumUsableLengthInches
+      ? `Each board needs at least ${formatInches(fact.minimumUsableLengthInches)} usable length.`
+      : "Each board's usable length still needs review.",
+    caveat: "Exact retail stock length still depends on available boards, defects, waste, and final layout.",
+  }));
+}
+
 function stockBoardDecisionDetail(params: {
   materialGroups: WallShelfStockBoardMaterialGroup[];
   minimumPlanningFacts: ShelfBoardMinimumPlanningFact[];
@@ -488,6 +509,8 @@ export function createWallShelfStockBoardViewModel(params: {
   const cutViewModel = params.cutViewModel ?? createWallShelfCutDiagramViewModel({ project, buildModel });
   const materialGroups = unsupported ? [] : materialGroupsFor({ buildModel, cutViewModel });
   const reviewReasons = unsupported ? [] : reviewReasonsFor({ project, buildModel, cutViewModel, materialGroups });
+  const minimumPlanningFacts = unsupported ? [] : shelfBoardMinimumPlanningFacts({ buildModel, cutViewModel });
+  const storeTripMinimums = storeTripMinimumsFor(minimumPlanningFacts);
   const buyingDecisions = unsupported ? [] : buyingDecisionsFor({ project, buildModel, cutViewModel, materialGroups });
   const totalPieces = materialGroups.reduce((total, group) => total + group.totalPieces, 0);
   const status: WallShelfStockBoardStatus = unsupported ? "unsupported" : materialGroups.length === 0 || reviewReasons.length > 0 ? "needs_review" : "ready";
@@ -497,6 +520,7 @@ export function createWallShelfStockBoardViewModel(params: {
     status,
     materialGroups,
     totalPieces,
+    storeTripMinimums,
     buyingDecisions,
     reviewReasons,
     buyingNotes: uniqueStrings([

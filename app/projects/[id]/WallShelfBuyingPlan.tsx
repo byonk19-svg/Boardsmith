@@ -25,6 +25,22 @@ export function WallShelfBuyingPlan({ viewModel, compact = false }: { viewModel:
         <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950">{viewModel.renderLabels.fallbackMessage}</p>
       ) : null}
 
+      {viewModel.storeTripMinimums.length > 0 ? (
+        <div className="mt-4 rounded-md border border-sawdust bg-shop/30 p-3">
+          <p className="text-sm font-semibold text-ink">Store-trip minimum</p>
+          <div className={`mt-3 grid gap-2 ${compact ? "" : "md:grid-cols-2 print:grid-cols-2"}`}>
+            {viewModel.storeTripMinimums.map((minimum) => (
+              <div key={minimum.id} className="rounded-md border border-sawdust bg-white p-3">
+                <p className="text-sm font-semibold text-ink">{minimum.materialName}</p>
+                <p className="mt-2 text-sm leading-6 text-ink/75">{minimum.boardCountLabel}</p>
+                <p className="mt-1 text-sm leading-6 text-ink/75">{minimum.usableLengthLabel}</p>
+                <p className="mt-2 text-sm leading-6 text-ink/60">{minimum.caveat}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {viewModel.buyingDecisions.length > 0 ? (
         <div className="mt-4 rounded-md border border-sawdust bg-shop/30 p-3">
           <p className="text-sm font-semibold text-ink">Buying decisions before purchase</p>

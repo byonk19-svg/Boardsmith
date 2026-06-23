@@ -166,6 +166,15 @@ describe("createWallShelfStockBoardViewModel", () => {
       totalPiecesLabel: "1 piece",
       pieces: [expect.objectContaining({ label: "Shelf board", quantity: 1, dimensionsLabel: "36 in x 6 in x 0.75 in" })],
     });
+    expect(viewModel.storeTripMinimums).toEqual([
+      {
+        id: "3_4_in_pine_board",
+        materialName: "3/4 in pine board",
+        boardCountLabel: "Plan for 1 shelf board.",
+        usableLengthLabel: "Each board needs at least 36 in usable length.",
+        caveat: "Exact retail stock length still depends on available boards, defects, waste, and final layout.",
+      },
+    ]);
     const stockBoardDecision = viewModel.buyingDecisions.find((decision) => decision.id === "stock_board_selection");
     const hardwareDecision = viewModel.buyingDecisions.find((decision) => decision.id === "hardware_site_review");
 
@@ -214,6 +223,12 @@ describe("createWallShelfStockBoardViewModel", () => {
         expect.objectContaining({ label: "Side supports", quantity: 2 }),
       ]),
     );
+    expect(viewModel.storeTripMinimums).toEqual([
+      expect.objectContaining({
+        boardCountLabel: "Plan for 5 shelf boards.",
+        usableLengthLabel: "Each board needs at least 12 in usable length.",
+      }),
+    ]);
   });
 
   it("dedupes duplicate shelf board pieces into one clean buying-plan group", () => {
@@ -304,6 +319,10 @@ describe("createWallShelfStockBoardViewModel", () => {
 
     expect(markup).toContain("Buying Plan");
     expect(markup).toContain("Buying plan needs review before purchasing material.");
+    expect(markup).toContain("Store-trip minimum");
+    expect(markup).toContain("Plan for 5 shelf boards.");
+    expect(markup).toContain("Each board needs at least 12 in usable length.");
+    expect(markup).toContain("Exact retail stock length still depends on available boards, defects, waste, and final layout.");
     expect(markup).toContain("Buying decisions before purchase");
     expect(markup).toContain("Stock board selection");
     expect(markup).toContain("Support/frame may change the list");
@@ -333,6 +352,6 @@ describe("createWallShelfStockBoardViewModel", () => {
     expect(markup).toContain("thickness needs review");
     expect(markup).toContain("review");
     expect(markup).toContain("Stock length still needs selection from available boards.");
-    expect(markup).not.toMatch(/\bbuy one\b|vendor|price|pricing|inventory|optimized cut/i);
+    expect(markup).not.toMatch(/\bbuy one\b|vendor|price|pricing|inventory|checkout|cart|load-rated|certified|CAD-ready|CNC-ready|optimized cut/i);
   });
 });

@@ -11,6 +11,8 @@ import { activeProjectArchiveFields, emptyProjectBuildLog } from "../project-tes
 const e2eDataFile = process.env.BOARDSMITH_DATA_FILE ?? ".data/playwright-e2e.json";
 const projectId = "e2e-planter-packet";
 const planId = "e2e-planter-packet-plan";
+const wallShelfProjectId = "e2e-wall-shelf-buying-minimum";
+const wallShelfPlanId = "e2e-wall-shelf-buying-minimum-plan";
 
 const generatedPlan: GeneratedPlan = {
   project_summary: "A cautious rectangular planter box planning packet with panel, drainage, liner, finish, and outdoor fastener review.",
@@ -64,6 +66,63 @@ const generatedPlan: GeneratedPlan = {
   confidence_level: "low",
 };
 
+const wallShelfGeneratedPlan: GeneratedPlan = {
+  project_summary: "A cautious wall shelf planning packet with board-count, minimum usable length, support, hardware, and wall-fastener review.",
+  project_type: "simple_shelf",
+  dimensions: {
+    width_inches: 42,
+    height_inches: 0.75,
+    depth_inches: 10,
+    material_thickness_inches: 0.75,
+  },
+  materials: [
+    {
+      name: "pine board",
+      quantity: "1 shelf board to review",
+      notes: "Confirm actual retail board length, defects, straightness, and final cut layout before purchase.",
+    },
+    {
+      name: "wall brackets and fasteners",
+      quantity: "quantity to review",
+      notes: "Confirm bracket, fastener, stud/anchor, wall structure, and expected load before purchase.",
+    },
+  ],
+  tools: ["tape measure", "pencil", "drill", "stud finder", "level", "miter saw", "sander"],
+  cut_list: [
+    {
+      part_name: "Shelf board",
+      quantity: 1,
+      length_inches: 42,
+      width_inches: 10,
+      thickness_inches: 0.75,
+      material: "pine board",
+      notes: "Review stock-board condition and final support method before cutting.",
+    },
+  ],
+  assembly_steps: [
+    {
+      step_number: 1,
+      title: "Review shelf buying minimum",
+      instructions: "Confirm board count, minimum usable length, stock-board condition, brackets, fasteners, studs or anchors, and expected load before buying.",
+      tools_used: ["tape measure", "stud finder"],
+      safety_note: "Boardsmith cannot verify wall safety or load capacity.",
+      estimated_time_minutes: 15,
+    },
+  ],
+  finishing_steps: ["Sand and finish after confirming mounting hardware, wall conditions, and site constraints."],
+  safety_notes: [
+    "Boardsmith plans are planning aids, not professional engineering reviews.",
+    "Verify studs, anchors, wall structure, fasteners, and expected load before installing.",
+  ],
+  assumptions: ["This is a single non-critical wall shelf for private MVP testing."],
+  needs_review_flags: ["Board count, stock-board length, bracket/fastener choice, and wall structure need review."],
+  beginner_tips: ["Bring final shelf dimensions and wall-structure notes to the store."],
+  svg_readiness_notes: ["This MVP uses browser print only; no PDF, CAD, or CNC output is generated."],
+  estimated_difficulty: "moderate",
+  estimated_time: "1-2 hours",
+  confidence_level: "low",
+};
+
 function createProject(): Project {
   const project = {
     id: projectId,
@@ -94,9 +153,45 @@ function createProject(): Project {
   return project;
 }
 
+function createWallShelfProject(): Project {
+  const project = {
+    id: wallShelfProjectId,
+    created_at: new Date(3).toISOString(),
+    updated_at: new Date(4).toISOString(),
+    title: "E2E wall shelf buying minimum",
+    project_type: "simple_shelf",
+    skill_level: "beginner",
+    status: "plan_generated",
+    width_inches: 42,
+    height_inches: 0.75,
+    depth_inches: 10,
+    material_thickness_inches: 0.75,
+    material_type: "pine board",
+    shelf_layout: "single_shelf",
+    shelf_count: 1,
+    shelf_spacing_inches: undefined,
+    tools_available: ["tape_measure", "pencil", "drill", "stud_finder", "level", "miter_saw", "sander"],
+    style_notes: "Simple wall shelf above a desk.",
+    intended_use: "Wall shelf for books and small decor above a desk; visible brackets and wall fasteners need review.",
+    safety_review_required: true,
+    safety_flags: ["Wall mounting needs review"],
+    notes: "",
+    ...emptyProjectBuildLog,
+    ...activeProjectArchiveFields,
+  } satisfies Project;
+
+  return project;
+}
+
 test.beforeEach(async () => {
   const project = createProject();
   const buildModel = createBuildModelDraft(project, getTemplateHint(project.project_type), calculateSafetyReviewFlags(project));
+  const wallShelfProject = createWallShelfProject();
+  const wallShelfBuildModel = createBuildModelDraft(
+    wallShelfProject,
+    getTemplateHint(wallShelfProject.project_type),
+    calculateSafetyReviewFlags(wallShelfProject),
+  );
   const planRecord: GeneratedProjectPlanRecord = {
     id: planId,
     project_id: project.id,
@@ -111,10 +206,24 @@ test.beforeEach(async () => {
     confidence_level: generatedPlan.confidence_level,
     is_latest: true,
   };
+  const wallShelfPlanRecord: GeneratedProjectPlanRecord = {
+    id: wallShelfPlanId,
+    project_id: wallShelfProject.id,
+    created_at: new Date(5).toISOString(),
+    model_name: "e2e-seeded",
+    plan_json: wallShelfGeneratedPlan,
+    build_model_json: wallShelfBuildModel,
+    plan_markdown: "# seeded wall shelf packet",
+    validation_status: "valid",
+    warnings: wallShelfGeneratedPlan.safety_notes,
+    assumptions: wallShelfGeneratedPlan.assumptions,
+    confidence_level: wallShelfGeneratedPlan.confidence_level,
+    is_latest: true,
+  };
 
   await rm(e2eDataFile, { force: true });
   await mkdir(path.dirname(e2eDataFile), { recursive: true });
-  await writeFile(e2eDataFile, `${JSON.stringify({ projects: [project], plans: [planRecord] }, null, 2)}\n`, "utf8");
+  await writeFile(e2eDataFile, `${JSON.stringify({ projects: [project, wallShelfProject], plans: [planRecord, wallShelfPlanRecord] }, null, 2)}\n`, "utf8");
 });
 
 test("renders seeded planter packet on detail and browser print routes", async ({ page }) => {
@@ -132,6 +241,26 @@ test("renders seeded planter packet on detail and browser print routes", async (
   await expect(page.getByText("Planter Box Buying Plan")).toBeVisible();
   await expect(page.getByText("Dry fit planter box and confirm panel connections")).toBeVisible();
   await expect(page.getByText("Boardsmith does not generate PDF, CAD, CNC, or export/download files.")).toBeVisible();
+
+  const bodyText = await page.locator("body").innerText();
+  expect(bodyText).not.toMatch(/add to cart|checkout|vendor|price|load rated|certified|CAD-ready|CNC-ready/i);
+});
+
+test("renders wall shelf store-trip minimum on detail and browser print routes", async ({ page }) => {
+  await page.goto(`/projects/${wallShelfProjectId}`);
+
+  await expect(page.getByRole("heading", { name: "E2E wall shelf buying minimum" })).toBeVisible();
+  await expect(page.getByText("Store-trip minimum").first()).toBeVisible();
+  await expect(page.getByText("Plan for 1 shelf board.").first()).toBeVisible();
+  await expect(page.getByText("Each board needs at least 42 in usable length.").first()).toBeVisible();
+
+  await page.goto(`/projects/${wallShelfProjectId}/print`);
+
+  await expect(page.getByText("Print build sheet").first()).toBeVisible();
+  await expect(page.getByText("Store-trip minimum")).toBeVisible();
+  await expect(page.getByText("Plan for 1 shelf board.")).toBeVisible();
+  await expect(page.getByText("Each board needs at least 42 in usable length.")).toBeVisible();
+  await expect(page.getByText("Exact retail stock length still depends on available boards, defects, waste, and final layout.")).toBeVisible();
 
   const bodyText = await page.locator("body").innerText();
   expect(bodyText).not.toMatch(/add to cart|checkout|vendor|price|load rated|certified|CAD-ready|CNC-ready/i);
