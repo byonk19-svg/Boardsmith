@@ -176,6 +176,8 @@ git diff --check
 
 Add hosted smoke only when the change touches deployment, access gate, archive, project detail lifecycle, generation, `Tweak this plan`, or print behavior.
 
+Use `npm run test:e2e` for local browser-visible route, lifecycle, generated-packet, and print-route regressions. Use `npm run smoke:hosted` for protected hosted-path checks, and keep manual browser print inspection for layout or pagination changes that Playwright route smoke cannot prove.
+
 ### 7. Review
 
 Goal: prove the pass did not create lifecycle confusion or unsafe trust.

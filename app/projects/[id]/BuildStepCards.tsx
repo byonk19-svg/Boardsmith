@@ -1,7 +1,9 @@
 import type { BuildStepCard } from "@/lib/plans/build-step-cards";
 import type { WallShelfBuildStepViewModel } from "@/lib/plans/wall-shelf-build-step-view-model";
 
-export function BuildStepStatusSummary({ viewModel, compact = false }: { viewModel: WallShelfBuildStepViewModel; compact?: boolean }) {
+type BuildStepStatusSummaryViewModel = Pick<WallShelfBuildStepViewModel, "status" | "badges" | "renderLabels">;
+
+export function BuildStepStatusSummary({ viewModel, compact = false }: { viewModel: BuildStepStatusSummaryViewModel; compact?: boolean }) {
   if (viewModel.status === "unsupported") return null;
 
   return (
@@ -106,6 +108,7 @@ export function BuildStepCards({ cards, compact = false }: { cards: BuildStepCar
 
 function BuildStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact: boolean }) {
   if (!shouldRenderMiniDiagram(card)) return null;
+  if (isPlanterStepCard(card)) return <PlanterStepMiniDiagram card={card} compact={compact} />;
 
   const phase = stepDiagramPhase(card);
   const reviewNeeded = Boolean(card.reviewBlockers?.length) || /review|blocked|do not|confirm wall mounting/i.test(`${card.title} ${card.instructions}`);
@@ -208,13 +211,88 @@ function BuildStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact:
   );
 }
 
+function PlanterStepMiniDiagram({ card, compact }: { card: BuildStepCard; compact: boolean }) {
+  const phase = stepDiagramPhase(card);
+  const reviewNeeded = Boolean(card.reviewBlockers?.length) || /review|confirm|do not/i.test(`${card.title} ${card.instructions}`);
+  const visiblePieces = card.relatedPieceLabels.slice(0, compact ? 2 : 3);
+  const ariaLabel = `Step ${card.stepNumber.toString()} planter mini diagram: ${card.title}; ${card.relatedPieceLabels.join(", ")}${reviewNeeded ? "; review first" : ""}`;
+  const panelFill = reviewNeeded ? "#fff3c4" : "#d9b77f";
+  const panelStroke = reviewNeeded ? "5 4" : undefined;
+
+  return (
+    <svg className={`${compact ? "mt-2 h-24" : "mt-3 h-28"} w-full rounded-md border border-sawdust bg-shop print:bg-white`} viewBox="0 0 420 112" role="img" aria-label={ariaLabel}>
+      <rect x="12" y="12" width="396" height="88" rx="8" fill="#fffaf0" stroke="#d7c7a1" />
+      {phase === "cut" ? (
+        <>
+          <rect x="34" y="28" width="230" height="26" rx="4" fill={panelFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={panelStroke} />
+          <line x1="88" y1="28" x2="88" y2="54" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+          <line x1="148" y1="28" x2="148" y2="54" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+          <line x1="210" y1="28" x2="210" y2="54" stroke="#7a5b2e" strokeWidth="2" strokeDasharray="4 4" />
+          <text x="149" y="78" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+            check panel cuts
+          </text>
+        </>
+      ) : null}
+      {phase === "drill" ? (
+        <>
+          <rect x="68" y="32" width="178" height="46" rx="5" fill={panelFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={panelStroke} />
+          {[104, 148, 192].map((x) => (
+            <circle key={x} cx={x} cy="55" r="5" fill="#fffaf0" stroke="#47624a" strokeWidth="2" />
+          ))}
+          <text x="157" y="94" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+            bottom panel drainage
+          </text>
+        </>
+      ) : null}
+      {phase === "finish" ? (
+        <>
+          <path d="M78 38h184v38H78z" fill={panelFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={panelStroke} />
+          <path d="M102 50h134M102 62h102" stroke="#fffaf0" strokeWidth="3" strokeLinecap="round" />
+          <text x="170" y="94" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+            finish / liner review
+          </text>
+        </>
+      ) : null}
+      {phase !== "cut" && phase !== "drill" && phase !== "finish" ? (
+        <>
+          <path d="M72 36h168l30 22H102z" fill={panelFill} stroke="#7a5b2e" strokeWidth="2" strokeDasharray={panelStroke} />
+          <path d="M102 58h168v28H102z" fill="#e9cf9a" stroke="#7a5b2e" strokeWidth="2" strokeDasharray={panelStroke} />
+          <path d="M72 36v28l30 22V58zM240 36v28l30 22V58z" fill="#d9b77f" stroke="#7a5b2e" strokeWidth="2" strokeDasharray={panelStroke} />
+          <text x="171" y="102" textAnchor="middle" className="fill-ink text-[10px] font-semibold">
+            panel connection review
+          </text>
+        </>
+      ) : null}
+
+      <text x="318" y="32" className="fill-ink text-[10px] font-semibold">
+        planter step
+      </text>
+      {visiblePieces.map((label, index) => (
+        <text key={`${card.id}:${label}`} x="318" y={50 + index * 14} className="fill-ink text-[10px] font-semibold">
+          {shortPartLabel(label)}
+        </text>
+      ))}
+      {reviewNeeded ? (
+        <text x="318" y="94" className="fill-ink text-[10px] font-semibold">
+          review first
+        </text>
+      ) : null}
+    </svg>
+  );
+}
+
 function shouldRenderMiniDiagram(card: BuildStepCard): boolean {
   return !/^step_\d+$/u.test(card.id) && (card.relatedPieceLabels.length > 0 || Boolean(card.dimensionReferences?.length) || Boolean(card.reviewBlockers?.length));
 }
 
-function stepDiagramPhase(card: BuildStepCard): "cut" | "layout" | "support" | "mount" | "finish" | "review" {
+function isPlanterStepCard(card: BuildStepCard): boolean {
+  return card.id.startsWith("planter_") || /\b(Front panel|Back panel|Left side panel|Right side panel|Bottom panel)\b/.test(card.relatedPieceLabels.join(" "));
+}
+
+function stepDiagramPhase(card: BuildStepCard): "cut" | "drill" | "layout" | "support" | "mount" | "finish" | "review" {
   const text = `${card.id} ${card.title} ${card.phaseLabel}`.toLowerCase();
   if (text.includes("cut")) return "cut";
+  if (/drill|drainage/.test(text)) return "drill";
   if (/support|frame|assemble connected|assembly blocked/.test(text)) return "support";
   if (/mount|installation/.test(text)) return "mount";
   if (/finish|sand|prep/.test(text)) return "finish";

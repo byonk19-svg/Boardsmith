@@ -199,7 +199,7 @@ Priority future categories are:
 - Laundry storage.
 - Kids furniture, with strict safety boundaries.
 
-Wall shelves should be the golden template and proving ground. Make the full intake to build model to diagrams to print packet flow excellent for wall shelves first, then apply those patterns to other categories. Planter boxes are the first bounded follow-on: they should use deterministic panel labels, cut-layout data, stock/material planning, and review-first readiness actions for drainage, liner, outdoor finish, stock-board selection, panel cuts, and connection review, while deeper build-step/diagram specialization waits for repeated private-use friction.
+Wall shelves should be the golden template and proving ground. Make the full intake to build model to diagrams to print packet flow excellent for wall shelves first, then apply those patterns to other categories. Planter boxes are the first bounded follow-on: they should use deterministic panel labels, cut-layout data, stock/material planning, and review-first readiness/build-guide actions for drainage, liner, outdoor finish, stock-board selection, panel cuts, and connection review, while deeper connection-diagram specialization waits for repeated private-use friction.
 
 ## Safety Boundaries
 

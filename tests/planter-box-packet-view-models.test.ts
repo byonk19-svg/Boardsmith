@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createBuildModelDraft } from "@/lib/build-model/create-build-model-draft";
+import { createPrintablePlanManifest } from "@/lib/plans/printable-plan-manifest";
 import { createPlanterBoxCutDiagramViewModel } from "@/lib/plans/planter-box-cut-diagram-view-model";
+import { createPlanterBoxBuildStepViewModel } from "@/lib/plans/planter-box-build-step-view-model";
 import { createPlanterBoxPlanReadinessViewModel } from "@/lib/plans/planter-box-plan-readiness-view-model";
 import { createPlanterBoxStockBoardViewModel } from "@/lib/plans/planter-box-stock-board-view-model";
 import { calculateSafetyReviewFlags } from "@/lib/safety/safety-review";
@@ -58,6 +60,14 @@ describe("planter box packet view models", () => {
         "right_side_panel_to_front_back_bottom",
       ]),
     );
+    expect(buildModel.operations.map((operation) => operation.id)).toEqual([
+      "cut_planter_panels",
+      "drill_drainage_holes",
+      "dry_fit_planter_panels",
+      "fasten_planter_panels",
+      "apply_exterior_finish",
+      "review_drainage_finish_and_connections",
+    ]);
     expect(connectionText).not.toContain("Generic planter-box connection placeholder");
     expect(connectionText).toMatch(/front, back, and bottom panels/);
     expect(connectionText).toMatch(/outdoor-suitable fasteners/i);
@@ -109,6 +119,64 @@ describe("planter box packet view models", () => {
     expect(viewModel.actions.map((action) => action.printLabel)).toContain("Confirm drainage/liner");
     expect(JSON.stringify(viewModel)).toMatch(/manual review|planning aid|Outdoor material and finish/i);
     expect(JSON.stringify(viewModel)).not.toMatch(/vendor|price|cart|load rated|certified|CAD-ready|CNC-ready|approved|load-bearing/i);
+  });
+
+  it("creates a deterministic planter build guide from panels and connections", () => {
+    const project = planterProject();
+    const buildModel = planterBuildModel();
+    const cutViewModel = createPlanterBoxCutDiagramViewModel({ buildModel });
+    const stockBoardViewModel = createPlanterBoxStockBoardViewModel({ buildModel, cutViewModel });
+    const viewModel = createPlanterBoxBuildStepViewModel({ project, buildModel, cutViewModel, stockBoardViewModel });
+
+    expect(viewModel.status).toBe("needs_review");
+    expect(viewModel.badges).toEqual(expect.arrayContaining(["Needs review", "Panel connections", "Build Model steps"]));
+    expect(viewModel.reviewBlockers).toEqual(
+      expect.arrayContaining([
+        "Confirm drainage-hole layout and liner approach before final assembly.",
+        "Confirm screw length, spacing, edge distance, and outdoor suitability before fastening panels.",
+      ]),
+    );
+    expect(viewModel.stepCards.map((step) => step.title)).toEqual([
+      "Review planter layout before cutting",
+      "Cut planter panels",
+      "Drill drainage holes in bottom panel",
+      "Dry fit planter box and confirm panel connections",
+      "Apply exterior finish or liner",
+      "Final planter review before use",
+    ]);
+    expect(viewModel.stepCards[1]?.dimensionReferences).toEqual([
+      "Part A - Front panel: 1x, 24 x 8 x 0.75 in",
+      "Part B - Back panel: 1x, 24 x 8 x 0.75 in",
+      "Part C - Left side panel: 1x, 8 x 8 x 0.75 in",
+      "Part D - Right side panel: 1x, 8 x 8 x 0.75 in",
+      "Part E - Bottom panel: 1x, 24 x 8 x 0.75 in",
+    ]);
+    expect(viewModel.stepCards[3]?.relatedPieceLabels).toEqual([
+      "Part A - Front panel",
+      "Part B - Back panel",
+      "Part C - Left side panel",
+      "Part D - Right side panel",
+      "Part E - Bottom panel",
+    ]);
+    expect(JSON.stringify(viewModel)).toMatch(/dry-fit|panel connections|pilot holes|outdoor/i);
+    expect(JSON.stringify(viewModel)).not.toMatch(/vendor|price|cart|load rated|certified|CAD-ready|CNC-ready|approved|load-bearing/i);
+  });
+
+  it("uses planter build-step cards in the printable manifest without making the packet build-ready", () => {
+    const project = planterProject();
+    const buildModel = planterBuildModel();
+    const manifest = createPrintablePlanManifest({
+      project,
+      planRecord: null,
+      buildModel,
+      buildModelSource: "derived",
+    });
+
+    expect(manifest.wallShelfBuildStepViewModel.status).toBe("unsupported");
+    expect(manifest.planterBoxBuildStepViewModel.status).toBe("needs_review");
+    expect(manifest.buildStepCards.map((step) => step.title)).toContain("Dry fit planter box and confirm panel connections");
+    expect(JSON.stringify(manifest.buildStepCards)).toContain("Part E - Bottom panel");
+    expect(JSON.stringify(manifest.buildStepCards)).not.toMatch(/vendor|price|cart|load rated|certified|CAD-ready|CNC-ready|approved|load-bearing/i);
   });
 
   it("keeps baseline planter readiness actions when generated wording lacks trigger keywords", () => {

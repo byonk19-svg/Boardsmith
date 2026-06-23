@@ -5,6 +5,7 @@ import { summarizeCutListReview, type CutListReviewSummary } from "@/lib/plans/c
 import { summarizeExportReadiness, type ExportReadinessSummary } from "@/lib/plans/export-readiness";
 import { summarizeMaterialReview, type MaterialReviewSummary } from "@/lib/plans/material-summary";
 import { createPlanterBoxCutDiagramViewModel, type PlanterBoxCutDiagramViewModel } from "@/lib/plans/planter-box-cut-diagram-view-model";
+import { createPlanterBoxBuildStepViewModel, type PlanterBoxBuildStepViewModel } from "@/lib/plans/planter-box-build-step-view-model";
 import { createPlanterBoxPartScheduleViewModel, type PlanterBoxPartScheduleViewModel } from "@/lib/plans/planter-box-part-schedule-view-model";
 import { createPlanterBoxPlanReadinessViewModel, type PlanterBoxPlanReadinessViewModel } from "@/lib/plans/planter-box-plan-readiness-view-model";
 import { createPlanterBoxStockBoardViewModel, type PlanterBoxStockBoardViewModel } from "@/lib/plans/planter-box-stock-board-view-model";
@@ -74,6 +75,7 @@ export type PrintablePlanManifest = {
   cutList: CutListReviewSummary | null;
   planningDiagrams: PlanningDiagramSummary;
   planterBoxCutDiagramViewModel: PlanterBoxCutDiagramViewModel;
+  planterBoxBuildStepViewModel: PlanterBoxBuildStepViewModel;
   planterBoxPartScheduleViewModel: PlanterBoxPartScheduleViewModel;
   planterBoxPlanReadinessViewModel: PlanterBoxPlanReadinessViewModel;
   planterBoxStockBoardViewModel: PlanterBoxStockBoardViewModel;
@@ -382,6 +384,12 @@ export function createPrintablePlanManifest({
     buildModel: reviewBuildModel,
     cutViewModel: planterBoxCutDiagramViewModel,
   });
+  const planterBoxBuildStepViewModel = createPlanterBoxBuildStepViewModel({
+    project,
+    buildModel: reviewBuildModel,
+    cutViewModel: planterBoxCutDiagramViewModel,
+    stockBoardViewModel: planterBoxStockBoardViewModel,
+  });
   const planterBoxPlanReadinessViewModel = createPlanterBoxPlanReadinessViewModel({
     project,
     buildModel: reviewBuildModel,
@@ -453,6 +461,7 @@ export function createPrintablePlanManifest({
     cutList,
     planningDiagrams: createPlanDiagrams(reviewBuildModel, { wallShelfViewModel: wallShelfDiagramViewModel }),
     planterBoxCutDiagramViewModel,
+    planterBoxBuildStepViewModel,
     planterBoxPartScheduleViewModel,
     planterBoxPlanReadinessViewModel,
     planterBoxStockBoardViewModel,
@@ -464,9 +473,13 @@ export function createPrintablePlanManifest({
     wallShelfStockBoardViewModel,
     wallShelfDiagram,
     buildStepCards:
-      wallShelfBuildStepViewModel.status === "unsupported" && plan
-        ? createBuildStepCards(plan.assembly_steps, reviewBuildModel)
-        : wallShelfBuildStepViewModel.stepCards,
+      wallShelfBuildStepViewModel.status !== "unsupported"
+        ? wallShelfBuildStepViewModel.stepCards
+        : planterBoxBuildStepViewModel.status !== "unsupported"
+          ? planterBoxBuildStepViewModel.stepCards
+          : plan
+            ? createBuildStepCards(plan.assembly_steps, reviewBuildModel)
+            : [],
     actionChecklist,
     planReview,
     exportReadiness,

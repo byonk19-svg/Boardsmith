@@ -108,6 +108,8 @@ describe("plan packet contract", () => {
     expect(planterMarkup).toContain("Drainage and liner approach needs review");
     expect(planterMarkup).toContain("Planter box cut layout");
     expect(planterMarkup).toContain("Planter Box Buying Plan");
+    expect(planterMarkup).toContain("Dry fit planter box and confirm panel connections");
+    expect(planterMarkup).toContain("planter step");
     expect(planterMarkup).not.toContain("Shelf board to review");
     expect(`${wallMarkup} ${planterMarkup}`).not.toMatch(/add to cart|load rated|certified|CAD-ready|CNC-ready/i);
   });
@@ -250,6 +252,8 @@ describe("plan packet contract", () => {
     expect(renderedPacket).toContain("Drainage and liner approach needs review");
     expect(renderedPacket).toContain("Planter box cut layout");
     expect(renderedPacket).toContain("Planter Box Buying Plan");
+    expect(renderedPacket).toContain("Dry fit planter box and confirm panel connections");
+    expect(renderedPacket).toContain("planter step");
     expect(renderedPacket).toContain("Part E - Bottom panel");
     expect(renderedPacket).not.toContain("Shelf board to review");
     expect(

@@ -88,6 +88,7 @@ npm test
 npm run lint
 npm run typecheck
 npm run build
+npm run test:e2e # required for route, form, lifecycle, browser-visible packet, and print-route changes
 npm audit --audit-level=moderate
 git diff --check
 ```
