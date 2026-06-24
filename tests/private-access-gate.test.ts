@@ -25,6 +25,7 @@ describe("private MVP access gate", () => {
   it("keeps access and static framework paths public", () => {
     expect(isPublicAccessPath("/access")).toBe(true);
     expect(isPublicAccessPath("/access/verify")).toBe(true);
+    expect(isPublicAccessPath("/login")).toBe(true);
     expect(isPublicAccessPath("/_next/static/chunk.js")).toBe(true);
     expect(isPublicAccessPath("/favicon.ico")).toBe(true);
     expect(isPublicAccessPath("/projects")).toBe(false);
@@ -33,9 +34,12 @@ describe("private MVP access gate", () => {
 
   it("sanitizes return paths before redirecting after access", () => {
     expect(sanitizeReturnTo("/projects/new")).toBe("/projects/new");
+    expect(sanitizeReturnTo("/projects/project-id")).toBe("/projects/project-id");
+    expect(sanitizeReturnTo("/projects/project-id/print?from=smoke")).toBe("/projects/project-id/print?from=smoke");
     expect(sanitizeReturnTo("https://evil.example/projects")).toBe("/");
     expect(sanitizeReturnTo("//evil.example/projects")).toBe("/");
     expect(sanitizeReturnTo("/access?returnTo=/projects")).toBe("/");
+    expect(sanitizeReturnTo("/recipes/new")).toBe("/");
   });
 
   it("builds an access redirect with a local return path", () => {
