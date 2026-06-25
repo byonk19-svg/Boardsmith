@@ -294,6 +294,11 @@ test("renders wall shelf store-trip minimum on detail and browser print routes",
   await expect(page.getByRole("heading", { name: "E2E wall shelf buying minimum" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Tweak this plan" })).toBeVisible();
   await expectVisualPacket(page, /Deterministic finished wall-shelf hero visual/i, ["Part A - Shelf board"]);
+  await expect(page.getByRole("navigation", { name: "Plan packet sections" })).toBeVisible();
+  await page.getByRole("link", { name: "Buying Plan" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#plan-buying-plan$/);
+  await expect(page.locator("#plan-buying-plan")).toBeInViewport();
   await expect(page.getByText("Store-trip minimum").first()).toBeVisible();
   await expect(page.getByText("Plan for 1 shelf board.").first()).toBeVisible();
   await expect(page.getByText("Each board needs at least 42 in usable length.").first()).toBeVisible();

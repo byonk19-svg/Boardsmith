@@ -430,8 +430,10 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain("Plan Review");
     expect(markup).toContain("Review: Blocked");
     expect(markup).toContain("Advanced output notes");
+    expect(markup.match(/Advanced output notes/g)).toHaveLength(1);
     expect(markup).toContain("Secondary notes for possible future output work.");
     expect(markup).toContain("This MVP uses browser print only; no PDF or CAD download is generated.");
+    expect(markup).not.toContain("Later output check");
   });
 
   it("renders shelf intake dimensions with beginner-safe labels", async () => {
@@ -535,6 +537,15 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup).toContain('href="/projects/project_saved_bbm/print"');
     expect(markup).toContain("Latest generated plan");
     expect(markup).toContain("Build Snapshot");
+    expect(markup).toContain('aria-label="Plan packet sections"');
+    expect(markup).toContain('href="#plan-hero-visual"');
+    expect(markup).toContain('href="#plan-project-visuals"');
+    expect(markup).toContain('href="#plan-check-before-building"');
+    expect(markup).toContain('href="#plan-materials-and-parts"');
+    expect(markup).toContain('href="#plan-buying-plan"');
+    expect(markup).toContain('href="#plan-build-guide"');
+    expect(markup).toContain('href="#plan-reference-review-notes"');
+    expect(markup).toContain('id="plan-buying-plan"');
     expect(markup).not.toContain("Plan at a glance");
     expect(markup).not.toContain("Overview / Summary");
     expect(markup).toContain("Hero Visual");
@@ -1483,14 +1494,19 @@ describe("ProjectDetailPage project structure", () => {
 
     const readinessIndex = markup.indexOf("Plan Readiness / Next Actions");
     const heightActionIndex = markup.indexOf("Total project height looks too small");
-    const heroIndex = markup.indexOf("Hero Visual");
-    const projectVisualsIndex = markup.indexOf("Project Visuals / Diagrams");
-    const cutIndex = markup.indexOf("Cut Checklist");
-    const buildIndex = markup.indexOf("Build Guide");
-    const checkIndex = markup.indexOf("Check Before Building");
+    const heroIndex = markup.indexOf('id="plan-hero-visual"');
+    const projectVisualsIndex = markup.indexOf('id="plan-project-visuals"');
+    const cutIndex = markup.indexOf('id="cut-list-to-verify"');
+    const buildIndex = markup.indexOf('id="plan-build-guide"');
+    const checkIndex = markup.indexOf('id="plan-check-before-building"');
 
     expect(readinessIndex).toBeGreaterThan(-1);
     expect(heightActionIndex).toBeGreaterThan(readinessIndex);
+    expect(heroIndex).toBeGreaterThan(-1);
+    expect(projectVisualsIndex).toBeGreaterThan(-1);
+    expect(checkIndex).toBeGreaterThan(-1);
+    expect(cutIndex).toBeGreaterThan(-1);
+    expect(buildIndex).toBeGreaterThan(-1);
     expect(heroIndex).toBeLessThan(projectVisualsIndex);
     expect(projectVisualsIndex).toBeLessThan(checkIndex);
     expect(readinessIndex).toBeGreaterThan(checkIndex);
