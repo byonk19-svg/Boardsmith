@@ -6,6 +6,24 @@ June 10, 2026
 
 This pass predates the June 20, 2026 deeper planter packet planning follow-through. The follow-through now has local focused packet/detail/print test coverage, including planter-specific readiness actions, plus a sanitized planter-specific hosted detail/print route smoke pass. A fresh live hosted generated-plan dogfood pass for a clearly labeled non-critical planter project was completed on June 21, 2026. A post-merge hosted wall-shelf buying-trip pass was completed on June 22, 2026 after the explicit buying-decision checklist reached the deployed protected path.
 
+## Local Wall-Shelf Dogfood Fix Batch
+
+Date: June 25, 2026
+
+Scope: local private-MVP fix batch from the realistic browser dogfood pass focused on wall-shelf setup, store-trip review, generated-plan revision, and messy/incomplete shelf intake. This pass used localhost and isolated local JSON data. No hosted data, hosted routes, Supabase cloud rows, migrations, packages, exports, screenshots, commits, or pushes were used.
+
+Fixes made:
+
+- Generated wall-shelf project pages now expose `Tweak this plan` as a visible top quick action when an active latest plan exists, instead of requiring the user to open Advanced project details first.
+- Incomplete New Project intake now says `Complete required info to save` and explains that required setup must be completed before saving, matching the actual validation behavior instead of implying an incomplete setup was saved.
+- Wall-shelf Buying Plan store-trip minimum copy now tells the user to treat the modeled length as the minimum usable length and choose a longer available board for trimming, defects, waste, and final layout, while still avoiding exact retail stock selection.
+
+Guardrails reconfirmed:
+
+- `Tweak this plan` remains a one-shot revision/intake-update flow, not chat.
+- The Buying Plan remains a planning aid, not a vendor, price, cart, inventory, purchase, load-rating, approval, CAD, CNC, or export workflow.
+- Messy or incomplete shelf ideas still require supported structured setup before plan generation.
+
 ## Fresh Hosted Planter Generated-Plan Dogfood
 
 Date: June 21, 2026

@@ -34,7 +34,7 @@ const initialState: SummaryState = {
   shelfLoad: "not sure",
   moistureExposure: "normal indoor room",
   toolsCount: 0,
-  missing: [],
+  missing: ["project title", "width", "depth", "actual board thickness", "board material", "at least one tool"],
   needsReview: ["mounting method", "wall type", "stud access", "expected load", "final measurements"],
 };
 
@@ -223,7 +223,7 @@ export function ProjectIntakeLiveSummary() {
       </div>
       {summary.missing.length > 0 ? (
         <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-950">
-          You can save this setup now, but you will need to add required info before Boardsmith can generate a plan.
+          Complete the missing required info above before saving this setup. Boardsmith will not generate a plan until the required setup is present.
         </p>
       ) : null}
       <p className="rounded-md border border-sawdust bg-shop/60 p-3 text-ink/65">
@@ -244,7 +244,7 @@ export function ProjectIntakeSubmitLabel() {
     const update = () => {
       const summary = buildSummary(form);
       if (labelRef.current) {
-        labelRef.current.textContent = summary.missing.length > 0 ? "Save incomplete setup" : "Save and review project";
+        labelRef.current.textContent = summary.missing.length > 0 ? "Complete required info to save" : "Save and review project";
       }
     };
     update();
@@ -257,7 +257,7 @@ export function ProjectIntakeSubmitLabel() {
     };
   }, []);
 
-  return <span ref={labelRef}>Save incomplete setup</span>;
+  return <span ref={labelRef}>Complete required info to save</span>;
 }
 
 function SummaryChip({ label, tone }: { label: string; tone: "ready" | "review" | "warn" }) {

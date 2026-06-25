@@ -292,6 +292,7 @@ test("renders wall shelf store-trip minimum on detail and browser print routes",
   await page.goto(`/projects/${wallShelfProjectId}`);
 
   await expect(page.getByRole("heading", { name: "E2E wall shelf buying minimum" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Tweak this plan" })).toBeVisible();
   await expectVisualPacket(page, /Deterministic finished wall-shelf hero visual/i, ["Part A - Shelf board"]);
   await expect(page.getByText("Store-trip minimum").first()).toBeVisible();
   await expect(page.getByText("Plan for 1 shelf board.").first()).toBeVisible();
@@ -307,7 +308,11 @@ test("renders wall shelf store-trip minimum on detail and browser print routes",
   await expect(page.getByText("Store-trip minimum")).toBeVisible();
   await expect(page.getByText("Plan for 1 shelf board.")).toBeVisible();
   await expect(page.getByText("Each board needs at least 42 in usable length.")).toBeVisible();
-  await expect(page.getByText("Exact retail stock length still depends on available boards, defects, waste, and final layout.")).toBeVisible();
+  await expect(
+    page.getByText(
+      "Use this as the minimum usable length, then choose a longer available board for trimming, defects, waste, and final layout. Boardsmith does not choose the retail stock length.",
+    ),
+  ).toBeVisible();
   await expect(page.getByText("Selected mounting method: Visible L brackets.").first()).toBeVisible();
   await expect(page.getByText("Intake support/bracket count: 3.").first()).toBeVisible();
   await expect(page.getByText("Modeled support/bracket count: 3 Visible L bracket placeholders.").first()).toBeVisible();

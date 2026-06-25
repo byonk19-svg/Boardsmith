@@ -635,6 +635,8 @@ describe("ProjectDetailPage project structure", () => {
     expect(markup.indexOf(planRecord.plan_json.project_summary)).toBeGreaterThan(markup.indexOf("Build Guide"));
 
     expect(markup).toContain("Tweak this plan");
+    expect(markup.indexOf('href="#tweak-this-plan"')).toBeLessThan(markup.indexOf('id="advanced-project-details"'));
+    expect(markup.indexOf('id="tweak-this-plan"')).toBeLessThan(markup.indexOf('id="advanced-project-details"'));
     expect(markup).toContain("Describe one change to the latest plan.");
     expect(markup).toContain("Boardsmith patches Project Intake first for safe structured changes");
     expect(markup).toContain("or saves a new plan version for prose-only revisions.");

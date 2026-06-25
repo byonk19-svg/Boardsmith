@@ -147,7 +147,11 @@ export default async function ProjectDetailPage({
           </p>
         </div>
         {latestPlanReview ? (
-          <ProjectPlanQuickActions printPreviewHref={printPreviewHref} hasOpenQuestions={latestPlanReview.manifest.sections.unresolvedQuestions.length > 0} />
+          <ProjectPlanQuickActions
+            printPreviewHref={printPreviewHref}
+            hasOpenQuestions={latestPlanReview.manifest.sections.unresolvedQuestions.length > 0}
+            canRevise={!lifecycle.isArchived}
+          />
         ) : (
           <ProjectActions project={project} hasLatestPlan={false} printPreviewHref={printPreviewHref} />
         )}
@@ -200,6 +204,7 @@ export default async function ProjectDetailPage({
       {latestPlanReview ? (
         <>
           <PlanView manifest={latestPlanReview.manifest} />
+          {lifecycle.canRevisePlan ? <TweakPlanSection project={project} hasLatestPlan={lifecycle.hasLatestPlan} /> : null}
           <details id="advanced-project-details" className="no-print scroll-mt-6 rounded-lg border border-sawdust bg-white p-4 shadow-soft">
             <summary className="cursor-pointer text-sm font-semibold text-ink">
               Advanced project details
@@ -233,7 +238,6 @@ export default async function ProjectDetailPage({
               ) : null}
               {latestPlanReview.manifest.planReview ? <PlanReviewPanel summary={latestPlanReview.manifest.planReview} /> : null}
               {latestPlanReview.manifest.exportReadiness ? <ExportReadinessPanel summary={latestPlanReview.manifest.exportReadiness} /> : null}
-              {lifecycle.canRevisePlan ? <TweakPlanSection project={project} hasLatestPlan={lifecycle.hasLatestPlan} /> : null}
               <PlanComparisonPanel
                 comparison={planComparison}
                 comparedVersionLabel={comparedPlanReview ? planVersionLabel(planReviews, comparedPlanReview.plan) : null}
@@ -360,7 +364,7 @@ function ProjectActions({ project, hasLatestPlan, printPreviewHref }: { project:
   );
 }
 
-function ProjectPlanQuickActions({ printPreviewHref, hasOpenQuestions }: { printPreviewHref: Route; hasOpenQuestions: boolean }) {
+function ProjectPlanQuickActions({ printPreviewHref, hasOpenQuestions, canRevise }: { printPreviewHref: Route; hasOpenQuestions: boolean; canRevise: boolean }) {
   return (
     <div className="no-print flex flex-wrap gap-2 sm:justify-end">
       {hasOpenQuestions ? (
@@ -372,6 +376,11 @@ function ProjectPlanQuickActions({ printPreviewHref, hasOpenQuestions }: { print
           Review cut list
         </a>
       )}
+      {canRevise ? (
+        <a href="#tweak-this-plan" className="rounded-md border border-moss bg-white px-3 py-2 text-sm font-semibold text-moss hover:bg-moss/10">
+          Tweak this plan
+        </a>
+      ) : null}
       <Link href={printPreviewHref} className="rounded-md border border-sawdust bg-white px-3 py-2 text-sm font-semibold text-ink hover:bg-shop">
         Print build sheet
       </Link>

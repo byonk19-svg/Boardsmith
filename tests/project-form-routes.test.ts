@@ -268,7 +268,8 @@ describe("project form routes", () => {
     expect(markup).toContain("Quick select: Basic layout tools");
     expect(markup).toContain("Review before saving");
     expect(markup).toContain("Boardsmith saves this setup first.");
-    expect(markup).toContain("Save incomplete setup");
+    expect(markup).toContain("Complete required info to save");
+    expect(markup).toContain("Complete the missing required info above before saving this setup.");
     expect(markup).toContain("Save and review project");
     expect(markup.match(/Use example/g)?.length).toBe(5);
     expect(markup.indexOf("<summary")).toBeLessThan(markup.indexOf('action="/projects/create"'));

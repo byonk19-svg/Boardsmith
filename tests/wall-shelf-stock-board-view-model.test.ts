@@ -172,7 +172,8 @@ describe("createWallShelfStockBoardViewModel", () => {
         materialName: "3/4 in pine board",
         boardCountLabel: "Plan for 1 shelf board.",
         usableLengthLabel: "Each board needs at least 36 in usable length.",
-        caveat: "Exact retail stock length still depends on available boards, defects, waste, and final layout.",
+        caveat:
+          "Use this as the minimum usable length, then choose a longer available board for trimming, defects, waste, and final layout. Boardsmith does not choose the retail stock length.",
       },
     ]);
     const stockBoardDecision = viewModel.buyingDecisions.find((decision) => decision.id === "stock_board_selection");
@@ -358,7 +359,9 @@ describe("createWallShelfStockBoardViewModel", () => {
     expect(markup).toContain("Store-trip minimum");
     expect(markup).toContain("Plan for 5 shelf boards.");
     expect(markup).toContain("Each board needs at least 12 in usable length.");
-    expect(markup).toContain("Exact retail stock length still depends on available boards, defects, waste, and final layout.");
+    expect(markup).toContain(
+      "Use this as the minimum usable length, then choose a longer available board for trimming, defects, waste, and final layout. Boardsmith does not choose the retail stock length.",
+    );
     expect(markup).toContain("Buying decisions before purchase");
     expect(markup).toContain("Stock board selection");
     expect(markup).toContain("Support/frame may change the list");

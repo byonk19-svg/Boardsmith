@@ -34,7 +34,7 @@ test("intake form live summary, risk exclusivity, and save label behave like a f
   await page.goto("/projects/new");
 
   await expect(page.getByText("Critical missing info")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Save incomplete setup" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Complete required info to save" })).toBeVisible();
 
   await quickSelectBasicTools(page);
   await expect(page.getByText("4 tools selected")).toBeVisible();
@@ -68,7 +68,7 @@ test("dashboard idea draft opens the review form before save", async ({ page }) 
   await expect(page).toHaveURL(/\/projects\/new\?draft=idea/);
   await expect(page.getByText("Idea drafted into setup fields - review before saving.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Tell Boardsmith what you want to build" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Save and review project|Save incomplete setup/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Save and review project|Complete required info to save/ })).toBeVisible();
 });
 
 test("project library search, archive, archived filter, and restore work from real browser actions", async ({ page }) => {

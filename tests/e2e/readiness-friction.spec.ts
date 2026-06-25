@@ -31,7 +31,7 @@ test("garage utility shelf asks for support count without treating electrical ex
   await page.getByLabel("Anything behind or near the shelf location?").fill("Avoid electrical work on this wall.");
   await page.getByLabel("Anything else Boardsmith should know?").fill("Garage shelf for storage bins and tools. No wiring or lighting.");
 
-  await page.getByRole("button", { name: /Save and review project|Save incomplete setup/i }).click();
+  await page.getByRole("button", { name: /Save and review project|Complete required info to save/i }).click();
 
   await expect(page).toHaveURL(/\/projects\/[^/]+/);
   await expect(page.getByText("Plan readiness")).toBeVisible();
@@ -56,7 +56,7 @@ test("raised planter idea shows a specific support-template boundary before gene
   await page.getByLabel("Moisture exposure").selectOption("covered_outdoor");
   await page.getByLabel("Anything else Boardsmith should know?").fill("Outdoor herb planter standing off the ground with raised legs and a support frame.");
 
-  await page.getByRole("button", { name: /Save and review project|Save incomplete setup/i }).click();
+  await page.getByRole("button", { name: /Save and review project|Complete required info to save/i }).click();
 
   await expect(page).toHaveURL(/\/projects\/[^/]+/);
   await expect(page.getByText("Plan readiness")).toBeVisible();

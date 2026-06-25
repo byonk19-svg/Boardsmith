@@ -396,7 +396,7 @@ function storeTripMinimumsFor(facts: ShelfBoardMinimumPlanningFact[]): WallShelf
     usableLengthLabel: fact.minimumUsableLengthInches
       ? `Each board needs at least ${formatInches(fact.minimumUsableLengthInches)} usable length.`
       : "Each board's usable length still needs review.",
-    caveat: "Exact retail stock length still depends on available boards, defects, waste, and final layout.",
+    caveat: "Use this as the minimum usable length, then choose a longer available board for trimming, defects, waste, and final layout. Boardsmith does not choose the retail stock length.",
   }));
 }
 
