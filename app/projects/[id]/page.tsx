@@ -1806,7 +1806,7 @@ function PlanHistorySection({
             <div className="flex flex-wrap gap-2">
               {!entry.plan.is_latest && latestPlanReview ? (
                 <Link
-                  href={`/projects/${project.id}?compare_plan=${entry.plan.id}` as Route}
+                  href={`/projects/${project.id}?compare_plan=${entry.plan.id}`}
                   className="w-fit rounded-md bg-shop px-2.5 py-1 text-xs font-semibold text-ink/70 hover:underline"
                 >
                   Compare
@@ -2132,7 +2132,7 @@ function ExportReadinessPanel({ summary }: { summary: ExportReadinessSummary }) 
 
           {summary.warningCount > 0 ? <ReviewMessageGroup title="Needs review" messages={summary.warnings.map((issue) => issue.message)} tone="warning" /> : null}
 
-          {summary.exportReadinessNotes.length > 0 ? <ReviewMessageGroup title="Advanced output notes" messages={summary.exportReadinessNotes} tone="info" /> : null}
+          {summary.exportReadinessNotes.length > 0 ? <ReviewMessageGroup title="Future-output details" messages={summary.exportReadinessNotes} tone="info" /> : null}
 
           <p className="mt-4 text-sm leading-6 text-ink/70">
             Future output work still requires human review and safe woodworking judgment. This panel does not create export files or production-ready CAD, CNC, DXF, SVG, or PDF output.
@@ -2391,15 +2391,6 @@ function BuildModelView({
         </StructureGroup>
       </div>
 
-      <details className="mt-5 rounded-md bg-shop p-4">
-        <summary className="cursor-pointer text-sm font-semibold text-ink">Advanced output notes</summary>
-        <p className="mt-2 text-sm leading-6 text-ink/65">
-          This MVP uses browser print only; no PDF or CAD download is generated. Later output check: SVG{" "}
-          {readinessLabel(buildModel.exportReadiness.svgCandidate)}, PDF {readinessLabel(buildModel.exportReadiness.pdfCandidate)}, DXF{" "}
-          {readinessLabel(buildModel.exportReadiness.dxfCandidate)}, CAD {readinessLabel(buildModel.exportReadiness.cadCandidate)}.
-        </p>
-        {buildModel.exportReadiness.notes.length > 0 ? <p className="mt-2 text-sm leading-6 text-ink/65">{buildModel.exportReadiness.notes.join(" ")}</p> : null}
-      </details>
     </section>
   );
 }
@@ -2431,10 +2422,6 @@ function formatBuildModelDimensions(dimensions: BoardsmithBuildModel["pieces"][n
   const width = dimensions.widthInches ? `${dimensions.widthInches.toString()} in` : "width unknown";
   const thickness = dimensions.thicknessInches ? `${dimensions.thicknessInches.toString()} in` : "thickness unknown";
   return `${length} x ${width} x ${thickness}`;
-}
-
-function readinessLabel(isCandidate: boolean): string {
-  return isCandidate ? "candidate later" : "not enough information";
 }
 
 function MaterialReviewSummaryView({ summary, compact = false }: { summary: MaterialReviewSummary; compact?: boolean }) {
@@ -2579,22 +2566,24 @@ function PlanView({
         </div>
       </header>
 
+      <PlanPacketSectionsNav />
+
       {unresolvedDimensionItems.length > 0 ? <UnresolvedCutDimensionsWarning items={unresolvedDimensionItems} /> : null}
 
       <div className="divide-y divide-sawdust">
-        <PlanSheetSection title={corePacketSectionTitles.heroVisual}>
+        <PlanSheetSection id="plan-hero-visual" title={corePacketSectionTitles.heroVisual}>
           <PlanPacketHeroVisual manifest={manifest} />
         </PlanSheetSection>
 
-        <PlanSheetSection title={corePacketSectionTitles.projectVisuals}>
+        <PlanSheetSection id="plan-project-visuals" title={corePacketSectionTitles.projectVisuals}>
           <PlanPacketProjectVisuals manifest={manifest} />
         </PlanSheetSection>
 
-        <PlanSheetSection title={corePacketSectionTitles.checkBeforeBuilding}>
+        <PlanSheetSection id="plan-check-before-building" title={corePacketSectionTitles.checkBeforeBuilding}>
           <PlanPacketReadinessSection manifest={manifest} />
         </PlanSheetSection>
 
-        <PlanSheetSection title={corePacketSectionTitles.materialsAndParts}>
+        <PlanSheetSection id="plan-materials-and-parts" title={corePacketSectionTitles.materialsAndParts}>
           <MaterialReviewSummaryView summary={manifest.materials} />
           <h4 className="mt-5 text-sm font-semibold text-ink">Modeled pieces</h4>
           <List items={packetPartScheduleListItems(manifest, packet)} />
@@ -2640,15 +2629,15 @@ function PlanView({
           )}
         </PlanSheetSection>
 
-        <PlanSheetSection title={corePacketSectionTitles.buyingPlan}>
+        <PlanSheetSection id="plan-buying-plan" title={corePacketSectionTitles.buyingPlan}>
           <PlanPacketBuyingPlan manifest={manifest} />
         </PlanSheetSection>
 
-        <PlanSheetSection title={corePacketSectionTitles.buildGuide}>
+        <PlanSheetSection id="plan-build-guide" title={corePacketSectionTitles.buildGuide}>
           <PlanPacketBuildGuide manifest={manifest} />
         </PlanSheetSection>
 
-        <PlanSheetSection title={corePacketSectionTitles.referenceReviewNotes}>
+        <PlanSheetSection id="plan-reference-review-notes" title={corePacketSectionTitles.referenceReviewNotes}>
           <h4 className="text-sm font-semibold text-ink">Generated plan summary</h4>
           {generatedPlan.summary ? (
             <p className="mt-2 text-sm leading-6 text-ink/70">{generatedPlan.summary}</p>
@@ -2698,6 +2687,33 @@ function PlanView({
         </PlanSheetSection>
       </div>
     </article>
+  );
+}
+
+const planPacketSectionLinks = [
+  { href: "#printable-plan-sheet", label: corePacketSectionTitles.buildSnapshot },
+  { href: "#plan-hero-visual", label: corePacketSectionTitles.heroVisual },
+  { href: "#plan-project-visuals", label: corePacketSectionTitles.projectVisuals },
+  { href: "#plan-check-before-building", label: corePacketSectionTitles.checkBeforeBuilding },
+  { href: "#plan-materials-and-parts", label: corePacketSectionTitles.materialsAndParts },
+  { href: "#cut-list-to-verify", label: corePacketSectionTitles.cutChecklist },
+  { href: "#plan-buying-plan", label: corePacketSectionTitles.buyingPlan },
+  { href: "#plan-build-guide", label: corePacketSectionTitles.buildGuide },
+  { href: "#plan-reference-review-notes", label: corePacketSectionTitles.referenceReviewNotes },
+] satisfies readonly { href: `#${string}`; label: string }[];
+
+function PlanPacketSectionsNav() {
+  return (
+    <nav aria-label="Plan packet sections" className="no-print border-b border-sawdust py-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Plan packet sections</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {planPacketSectionLinks.map((link) => (
+          <a key={link.href} href={link.href} className="rounded-md border border-sawdust bg-white px-3 py-1.5 text-sm font-semibold text-ink hover:bg-shop">
+            {link.label}
+          </a>
+        ))}
+      </div>
+    </nav>
   );
 }
 
