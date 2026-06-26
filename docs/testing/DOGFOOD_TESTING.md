@@ -34,6 +34,25 @@ npm run test:e2e
 6. During exploratory browser QA, document findings first. Do not make code changes unless the user explicitly asks for implementation.
 7. If a fix is later requested, implement the smallest verifiable change and add or update regression coverage for the confirmed behavior.
 
+## Operational QA Workbook
+
+Use `docs/qa/boardsmith-feature-user-story-ledger.xlsx` as the canonical active QA backlog.
+
+- `Feature Stories` is the inventory of user-facing behaviors, expected behavior, source-of-truth files, edge cases, and current verification coverage.
+- `Testing Log` records command and scenario-level evidence.
+- `QA Backlog` is the active queue for dogfood friction, defects, UX/logistical issues, retest needs, and leave-alone decisions.
+- `Status Vocabulary` defines the allowed severity, confidence, backlog, fix, retest, coverage, and owner values.
+
+For every dogfood pass, update the workbook first. Historical docs are secondary:
+
+- Put new or repeated findings in `QA Backlog`.
+- Keep `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` as sanitized historical evidence and summary context.
+- Use `docs/CODEX_TASKS.md` only after an implementation batch is accepted, completed, or deliberately deferred.
+
+Each `QA Backlog` row should include scenario, page/flow, user goal, what happened, why it matters, suggested fix, severity, confidence, repeat count, evidence link, whether it should become a Playwright test, owner, next action, fix commit/PR, retest result, and last updated date.
+
+Pull implementation batches only from high-confidence `Must fix before private MVP/demo` rows or repeated/high-confidence `Should fix soon` rows. Close rows as `Closed - Retested Pass` only after retesting the same user behavior, or as `Closed - Leave Alone` when the behavior is an intentional product/safety boundary.
+
 ## What To Look For
 
 Record friction when a realistic user experiences:

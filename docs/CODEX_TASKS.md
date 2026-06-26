@@ -1214,10 +1214,12 @@
 
 ## Recommended Next Tasks
 
-1. [ ] Keep using wall-shelf Buying Plans manually and only expand behavior if the explicit buying decisions or visual review remain repeatedly annoying.
-2. [ ] Choose any next implementation lane only from repeated manual dogfood friction or an explicitly selected next template.
+The active QA backlog now lives in `docs/qa/boardsmith-feature-user-story-ledger.xlsx`. Pull the next implementation batch from high-confidence `QA Backlog` rows, not from this prose list.
+
+1. [ ] Keep using wall-shelf Buying Plans manually and log repeated friction in the workbook before expanding behavior.
+2. [ ] Choose any next implementation lane only from repeated workbook backlog rows or an explicitly selected next template.
 3. [ ] If a next template is selected, start with a PRD/issue split like wall shelves instead of broad visual expansion.
-4. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change.
+4. [ ] Rerun hosted smoke after any future deployment, env-var, access-gate, archive, project detail, generation, or `Tweak this plan` change, then update the workbook `Testing Log`.
 5. [ ] Keep local Playwright smoke in the standard validation path for browser-facing lanes; defer only hosted/authenticated browser automation expansion until that lane is explicitly selected.
 
 ## Remaining Hardening

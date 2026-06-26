@@ -19,10 +19,11 @@ Read these before planning any website changes:
 3. `DESIGN.md` - design system, component posture, page hierarchy rules, prohibited visual directions.
 4. `docs/UI_WIREFLOW.md` - current routes, actions, states, and known UI friction.
 5. `docs/UX_POLISH_AUDIT.md` - backlog of practical UX issues and larger post-MVP ideas.
-6. `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` - evidence from actual hosted/manual use.
-7. `docs/PRIVATE_MVP_READINESS.md` - current readiness, guardrails, smoke expectations, and known limitations.
-8. `docs/CODEX_TASKS.md` - completed work, checkpoint history, and current narrow next-task posture.
-9. `CONTEXT.md` - canonical domain language for Grill/PRD/issue work.
+6. `docs/qa/boardsmith-feature-user-story-ledger.xlsx` - canonical active QA backlog, feature/user-story status, test evidence, and retest closure.
+7. `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` - sanitized historical evidence from actual hosted/manual use.
+8. `docs/PRIVATE_MVP_READINESS.md` - current readiness, guardrails, smoke expectations, and known limitations.
+9. `docs/CODEX_TASKS.md` - accepted/completed implementation work, checkpoint history, and current narrow next-task posture.
+10. `CONTEXT.md` - canonical domain language for Grill/PRD/issue work.
 
 ## Planning Gaps This File Closes
 

@@ -15,6 +15,7 @@ First inspect the repo:
 - app route structure
 - current product/MVP/readiness/dogfood docs
 - AGENTS.md and docs/testing/DOGFOOD_TESTING.md
+- docs/qa/README.md and docs/qa/boardsmith-feature-user-story-ledger.xlsx
 
 Run or prepare the app using repo-local commands. Prefer localhost and isolated local test data. Do not use real payments, real purchases, personal accounts, destructive actions, production data, hosted secrets, cookies, hosted URLs, or cloud mutations unless I explicitly scope that path.
 
@@ -22,6 +23,13 @@ Use existing repeatable checks as a baseline when practical:
 - npm run test:e2e
 
 Then perform exploratory browser QA with realistic user goals. Infer app-specific scenarios from the repo docs. For Boardsmith, include scenarios around project intake, dashboard idea drafting, wall-shelf planning, planter-box planning, project library search/filter/archive/restore, notes/build log, plan history/revision lifecycle, and Browser Print Plan readability. Include mobile-width checks when the flow has dense packet content or print/readability risk.
+
+Use the canonical QA workbook as the operational backlog:
+- Start from relevant rows in `Feature Stories`.
+- Log confirmed findings in `QA Backlog` before recommending implementation.
+- Update `Testing Log` for the commands and browser scenarios actually run.
+- Use `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` only for sanitized historical summaries.
+- Use `docs/CODEX_TASKS.md` only for accepted or completed implementation work.
 
 Extra scenarios I want you to include:
 <paste extra scenarios here, or leave blank>
@@ -71,10 +79,19 @@ For each issue include:
 - why it matters
 - suggested fix
 - confidence level
+- matching workbook row or new `QA Backlog` row ID
 
 ## Screenshots / Traces
 
 List any generated artifact paths and whether they are ignored. Do not include sensitive hosted data.
+
+## Workbook Updates
+
+List:
+- `Feature Stories` rows used
+- `Testing Log` rows added or updated
+- new `QA Backlog` rows
+- existing `QA Backlog` rows repeated, closed, or left alone
 
 ## Recommended Next Implementation Batch
 

@@ -39,10 +39,11 @@ Event-triggered when the user explicitly asks for a Boardsmith dogfood pass on a
 4. Generate a plan only when safe and expected for the scenario.
 5. Review generated-plan detail, Buying Plan, Build Guide, Check Before Building, project record, and Browser Print Plan.
 6. Record each hesitation with the page or feature, what was missing or vague, and whether the project could continue.
-7. Repeat with enough similar scenarios to decide whether the same issue repeats.
-8. Promote only repeated or blocking friction into a narrow implementation pass.
-9. Verify any implementation pass with focused tests and the repo's standard validation commands before commit.
-10. Update the dogfood findings and task docs with sanitized evidence.
+7. Update `docs/qa/boardsmith-feature-user-story-ledger.xlsx`: use `Feature Stories` as the behavior inventory, `Testing Log` for commands/scenarios run, and `QA Backlog` for active findings.
+8. Repeat with enough similar scenarios to decide whether the same issue repeats.
+9. Promote only repeated or blocking friction from `QA Backlog` into a narrow implementation pass.
+10. Verify any implementation pass with focused tests and the repo's standard validation commands before commit.
+11. Close or advance the same workbook rows after retest, then update sanitized evidence or task docs only as needed.
 
 ## Finding Record
 
@@ -76,6 +77,8 @@ Use whichever path matches the risk being tested.
 
 After the exploratory pass has grouped findings, Codex presents a repeated-annoyance brief and recommends the narrow implementation pass, if any.
 
+The workbook is the checkpoint source of truth. Update `QA Backlog` before recommending implementation. Use `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` for sanitized historical evidence and `docs/CODEX_TASKS.md` only for accepted, completed, or intentionally deferred implementation work.
+
 The user approves normal product changes before code work begins. Codex may proceed without that approval only for a clear bug, safety issue, lifecycle break, or data-integrity risk.
 
 ## Brief
@@ -83,6 +86,7 @@ The user approves normal product changes before code work begins. Codex may proc
 The checkpoint brief should contain:
 
 - What scenarios were run.
+- Which `Feature Stories`, `Testing Log`, and `QA Backlog` rows changed.
 - Which issues repeated.
 - Which issues were one-offs and should not become product work.
 - The recommended implementation pass, if any.
@@ -97,7 +101,8 @@ Only sanitized summaries go into committed docs. Sanitized summaries must omit h
 
 ## Output
 
-- Updated dogfood findings in `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` or a task-specific dogfood doc.
+- Updated workbook rows in `docs/qa/boardsmith-feature-user-story-ledger.xlsx`.
+- Updated dogfood findings in `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` or a task-specific dogfood doc only when a sanitized historical summary is useful.
 - A narrow implementation pass only when repeated friction justifies it.
 - Regression tests for the behavior changed by the implementation pass.
-- Updated `docs/CODEX_TASKS.md` when the pass becomes a completed task.
+- Updated `docs/CODEX_TASKS.md` when the pass becomes an accepted, completed, or deliberately deferred implementation task.

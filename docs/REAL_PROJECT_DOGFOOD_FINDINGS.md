@@ -1,5 +1,7 @@
 # Real Project Dogfood Findings
 
+This file is sanitized historical dogfood evidence. The active QA backlog, row status, retest state, owner, and next-action queue live in `docs/qa/boardsmith-feature-user-story-ledger.xlsx`.
+
 ## Date Of Pass
 
 June 10, 2026
