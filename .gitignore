@@ -5,6 +5,7 @@ node_modules/
 .data/
 .auth/
 .omx/
+.tmp/
 supabase/.temp/
 coverage/
 dist/
