@@ -98,6 +98,8 @@ The Playwright config lives in `playwright.config.ts`.
 
 Use browser QA like a realistic first-time user, not only as happy-path automation. Prefer localhost, isolated local JSON data, and non-critical smoke records. Do not use real payments, real purchases, personal accounts, destructive actions, or hosted data unless the user explicitly scopes that path.
 
+Use `docs/qa/boardsmith-feature-user-story-ledger.xlsx` as the canonical active QA backlog. `Feature Stories` is the behavior inventory, `Testing Log` is command/scenario evidence, and `QA Backlog` is where active dogfood friction, defects, retest needs, and leave-alone decisions live. Treat `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` as sanitized historical evidence and `docs/CODEX_TASKS.md` as accepted/completed implementation work, not the active backlog.
+
 For durable dogfood guidance, follow `docs/testing/DOGFOOD_TESTING.md`. For a reusable browser-QA request prompt, use `docs/testing/CODEX_BROWSER_QA_PROMPT.md`.
 
 ## App Shape
@@ -141,6 +143,7 @@ When behavior changes, update the relevant source of truth:
 - `docs/ARCHITECTURE.md` for source-of-truth, storage, subsystem, or boundary changes.
 - `docs/VISION.md` for product direction or plan-packet expectations.
 - `docs/PRIVATE_MVP_READINESS.md`, `docs/MVP_READINESS.md`, or `docs/REAL_PROJECT_DOGFOOD_FINDINGS.md` for readiness and dogfood evidence.
+- `docs/qa/boardsmith-feature-user-story-ledger.xlsx` for active QA backlog state, feature/user-story status, test evidence, and retest closure.
 - `docs/testing/*` for Codex/browser QA workflow changes.
 
 Do not add speculative roadmap items as implementation commitments. Let repeated private-use friction choose the next implementation lane.

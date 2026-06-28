@@ -79,6 +79,8 @@ Generated plans are saved only after Zod schema validation. When a deterministic
 
 For the current readiness snapshot and next task order, see [docs/MVP_READINESS.md](docs/MVP_READINESS.md), [docs/INTERNAL_RELEASE_CHECKLIST.md](docs/INTERNAL_RELEASE_CHECKLIST.md), and [docs/DEPLOYMENT_READINESS.md](docs/DEPLOYMENT_READINESS.md).
 
+For browser dogfood and active QA backlog work, use [docs/testing/DOGFOOD_TESTING.md](docs/testing/DOGFOOD_TESTING.md) and the canonical workbook at [docs/qa/boardsmith-feature-user-story-ledger.xlsx](docs/qa/boardsmith-feature-user-story-ledger.xlsx).
+
 ## Verification
 
 Run these before committing:

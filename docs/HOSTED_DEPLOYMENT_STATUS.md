@@ -224,7 +224,7 @@ Verified:
 - Empty revision input redirected to revision feedback and left the saved latest plan unchanged.
 - Successful wall-shelf generations rendered latest plan, Plan Review, Cut Checklist, Buying Plan, Materials and Parts, and browser print preview.
 
-Dogfood findings are recorded in [REAL_PROJECT_DOGFOOD_FINDINGS.md](REAL_PROJECT_DOGFOOD_FINDINGS.md).
+Active QA backlog status belongs in [docs/qa/boardsmith-feature-user-story-ledger.xlsx](qa/boardsmith-feature-user-story-ledger.xlsx). Sanitized historical dogfood findings from this pass are recorded in [REAL_PROJECT_DOGFOOD_FINDINGS.md](REAL_PROJECT_DOGFOOD_FINDINGS.md).
 
 Post-push follow-up:
 
