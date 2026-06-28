@@ -12,7 +12,7 @@
 
 - `git fetch origin` - passed
 - `npm install` - passed, 0 vulnerabilities
-- `npm test` - passed on rerun, 62 files and 464 tests
+- `npm test` - passed, 62 files and 464 tests
 - `npm run lint` - passed
 - `npm run typecheck` - passed
 - `npm run build` - passed
@@ -23,7 +23,7 @@
 
 ## What Was Fixed
 
-- No code fixes were needed. An initial full test run timed out in one project-store test while other repo checks were running; the focused test and a later full test run both passed.
+- No code fixes were needed.
 
 ## Remaining Issues
 
