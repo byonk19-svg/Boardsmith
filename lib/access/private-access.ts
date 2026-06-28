@@ -32,6 +32,7 @@ export function isPublicAccessPath(pathname: string): boolean {
   return (
     pathname === "/access" ||
     pathname === "/access/verify" ||
+    pathname === "/login" ||
     pathname.startsWith("/_next/") ||
     pathname === "/favicon.ico" ||
     pathname === "/robots.txt" ||
@@ -39,12 +40,29 @@ export function isPublicAccessPath(pathname: string): boolean {
   );
 }
 
+function isAllowedReturnPath(pathname: string): boolean {
+  if (pathname === "/" || pathname === "/projects" || pathname === "/projects/new" || pathname === "/settings") {
+    return true;
+  }
+
+  return /^\/projects\/[^/?#]+(?:\/print)?$/.test(pathname);
+}
+
 export function sanitizeReturnTo(value: string | null | undefined): string {
   if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/access")) {
     return "/";
   }
 
-  return value;
+  try {
+    const url = new URL(value, "https://boardsmith.local");
+    if (!isAllowedReturnPath(url.pathname)) {
+      return "/";
+    }
+
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/";
+  }
 }
 
 export function buildAccessRedirectUrl(requestUrl: string): URL {
